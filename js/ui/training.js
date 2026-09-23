@@ -33,6 +33,7 @@ const schemeText = (e) => {
 // CATÁLOGO DEL DÍA
 // ============================================================
 BUILDERS.training = (body) => {
+  document.body.classList.remove("modo-sesion"); // catálogo → fuera del foco de sesión
   // si hay sesión activa, el GIMNASIO muestra SIEMPRE la sesión (nunca la pisa el catálogo)
   const act0 = UI.session || S.getActiveSession();
   if (act0 && act0.status !== "completada" && act0.status !== "abandonada") {
@@ -250,6 +251,7 @@ function startWorkout(w) {
 }
 
 function renderSession() {
+  document.body.classList.add("modo-sesion"); // MODO SESIÓN: gimnasio, sudor, una mano
   const session = UI.session;
   if (!session) return BUILDERS.training();
   const { exIdx, setIdx } = session;
@@ -309,6 +311,12 @@ function renderSession() {
   body.appendChild(pro);
 
   // ---- PLAN DE HOY (lista completa al final: no empuja el registro hacia abajo) ----
+  const coachBtn = el("button", "btn btn-block", "PREGUNTA AL COACH");
+  coachBtn.style.marginTop = "10px";
+  coachBtn.addEventListener("click", () =>
+    UI.actions.openCoachAsk?.(`Estoy en la sesión «${session.name}», en ${E.name}. ¿Consejo de técnica o de ritmo para esta serie?`));
+  body.appendChild(coachBtn);
+  body.appendChild(el("div", "media-caption", "CORE es tu coach local (sin nube, no clínico). Al preguntar, la sesión se pausa y puedes reanudarla sin perder nada."));
   body.appendChild(el("div", "sec-label", `PLAN DE HOY · ${session.exercises.length} EJERCICIOS`));
   session.exercises.forEach((sx, i) => {
     const E2 = EXERCISES[sx.ex];
@@ -514,6 +522,7 @@ function abandonSession() {
 function finishWorkout() {
   const session = UI.session;
   if (!session) return BUILDERS.training();
+  document.body.classList.remove("modo-sesion"); // resumen → vuelve el sistema completo
   const reward = S.completeWorkout(session.workoutId, {
     loggedSets: session.logged,
     plannedSets: session.plannedSets,

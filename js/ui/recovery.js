@@ -15,6 +15,11 @@ BUILDERS.recovery = (body) => {
   const td = S.data.today;
   body.textContent = "";
 
+  body.appendChild(el("div", "card shine", `
+    <div class="card-row"><h4>NOCHE BAYONA</h4><span class="pill gold">CALMA</span></div>
+    <div class="mc-title" style="margin-top:8px">DESCANSAR TAMBIÉN TE HACE MÁS FUERTE</div>
+    <div class="mc-sub">Baja el ritmo. Lo que descansas hoy lo rindes mañana: descansar también es progreso.</div>`));
+
   // ---------- PREPARACIÓN + ¿POR QUÉ? ----------
   body.appendChild(el("div", "sec-label", "PUNTUACIÓN DE PREPARACIÓN"));
   const det = S.readinessDetail();
@@ -38,6 +43,26 @@ BUILDERS.recovery = (body) => {
   }
   card.appendChild(why);
   body.appendChild(card);
+
+  // ---------- RUTINA NOCTURNA ----------
+  body.appendChild(el("div", "sec-label", "RUTINA NOCTURNA"));
+  const rut = el("div", "card");
+  rut.innerHTML = `<div class="mc-sub">Cuatro pasos para cerrar el día. Se marca lo que haces de verdad (registro, sin XP).</div>`;
+  const PASOS_NOCHE = [
+    ["pantallas", "SIN PANTALLAS 30 MIN ANTES DE DORMIR"],
+    ["estiramiento", "ESTIRAMIENTO SUAVE · 3 MIN"],
+    ["respiracion", "RESPIRACIÓN · 1 MIN"],
+    ["hora", "HORA DE DORMIR DECIDIDA"],
+  ];
+  const hechos = td.nightRoutine || [];
+  for (const [id, label] of PASOS_NOCHE) {
+    const b = el("button", "btn btn-block", (hechos.includes(id) ? "✓ " : "") + label);
+    b.setAttribute("aria-pressed", hechos.includes(id) ? "true" : "false");
+    b.style.marginTop = "8px";
+    b.addEventListener("click", () => { S.nightRoutineToggle(id); BUILDERS.recovery(body); });
+    rut.appendChild(b);
+  }
+  body.appendChild(rut);
 
   // ---------- REGISTROS DE HOY ----------
   body.appendChild(el("div", "sec-label", "ESTADO DE HOY"));

@@ -15,6 +15,8 @@ const SHELL = [
   "./js/ui/shared.js", "./js/ui/cinematics.js", "./js/ui/training.js", "./js/ui/nutrition.js",
   "./js/ui/recovery.js", "./js/ui/mind.js", "./js/ui/plan.js", "./js/ui/armory.js",
   "./js/ui/progress.js", "./js/ui/core.js", "./js/ui/more.js",
+  "./js/ui/hoy.js", "./js/ui/trabajo.js", "./js/ui/coachos.js", "./js/hoy.js", "./js/contexto.js", "./js/coachos.js", "./js/medidas.js",
+  "./js/timeline.js", "./js/nutricion.js", "./js/sync/mirror.js",
   "./js/coach/coachStub.js", "./js/coach/replies.js", "./js/data/offlineQueue.js",
   "./js/diary/sessionDiary.js", "./js/health/healthMap.js", "./js/health/healthUI.js",
   "./js/vision/boot.js", "./js/vision/pose.js", "./js/vision/repCounter.js", "./js/vision/angles.js",

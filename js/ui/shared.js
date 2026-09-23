@@ -43,9 +43,11 @@ export const PLACES = {
   home:      { env: "home",     action: "idle",     cam: [0, 1.15, 3.3],   tgt: [0, 0.95, 0] },
   training:  { env: "gym",      action: "idle",     cam: [1.2, 1.35, 3.6], tgt: [0, 0.95, 0] },
   nutrition: { env: "kitchen",  action: "sit",      cam: [0.6, 1.25, 3.1], tgt: [0.2, 0.9, 0] },
+  work:      { env: "work",     action: "sit",      cam: [0.9, 1.3, 3.1],  tgt: [0.1, 0.85, 0] },
   recovery:  { env: "recovery", action: "stretch",  cam: [0, 1.35, 3.4],   tgt: [0, 0.85, 0] },
   mind:      { env: "mind",     action: "meditate", cam: [0, 1.0, 2.9],    tgt: [0, 0.7, 0] },
   plan:      { env: "lab",      action: "idle",     cam: [-0.6, 1.4, 3.8], tgt: [0, 1.1, -1] },
+  coachos:   { env: "lab",      action: "idle",     cam: [0.2, 1.35, 3.6], tgt: [0, 1.0, -0.5] },
   armory:    { env: "locker",   action: "idle",     cam: [0, 1.1, 2.7],    tgt: [0, 0.95, 0] },
   core:      { env: "home",     action: "idle",     cam: [0, 1.15, 3.3],   tgt: [0, 0.95, 0] },
   progress:  { env: "home",     action: "idle",     cam: [0.8, 1.2, 3.2],  tgt: [0, 0.95, 0] },
@@ -82,6 +84,7 @@ export function openDrawer(title, sub) {
 
 export function closeDrawer() {
   $("#drawer").classList.remove("open");
+  document.body.classList.remove("modo-sesion"); // el foco de sesión se cierra con el panel
   document.querySelectorAll(".rail-btn").forEach((x) => x.classList.remove("active"));
   if (!UI.session) travel("home");
 }
@@ -104,12 +107,15 @@ export function openSection(name) {
 }
 
 export const TITLES = {
+  hoy:       ["HOY", "TU DÍA · QUÉ HACER AHORA"],
   training:  ["ENTRENAMIENTO", "GIMNASIO BAYONA · OPERACIÓN DEL DÍA"],
   nutrition: ["NUTRICIÓN", "COCINA · ENERGÍA Y MACROS"],
+  trabajo:   ["TRABAJO", "FOCO · BAYONA TE CUIDA MIENTRAS TRABAJAS"],
   recovery:  ["RECUPERACIÓN", "LABORATORIO DE RECUPERACIÓN"],
   mind:      ["MENTE", "SALA MENTE · SILENCIO"],
   progress:  ["PROGRESO", "MI HISTORIA"],
   plan:      ["PLAN", "LABORATORIO · MACROCICLO"],
+  coachos:   ["COACH OS", "CENTRO DE MANDO · GESTIÓN DE CLIENTES"],
   armory:    ["ARMARIO", "VESTIDOR BAYONA · EQUIPO"],
   core:      ["CORE", "ASISTENTE LOCAL · SIN SALIDA DE DATOS"],
   more:      ["MÁS", "SISTEMA BAYONA"],

@@ -171,10 +171,13 @@ function watchShell() {
 
 /* ---------------- enlace directo a un mundo (#entrenamiento, ?go=plan…) ------- */
 const GO_ALIASES = {
+  hoy: "hoy", dia: "hoy", "mi-dia": "hoy", "midia": "hoy",
+  trabajo: "trabajo", oficina: "trabajo", foco: "trabajo", estudio: "trabajo",
   entrenamiento: "training", gimnasio: "training", nutricion: "nutrition", cocina: "nutrition",
   recuperacion: "recovery", mente: "mind", plan: "plan", laboratorio: "plan",
   armario: "armory", vestidor: "armory", progreso: "progress", core: "core",
   mas: "more", apariencia: "appearance", atelier: "appearance", diseno: "appearance",
+  coachos: "coachos", "coach-os": "coachos", entrenador: "coachos", "centro-de-mando": "coachos",
 };
 function openFromUrl() {
   const q = new URLSearchParams(location.search).get("go");

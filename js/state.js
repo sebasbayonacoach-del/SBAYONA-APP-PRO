@@ -9,7 +9,8 @@ import { RANKS, ITEMS, WORKOUTS, MACRO, MEALS, EXERCISES, phaseOfWeek } from "./
 import { resetConsents } from "./consents.js";
 import {
   setReward, prReward, workoutCompleteReward, mealReward, waterReward,
-  stepsReward, mindReward, mobilityReward, healthMapReward,
+  stepsReward, mindReward, mobilityReward, healthMapReward, missionReward,
+  focusReward, activePauseReward,
 } from "./rewards.js";
 
 const KEY = "bayona.save.v2";
@@ -45,6 +46,11 @@ function freshToday() {
     stress: null,             // 0-10 — null = sin registrar
     workoutDone: null,
     xpGained: 0,
+    missionKeys: [],       // idempotencia: misiones del día YA reclamadas
+    workBlocks: 0,         // bloques de foco completados (con tope sano diario)
+    activePauses: 0,       // pausas activas de escritorio
+    postureChecks: 0,      // checklists de postura (registro, sin XP)
+    nightRoutine: [],      // rutina nocturna cumplida (ids de pasos)
   };
 }
 
@@ -88,11 +94,15 @@ export const S = {
     d.settings = { sound: true, motion: true, haptics: true, quality: "AUTO", ...(d.settings || {}) };
     d.today = { ...freshToday(), ...(d.today || {}) };
     d.voice = Array.isArray(d.voice) ? d.voice : [];
+    d.medidas = Array.isArray(d.medidas) ? d.medidas : [];
+    d.asignaciones = Array.isArray(d.asignaciones) ? d.asignaciones : [];
     d.diary = Array.isArray(d.diary) ? d.diary : [];
     d.photos = Array.isArray(d.photos) ? d.photos : [];
     d.phygital = d.phygital || { redeemed: [], audit: [] };
     d.consents = d.consents || null; // espejo legado; la fuente vive en js/consents.js
     d.healthFlags = d.healthFlags || null;
+    d.plan = d.plan || { week: 1, sessionsDone: {}, custom: {} };
+    d.plan.custom = d.plan.custom || {};
     d.activeSession = d.activeSession || null;
     // comidas: en versiones antiguas eran ids sueltos → objetos completos
     d.today.meals = (d.today.meals || []).map((m) => {
@@ -120,10 +130,12 @@ export const S = {
       },
       prs: {},
       journey: [],
-      plan: { week: 1, sessionsDone: {} },
+      plan: { week: 1, sessionsDone: {}, custom: {} },
       history: [],
       settings: { sound: true, motion: true, haptics: true, quality: "AUTO" },
       voice: [],
+      medidas: [],
+      asignaciones: [],
       phygital: { redeemed: [], audit: [] },
       consents: null,
       healthFlags: null,
@@ -308,6 +320,110 @@ export const S = {
     }
   },
 
+  /**
+   * Reclama el bono de una misión del día cumplida. IDEMPOTENTE: cada misión
+   * premia una sola vez por día (mismo patrón que las series: sin doble XP).
+   * @returns {{xp:number, skill:string, text:string}|null} null si ya estaba reclamada
+   */
+  claimMission(id) {
+    const t = this.data.today;
+    t.missionKeys = t.missionKeys || [];
+    if (t.missionKeys.includes(id)) return null;
+    t.missionKeys.push(id);
+    const r = missionReward(id);
+    this.addXP(r.xp, r.skill, r.skillGain);
+    this.save(); emit("today");
+    return r;
+  },
+
+  // ---------- TRABAJO / PRODUCTIVIDAD SALUDABLE ----------
+  // Con TOPE diario (RULES.work): premia el equilibrio, nunca la compulsión.
+  logFocusBlock() {
+    const t = this.data.today;
+    t.workBlocks = t.workBlocks || 0;
+    if (t.workBlocks >= 6) return null; // ya vale por hoy: sigue trabajando, sin XP
+    t.workBlocks++;
+    const r = focusReward();
+    this.addXP(r.xp, r.skill, r.skillGain);
+    this.save(); emit("today");
+    return r;
+  },
+  logActivePause() {
+    const t = this.data.today;
+    t.activePauses = t.activePauses || 0;
+    if (t.activePauses >= 8) return null;
+    t.activePauses++;
+    const r = activePauseReward();
+    this.addXP(r.xp, r.skill, r.skillGain);
+    this.save(); emit("today");
+    return r;
+  },
+  /** Checklist de postura de escritorio: registro honesto, sin XP. */
+  logPostureCheck() {
+    const t = this.data.today;
+    t.postureChecks = (t.postureChecks || 0) + 1;
+    this.save(); emit("today");
+    return true;
+  },
+  /** Rutina nocturna: marca/desmarca un paso (reversible, sin duplicar). */
+  nightRoutineToggle(id) {
+    const t = this.data.today;
+    t.nightRoutine = t.nightRoutine || [];
+    t.nightRoutine = t.nightRoutine.includes(id)
+      ? t.nightRoutine.filter((x) => x !== id)
+      : t.nightRoutine.concat(id);
+    this.save(); emit("today");
+    return t.nightRoutine;
+  },
+
+  // ---------- MEDICIONES (evolución corporal · ANTES→AHORA→HACIA DÓNDE) ----------
+  /** Una ficha por día: medir dos veces el mismo día ACTUALIZA, no duplica. */
+  addMedida(m) {
+    if (!m || !m.fecha) return null;
+    this.data.medidas = this.data.medidas || [];
+    const i = this.data.medidas.findIndex((x) => x.fecha === m.fecha);
+    if (i >= 0) this.data.medidas[i] = { ...this.data.medidas[i], ...m };
+    else this.data.medidas.push(m);
+    this.data.medidas.sort((a, b) => (a.fecha < b.fecha ? -1 : 1));
+    if (this.data.medidas.length > 365) this.data.medidas.shift();
+    if (m.pesoKg != null) { this.data.profile.weightKg = m.pesoKg; }
+    this.save(); emit("medidas");
+    return m;
+  },
+  medidasList() { return this.data.medidas || []; },
+
+  // ---------- ASIGNACIONES (Coach OS → app del cliente · Núcleo 5) ----------
+  /**
+   * El entrenador asigna una sesión. Idempotente: una asignación pendiente
+   * por cliente/día/entrenamiento se ACTUALIZA; no se duplica.
+   */
+  addAsignacion(a) {
+    this.data.asignaciones = this.data.asignaciones || [];
+    const i = this.data.asignaciones.findIndex((x) =>
+      x.clienteId === a.clienteId && x.dia === a.dia && x.workoutId === a.workoutId && x.estado === "pendiente");
+    const rec = { id: `as_${Date.now()}`, estado: "pendiente", creada: new Date().toISOString(), ...a };
+    if (i >= 0) this.data.asignaciones[i] = { ...this.data.asignaciones[i], ...a };
+    else this.data.asignaciones.push(rec);
+    this.save(); emit("asignaciones");
+    return i >= 0 ? this.data.asignaciones[i] : rec;
+  },
+  asignacionesDe(clienteId) {
+    return (this.data.asignaciones || []).filter((x) => x.clienteId === clienteId);
+  },
+  /** Cierra como completada la asignación pendiente que coincide con la sesión cerrada. */
+  cerrarAsignacion(workoutId, dia = todayKey()) {
+    let cerrada = null;
+    this.data.asignaciones = (this.data.asignaciones || []).map((x) => {
+      if (!cerrada && x.estado === "pendiente" && x.workoutId === workoutId && x.dia <= dia) {
+        cerrada = { ...x, estado: "completada", cerradaEn: dia };
+        return cerrada;
+      }
+      return x;
+    });
+    if (cerrada) { this.save(); emit("asignaciones"); }
+    return cerrada;
+  },
+
   // ---------- SESIÓN ACTIVA (persistente: sobrevive recargas) ----------
   setActiveSession(sess) { this.data.activeSession = sess; this.save(); emit("session", sess); },
   getActiveSession() { return this.data.activeSession; },
@@ -359,6 +475,7 @@ export const S = {
     if (t.workoutDone === workoutId) return null; // sin dobles recompensas
     t.trained = true;
     t.workoutDone = workoutId;
+    this.cerrarAsignacion(workoutId); // el loop cierra: lo asignado, cumplido
     this.data.stats.workouts++;
     const mins = minutes ?? WORKOUTS[workoutId]?.min ?? 30;
     this.data.stats.sessionsMin += mins;
@@ -425,8 +542,22 @@ export const S = {
 
   todayWorkout() {
     const dow = (new Date().getDay() + 6) % 7;
-    const id = MACRO.dayPlan[dow];
+    const custom = (this.data.plan.custom || {})[dow];
+    if (custom === "-") return null;                 // descanso explícito del entrenador
+    const id = custom || MACRO.dayPlan[dow];          // "" = plan estándar del macrociclo
     return id ? WORKOUTS[id] : null;
+  },
+  /** El entrenador reescribe el plan semanal (Coach OS → app del cliente). */
+  setPlanDia(dow, workoutId) {
+    const d = this.data.plan;
+    d.custom = d.custom || {};
+    d.custom[dow] = workoutId === null ? "-" : (WORKOUTS[workoutId] ? workoutId : "");
+    this.save(); emit("plan");
+    return d.custom[dow];
+  },
+  restaurarPlanEstandar() {
+    this.data.plan.custom = {};
+    this.save(); emit("plan");
   },
   phase() { return phaseOfWeek(this.data.plan.week); },
   dayNumber() { return Math.max(1, Math.floor((Date.now() - this.data.profile.created) / 864e5) + 1); },

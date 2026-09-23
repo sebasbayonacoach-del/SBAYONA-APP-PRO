@@ -72,6 +72,19 @@ BUILDERS.more = (body) => {
   body.appendChild(cCard);
 
   // ---------- APARIENCIA ----------
+  // ---------- COACH OS (profesional) ----------
+  body.appendChild(el("div", "sec-label", "PROFESIONAL"));
+  const coCard = el("div", "card shine");
+  coCard.innerHTML = `
+    <div class="card-row"><h4>BAYONA COACH OS</h4><span class="pill gold">CENTRO DE MANDO</span></div>
+    <div class="sub">El sistema profesional del entrenador: clientes de hoy, fichas vivas, alertas y planificación. Tu ficha usa datos reales; la cartera de ejemplo va marcada.</div>`;
+  const bCo = el("button", "btn btn-gold btn-block", "ABRIR COACH OS");
+  bCo.style.marginTop = "10px";
+  bCo.type = "button";
+  bCo.addEventListener("click", () => openSection("coachos"));
+  coCard.appendChild(bCo);
+  body.appendChild(coCard);
+
   body.appendChild(el("div", "sec-label", "APARIENCIA"));
   const ap = getAppearance();
   const apTheme = THEMES.find((x) => x.id === ap.theme) || THEMES[0];

@@ -7,6 +7,7 @@
 // y se persiste de forma independiente al estado del juego.
 // ============================================================
 import { S } from "../state.js";
+import { processFace } from "../face.js";
 import { UI, $, el, elT, toast, BUILDERS, TITLES, openSection } from "./shared.js";
 
 const KEY = "bayona.appearance.v1";
@@ -218,6 +219,38 @@ BUILDERS.appearance = (body) => {
   // ---------- MOVIMIENTO ----------
   options(body, "MOVIMIENTO", "motion", [["pleno", "PLENO"], ["sereno", "SERENO"], ["off", "NINGUNO"]],
     "Intensidad de animación actualizada.");
+
+  // ---------- CARA DEL PERSONAJE (CREA A TI MISMO) ----------
+  body.appendChild(el("div", "sec-label", "CARA DEL PERSONAJE"));
+  const fc = el("div", "card");
+  fc.innerHTML = `<h4>CREA A TI MISMO</h4><div class="sub">Tu foto → la cara de tu personaje. Se procesa SOLO en este dispositivo: la imagen nunca sale de aquí.</div>`;
+  const cur = S.data.profile.face;
+  if (cur) {
+    const img = el("img");
+    img.src = cur; img.alt = "Cara actual de tu personaje";
+    img.style.cssText = "width:72px;height:72px;border-radius:50%;margin-top:12px;display:block;border:1px solid var(--line)";
+    fc.appendChild(img);
+  }
+  const fi = el("input"); fi.type = "file"; fi.accept = "image/*";
+  fi.style.marginTop = "12px";
+  fi.setAttribute("aria-label", "Elegir foto para la cara de tu personaje");
+  fi.addEventListener("change", async () => {
+    const f = fi.files && fi.files[0];
+    if (!f) return;
+    try {
+      const { face, skin } = await processFace(f);
+      S.data.profile.face = face;
+      if (skin) S.data.profile.skinHex = skin;
+      S.save();
+      UI.W?.avatar.setFace(face);
+      toast("PERSONAJE ACTUALIZADO", "Tu cara acompaña al personaje en todos los contextos.");
+      BUILDERS.appearance(body);
+    } catch (e) {
+      toast("NO SE PUDO LEER LA FOTO", "Prueba con otra imagen (JPG o PNG). Tu personaje anterior se conserva.", "danger");
+    }
+  });
+  fc.appendChild(fi);
+  body.appendChild(fc);
 
   // ---------- RESTABLECER ----------
   body.appendChild(el("div", "sec-label", "DISEÑO"));

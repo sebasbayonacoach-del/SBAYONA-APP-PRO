@@ -648,3 +648,76 @@ table.lab tr.current td { background: #1a1508; color: var(--gold, #d8b26a); }
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+/* ============================================================
+   HOY · centro de control del día (jerarquía + check-in + misiones)
+   ============================================================ */
+#mc-hoy { margin-top: 8px; width: 100%; }
+.hoy-resumen .m-bar {
+  height: 6px; background: var(--line); border-radius: 999px; overflow: hidden;
+}
+.hoy-resumen .m-bar i {
+  display: block; height: 100%; background: var(--orange); transition: width 0.7s var(--ease);
+}
+.hoy-item { margin-bottom: 10px; }
+.hoy-item .hoy-titulo {
+  font-family: var(--display); font-size: 15px; letter-spacing: 0.02em; margin-top: 8px;
+}
+.hoy-item.done { opacity: 0.72; }
+.hoy-item.done .hoy-titulo { text-decoration: line-through; text-decoration-color: var(--line-strong); }
+.hoy-item .btn { margin-top: 12px; min-height: 52px; }
+.pill.ok { color: #2e7d4f; border-color: rgba(46, 125, 79, 0.45); }
+.pill.danger { color: var(--orange); border-color: var(--orange); }
+
+/* check-in rápido: 1 pantalla, 15 segundos */
+.checkin-grid { display: flex; flex-direction: column; gap: 14px; margin-top: 14px; }
+.checkin-row { display: flex; flex-direction: column; gap: 6px; }
+.checkin-row span {
+  font-family: var(--mono2); font-size: 10px; letter-spacing: 0.16em; color: var(--ink-soft);
+}
+.checkin-row input[type="range"] { width: 100%; height: 34px; accent-color: var(--orange); }
+.checkin-row input[type="number"] {
+  font-family: var(--mono2); font-size: 16px; padding: 12px; min-height: 48px;
+  background: var(--paper); border: 1px solid var(--line); color: var(--ink);
+}
+
+/* ============================================================
+   MODO SESIÓN · foco total (móvil, gimnasio, una mano, sudor)
+   ============================================================ */
+body.modo-sesion #topbar,
+body.modo-sesion .metrics,
+body.modo-sesion #mission-card,
+body.modo-sesion #action-rail,
+body.modo-sesion #bottomnav { display: none !important; }
+body.modo-sesion #drawer {
+  width: 100vw; max-width: 100vw; border-left: none;
+}
+body.modo-sesion #drawer-body {
+  padding: 18px 20px calc(34px + env(safe-area-inset-bottom));
+}
+body.modo-sesion .btn { min-height: 60px; font-size: 15px; }
+body.modo-sesion .set-hero .big { font-size: 30px; }
+@media (prefers-reduced-motion: reduce) {
+  body.modo-sesion #drawer { transition: none; }
+}
+
+/* TRABAJO · foco y pausas activas */
+.foco-timer {
+  font-family: var(--mono2); font-size: 42px; letter-spacing: 0.06em;
+  text-align: center; margin: 14px 0 4px; color: var(--ink);
+}
+
+/* saludo contextual del día (motor de contexto) */
+.mc-saludo {
+  font-family: var(--display); font-size: 13px; letter-spacing: 0.04em;
+  color: var(--ink-soft); margin-bottom: 2px;
+}
+
+/* MEDICIONES · evolución corporal (ANTES → AHORA → HACIA DÓNDE) */
+.med-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 12px; }
+.med-cell { border: 1px solid var(--line); padding: 10px 12px; }
+.med-cell .k { font-family: var(--mono2); font-size: 9px; letter-spacing: 0.18em; color: var(--ink-soft); }
+.med-cell .v { font-size: 13px; margin-top: 4px; }
+.med-delta { font-size: 15px; margin-top: 2px; }
+.spark { display: flex; align-items: flex-end; gap: 6px; height: 84px; margin: 14px 0 6px; }
+.spark-bar { flex: 1; background: linear-gradient(180deg, var(--orange), var(--orange-soft)); border-radius: 3px 3px 0 0; }

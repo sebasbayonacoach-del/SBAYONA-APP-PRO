@@ -39,9 +39,13 @@ npm run mobile:pack  # → empaquetado web para Capacitor (ver docs/MOBILE_RELEA
 | `js/vision/` | **GEMELO-1**: cámara → contador de reps → biomecánica (procesado 100% local) |
 | `js/coach/` · `js/health/` | CORE local (reglas + red flags) · **Mapa de Salud** (PAR-Q+/PHQ-2/GAD-2) |
 | `js/state.js` · `js/rewards.js` · `js/engine.js` | Estado persistente (esquema v3 + migración) · economía (fuente única) · motor de rendimiento |
+| `js/contexto.js` · `js/ui/trabajo.js` | **Motor de contexto** (momento del día → entorno/saludo) · contexto **TRABAJO** (foco 25/5, pausas activas, postura) |
+| `js/medidas.js` | **Mediciones**: evolución corporal ANTES→AHORA→HACIA DÓNDE (deltas, tendencia, proyección honesta) |
+| `js/coachos.js` · `js/ui/coachos.js` | **COACH OS**: command center del entrenador (fichas vivas, alertas por reglas, CORE Coach, macrociclo) |
+| `js/hoy.js` | **Plan del día**: jerarquía CRÍTICO→HOY→RECOMENDADO→OPCIONAL→COMPLETADO + misiones diarias deterministas (panel en `js/ui/hoy.js`) |
 | `js/i18n.js` · `js/consents.js` · `js/phygital.js` | Catálogo/formato es-ES + `esc()` · consentimientos centralizados · códigos físico→digital |
 | `js/data/offlineQueue.js` | Cola offline FIFO idempotente + zona de recuperación (nada se pierde en silencio) |
-| `tests/` + `ml/evals/` | 11 suites ejecutables (visión, coach, salud, cola, economía, estado, phygital…) + golden set |
+| `tests/` + `ml/evals/` | 20 suites ejecutables (visión, coach, salud, HOY, cola, economía, estado, phygital…) + golden set |
 | `api/` | SQL Supabase (tablas + RLS) + contratos REST · **`api/supabase/SETUP.md`** = guía para crear la cuenta y desplegar · **`api/supabase/setup.sql`** = script único e idempotente para el SQL Editor |
 | `mobile/` | Contenedor **Capacitor** → Android / iOS (configurado; sin compilar en esta fase) |
 | `sw.js` + `manifest.webmanifest` | PWA: shell offline (network-first para código) + instalable |

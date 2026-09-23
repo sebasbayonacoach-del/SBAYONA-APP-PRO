@@ -19,7 +19,14 @@
 | **RLS por usuario + consentimiento GDPR art. 9** | ✅ | `api/supabase/migrations/0001_core.sql` |
 | **Cliente Supabase propio** (auth + REST, sin dependencias) | ✅ | `js/sync/` |
 | **Panel CUENTA** (email+contraseña, magic link, sincronizar, copia, cerrar sesión) | ✅ | `js/sync/account.js` |
-| **Batería de tests** | ✅ | 11 suites · 0 fallos |
+| **Sistema «HOY»** (plan del día con jerarquía, siguiente acción, check-in rápido de 15 s, misiones diarias con bono idempotente) | ✅ | `tests/hoy-eval.mjs` (32 aserciones) |
+| **Modo sesión de entrenamiento** (foco total, botones 60 px, móvil/gimnasio) | ✅ | QA manual + `js/ui/training.js` |
+| **Motor de contexto + TRABAJO** (foco 25/5, pausas, postura; tope sano) | ✅ | `tests/contexto-eval.mjs` (27 aserciones) |
+| **COACH OS básico** (centro de mando, fichas vivas, alertas, CORE Coach, laboratorio) | ✅ | `tests/coachos-eval.mjs` (33 aserciones) |
+| **Mediciones «ANTES→AHORA→HACIA DÓNDE»** (peso, perímetros, tendencia, proyección topeada) | ✅ | `tests/medidas-eval.mjs` (25) |
+| **Loop Coach OS ⇄ cliente** (asignar → ejecutar → observar) | ✅ | `tests/asignaciones-eval.mjs` (17) |
+| **Historia unificada + recetas/adherencia + plan escribible + espejo ampliado** | ✅ | `timeline/nutricion/plan/mirror-eval` (50) |
+| **Batería de tests** | ✅ | 20 suites · 0 fallos |
 
 ### 🔶 En marcha / pendiente
 
@@ -107,7 +114,7 @@ const INLINE = {
 ```bash
 ./run.sh                    # → http://localhost:8080
 ./run.sh & abrí index.html  # requiere servidor local por los módulos ES
-npm test                    # batería completa (11 suites + golden set)
+npm test                    # batería completa (20 suites + golden set)
 npm run mobile:pack         # empaquetado para Capacitor (Android/iOS)
 ```
 
@@ -126,6 +133,8 @@ BAYONA-v2.0-LUXE/
 ├── css/motion.css             ★ sistema de movimiento
 ├── js/ui/motion.js            ★ motor ripple/tilt/contadores/chispas
 ├── js/ui/appearance.js        ★ panel APARIENCIA (9 controles)
+├── js/ui/hoy.js               ★ panel HOY (check-in + misiones del día)
+├── js/hoy.js                  ★ planificador del día (dominio puro, testeado)
 ├── js/sync/config.js          ★ ÚNICO hueco de credencial
 ├── js/sync/supabase.js        ★ cliente Auth + REST (sin dependencias)
 ├── js/sync/account.js         ★ panel CUENTA + sincronización espejo
@@ -136,5 +145,5 @@ BAYONA-v2.0-LUXE/
 ├── api/supabase/SETUP.md      ★ guía completa de despliegue
 ├── api/API_REST.md            contratos REST v1
 ├── docs-luxe/                 capturas QA del rediseño
-└── tests/ + ml/evals/         11 suites + golden set biomecánica
+└── tests/ + ml/evals/         20 suites + golden set biomecánica
 ```

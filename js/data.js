@@ -156,6 +156,21 @@ export const AFFIRMATIONS = [
 ];
 
 // ------------------------------------------------------------
+// MISIONES DEL DÍA (extras sobre el núcleo diario de js/hoy.js)
+// -----------------------------------------------------------
+// El núcleo de cada día (sesión, hidratación base, check-in, movilidad) ya
+// vive en el plan «HOY». Las misiones son objetivos EXTRA, con bono propio
+// (fuente única: missionReward en js/rewards.js) y selección diaria
+// determinista (misma fecha = mismas misiones). `check` se resuelve en
+// js/hoy.js para que este módulo siga siendo solo datos.
+export const MISSIONS = [
+  { id: "m_pasos",   name: "CAMINA 8.000 PASOS",  hint: "Movimiento real registrado por ti. BAYONA no inventa pasos." },
+  { id: "m_comida",  name: "REGISTRA TUS 3 COMIDAS", hint: "Desayuno, comida y cena. Sin dietas milagro: solo constancia." },
+  { id: "m_mente",   name: "5 MIN DE MENTE",      hint: "Respiración o silencio. Descansar también es progreso." },
+  { id: "m_agua",    name: "META ALTA: 2,5 L DE AGUA", hint: "Por encima de la base diaria (1,5 L). Solo si tu cuerpo lo pide." },
+];
+
+// ------------------------------------------------------------
 // MACROCYCLE — 24 semanas (LAB view)
 // ------------------------------------------------------------
 export const MACRO = {

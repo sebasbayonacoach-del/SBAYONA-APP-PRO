@@ -271,6 +271,33 @@ export class World {
         accentLight.color.setHex(ACC); accentLight.intensity = 0.6; accentLight.position.set(0, 2, -1.5);
         break;
       }
+      case "work": {
+        this.floor(g, FLOOR, 18);
+        this.box(props, [8, 3.2, 0.15], [0, 1.6, -3], this.mat(WALL, 0.85));
+        // ventana de tarde (luz cálida de trabajo)
+        const win = this.box(props, [1.7, 1.4, 0.08], [-2.2, 1.8, -2.9], this.mat(0xffd9a0, 0.4, 0, 0xffb765));
+        win.material.emissiveIntensity = 0.55;
+        // escritorio + laptop
+        this.box(props, [2.6, 0.08, 1.1], [0.6, 0.74, -1.4], this.mat(INK, 0.5, 0.15));
+        for (const sx of [-1, 1]) this.box(props, [0.08, 0.74, 0.08], [0.6 + sx * 1.1, 0.37, -1.4], this.mat(0x353028, 0.6));
+        const lap = this.box(props, [0.62, 0.02, 0.42], [0.5, 0.79, -1.35], this.mat(0x2a2620, 0.4, 0.3));
+        const scr = this.box(props, [0.62, 0.4, 0.02], [0.5, 0.98, -1.56], this.mat(0x11151d, 0.2, 0.2, 0x9fd0ff));
+        scr.material.emissiveIntensity = 0.35; scr.rotation.x = -0.18;
+        // lámpara de estudio + taza + planta
+        this.box(props, [0.05, 0.9, 0.05], [1.7, 1.2, -1.7], this.mat(INK, 0.5, 0.3));
+        const lampHead = this.box(props, [0.24, 0.1, 0.24], [1.7, 1.66, -1.6], this.mat(0xffe6bd, 0.3, 0, 0xffcf8a));
+        lampHead.material.emissiveIntensity = 0.5;
+        const deskLamp = new THREE.PointLight(0xffe6bd, 2.2, 4.5);
+        deskLamp.position.set(1.7, 1.55, -1.5); g.add(deskLamp);
+        this.box(props, [0.12, 0.14, 0.12], [1.1, 0.85, -1.2], this.mat(ACC, 0.6));
+        this.box(props, [0.3, 0.28, 0.3], [-1.2, 0.14, -0.6], this.mat(ACC, 0.7));
+        this.box(props, [0.26, 0.5, 0.26], [-1.2, 0.5, -0.6], this.mat(0x3f5a44, 0.85));
+        // silla
+        this.box(props, [0.55, 0.08, 0.55], [0.5, 0.45, -0.5], this.mat(0x353028, 0.8));
+        this.box(props, [0.55, 0.6, 0.08], [0.5, 0.78, -0.24], this.mat(0x353028, 0.8));
+        accentLight.color.setHex(ACC); accentLight.intensity = 0.45; accentLight.position.set(0, 2, -1.2);
+        break;
+      }
       case "locker": {
         this.floor(g, FLOOR, 18);
         for (let i = -3; i <= 3; i++) {

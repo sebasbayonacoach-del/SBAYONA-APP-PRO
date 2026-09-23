@@ -7,6 +7,8 @@ import { S, on } from "./state.js";
 import { WORKOUTS } from "./data.js";
 import { previewWorkoutXP, workoutCompleteReward, stepsReward } from "./rewards.js";
 import { esc, fmtInt, t } from "./i18n.js";
+import { planDelDia } from "./hoy.js";
+import { contextoDelDia } from "./contexto.js";
 import {
   UI, $, el, elT, enterHome, closeDrawer, openSection, showModal, hideModal,
   toast, xpBurst, playTone, wireModalLayer,
@@ -14,11 +16,14 @@ import {
 import { showDayRecap, showLevelUp, showPR } from "./ui/cinematics.js";
 
 // mundos (imports con efecto: registran sus BUILDERS)
+import "./ui/hoy.js";
+import "./ui/trabajo.js";
 import "./ui/training.js";
 import "./ui/nutrition.js";
 import "./ui/recovery.js";
 import "./ui/mind.js";
 import "./ui/plan.js";
+import "./ui/coachos.js";
 import "./ui/armory.js";
 import "./ui/progress.js";
 import "./ui/core.js";
@@ -75,7 +80,17 @@ function updateMissionCard() {
   const t2 = S.data.today;
   const day = S.dayNumber();
   const act = UI.session || S.getActiveSession();
-  $("#mc-tag").textContent = `DÍA ${day} · MISIÓN`;
+  // contexto vivo del día: saludo + momento (un avatar, muchos contextos)
+  const plan = planDelDia(S);
+  const ctx = contextoDelDia({
+    hora: new Date().getHours(),
+    nombre: S.data.profile.name,
+    siguiente: plan.siguiente,
+    sesionEnCurso: !!(act && act.status !== "completada" && act.status !== "abandonada"),
+    trained: t2.trained,
+  });
+  $("#mc-saludo").textContent = ctx.saludo;
+  $("#mc-tag").textContent = `DÍA ${day} · ${ctx.etiqueta}`;
   const cta = $("#mc-cta");
 
   if (act && act.status !== "completada" && act.status !== "abandonada") {
@@ -88,6 +103,7 @@ function updateMissionCard() {
   cta.dataset.mode = "";
   const w = S.todayWorkout();
   const dayDone = t2.trained && t2.water >= 1500 && t2.mobility;
+  $("#mc-hoy").textContent = `VER MI DÍA · ${plan.hechos}/${plan.total}`;
   if (dayDone) {
     $("#mc-title").textContent = "DÍA COMPLETADO";
     $("#mc-sub").textContent = "Has cerrado la misión diaria. El personaje descansa contigo.";
@@ -121,6 +137,7 @@ function wireHud() {
     return UI.actions.openTraining?.("mobility_flow");
   });
   $("#level-chip").addEventListener("click", () => openSection("progress"));
+  $("#mc-hoy").addEventListener("click", () => openSection("hoy"));
   $("#m-readiness").addEventListener("click", () => openSection("recovery"));
   $("#m-streak").addEventListener("click", () => openSection("more"));
   // registro manual HONESTO: el usuario declara actividad real, no agua virtual

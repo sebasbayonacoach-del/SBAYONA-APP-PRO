@@ -10,7 +10,7 @@ import { screenMessage } from "../coach/coachStub.js";
 import { shortSession, todaysSession } from "../engine.js";
 import { esc, t } from "../i18n.js";
 import {
-  UI, $, el, elT, BUILDERS,
+  UI, $, el, elT, BUILDERS, openSection,
 } from "./shared.js";
 
 const QUICK = [
@@ -119,4 +119,13 @@ BUILDERS.core = (body) => {
   }
   sendB.addEventListener("click", () => send(input.value));
   input.addEventListener("keydown", (e) => e.key === "Enter" && send(input.value));
+
+  // puente para otros contextos (p. ej. «PREGUNTA AL COACH» dentro de la sesión)
+  UI.actions.askCoach = send;
+};
+
+/** Abre CORE y envía una pregunta contextual (entrenamiento, trabajo, noche…). */
+UI.actions.openCoachAsk = (q) => {
+  openSection("core");
+  requestAnimationFrame(() => UI.actions.askCoach?.(q));
 };

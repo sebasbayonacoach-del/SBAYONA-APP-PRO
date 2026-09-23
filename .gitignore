@@ -1,5 +1,7 @@
 node_modules/
 .DS_Store
+# binarios descargados por npm run setup (hash verificado)
+vendor/
 *.log
 .env
 .env.*

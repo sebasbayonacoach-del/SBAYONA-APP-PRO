@@ -77,3 +77,58 @@ animaciones y personalización real de todo.
 
 **Verificación:** `npm test` → 11 suites · 0 fallos. QA visual con capturas en
 escritorio (1440×900) y móvil (390×844) → `docs-luxe/`.
+
+## 2026-09-24 · MISIÓN MAESTRA · fase 1 — vertical slice HOY + ENTRENAMIENTO
+
+| Área | Entregado |
+|---|---|
+| Plan del día | `js/hoy.js` (dominio puro): jerarquía CRÍTICO/HOY/RECOMENDADO/OPCIONAL/COMPLETADO, «siguiente acción», día de descanso honesto (sin sesión falsa), XP anunciado = `rewards` (fuente única) |
+| Misiones | Catálogo `MISSIONS` + selección diaria determinista (misma fecha = mismas misiones) + bono reclamable idempotente (`S.claimMission`, sin doble XP) |
+| Panel HOY | `js/ui/hoy.js`: resumen del día, tarjetas por prioridad, check-in rápido de 15 s (sueño/energía/estrés/molestia), reclamo de misiones, deep-link `?go=hoy` |
+| Modo sesión | Foco total en `renderSession`: sin HUD/rail/nav, cajón a pantalla completa, botones 60 px (móvil/gimnasio/una mano); sale al catálogo, resumen, abandono o cerrar |
+| Tests | `tests/hoy-eval.mjs` (32 aserciones) → **12 suites · 0 fallos** |
+
+Decisiones: sin pantallas paralelas (reutiliza drawer/modal/HUD existentes), sin
+duplicar tareas entre núcleo diario y misiones (las misiones son EXTRA con bono),
+y el núcleo de XP no se toca: solo se añade `missionReward` a la fuente única.
+
+## 2026-09-24 · PROMPT MAESTRO ULTRA · núcleo «un avatar, muchos contextos»
+
+| Área | Entregado |
+|---|---|
+| Motor de contexto | `js/contexto.js` (puro): momento del día + plan → entorno sugerido, saludo, etiqueta y frase. La acción manda (sesión → gimnasio a cualquier hora) |
+| Contexto TRABAJO | Entorno 3D `work` (escritorio/laptop/lámpara) + `js/ui/trabajo.js`: foco 25/5 con temporizador, pausa activa con confirmación honesta, checklist de postura (sin XP), respiración, agua |
+| Economía sana | `focusReward`/`activePauseReward` con TOPE diario 6/8: la gamificación premia equilibrio, nunca la compulsión |
+| Home contextual | Saludo + momento del día en la tarjeta de misión |
+| Coach en sesión | «PREGUNTA AL COACH» con contexto del ejercicio (CORE local, no clínico) |
+| Avatar desde foto | «CREA A TI MISMO» en APARIENCIA: foto → cara del personaje (procesado local) |
+| Tests | `tests/contexto-eval.mjs` (27 aserciones) → **13 suites · 0 fallos** |
+
+## 2026-09-24 · PROMPT MAESTRO SUPREMO · COACH OS + pulido premium
+
+| Área | Entregado |
+|---|---|
+| COACH OS | `js/coachos.js` + `js/ui/coachos.js`: centro de mando (KPIs), ficha viva por cliente (perfil/hoy/alertas/estado físico/cambios), CAPA 2 laboratorio (macrociclo por fases), CORE Coach por reglas. Tu ficha = datos reales; cartera demo marcada |
+| NUTRICIÓN | Hero «COMIDA REAL PARA UNA VIDA EXTRAORDINARIA» |
+| RECUPERACIÓN | Hero «DESCANSAR TAMBIÉN TE HACE MÁS FUERTE» + rutina nocturna de 4 pasos (registro reversible, sin XP) |
+| Tests | `tests/coachos-eval.mjs` (33 aserciones; 3 fallos propios cazados y corregidos) → **14 suites · 0 fallos** |
+
+## 2026-09-24 · PLAN MAESTRO DE EXPERTOS · loop «PRODUCTO REAL» (3 iteraciones)
+
+| Iteración | Entregado |
+|---|---|
+| 1 · MEDICIONES | `js/medidas.js`: ANTES→AHORA→HACIA DÓNDE (deltas, tendencia MCO, proyección topeada sin milagros, calendario 14 días). UI en PROGRESO con gráfico y empty state útil. Mismo día = actualiza |
+| 2 · LOOP COACH⇄CLIENTE | Asignaciones validadas e idempotentes; HOY prioriza lo asignado con nota del entrenador; cerrar sesión completa la asignación (Núcleo 5) |
+| 3 · HOY + QA | Medición como tarea del día (OPCIONAL/COMPLETADO), barrido de sintaxis/refs/docs, `PLAN_EXPERTOS.md` con las siguientes vueltas |
+| Tests | `medidas-eval` (25) + `asignaciones-eval` (17) + `hoy-eval` ampliado (34) → **16 suites · 353 aserciones · 0 fallos** |
+
+## 2026-09-24 · LOOP TOTAL «TERMINA TODO» — 5 vueltas ejecutadas sin parar
+
+| Vuelta | Entregado |
+|---|---|
+| 1 · Progreso emocional | `js/timeline.js`: mediciones + fotos + récords + hitos en UNA historia ANTES→AHORA (decimales es-ES) |
+| 2 · Laboratorio escribible | Plan semanal editable por día (incluye descanso explícito) desde Coach OS; el cliente lo ejecuta como su plan |
+| 3 · Nutrición | 6 recetas reales (macros coherentes testeado) + adherencia al plan con extras declarados |
+| 4 · Performance | GEMELO-1 diferido al idle (MediaPipe ya era lazy): arranque más limpio |
+| 5 · Backend | Espejo idempotente ampliado (medidas + asignaciones) + migración SQL `0002` con RLS |
+| Tests | 5 suites nuevas (timeline 11, plan 8, nutrición 18, mirror 13 + hoy ampliado) → **20 suites · 360+ aserciones · 0 fallos** |

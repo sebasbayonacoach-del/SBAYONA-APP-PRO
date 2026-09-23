@@ -5,6 +5,7 @@
 // ============================================================
 import { S } from "../state.js";
 import { MEALS } from "../data.js";
+import { adherenciaPlan, RECETAS } from "../nutricion.js";
 import { esc, fmtDec, fmtInt, t } from "../i18n.js";
 import {
   UI, $, el, elT, showModal, hideModal, toast, BUILDERS,
@@ -17,6 +18,10 @@ BUILDERS.nutrition = (body) => {
   body = body || $("#drawer-body");
   const td = S.data.today;
   body.textContent = "";
+  body.appendChild(el("div", "card shine", `
+    <div class="card-row"><h4>COCINA BAYONA</h4><span class="pill gold">AUTOCUIDADO</span></div>
+    <div class="mc-title" style="margin-top:8px">COMIDA REAL PARA UNA VIDA EXTRAORDINARIA</div>
+    <div class="mc-sub">Estás cuidando tu cuerpo y a tu personaje. Registra solo lo que comes de verdad: nada de comida virtual.</div>`));
   body.appendChild(el("div", "sec-label", "NUTRICIÓN DIARIA · OBJETIVO DIARIO"));
   const macros = [
     ["ENERGÍA", td.kcal, GOALS.kcal, "kcal", "#ff7a3c"],
@@ -51,6 +56,28 @@ BUILDERS.nutrition = (body) => {
   body.appendChild(hyd);
 
   // ---------- COMIDAS ----------
+  // ---------- ADHERENCIA AL PLAN ----------
+  body.appendChild(el("div", "sec-label", "ADHERENCIA AL PLAN"));
+  const adh = adherenciaPlan(td);
+  const adhCard = el("div", "card shine");
+  adhCard.innerHTML = `
+    <div class="card-row"><h4>${esc(adh.cumplidas)}/${esc(adh.total)} COMIDAS DEL PLAN</h4><span class="pill gold">${esc(adh.pct)} %</span></div>
+    ${adh.detalle.map((d) => `<div class="kv"><span class="k">${d.hecha ? "✓" : "○"} ${esc(d.nombre)}</span><span class="v">${d.hecha ? "REGISTRADA" : "PENDIENTE"}</span></div>`).join("")}
+    ${adh.extra ? `<div class="media-caption">Además has registrado ${esc(adh.extra)} comida(s) fuera del plan: cuentan para tus macros, no para la adherencia.</div>` : ""}`;
+  body.appendChild(adhCard);
+
+  // ---------- RECETAS ----------
+  body.appendChild(el("div", "sec-label", "RECETAS · COMIDA REAL"));
+  const recBox = el("div", "card");
+  recBox.innerHTML = `<div class="mc-sub">Sencillas, reales y con macros claros. Cocinar también forma parte del juego.</div>`;
+  RECETAS.forEach((r) => {
+    const b = el("button", "btn btn-block", `${r.nombre} · ${r.kcal} kcal`);
+    b.style.marginTop = "8px";
+    b.addEventListener("click", () => recetaModal(r));
+    recBox.appendChild(b);
+  });
+  body.appendChild(recBox);
+
   body.appendChild(el("div", "sec-label", "REGISTRAR COMIDA"));
   const bAdd = el("button", "btn btn-block", "＋ AÑADIR ALIMENTO (cantidad, unidad y hora)");
   bAdd.style.marginBottom = "10px";
@@ -163,6 +190,33 @@ function customMeal() {
       UI.W?.avatar.setAction("eat");
       toast("COMIDA REGISTRADA", `${name} · +${r.xp} XP`);
       setTimeout(() => UI.W?.avatar.setAction("sit"), 2600);
+      BUILDERS.nutrition();
+    };
+  });
+}
+
+// ---------- RECETA (detalle + registro real) ----------
+function recetaModal(r) {
+  showModal(`
+    <div class="cine-tag">RECETA · ${esc(r.tipo)}</div>
+    <div class="cine-title" style="font-size:20px">${esc(r.nombre)}</div>
+    <div class="cine-sub">${esc(r.kcal)} kcal · P ${esc(r.p)} g · C ${esc(r.c)} g · F ${esc(r.f)} g</div>
+    <div class="sec-label">INGREDIENTES</div>
+    ${r.ingredientes.map((i) => `<div class="kv"><span class="v" style="font-family:inherit">· ${esc(i)}</span></div>`).join("")}
+    <div class="sec-label">PREPARACIÓN</div>
+    ${r.pasos.map((p, i) => `<div class="kv"><span class="k">${i + 1}</span><span class="v" style="font-family:inherit">${esc(p)}</span></div>`).join("")}
+    <div style="height:12px"></div>
+    <button class="btn btn-primary btn-block" id="rc-eat">LA HE COCINADO · REGISTRAR</button>
+    <div style="height:8px"></div>
+    <button class="btn btn-block" id="rc-close">CERRAR</button>
+  `, () => {
+    $("#rc-close").onclick = hideModal;
+    $("#rc-eat").onclick = () => {
+      hideModal();
+      const res = S.eat({ custom: true, name: r.nombre, kcal: r.kcal, p: r.p, c: r.c, f: r.f });
+      toast("COMIDA REGISTRADA", res ? `${r.nombre} · +${res.xp} XP` : `${r.nombre}`);
+      UI.W?.avatar.setAction("eat");
+      setTimeout(() => UI.W?.avatar.setAction("idle"), 2200);
       BUILDERS.nutrition();
     };
   });

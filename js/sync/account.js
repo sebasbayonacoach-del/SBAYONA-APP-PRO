@@ -14,6 +14,7 @@ import { S, on } from "../state.js";
 import { esc, fmtDate } from "../i18n.js";
 import { UI, el, elT, toast, BUILDERS, TITLES, openSection } from "../ui/shared.js";
 import { consentStatus, isGranted } from "../consents.js";
+import { payloadMedidas, payloadAsignaciones } from "./mirror.js";
 import {
   isConfigured, currentSession, currentUser, onAuth,
   signInWithPassword, signUpWithPassword, signInWithMagicLink,
@@ -98,6 +99,22 @@ async function pushWorkouts() {
   if (sets.length) await insert("sets_log", sets);
 }
 
+/** espejo de MEDICIONES (tabla nueva: requiere migración 0002 aplicada) */
+async function pushMedidas() {
+  const u = currentUser();
+  const p = payloadMedidas(u.id, S.medidasList());
+  await remove(p.tabla, p.del);
+  if (p.filas.length) await insert(p.tabla, p.filas);
+}
+
+/** espejo de ASIGNACIONES del entrenador (solo reales: la demo nunca se sube) */
+async function pushAsignaciones() {
+  const u = currentUser();
+  const p = payloadAsignaciones(u.id, S.asignacionesDe("local"));
+  await remove(p.tabla, p.del);
+  if (p.filas.length) await insert(p.tabla, p.filas);
+}
+
 /** orquestador */
 export async function syncNow(opts = {}) {
   if (STATE.busy) return false;
@@ -110,6 +127,9 @@ export async function syncNow(opts = {}) {
     await pushProfile();
     await pushReadiness();
     await pushWorkouts();
+    // espejo ampliado: BEST-EFFORT (si falta la migración 0002, el resto sincroniza igual)
+    try { await pushMedidas(); await pushAsignaciones(); }
+    catch { /* tablas nuevas pendientes de migración: no rompe el espejo principal */ }
     STATE.last = new Date().toISOString();
     STATE.pending = 0;
     if (!opts.silent) toast("SINCRONIZADO", "Tus datos están en la nube.");

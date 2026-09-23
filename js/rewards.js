@@ -16,6 +16,20 @@ export const RULES = {
   mind: { perMin: 6, skill: "mind" },
   mobility: { xp: 45, skill: "mobility" },
   healthMap: { base: 40, perLayer: 4, cap: 20, skill: "discipline" },
+  // bonos de MISIÓN DIARIA (una sola vez por misión y por día; el trabajo
+  // en sí ya se premia arriba — aquí solo el bono de cumplir la misión)
+  mission: {
+    m_pasos: 50,     // caminar 8.000 pasos
+    m_comida: 25,    // registrar tus 3 comidas
+    m_mente: 35,     // 5 min de mente
+    m_agua: 30,      // meta alta de hidratación (2,5 L)
+    default: 20,
+  },
+  // TRABAJO / PRODUCTIVIDAD SALUDABLE (con tope diario: sano ≠ compulsivo)
+  work: {
+    foco:  { xp: 30, cap: 6, skill: "discipline" },  // bloques de foco 25/5
+    pausa: { xp: 25, cap: 8, skill: "mobility" },    // pausas activas de escritorio
+  },
 };
 
 const SKILL_OF = {
@@ -110,6 +124,27 @@ export function mindReward(min = 0) {
 export function mobilityReward() {
   return { xp: RULES.mobility.xp, skill: RULES.mobility.skill, skillGain: 1, text: "Movilidad completada" };
 }
+/**
+ * Bono de MISIÓN DIARIA reclamada. Idempotente por diseño: el estado solo
+ * concede UNA vez por misión y por día (S.claimMission).
+ */
+export function missionReward(id = "") {
+  const xp = RULES.mission[id] ?? RULES.mission.default;
+  return { xp, skill: "discipline", skillGain: 1, text: "Misión del día cumplida" };
+}
+
+/** Bloque de foco completado (25 min de trabajo consciente). */
+export function focusReward() {
+  const R = RULES.work.foco;
+  return { xp: R.xp, skill: R.skill, skillGain: 1, text: "Bloque de foco completado" };
+}
+
+/** Pausa activa de escritorio (movilidad mientras trabajas). */
+export function activePauseReward() {
+  const R = RULES.work.pausa;
+  return { xp: R.xp, skill: R.skill, skillGain: 1, text: "Pausa activa completada" };
+}
+
 export function healthMapReward(hm = {}) {
   const R = RULES.healthMap;
   const layers = (hm.priorities || []).length;

@@ -6,6 +6,8 @@ import { S } from "../state.js";
 import { EXERCISES } from "../data.js";
 import { recoveryScore, trend1RM, project1RM, volumeStatus } from "../engine.js";
 import { isGranted, setConsent } from "../consents.js";
+import { CAMPOS, normalizaMedida, deltas, proyeccion, proximaMedicion, serie } from "../medidas.js";
+import { lineaDelTiempo } from "../timeline.js";
 import { esc, fmtDate, fmtInt } from "../i18n.js";
 import {
   UI, $, el, showModal, hideModal, toast, BUILDERS,
@@ -30,6 +32,7 @@ BUILDERS.progress = (body) => {
   });
   body.appendChild(grid);
 
+  medidasBlock(body);
   body.appendChild(el("div", "sec-label", "ANALÍTICA DE RENDIMIENTO"));
   body.appendChild(analyticsBlock());
 
@@ -52,12 +55,17 @@ BUILDERS.progress = (body) => {
       <div class="sub mono">1RM estimado ${esc(p.e1)} kg · ${esc(fmtDate(p.date))}</div>`));
   });
 
-  body.appendChild(el("div", "sec-label", "LÍNEA DEL TIEMPO"));
+  body.appendChild(el("div", "sec-label", "TU HISTORIA · ANTES → AHORA (TODO EN UNA LÍNEA)"));
   const tl = el("div", "tl");
-  if (!d.journey.length) tl.appendChild(el("div", "tl-item", `<div class="tl-txt">Día 1. Todo empieza con una primera misión.</div>`));
-  d.journey.slice(0, 30).forEach((j) => {
-    tl.appendChild(el("div", "tl-item" + (j.type === "pr" ? " pr" : ""),
-      `<div class="tl-day">DÍA ${esc(j.day)} · ${esc(fmtDate(j.date))}</div><div class="tl-txt">${esc(j.text)}</div>${j.xp ? `<div class="tl-xp">+${esc(j.xp)} XP</div>` : ""}`));
+  const evs = lineaDelTiempo({
+    medidas: d.medidas || [], fotos: d.photos || [],
+    history: d.history || [], journey: d.journey || [],
+  });
+  const TIPO_TAG = { medicion: "MEDICIÓN", foto: "FOTO", pr: "RÉCORD", hito: "HITO" };
+  if (!evs.length) tl.appendChild(el("div", "tl-item", `<div class="tl-txt">Día 1. Todo empieza con una primera misión.</div>`));
+  evs.forEach((e) => {
+    tl.appendChild(el("div", "tl-item" + (e.tipo === "pr" ? " pr" : ""),
+      `<div class="tl-day">${esc(fmtDate(e.fecha))} · ${esc(TIPO_TAG[e.tipo] || "HITO")}</div><div class="tl-txt">${esc(e.texto)}</div>${e.xp ? `<div class="tl-xp">+${esc(e.xp)} XP</div>` : ""}`));
   });
   body.appendChild(tl);
 

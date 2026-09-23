@@ -87,10 +87,12 @@
 
     <!-- MISSION CARD -->
     <div id="mission-card">
+      <div class="mc-saludo" id="mc-saludo"></div>
       <div class="mc-tag mono" id="mc-tag">DÍA 1 · MISIÓN</div>
       <div class="mc-title" id="mc-title">EMPEZAR</div>
       <div class="mc-sub" id="mc-sub">Tu historia empieza hoy.</div>
       <button class="btn btn-primary" id="mc-cta">EMPEZAR MI CAMINO</button>
+      <button class="btn btn-ghost" id="mc-hoy">VER MI DÍA</button>
     </div>
 
     <!-- CORE floats in 3D; click opens chat -->
@@ -99,6 +101,7 @@
     <nav id="action-rail" aria-label="Accesos rápidos">
       <button class="rail-btn" data-go="training">ENTRENAMIENTO</button>
       <button class="rail-btn" data-go="nutrition">NUTRICIÓN</button>
+      <button class="rail-btn" data-go="trabajo">TRABAJO</button>
       <button class="rail-btn" data-go="recovery">RECUPERACIÓN</button>
       <button class="rail-btn" data-go="mind">MENTE</button>
       <button class="rail-btn" data-go="progress">PROGRESO</button>
@@ -140,8 +143,12 @@
   <script type="module" src="js/main.js"></script>
   <!-- ATELIER · personalización de la interfaz + motor de movimiento -->
   <script type="module" src="js/ui/motion.js"></script>
-  <!-- GEMELO-1 · cámara + mocap en vivo (autocontenido, ver js/vision/) -->
-  <script type="module" src="js/vision/boot.js"></script>
+  <!-- GEMELO-1 · cámara + mocap: CARGA DIFERIDA (MediaPipe solo cuando hace falta) -->
+  <script type="module">
+    const loadVision = () => import("./js/vision/boot.js");
+    if ("requestIdleCallback" in window) requestIdleCallback(loadVision, { timeout: 4000 });
+    else setTimeout(loadVision, 1200);
+  </script>
   <!-- HEALTH MAP · cuestionario de salud (autocontenido, ver js/health/) -->
   <script type="module" src="js/health/healthUI.js"></script>
   <!-- BRIDGE · GEMELO-1 + Health Map → estado/XP/journey del juego -->
