@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+<meta name="theme-color" content="#05070a" />
+<title>BAYONA — Tu vida es el juego</title>
+<link rel="stylesheet" href="css/style.css?v=6" />
+<link rel="stylesheet" href="css/aurum.css?v=1" />
+<link rel="stylesheet" href="css/motion.css?v=1" />
+<link rel="manifest" href="manifest.webmanifest" />
+<script>
+  /* firma visual: se aplica antes del primer pintado para no parpadear */
+  try {
+    var ap = JSON.parse(localStorage.getItem('bayona.appearance.v1') || '{}');
+    var d = document.documentElement;
+    d.dataset.theme = ap.theme || 'onyx';
+    d.dataset.mode = ap.mode || 'noche';
+    d.dataset.font = ap.font || 'titan';
+    d.dataset.density = ap.density || 'comoda';
+    d.dataset.radius = ap.radius || 'suave';
+    d.dataset.glass = ap.glass || 'on';
+    d.dataset.glow = ap.glow || 'medio';
+    d.dataset.scale = ap.scale || '100';
+    d.dataset.motion = ap.motion || 'pleno';
+    d.style.colorScheme = d.dataset.mode === 'marfil' ? 'light' : 'dark';
+  } catch (e) {}
+</script>
+<script type="importmap">
+  { "imports": { "three": "./vendor/three.module.js" } }
+</script>
+</head>
+<body>
+  <!-- ============ WORLD LAYER (3D) ============ -->
+  <div id="scene-wrap">
+    <canvas id="scene"></canvas>
+    <div id="scene-vignette"></div>
+    <div id="transition-veil"></div>
+  </div>
+  <div id="aurora" aria-hidden="true"></div>
+
+  <!-- ============ HUD LAYER ============ -->
+  <div id="hud">
+    <!-- TOP BAR -->
+    <header id="topbar">
+      <div class="brand">
+        <span class="brand-mark">◈</span>
+        <span class="brand-name">BAYONA</span>
+      </div>
+      <button id="level-chip" class="chip chip-level" title="Progreso">
+        <span class="lvl">NIVEL <b id="lvl-num">1</b></span>
+        <span class="rank" id="rank-name">INICIADO</span>
+        <span class="xpbar"><i id="xp-fill"></i></span>
+        <span class="xptxt mono" id="xp-txt">0 / 250 XP</span>
+      </button>
+      <div class="wallet mono">
+        <span class="cur bp" title="PUNTOS BAYONA">◆ <b id="cur-points">0</b></span>
+        <span class="cur cr" title="CRÉDITOS">✦ <b id="cur-credits">0</b></span>
+      </div>
+    </header>
+
+    <!-- LEFT FLOATING METRICS -->
+    <div class="metrics metrics-left">
+      <button class="metric" id="m-readiness">
+        <span class="m-k">PREPARACIÓN</span>
+        <span class="m-v mono" id="v-readiness">--%</span>
+        <span class="m-bar"><i id="b-readiness"></i></span>
+      </button>
+      <button class="metric" id="m-streak">
+        <span class="m-k">RACHA</span>
+        <span class="m-v mono" id="v-streak">0 D</span>
+      </button>
+    </div>
+
+    <!-- RIGHT FLOATING METRICS -->
+    <div class="metrics metrics-right">
+      <button class="metric" id="m-steps">
+        <span class="m-k">PASOS</span>
+        <span class="m-v mono" id="v-steps">0</span>
+      </button>
+      <button class="metric" id="m-hydration">
+        <span class="m-k">HIDRATACIÓN</span>
+        <span class="m-v mono" id="v-water">0 ml</span>
+        <span class="m-bar"><i id="b-water"></i></span>
+      </button>
+    </div>
+
+    <!-- MISSION CARD -->
+    <div id="mission-card">
+      <div class="mc-tag mono" id="mc-tag">DÍA 1 · MISIÓN</div>
+      <div class="mc-title" id="mc-title">EMPEZAR</div>
+      <div class="mc-sub" id="mc-sub">Tu historia empieza hoy.</div>
+      <button class="btn btn-primary" id="mc-cta">EMPEZAR MI CAMINO</button>
+    </div>
+
+    <!-- CORE floats in 3D; click opens chat -->
+
+    <!-- ACTION RAIL -->
+    <nav id="action-rail" aria-label="Accesos rápidos">
+      <button class="rail-btn" data-go="training">ENTRENAMIENTO</button>
+      <button class="rail-btn" data-go="nutrition">NUTRICIÓN</button>
+      <button class="rail-btn" data-go="recovery">RECUPERACIÓN</button>
+      <button class="rail-btn" data-go="mind">MENTE</button>
+      <button class="rail-btn" data-go="progress">PROGRESO</button>
+      <button class="rail-btn" data-go="plan">PLAN</button>
+      <button class="rail-btn" data-go="armory">ARMARIO</button>
+      <button class="rail-btn" data-go="account">CUENTA</button>
+      <button class="rail-btn" data-go="appearance">APARIENCIA</button>
+      <button class="rail-btn rail-off" data-go="social" disabled>COMUNIDAD<em>PRÓX.</em></button>
+    </nav>
+
+    <!-- BOTTOM NAV -->
+    <nav id="bottomnav" aria-label="Navegación principal">
+      <button class="nav-btn active" data-nav="home"><span>◈</span>INICIO</button>
+      <button class="nav-btn" data-nav="progress"><span>▤</span>PROGRESO</button>
+      <button class="nav-btn" data-nav="armory"><span>♟</span>ARMARIO</button>
+      <button class="nav-btn" data-nav="core"><span>◉</span>CORE</button>
+      <button class="nav-btn" data-nav="more"><span>⚙</span>MÁS</button>
+    </nav>
+  </div>
+
+  <!-- ============ CONTEXT DRAWER ============ -->
+  <aside id="drawer" class="hidden" aria-live="polite">
+    <div class="drawer-head">
+      <h2 id="drawer-title">SECTION</h2>
+      <div class="drawer-sub mono" id="drawer-sub"></div>
+      <button id="drawer-close" aria-label="Cerrar">✕</button>
+    </div>
+    <div id="drawer-body"></div>
+  </aside>
+
+  <!-- ============ MODAL / CINEMATIC LAYER ============ -->
+  <div id="modal-layer" class="hidden">
+    <div id="modal-box"></div>
+  </div>
+
+  <!-- ============ TOASTS ============ -->
+  <div id="toasts"></div>
+
+  <script type="module" src="js/main.js"></script>
+  <!-- ATELIER · personalización de la interfaz + motor de movimiento -->
+  <script type="module" src="js/ui/motion.js"></script>
+  <!-- GEMELO-1 · cámara + mocap en vivo (autocontenido, ver js/vision/) -->
+  <script type="module" src="js/vision/boot.js"></script>
+  <!-- HEALTH MAP · cuestionario de salud (autocontenido, ver js/health/) -->
+  <script type="module" src="js/health/healthUI.js"></script>
+  <!-- BRIDGE · GEMELO-1 + Health Map → estado/XP/journey del juego -->
+  <script type="module" src="js/bridge.js"></script>
+  <!-- ONBOARDING ÚNICO · primer arranque (crea personaje, objetivo, disponibilidad, equipamiento, consentimientos) -->
+  <script type="module" src="js/onboarding.js"></script>
+  <!-- DIARIO DE SESIÓN · recap cinematográfico de las series reales del GEMELO-1 -->
+  <script type="module" src="js/diary/sessionDiary.js"></script>
+</body>
+</html>

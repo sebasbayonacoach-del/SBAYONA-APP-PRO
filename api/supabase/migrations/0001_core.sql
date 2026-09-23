@@ -1,0 +1,262 @@
+-- =====================================================================
+-- BAYONA — 0001_core.sql · Esquema de dominio completo (Sprint 0, tarea 0.4)
+-- PostgreSQL 15 / Supabase. Basado en PLAN_NIVEL_3_PRO.md §3.
+-- FASE 2 (comentario): la serie temporal `health_samples` migrará a
+--   TimescaleDB: SELECT create_hypertable('health_samples','ts',
+--   migrate_data => true); + política de retención (drop_chunks) y
+--   compresión por segmento (user_id). Mantener id/bigserial y columnas
+--   estables para que la conversión sea transparente para las consultas.
+-- =====================================================================
+
+-- ---------------------------------------------------------------------
+-- DOMINIO IDENTIDAD
+-- ---------------------------------------------------------------------
+
+create table profiles (
+  id           uuid primary key references auth.users (id) on delete cascade,
+  display_name text,
+  birth        date,
+  sex          text check (sex in ('F','M','X')),
+  height_cm    numeric(5,1),
+  goals        jsonb default '[]',
+  created_at   timestamptz default now()
+);
+
+-- GDPR art. 9: un consentimiento granular y revocable por dominio de salud.
+create table consents (
+  user_id    uuid references profiles (id) on delete cascade,
+  domain     text not null check (domain in ('vision','body_scan','health_wearables',
+                                             'health_clinical','nutrition_photo','voice')),
+  granted    boolean not null,
+  granted_at timestamptz default now(),
+  revoked_at timestamptz,
+  primary key (user_id, domain)
+);
+
+create table avatars (
+  user_id         uuid references profiles (id) on delete cascade,
+  provider        text not null,
+  glb_path        text,
+  rig_profile     text,
+  morphs          jsonb,
+  fidelity_score  numeric(3,2),
+  created_at      timestamptz default now(),
+  primary key (user_id, provider)
+);
+
+-- ---------------------------------------------------------------------
+-- DOMINIO ENTRENAMIENTO
+-- ---------------------------------------------------------------------
+
+create table exercises (
+  id                 text primary key,
+  name               text,
+  pattern            text,                 -- squat/hinge/push/pull/...
+  cues               jsonb,
+  rom_targets        jsonb,
+  contraindications  text[]
+);
+
+create table plans (
+  id         uuid primary key default gen_random_uuid(),
+  user_id    uuid references profiles (id) on delete cascade,
+  macrocycle jsonb not null,               -- 24 semanas (formato de la app)
+  version    int default 1,
+  created_at timestamptz default now()
+);
+
+create table workout_sessions (
+  id             uuid primary key default gen_random_uuid(),
+  user_id        uuid references profiles (id) on delete cascade,
+  plan_day_id    text,
+  started_at     timestamptz,
+  ended_at       timestamptz,
+  readiness_in   numeric(4,1),
+  rpe_out        numeric(3,1),
+  status         text
+);
+
+create table sets_log (
+  id                bigserial primary key,
+  session_id        uuid references workout_sessions (id) on delete cascade,
+  exercise_id       text references exercises (id),
+  set_no            int,
+  reps              int,
+  load_kg           numeric(5,2),
+  rir               numeric(3,1),
+  form_score        numeric(4,1),
+  rep_vel_loss      numeric(4,3),
+  landmarks_summary jsonb,                -- resumen biomecánico. NUNCA vídeo/frames
+  created_at        timestamptz default now()
+);
+
+-- ---------------------------------------------------------------------
+-- DOMINIO SALUD (serie temporal → TimescaleDB en fase 2, ver cabecera)
+-- ---------------------------------------------------------------------
+
+create table health_samples (
+  id      bigserial primary key,
+  user_id uuid references profiles (id) on delete cascade,
+  source  text not null,                  -- 'apple_watch','garmin','withings','manual','camera'...
+  kind    text not null,                  -- 'hr','hrv','sleep_min','steps','weight_kg','glucose'...
+  ts      timestamptz not null,
+  value   numeric,
+  unit    text,
+  meta    jsonb
+);
+
+create table readiness_daily (
+  user_id  uuid references profiles (id) on delete cascade,
+  day      date not null,
+  score    numeric(4,1),
+  factors  jsonb,
+  primary key (user_id, day)             -- el PK ya aporta el índice (user_id, day)
+);
+
+-- Progress Vault: escaneos cifrados por usuario (claves del usuario).
+create table scans (
+  id         uuid primary key default gen_random_uuid(),
+  user_id    uuid references profiles (id) on delete cascade,
+  kind       text check (kind in ('body_3d','posture','face')),
+  enc_path   text not null,
+  meta       jsonb,
+  created_at timestamptz default now()
+);
+
+-- ---------------------------------------------------------------------
+-- SEGURIDAD / SALUD MENTAL — trazabilidad 100% (KPI del comité)
+-- ---------------------------------------------------------------------
+
+create table red_flags (
+  id           bigserial primary key,
+  user_id      uuid references profiles (id) on delete cascade,
+  domain       text,
+  severity     text check (severity in ('amber','red')),
+  action_taken text,
+  referral_url text,
+  resolved_at  timestamptz,
+  created_at   timestamptz default now()
+);
+
+-- ---------------------------------------------------------------------
+-- GAMIFICACIÓN — ledger inmutable (sin saldo mutable)
+-- ---------------------------------------------------------------------
+
+create table xp_ledger (
+  id         bigserial primary key,
+  user_id    uuid references profiles (id) on delete cascade,
+  kind       text check (kind in ('xp','skill_xp','credits','points')),
+  amount     int not null,
+  reason     text,
+  created_at timestamptz default now()
+);
+
+-- ---------------------------------------------------------------------
+-- ÍNDICES
+-- ---------------------------------------------------------------------
+
+create index health_samples_user_ts_idx on health_samples (user_id, ts);
+create index sets_log_session_idx       on sets_log (session_id);
+-- readiness_daily: el índice (user_id, day) lo aporta la primary key; no se duplica.
+
+-- =====================================================================
+-- ROW LEVEL SECURITY — cada usuario es dueño de lo suyo (auth.uid())
+-- =====================================================================
+
+alter table profiles        enable row level security;
+alter table consents        enable row level security;
+alter table avatars         enable row level security;
+alter table exercises       enable row level security;
+alter table plans           enable row level security;
+alter table workout_sessions enable row level security;
+alter table sets_log        enable row level security;
+alter table health_samples  enable row level security;
+alter table readiness_daily enable row level security;
+alter table scans           enable row level security;
+alter table red_flags       enable row level security;
+alter table xp_ledger       enable row level security;
+
+-- Patrón "own rows" (permissive) — tablas con user_id directo
+create policy "own rows" on profiles
+  for all to authenticated
+  using (auth.uid() = id) with check (auth.uid() = id);
+
+create policy "own rows" on consents
+  for all to authenticated
+  using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+create policy "own rows" on avatars
+  for all to authenticated
+  using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+create policy "own rows" on plans
+  for all to authenticated
+  using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+create policy "own rows" on workout_sessions
+  for all to authenticated
+  using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+create policy "own rows" on readiness_daily
+  for all to authenticated
+  using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+create policy "own rows" on scans
+  for all to authenticated
+  using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+create policy "own rows" on red_flags
+  for all to authenticated
+  using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+create policy "own rows" on xp_ledger
+  for all to authenticated
+  using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- sets_log: propiedad derivada de la sesión (no tiene user_id propio)
+create policy "own rows" on sets_log
+  for all to authenticated
+  using (exists (select 1 from workout_sessions ws
+                 where ws.id = sets_log.session_id and ws.user_id = auth.uid()))
+  with check (exists (select 1 from workout_sessions ws
+                      where ws.id = sets_log.session_id and ws.user_id = auth.uid()));
+
+-- exercises: catálogo público de solo lectura (el inserto un seed admin/service_role)
+create policy "catalog read" on exercises
+  for select to authenticated
+  using (true);
+
+-- health_samples: "own rows" + política EXTRA restrictiva de consentimiento.
+-- Nota: las policies permissive se combinan con OR; para EXIGIR consentimiento
+-- hace falta una policy RESTRICTIVE (se combina con AND desde PG 10+).
+create policy "own rows" on health_samples
+  for all to authenticated
+  using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- Escritura de muestras de salud solo con consentimiento activo en
+-- 'health_wearables' o 'health_clinical' (granted=true y sin revocar).
+create policy "health ingest requires consent" on health_samples
+  as restrictive
+  for insert to authenticated
+  with check (exists (
+    select 1 from consents c
+    where c.user_id = auth.uid()
+      and c.domain in ('health_wearables','health_clinical')
+      and c.granted = true
+      and c.revoked_at is null
+  ));
+
+create policy "health update requires consent" on health_samples
+  as restrictive
+  for update to authenticated
+  using (exists (
+    select 1 from consents c
+    where c.user_id = auth.uid()
+      and c.domain in ('health_wearables','health_clinical')
+      and c.granted = true
+      and c.revoked_at is null
+  ));
+
+-- Lectura/exportación de datos propios siempre permitida (derecho de acceso
+-- y portabilidad GDPR): revocar consentimiento corta la INGESTA, no el acceso
+-- a los datos ya recogidos, que el usuario puede exportar o borrar.

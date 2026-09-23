@@ -1,0 +1,273 @@
+/* ============================================================
+   BAYONA · MOTION — sistema de movimiento cinematográfico
+   ------------------------------------------------------------
+   Capas:
+     1. Tokens de tiempo escalables por intensidad de movimiento
+     2. Transición de mundo (velo + barrido + destello)
+     3. Revelado escalonado (drawer, listas, scroll)
+     4. Microinteracciones (ripple, prensa, brillo, tilt)
+     5. Feedback numérico (contadores, chispas de XP)
+     6. Estados vacíos / carga (esqueleto con shimmer)
+   Respeta prefers-reduced-motion y data-motion="off|sereno".
+   ============================================================ */
+
+:root {
+  --t-fast: 0.18s;
+  --t-base: 0.34s;
+  --t-slow: 0.62s;
+  --t-cine: 0.95s;
+  --m-scale: 1;
+  --stagger: 0.055s;
+}
+html[data-motion="sereno"] { --m-scale: 0.6; --stagger: 0.03s; }
+html[data-motion="off"]    { --m-scale: 0; }
+
+/* ============ 1. TRANSICIÓN DE MUNDO ============ */
+#transition-veil {
+  opacity: 0;
+  transition: opacity calc(var(--t-base) * var(--m-scale)) var(--ease);
+  background:
+    linear-gradient(180deg, var(--paper) 0%, var(--paper-2) 48%, var(--paper) 100%);
+}
+#transition-veil::before {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(100deg,
+    transparent 34%,
+    color-mix(in srgb, var(--acc-1) 26%, transparent) 48%,
+    color-mix(in srgb, var(--acc-2) 40%, transparent) 50%,
+    color-mix(in srgb, var(--acc-1) 26%, transparent) 52%,
+    transparent 66%);
+  transform: translateX(-60%);
+}
+#transition-veil.on {
+  opacity: 0.97;
+}
+#transition-veil.on::before {
+  animation: veilSweep calc(var(--t-cine) * var(--m-scale)) var(--ease) forwards;
+}
+@keyframes veilSweep {
+  from { transform: translateX(-70%); opacity: 0; }
+  35%  { opacity: 1; }
+  to   { transform: translateX(70%); opacity: 0; }
+}
+
+/* destello dorado al entrar en un mundo */
+.flare {
+  position: fixed; inset: 0; z-index: 60; pointer-events: none;
+  background: radial-gradient(60% 50% at 50% 55%, var(--acc-soft), transparent 70%);
+  animation: flareIn calc(var(--t-cine) * var(--m-scale)) var(--ease) forwards;
+}
+@keyframes flareIn {
+  0% { opacity: 0; transform: scale(0.82); }
+  22% { opacity: 1; }
+  100% { opacity: 0; transform: scale(1.14); }
+}
+
+/* ============ 2. REVELADO ESCALONADO ============ */
+[data-reveal] {
+  opacity: 0;
+  transform: translate3d(0, calc(18px * var(--m-scale)), 0);
+}
+[data-reveal].in {
+  animation: revealUp calc(var(--t-slow) * max(var(--m-scale), 0.35)) var(--ease) both;
+  animation-delay: calc(var(--rd, 0) * var(--stagger) * var(--m-scale));
+}
+@keyframes revealUp {
+  from { opacity: 0; transform: translate3d(0, calc(20px * var(--m-scale)), 0) scale(0.985); filter: blur(2px); }
+  to   { opacity: 1; transform: none; filter: none; }
+}
+
+/* entrada suave de bloques ya existentes en el drawer */
+#drawer-body > * {
+  animation: drawerRise calc(var(--t-slow) * max(var(--m-scale), 0.35)) var(--ease) both;
+}
+@keyframes drawerRise {
+  from { opacity: 0; transform: translate3d(0, calc(14px * var(--m-scale)), 0); filter: blur(1.5px); }
+  to   { opacity: 1; transform: none; filter: none; }
+}
+#drawer-body > *:nth-child(1) { animation-delay: calc(0 * var(--stagger) * var(--m-scale)); }
+#drawer-body > *:nth-child(2) { animation-delay: calc(1 * var(--stagger) * var(--m-scale)); }
+#drawer-body > *:nth-child(3) { animation-delay: calc(2 * var(--stagger) * var(--m-scale)); }
+#drawer-body > *:nth-child(4) { animation-delay: calc(3 * var(--stagger) * var(--m-scale)); }
+#drawer-body > *:nth-child(5) { animation-delay: calc(4 * var(--stagger) * var(--m-scale)); }
+#drawer-body > *:nth-child(6) { animation-delay: calc(5 * var(--stagger) * var(--m-scale)); }
+#drawer-body > *:nth-child(7) { animation-delay: calc(6 * var(--stagger) * var(--m-scale)); }
+#drawer-body > *:nth-child(8) { animation-delay: calc(7 * var(--stagger) * var(--m-scale)); }
+#drawer-body > *:nth-child(n+9) { animation-delay: calc(8 * var(--stagger) * var(--m-scale)); }
+
+/* el cajón entra con un empuje elástico */
+#drawer {
+  transition: transform calc(var(--t-cine) * max(var(--m-scale), 0.3)) var(--spring),
+              box-shadow var(--t-base) var(--ease);
+}
+@media (min-width: 701px) {
+  #drawer:not(.open) { transform: translateX(calc(100% + 40px)); }
+}
+
+/* el HUD reacciona al abrir el panel (ver también css/aurum.css) */
+#hud.panel-open .metrics, #hud.panel-open #mission-card {
+  transition: opacity var(--t-base) var(--ease), transform var(--t-base) var(--ease);
+}
+@media (min-width: 701px) {
+  #hud.panel-open .metrics-left { transform: translateX(-8px); }
+  #hud.panel-open .metrics-right { transform: translateX(8px); }
+}
+
+/* ============ 3. MICROINTERACCIONES ============ */
+.btn, .chip, .rail-btn, .nav-btn, .item, .swatch-btn, .opt, .metric, .cal-day,
+.quickq button, .btn-mini, .cal-head .cal-nav button {
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform calc(var(--t-fast) * max(var(--m-scale), 0.4)) var(--spring),
+    box-shadow var(--t-base) var(--ease),
+    border-color var(--t-base) var(--ease),
+    color var(--t-base) var(--ease),
+    background var(--t-base) var(--ease);
+}
+.btn:active, .chip:active, .rail-btn:active, .nav-btn:active, .item:active,
+.swatch-btn:active, .opt:active, .cal-day:active, .btn-mini:active, #drawer-close:active {
+  transform: scale(0.965);
+}
+
+/* onda de toque */
+.ripple {
+  position: absolute; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle, color-mix(in srgb, var(--acc-1) 55%, #fff) 0%, transparent 68%);
+  transform: translate(-50%, -50%) scale(0);
+  opacity: 0.55;
+  animation: rippleOut calc(0.62s * max(var(--m-scale), 0.3)) var(--ease) forwards;
+  mix-blend-mode: screen;
+}
+html[data-mode="marfil"] .ripple { mix-blend-mode: multiply; opacity: 0.28; }
+@keyframes rippleOut {
+  to { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+}
+
+/* leve perspectiva en tarjetas */
+.tilt { transform-style: preserve-3d; will-change: transform; }
+.tilt > * { transform: translateZ(0); }
+
+/* brillo de contorno en tarjetas destacadas */
+.shine { overflow: hidden; }
+.shine::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 1;
+  border-radius: inherit;
+  background: linear-gradient(115deg, transparent 38%, rgba(255, 255, 255, 0.14) 50%, transparent 62%);
+  transform: translateX(-120%);
+  transition: transform 0.9s var(--ease);
+}
+.shine:hover::after { transform: translateX(120%); }
+
+/* ============ 4. FEEDBACK NUMÉRICO ============ */
+.count-to { font-variant-numeric: tabular-nums; }
+.count-to.tick { animation: numPop calc(0.42s * max(var(--m-scale), 0.3)) var(--spring); }
+@keyframes numPop {
+  0% { transform: translateY(4px) scale(0.94); opacity: 0.4; }
+  100% { transform: none; }
+}
+
+.xp-burst {
+  animation: xpup calc(1.5s * max(var(--m-scale), 0.4)) var(--ease) forwards;
+  text-shadow: 0 0 calc(18px * var(--glow)) var(--acc-2);
+}
+@keyframes xpup {
+  0%   { opacity: 0; transform: translateY(10px) scale(0.85); }
+  16%  { opacity: 1; transform: none; }
+  70%  { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-64px) scale(1.04); }
+}
+
+.spark {
+  position: fixed; z-index: 75; pointer-events: none;
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--acc-1);
+  box-shadow: 0 0 10px var(--acc-2);
+  animation: sparkFly 1.15s var(--ease) forwards;
+}
+@keyframes sparkFly {
+  from { opacity: 1; transform: translate(0, 0) scale(1); }
+  to   { opacity: 0; transform: translate(var(--sx, 0px), var(--sy, -80px)) scale(0.2); }
+}
+
+/* ============ 5. MODAL CINEMATOGRÁFICO ============ */
+#modal-box { animation: modalIn calc(var(--t-slow) * max(var(--m-scale), 0.3)) var(--spring); }
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(26px) scale(0.96); filter: blur(3px); }
+  to   { opacity: 1; transform: none; filter: none; }
+}
+.cine-title { animation: cineTitle calc(var(--t-cine) * max(var(--m-scale), 0.3)) var(--ease) both 0.1s; }
+@keyframes cineTitle {
+  from { opacity: 0; transform: translateY(14px); letter-spacing: 0.14em; }
+  to   { opacity: 1; transform: none; letter-spacing: 0.01em; }
+}
+.reward-line { animation: revealUp calc(var(--t-base) * max(var(--m-scale), 0.3)) var(--ease) both; }
+.reward-line:nth-of-type(1) { animation-delay: 0.12s; }
+.reward-line:nth-of-type(2) { animation-delay: 0.2s; }
+.reward-line:nth-of-type(3) { animation-delay: 0.28s; }
+.reward-line:nth-of-type(4) { animation-delay: 0.36s; }
+
+/* ============ 6. TOASTS ============ */
+.toast {
+  animation: toastIn calc(var(--t-base) * max(var(--m-scale), 0.3)) var(--spring);
+  position: relative; overflow: hidden;
+}
+.toast::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.35) 50%, transparent 60%);
+  transform: translateX(-120%);
+  animation: shimmerOnce 1.1s var(--ease) 0.15s forwards;
+}
+@keyframes shimmerOnce { to { transform: translateX(120%); } }
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(-14px) scale(0.96); }
+  to   { opacity: 1; transform: none; }
+}
+.toast.out { animation: toastOut calc(var(--t-base) * max(var(--m-scale), 0.3)) var(--ease) forwards; }
+@keyframes toastOut {
+  to { opacity: 0; transform: translateY(-10px) scale(0.98); filter: blur(2px); }
+}
+
+/* ============ 7. CARGA / ESQUELETO ============ */
+.skeleton {
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--cream) 85%, transparent) 0%,
+    color-mix(in srgb, var(--panel) 92%, transparent) 45%,
+    color-mix(in srgb, var(--cream) 85%, transparent) 100%);
+  background-size: 220% 100%;
+  animation: skeleton 1.5s var(--ease-io) infinite;
+  border-radius: var(--radius-sm);
+  min-height: 14px;
+}
+@keyframes skeleton {
+  from { background-position: 140% 0; }
+  to   { background-position: -40% 0; }
+}
+
+/* barras de datos que crecen desde cero */
+.mbar i, .m-bar i, .xpbar i { animation: barGrow calc(var(--t-cine) * max(var(--m-scale), 0.3)) var(--ease) both; transform-origin: left; }
+@keyframes barGrow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+/* respiración del círculo de respiración */
+.breath-circle { transition: transform var(--t-cine) var(--ease), box-shadow var(--t-cine) var(--ease); }
+
+/* ============ 8. APAGADO GLOBAL ============ */
+html[data-motion="off"] *,
+html[data-motion="off"] *::before,
+html[data-motion="off"] *::after {
+  animation-duration: 0.001ms !important;
+  animation-delay: 0ms !important;
+  transition-duration: 0.001ms !important;
+}
+html[data-motion="off"] [data-reveal] { opacity: 1; transform: none; }
+html[data-motion="off"] #transition-veil { display: none; }
+html[data-motion="off"] #aurora { animation: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.05ms !important;
+  }
+  [data-reveal] { opacity: 1 !important; transform: none !important; }
+}
