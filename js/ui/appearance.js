@@ -9,7 +9,7 @@
 import { S } from "../state.js";
 import { processFace } from "../face.js";
 import { setConsent, isGranted } from "../consents.js";
-import { UI, $, el, elT, toast, BUILDERS, TITLES, openSection } from "./shared.js";
+import { UI, $, el, elT, toast, BUILDERS, TITLES, openSection, closeDrawer } from "./shared.js";
 
 const KEY = "bayona.appearance.v1";
 
@@ -277,8 +277,8 @@ BUILDERS.appearance = (body) => {
           S.save();
           if (UI.W) attachAvatar3d(UI.W, desc).catch(() =>
             toast("3D PENDIENTE", "Se activará solo al reabrir con conexión.", "danger"));
-          toast("AVATAR 3D ACTIVO", "Tu 3D entra en escena.");
-          BUILDERS.appearance(body);
+          toast("AVATAR 3D ACTIVO", "Mira tu personaje en el mundo.");
+          closeDrawer(); // revela el 3D: nada de paneles tapándolo
         },
       });
     } catch {

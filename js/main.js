@@ -28,7 +28,9 @@ function boot() {
   // avatar 3D (Avaturn): si falla, el de la foto sigue — nunca pantalla rota
   if (S.data.profile.avatar3d) {
     import("./avatar3d.js").then(({ attachAvatar3d }) =>
-      attachAvatar3d(world, S.data.profile.avatar3d).catch(() => {}));
+      attachAvatar3d(world, S.data.profile.avatar3d).catch((e) => {
+        toastUi("3D NO CARGÓ", `Tu foto sigue en escena (${e?.message || "red"}). Reintenta en APARIENCIA.`, "danger");
+      }));
   }
 
   // cara real del usuario (foto → avatar)

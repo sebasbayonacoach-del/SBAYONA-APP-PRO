@@ -187,6 +187,7 @@ function buildWrapper(THREE, model) {
     setAction(name) { this.action = AVATAR3D_ACTIONS[name] ? name : "idle"; },
     setSkin() { /* la piel vive en el modelo */ },
     setFace() { /* la cara vive en el modelo */ },
+    setOutfit() { /* la ropa vive en el modelo (el vigilante de main.js la llama) */ },
     update(dt, reducedMotion) {
       this.time += dt * (reducedMotion ? 0.25 : 1);
       const cue = AVATAR3D_ACTIONS[this.action] || AVATAR3D_ACTIONS.idle;
