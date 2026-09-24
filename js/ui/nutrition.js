@@ -24,11 +24,11 @@ BUILDERS.nutrition = (body) => {
     <div class="mc-sub">Estás cuidando tu cuerpo y a tu personaje. Registra solo lo que comes de verdad: nada de comida virtual.</div>`));
   body.appendChild(el("div", "sec-label", "NUTRICIÓN DIARIA · OBJETIVO DIARIO"));
   const macros = [
-    ["ENERGÍA", td.kcal, GOALS.kcal, "kcal", "#ff7a3c"],
-    ["PROTEÍNAS", td.p, GOALS.p, "g", "#59e0ff"],
-    ["CARBOHIDRATOS", td.c, GOALS.c, "g", "#4a86ff"],
-    ["GRASAS", td.f, GOALS.f, "g", "#d8b26a"],
-    ["FIBRA", td.fib || 0, GOALS.fib, "g", "#4fd18b"],
+    ["ENERGÍA", td.kcal, GOALS.kcal, "kcal", "var(--orange)"],
+    ["PROTEÍNAS", td.p, GOALS.p, "g", "var(--ink)"],
+    ["CARBOHIDRATOS", td.c, GOALS.c, "g", "var(--ink-soft)"],
+    ["GRASAS", td.f, GOALS.f, "g", "var(--ink-mute)"],
+    ["FIBRA", td.fib || 0, GOALS.fib, "g", "var(--line-strong)"],
   ];
   macros.forEach(([k, v, g, u, col]) => {
     const m = el("div", "macro");

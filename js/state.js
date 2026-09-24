@@ -95,6 +95,7 @@ export const S = {
     d.settings = { sound: true, motion: true, haptics: true, quality: "AUTO", ...(d.settings || {}) };
     d.today = { ...freshToday(), ...(d.today || {}) };
     d.voice = Array.isArray(d.voice) ? d.voice : [];
+    d.history = Array.isArray(d.history) ? d.history : [];
     d.medidas = Array.isArray(d.medidas) ? d.medidas : [];
     d.asignaciones = Array.isArray(d.asignaciones) ? d.asignaciones : [];
     d.diary = Array.isArray(d.diary) ? d.diary : [];
@@ -105,6 +106,26 @@ export const S = {
     d.plan = d.plan || { week: 1, sessionsDone: {}, custom: {} };
     d.plan.custom = d.plan.custom || {};
     d.activeSession = d.activeSession || null;
+    // defensa TOTAL: saves antiguos/parciales obtienen SIEMPRE la forma canónica
+    d.xp = Number.isFinite(d.xp) ? d.xp : 0;
+    d.points = Number.isFinite(d.points) ? d.points : 0;
+    d.credits = Number.isFinite(d.credits) ? d.credits : 120;
+    d.skills = { strength: 0, cardio: 0, mobility: 0, recovery: 0, discipline: 0, mind: 0, ...(d.skills || {}) };
+    d.stats = { workouts: 0, sets: 0, prs: 0, sessionsMin: 0, km: 0, ...(d.stats || {}) };
+    d.streak = Number.isFinite(d.streak) ? d.streak : 0;
+    d.freeze = Number.isFinite(d.freeze) ? d.freeze : 2;
+    d.lastActiveDay = d.lastActiveDay || null;
+    d.inventory = { ...(d.inventory || {}) };
+    if (!Array.isArray(d.inventory.owned) || !d.inventory.owned.length) {
+      d.inventory.owned = ["core_tee", "core_pants", "core_runners", "sage_wrap"];
+    }
+    d.inventory.equipped = {
+      top: "core_tee", bottom: "core_pants", shoes: "core_runners",
+      wrist: null, head: "sage_wrap", back: null, effects: null,
+      ...(d.inventory.equipped || {}),
+    };
+    d.prs = d.prs && typeof d.prs === "object" ? d.prs : {};
+    d.journey = Array.isArray(d.journey) ? d.journey : [];
     // comidas: en versiones antiguas eran ids sueltos → objetos completos
     d.today.meals = (d.today.meals || []).map((m) => {
       if (typeof m === "string") {
@@ -519,7 +540,7 @@ export const S = {
     if (t.energy != null) {
       parts.push({ k: "Energía percibida", w: 0.20, s: t.energy / 10, note: `${t.energy}/10 registrada` });
     }
-    const strain7 = this.data.history.slice(-7).reduce((a, h) => a + (h.strain || 0), 0) + (t.strain || 0);
+    const strain7 = (this.data.history || []).slice(-7).reduce((a, h) => a + (h.strain || 0), 0) + (t.strain || 0);
     if (strain7 > 0) {
       const s = 1 - Math.min(1, strain7 / 60);
       parts.push({ k: "Carga reciente", w: 0.15, s, note: `${strain7.toFixed(1)} de carga en 7 días` });

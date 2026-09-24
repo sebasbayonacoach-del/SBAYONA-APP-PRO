@@ -64,7 +64,7 @@ function renderCartera(body) {
       </div>
       <div class="hoy-titulo">${esc(c.nombre)} — ${esc(c.sesionHoy)}</div>
       <div class="mc-sub">Nivel ${esc(c.nivel)} · ${esc(c.rango)} · preparación ${c.preparacion == null ? "—" : esc(c.preparacion) + " %"} · adherencia ${esc(c.adherencia)} %</div>
-      ${al.length ? `<div style="margin-top:8px">${al.map((a) => `<span class="pill ${a.nivel === "alta" ? "danger" : ""}" style="margin:2px 4px 0 0">⚠ ${esc(a.texto)}</span>`).join("")}</div>` : ""}`;
+      ${al.length ? `<div style="margin-top:8px">${al.map((a) => `<span class="pill ${a.nivel === "alta" ? "danger" : ""}" style="margin:2px 4px 0 0">▲ ${esc(a.texto)}</span>`).join("")}</div>` : ""}`;
     const b = el("button", "btn btn-block", "ABRIR FICHA");
     b.style.marginTop = "10px";
     b.addEventListener("click", () => renderFicha(body, c));
@@ -112,7 +112,7 @@ function renderFicha(body, c) {
 
   body.appendChild(el("div", "sec-label", "ALERTAS"));
   body.appendChild(el("div", "card", al.length
-    ? al.map((a) => `<div class="kv"><span class="k">${a.nivel === "alta" ? "⚠ ALTA" : "◇ MEDIA"}</span><span class="v" style="font-family:inherit">${esc(a.texto)}</span></div>`).join("")
+    ? al.map((a) => `<div class="kv"><span class="k">${a.nivel === "alta" ? "▲ ALTA" : "◇ MEDIA"}</span><span class="v" style="font-family:inherit">${esc(a.texto)}</span></div>`).join("")
     : `<div class="sub">Sin alertas declaradas. Información deportiva: nunca diagnóstico médico.</div>`));
 
   body.appendChild(el("div", "sec-label", "ESTADO FÍSICO Y ÚLTIMOS CAMBIOS"));

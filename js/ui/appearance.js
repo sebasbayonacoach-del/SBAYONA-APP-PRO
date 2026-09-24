@@ -1,10 +1,10 @@
 // ============================================================
-// BAYONA · APARIENCIA — centro de personalización "ATELIER"
+// BAYONA · APARIENCIA — firma visual «MONO NARANJA»
 // ------------------------------------------------------------
-// Todo el gusto del producto se decide aquí: aura de color, luz,
-// tipografía, densidad, escala, esquinas, cristal, brillo y movimiento.
-// Se aplica en <html> como data-* (ver css/aurum.css y css/motion.css)
-// y se persiste de forma independiente al estado del juego.
+// Paleta ESTRICTA: naranja · blanco · negro. Sin auras alternativas.
+// Quedan controles mínimos de LUZ, DENSIDAD, TEXTO, ESQUINAS y
+// MOVIMIENTO. Se aplica en <html> como data-* (css/aurum.css,
+// css/motion.css) y se persiste aparte del estado del juego.
 // ============================================================
 import { S } from "../state.js";
 import { processFace } from "../face.js";
@@ -13,25 +13,19 @@ import { UI, $, el, elT, toast, BUILDERS, TITLES, openSection, closeDrawer } fro
 
 const KEY = "bayona.appearance.v1";
 
-/** catálogo de identidades visuales */
+/** firma única de identidad visual (sin variantes de color) */
 export const THEMES = [
-  { id: "onyx",      name: "ONYX ORO",    dot: "linear-gradient(120deg,#fff8e6,#e9cd92 40%,#c39a4d 70%,#8a6524)" },
-  { id: "amanecer",  name: "AMANECER",    dot: "linear-gradient(120deg,#ffd0b3,#ff9a63 40%,#ff7a3c 70%,#e8500a)" },
-  { id: "zafiro",    name: "ZAFIRO",      dot: "linear-gradient(120deg,#dce8ff,#8fb6ff 40%,#4a86ff 70%,#1f4fc4)" },
-  { id: "esmeralda", name: "ESMERALDA",   dot: "linear-gradient(120deg,#d9ffef,#7ce3b4 40%,#2fce8f 70%,#12855a)" },
-  { id: "rubi",      name: "RUBÍ",        dot: "linear-gradient(120deg,#ffd6e0,#ff87a6 40%,#ef4b6f 70%,#a51232)" },
-  { id: "violeta",   name: "VIOLETA",     dot: "linear-gradient(120deg,#e8dcff,#c4a2ff 40%,#8f66ff 70%,#5326c4)" },
-  { id: "aurora",    name: "AURORA",      dot: "linear-gradient(120deg,#eaffff,#8ef0e6 34%,#6ea8ff 66%,#a06bff)" },
+  { id: "naranja", name: "MONO NARANJA", dot: "linear-gradient(120deg,#ff6a00 0 50%,#ffffff 50% 75%,#000000 75% 100%)" },
 ];
 
 const DEFAULTS = {
-  theme: "onyx",
-  mode: "noche",
+  theme: "naranja",
+  mode: "noche",        // NEGRO
   font: "titan",
   density: "comoda",
-  radius: "suave",
-  glass: "on",
-  glow: "medio",
+  radius: "recto",
+  glass: "off",
+  glow: "bajo",
   scale: "100",
   motion: "pleno",
 };
@@ -39,11 +33,13 @@ const DEFAULTS = {
 let AP = load();
 
 function load() {
+  let ap = { ...DEFAULTS };
   try {
     const raw = localStorage.getItem(KEY);
-    if (raw) return { ...DEFAULTS, ...JSON.parse(raw) };
+    if (raw) ap = { ...DEFAULTS, ...JSON.parse(raw) };
   } catch (e) { /* almacenamiento no disponible */ }
-  return { ...DEFAULTS };
+  ap.theme = "naranja"; // paleta estricta: nunca se desvía
+  return ap;
 }
 
 function save() {
@@ -72,7 +68,7 @@ export function applyAppearance() {
   }
   // color del tema de sistema del navegador (barra móvil)
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute("content", AP.mode === "marfil" ? "#efeae0" : "#05060a");
+  if (meta) meta.setAttribute("content", AP.mode === "marfil" ? "#ffffff" : "#000000");
 }
 
 export function getAppearance() { return { ...AP }; }
@@ -146,54 +142,43 @@ BUILDERS.appearance = (body) => {
   const prev = el("div", "card shine");
   prev.innerHTML = `
     <div class="card-row">
-      <h4>BAYONA ATELIER</h4>
+      <h4>BAYONA</h4>
       <span class="pill gold">EN VIVO</span>
     </div>
     <div class="sub">Cada cambio se aplica al instante y queda guardado en este dispositivo.</div>
     <div class="stat-grid" style="margin-top:12px">
-      <div class="stat-cell"><div class="k">AURA</div><div class="v" id="ap-prev-aura">—</div></div>
+      <div class="stat-cell"><div class="k">PALETA</div><div class="v" id="ap-prev-aura">MONO</div></div>
       <div class="stat-cell"><div class="k">FIJEZA</div><div class="v count-to" id="ap-prev-num" data-count-to="100">0</div></div>
     </div>
     <div class="mbar" style="margin-top:12px"><i style="width:72%"></i></div>
     <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
       <button class="btn btn-primary" type="button">PRINCIPAL</button>
-      <button class="btn btn-gold" type="button">ORO</button>
+      <button class="btn btn-gold" type="button">NARANJA</button>
       <button class="btn btn-ghost" type="button">SECUNDARIO</button>
     </div>`;
   body.appendChild(prev);
   liveBox = el("div", "media-caption count-to", "Ajusta cualquier control: lo verás aquí mismo.");
   body.appendChild(liveBox);
 
-  const th = THEMES.find((x) => x.id === AP.theme) || THEMES[0];
-  const pa = prev.querySelector("#ap-prev-aura");
-  if (pa) pa.textContent = th.name.split(" ")[0];
-
-  // ---------- AURA DE COLOR ----------
-  body.appendChild(el("div", "sec-label", "AURA DE COLOR"));
+  // ---------- PALETA (fija, sin variantes) ----------
+  body.appendChild(el("div", "sec-label", "PALETA"));
   const sw = el("div", "swatches");
-  THEMES.forEach((t) => {
-    const b = el("button", "swatch-btn" + (AP.theme === t.id ? " on" : ""));
+  [
+    ["NARANJA", "#ff6a00"],
+    ["BLANCO", "#ffffff"],
+    ["NEGRO", "#000000"],
+  ].forEach(([nm, col], i) => {
+    const b = el("button", "swatch-btn" + (i === 0 ? " on" : ""));
     b.type = "button";
-    b.innerHTML = `<span class="dot" style="background:${t.dot}"></span><span class="nm">${t.name}</span>`;
-    b.addEventListener("click", () => {
-      setAppearance({ theme: t.id }, true);
-      sw.querySelectorAll(".swatch-btn").forEach((x) => x.classList.remove("on"));
-      b.classList.add("on");
-      const p2 = prev.querySelector("#ap-prev-aura");
-      if (p2) p2.textContent = t.name.split(" ")[0];
-      live(`Aura «${t.name}» aplicada.`);
-    });
+    b.disabled = true;
+    b.innerHTML = `<span class="dot" style="background:${col};border:1px solid var(--line)"></span><span class="nm">${nm}</span>`;
     sw.appendChild(b);
   });
   body.appendChild(sw);
 
   // ---------- LUZ ----------
-  options(body, "LUZ", "mode", [["noche", "NOCHE"], ["marfil", "MARFIL"]],
+  options(body, "LUZ", "mode", [["noche", "NEGRO"], ["marfil", "BLANCO"]],
     "Luz actualizada.");
-
-  // ---------- TIPOGRAFÍA ----------
-  options(body, "TIPOGRAFÍA DE TÍTULOS", "font", [["titan", "TITÁN"], ["atelier", "ATELIER"]],
-    "Tipografía de titulares actualizada.");
 
   // ---------- DENSIDAD ----------
   options(body, "DENSIDAD DE INTERFAZ", "density",
@@ -208,14 +193,6 @@ BUILDERS.appearance = (body) => {
   // ---------- ESQUINAS ----------
   options(body, "ESQUINAS", "radius", [["recto", "RECTO"], ["suave", "SUAVE"], ["redondo", "REDONDO"]],
     "Forma de las superficies actualizada.");
-
-  // ---------- CRISTAL ----------
-  options(body, "CRISTAL (DESENFOQUE)", "glass", [["on", "ACTIVADO"], ["off", "SOLIDO"]],
-    "Acabado de superficies actualizado.");
-
-  // ---------- BRILLO ----------
-  options(body, "BRILLO DE ACENTOS", "glow", [["bajo", "BAJO"], ["medio", "MEDIO"], ["alto", "ALTO"]],
-    "Intensidad del brillo actualizada.");
 
   // ---------- MOVIMIENTO ----------
   options(body, "MOVIMIENTO", "motion", [["pleno", "PLENO"], ["sereno", "SERENO"], ["off", "NINGUNO"]],
@@ -307,7 +284,7 @@ BUILDERS.appearance = (body) => {
   // ---------- RESTABLECER ----------
   body.appendChild(el("div", "sec-label", "DISEÑO"));
   const rz = el("div", "card");
-  rz.innerHTML = `<h4>RESTABLECER DISEÑO</h4><div class="sub">Vuelve a la firma original «ONYX ORO · NOCHE». No toca tus datos de juego.</div>`;
+  rz.innerHTML = `<h4>RESTABLECER DISEÑO</h4><div class="sub">Vuelve a la firma original «MONO NARANJA · NEGRO». No toca tus datos de juego.</div>`;
   const rb = el("button", "btn btn-ghost btn-block", "VOLVER A LA FIRMA ORIGINAL");
   rb.style.marginTop = "12px";
   rb.type = "button";

@@ -132,3 +132,19 @@ y el núcleo de XP no se toca: solo se añade `missionReward` a la fuente única
 | 4 · Performance | GEMELO-1 diferido al idle (MediaPipe ya era lazy): arranque más limpio |
 | 5 · Backend | Espejo idempotente ampliado (medidas + asignaciones) + migración SQL `0002` con RLS |
 | Tests | 5 suites nuevas (timeline 11, plan 8, nutrición 18, mirror 13 + hoy ampliado) → **20 suites · 360+ aserciones · 0 fallos** |
+
+---
+
+# 🎨 BAYONA — WORKLOG · OLA 4 «MONO NARANJA» (2026-09-24)
+
+> Misión: dejar la app **SUPER PRO · minimalista · SOLO naranja/blanco/negro**.
+> Loop: rediseño → tests → captura real (Chrome headless) → crítica de diseño → pulir → repetir.
+
+- [x] **Sistema de color estricto**: tokens canónicos en `css/style.css`; `css/aurum.css` reescrito como acabado MONO (sin aurora, grano, cristal con degradado ni letras metálicas). Semántica `--ok/--danger/--gold/--blue/--cyan` re-mapeada a la paleta.
+- [x] **Auditoría total de color**: ~120 hex fuera de paleta eliminados de JS/CSS (datos de armario, macros, rarezas, mundos 2D/3D, avatar, diario, health map). Grises = tintas de blanco/negro.
+- [x] **Avatar MONO**: maniquí en escala de grises (tono de piel extraído de foto → luminancia), outfit negro/blanco/naranja. Mundo 3D: estudio blanco con acentos naranjas.
+- [x] **Navegación reestructurada** (crítica de diseño): rail de 11 → 8 pestañas SIN caja (texto + subrayado naranja activo); CUENTA/APARIENCIA/COMUNIDAD → MÁS. Nav activo = naranja sólido + texto negro. CTAs: naranja > blanco > contorno.
+- [x] **Pulido pro**: grilla de 22px unificada, contraste de texto secundario +10%, inputs con borde visible, scrollbar propio 4px, barra de pasos con track, onboarding con scroll fino + checkbox táctil 22px + CTA 56px.
+- [x] **Panel APARIENCIA mínimo**: paleta fija (sin auras), LUZ NEGRO/BLANCO, densidad, texto, esquinas, movimiento.
+- [x] **Verificación**: 24/24 suites de tests ✅ · consola sin errores ✅ · capturas desktop 1440 + móvil 390 revisadas con crítica de diseño externa (3 iteraciones).
+- [x] **Iteraciones 5-6 (loop de pulido)**: rail eliminado (doble barra = ruido) → navegación única de 5 tabs con pestaña activa naranja + subrayado fino; MÁS incluye rejilla de mundos (MENTE/TRABAJO/HOY/PLAN/PROGRESO/ARMARIO/CORE); CTAs invertidos a jerarquía héroe (VER MI DÍA naranja > misión blanca); FABs (Cámara/Mapa de Salud/Diario) agrupados en columna derecha alineada a 22px y estilo outline unificado; TODOS los emojis en color eliminados (→ glifos monocromos ◈▲◍✚☾★…); gradiente azul/cian de skills → naranja; track XP con contraste; labels de métricas + contraste; onboarding con scrollbar fino y CTA 56px.

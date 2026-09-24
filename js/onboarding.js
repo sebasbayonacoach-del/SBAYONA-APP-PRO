@@ -9,7 +9,7 @@ import { setConsent, migrateLegacyConsents } from "./consents.js";
 
 migrateLegacyConsents();
 
-const SKINS = ["#e8b892", "#c98d5f", "#a06a3f", "#7a4a29", "#54301a", "#f0c9a5"];
+const SKINS = ["#e0e0e0", "#c9c9c9", "#a6a6a6", "#808080", "#5c5c5c", "#3a3a3a"];
 const GOALS = ["FUERZA", "HIPERTROFIA", "RESISTENCIA", "SALUD"];
 const EXP = ["EMPIEZO AHORA", "ALGO DE EXPERIENCIA", "ENTRENO HACE AÑOS"];
 const AVAIL = ["2 DÍAS/SEMANA", "3 DÍAS/SEMANA", "4-5 DÍAS/SEMANA", "CASI A DIARIO"];
@@ -228,32 +228,38 @@ async function processFace(file) {
   let r = 0, g = 0, b = 0;
   for (let i = 0; i < d.length; i += 4) { r += d[i]; g += d[i + 1]; b += d[i + 2]; }
   const n = d.length / 4;
-  const skin = `rgb(${Math.round(r / n)},${Math.round(g / n)},${Math.round(b / n)})`;
+  // MONO: tono de piel → gris de la misma luminosidad (paleta estricta)
+  const lum = Math.max(40, Math.min(235, Math.round((0.299 * r + 0.587 * g + 0.114 * b) / n)));
+  const skin = `rgb(${lum},${lum},${lum})`;
   return { face, skin };
 }
 
 const css = `
 #ob-layer{position:fixed;inset:0;z-index:120;background:color-mix(in srgb, var(--paper) 91%, transparent);display:flex;
   align-items:center;justify-content:center;padding:16px;font:14px/1.5 Manrope,system-ui}
-#ob-box{background:var(--paper-2);border:1px solid var(--hair);border-radius:16px;max-width:380px;width:100%;padding:22px;color:var(--ink);max-height:92vh;overflow:auto;
-  box-shadow:var(--shadow-lift);position:relative;animation:modalIn .55s var(--spring) both}
-#ob-box::before{content:"";position:absolute;left:14px;right:14px;top:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent)}
-#ob-box h2{margin:0 0 4px;font:800 18px/1.1 Archivo Black,Arial;letter-spacing:.02em;
-  background:var(--metal);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
+#ob-box{background:var(--paper-2);border:1px solid var(--hair);border-radius:2px;max-width:380px;width:100%;padding:22px;color:var(--ink);max-height:92vh;overflow:auto;
+  box-shadow:var(--shadow-lift);position:relative;animation:modalIn .55s var(--spring) both;
+  scrollbar-width:thin;scrollbar-color:var(--hair-strong) transparent}
+#ob-box::-webkit-scrollbar{width:4px}
+#ob-box::-webkit-scrollbar-thumb{background:var(--hair-strong)}
+#ob-box::-webkit-scrollbar-track{background:transparent}
+#ob-box::before{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:var(--acc-2)}
+#ob-box h2{margin:0 0 4px;font:800 18px/1.1 Archivo Black,Arial;letter-spacing:.02em;color:var(--ink)}
 #ob-box .ob-sub{font-size:13px;line-height:1.55;color:var(--ink-soft);margin-bottom:14px}
 #ob-box .ob-row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
-#ob-box button{border:1px solid var(--hair-strong);border-radius:10px;background:var(--panel);color:var(--ink);
+#ob-box button{border:1px solid var(--hair-strong);border-radius:2px;background:var(--panel);color:var(--ink);
   font:700 13px/1 Manrope;padding:11px 14px;cursor:pointer;transition:transform .18s var(--spring),border-color .2s,box-shadow .25s}
 #ob-box button:hover{border-color:var(--acc-2);box-shadow:0 0 0 3px var(--acc-soft)}
 #ob-box button:active{transform:scale(.97)}
 #ob-box button.on{background:var(--ink);color:var(--paper-2);border-color:var(--ink)}
-#ob-box button.big{width:100%;background:linear-gradient(140deg,var(--acc-1),var(--acc-2) 62%,var(--acc-deep));color:var(--acc-ink);padding:14px;font-size:14px;margin-top:18px;border-color:transparent}
+#ob-box button.big{width:100%;background:var(--acc-2);color:var(--acc-ink);padding:16px;font-size:14px;font-weight:800;min-height:56px;margin-top:18px;border-color:transparent}
 #ob-box button.ob-back{background:var(--panel);color:var(--ink);border:1px solid var(--hair-strong)}
-#ob-box input[type=text],#ob-box input:not([type]){width:100%;padding:11px;border:1px solid var(--hair-strong);border-radius:10px;background:var(--panel);color:var(--ink);
+#ob-box input[type=text],#ob-box input:not([type]){width:100%;padding:11px;border:1px solid var(--hair-strong);border-radius:2px;background:var(--panel);color:var(--ink);
   font:14px Manrope;margin:6px 0;box-sizing:border-box}
-#ob-box label{font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--ink-mute);display:block;margin:18px 0 6px}
-#ob-box label.ob-file{display:inline-block;background:var(--panel);border:1px solid var(--hair-strong);border-radius:10px;padding:11px 14px;cursor:pointer;margin:0}
-#ob-box .ob-check{display:flex;gap:8px;align-items:flex-start;margin:10px 0;font-size:12px}
+#ob-box label{font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--ink-mute);display:block;margin:14px 0 6px}
+#ob-box label.ob-file{display:inline-block;background:var(--panel);border:1px solid var(--hair-strong);border-radius:2px;padding:11px 14px;cursor:pointer;margin:0}
+#ob-box .ob-check{display:flex;gap:10px;align-items:flex-start;margin:10px 0;font-size:12px}
+#ob-box .ob-check input[type=checkbox]{width:22px;height:22px;accent-color:var(--acc-2);margin:0;flex:0 0 auto;cursor:pointer}
 #ob-dots{display:flex;gap:6px;justify-content:center;margin-bottom:12px}
 #ob-dots i{width:7px;height:7px;border-radius:50%;background:var(--hair-strong);transition:all .3s var(--ease)}
 #ob-dots i.on{background:var(--acc-2);box-shadow:0 0 10px var(--acc-2);transform:scale(1.25)}

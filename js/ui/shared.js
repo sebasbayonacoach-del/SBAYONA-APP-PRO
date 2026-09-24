@@ -86,6 +86,8 @@ export function closeDrawer() {
   $("#drawer").classList.remove("open");
   document.body.classList.remove("modo-sesion"); // el foco de sesión se cierra con el panel
   document.querySelectorAll(".rail-btn").forEach((x) => x.classList.remove("active"));
+  document.querySelectorAll(".nav-btn").forEach((x) =>
+    x.classList.toggle("active", x.dataset.nav === "home"));
   if (!UI.session) travel("home");
 }
 
@@ -99,6 +101,9 @@ export function openSection(name) {
   }
   document.querySelectorAll(".rail-btn").forEach((x) =>
     x.classList.toggle("active", x.dataset.go === name)
+  );
+  document.querySelectorAll(".nav-btn").forEach((x) =>
+    x.classList.toggle("active", x.dataset.nav === name)
   );
   const title = TITLES[name] || TITLES.more;
   travel(name); // el personaje viaja; la UI se construye YA (sin pisar vistas por carrera)

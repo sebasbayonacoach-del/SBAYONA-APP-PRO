@@ -15,9 +15,9 @@ const itemsById = {};
 avatar.setOutfit(
   { top: "ember_tee", bottom: "core_pants", shoes: "core_runners", head: null },
   {
-    ember_tee: { vis: { kind: "tee", color: "#17140f", accent: "#ff5a00" } },
-    core_pants: { vis: { kind: "long", color: "#221e18" } },
-    core_runners: { vis: { color: "#f7f3ee", accent: "#ff5a00" } },
+    ember_tee: { vis: { kind: "tee", color: "#111111", accent: "#ff6a00" } },
+    core_pants: { vis: { kind: "long", color: "#0a0a0a" } },
+    core_runners: { vis: { color: "#f5f5f5", accent: "#ff6a00" } },
   }
 );
 
@@ -43,7 +43,7 @@ function draw(t) {
   const W = canvas.width, H = canvas.height;
   // --- fondo estudio claro ---
   const g = ctx.createLinearGradient(0, 0, 0, H);
-  g.addColorStop(0, "#fbf8f4"); g.addColorStop(1, "#efe9e1");
+  g.addColorStop(0, "#ffffff"); g.addColorStop(1, "#e6e6e6");
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
   // halo naranja suave
   const rg = ctx.createRadialGradient(W * 0.5, H * 0.55, 10, W * 0.5, H * 0.55, W * 0.5);
@@ -71,7 +71,7 @@ function draw(t) {
     ctx.beginPath(); ctx.moveTo(P[a].x, P[a].y); ctx.lineTo(P[b].x, P[b].y); ctx.stroke();
   };
 
-  const skin = "#e8b38a", top = "#17140f", acc = "#ff5a00", pants = "#221e18", shoe = "#f7f3ee";
+  const skin = "#c9c9c9", top = "#111111", acc = "#ff6a00", pants = "#0a0a0a", shoe = "#f5f5f5";
   // pierna derecha (atrás)
   seg("thighR", "shinR", 0.075, pants); seg("shinR", "footR", 0.058, pants);
   seg("hips", "thighR", 0.085, pants);

@@ -33,7 +33,7 @@ BUILDERS.core = (body) => {
   const pers = el("div", "quickq");
   ["COMANDANTE", "MENTOR", "CIENTÍFICO", "COMPAÑERO", "MINIMALISTA"].forEach((p) => {
     const b = el("button", "", p);
-    if (S.data.profile.coach === p) { b.style.color = "var(--gold)"; b.style.borderColor = "var(--gold)"; }
+    if (S.data.profile.coach === p) { b.style.color = "var(--orange)"; b.style.borderColor = "var(--orange)"; }
     b.addEventListener("click", () => { S.data.profile.coach = p; S.save(); BUILDERS.core(); });
     pers.appendChild(b);
   });

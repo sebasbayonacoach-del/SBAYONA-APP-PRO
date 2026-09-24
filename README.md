@@ -8,7 +8,22 @@ tú entrenas → él entrena, tú comes → él come, tú bebes → él bebe.
 El avatar es un **gemelo de comportamiento**, no una mascota.
 **Todo lo visible al usuario está en español (es-ES).**
 
-## ✨ v2.0 · ATELIER (rediseño de lujo)
+## ✨ v2.1 · MONO NARANJA (rediseño minimalista estricto)
+
+Firma visual nueva: **PALETA ESTRICTA · NARANJA · BLANCO · NEGRO. Nada más.**
+
+- `css/aurum.css` — acabado MONO: superficies planas, filetes 1px, radios mínimos,
+  sin aurora/grano/degradados metálicos. Modo NEGRO/BLANCO. El naranja SOLO para
+  acción, dato vivo y foco.
+- `css/style.css` — tokens canónicos; semántica (`--ok/--danger/--gold/--blue/--cyan`)
+  re-mapeada a la paleta (nunca rojo/verde/azul).
+- Navegación sin cajas: rail de mundos con pestañas de texto + subrayado naranja
+  activo; CTAs con jerarquía NARANJA > BLANCO > CONTORNO.
+- Mundo 3D + avatar recoloreados: estudio blanco, maniquí en escala de grises,
+  equipamiento negro/blanco/naranja. Toda rareza, macro y dato usa la paleta.
+- `js/ui/appearance.js` — panel mínimo (LUZ/DENSIDAD/TEXTO/ESQUINAS/MOVIMIENTO).
+
+## ✨ v2.0 · ATELIER (rediseño de lujo) — superado por v2.1
 
 Capa visual nueva sin tocar la lógica de juego:
 

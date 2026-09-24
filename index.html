@@ -3,24 +3,24 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
-<meta name="theme-color" content="#05070a" />
+<meta name="theme-color" content="#000000" />
 <title>BAYONA — Tu vida es el juego</title>
-<link rel="stylesheet" href="css/style.css?v=6" />
-<link rel="stylesheet" href="css/aurum.css?v=1" />
-<link rel="stylesheet" href="css/motion.css?v=1" />
+<link rel="stylesheet" href="css/style.css?v=7" />
+<link rel="stylesheet" href="css/aurum.css?v=2" />
+<link rel="stylesheet" href="css/motion.css?v=2" />
 <link rel="manifest" href="manifest.webmanifest" />
 <script>
   /* firma visual: se aplica antes del primer pintado para no parpadear */
   try {
     var ap = JSON.parse(localStorage.getItem('bayona.appearance.v1') || '{}');
     var d = document.documentElement;
-    d.dataset.theme = ap.theme || 'onyx';
+    d.dataset.theme = 'naranja'; /* paleta estricta: naranja · blanco · negro */
     d.dataset.mode = ap.mode || 'noche';
-    d.dataset.font = ap.font || 'titan';
+    d.dataset.font = 'titan';
     d.dataset.density = ap.density || 'comoda';
-    d.dataset.radius = ap.radius || 'suave';
-    d.dataset.glass = ap.glass || 'on';
-    d.dataset.glow = ap.glow || 'medio';
+    d.dataset.radius = ap.radius || 'recto';
+    d.dataset.glass = 'off';
+    d.dataset.glow = 'bajo';
     d.dataset.scale = ap.scale || '100';
     d.dataset.motion = ap.motion || 'pleno';
     d.style.colorScheme = d.dataset.mode === 'marfil' ? 'light' : 'dark';
@@ -77,6 +77,7 @@
       <button class="metric" id="m-steps">
         <span class="m-k">PASOS</span>
         <span class="m-v mono" id="v-steps">0</span>
+        <span class="m-bar"><i id="b-steps"></i></span>
       </button>
       <button class="metric" id="m-hydration">
         <span class="m-k">HIDRATACIÓN</span>
@@ -91,33 +92,18 @@
       <div class="mc-tag mono" id="mc-tag">DÍA 1 · MISIÓN</div>
       <div class="mc-title" id="mc-title">EMPEZAR</div>
       <div class="mc-sub" id="mc-sub">Tu historia empieza hoy.</div>
-      <button class="btn btn-primary" id="mc-cta">EMPEZAR MI CAMINO</button>
-      <button class="btn btn-ghost" id="mc-hoy">VER MI DÍA</button>
+      <button class="btn btn-primary" id="mc-hoy">VER MI DÍA</button>
+      <button class="btn btn-ghost" id="mc-cta">EMPEZAR MI CAMINO</button>
     </div>
 
     <!-- CORE floats in 3D; click opens chat -->
 
-    <!-- ACTION RAIL -->
-    <nav id="action-rail" aria-label="Accesos rápidos">
-      <button class="rail-btn" data-go="training">ENTRENAMIENTO</button>
-      <button class="rail-btn" data-go="nutrition">NUTRICIÓN</button>
-      <button class="rail-btn" data-go="trabajo">TRABAJO</button>
-      <button class="rail-btn" data-go="recovery">RECUPERACIÓN</button>
-      <button class="rail-btn" data-go="mind">MENTE</button>
-      <button class="rail-btn" data-go="progress">PROGRESO</button>
-      <button class="rail-btn" data-go="plan">PLAN</button>
-      <button class="rail-btn" data-go="armory">ARMARIO</button>
-      <button class="rail-btn" data-go="account">CUENTA</button>
-      <button class="rail-btn" data-go="appearance">APARIENCIA</button>
-      <button class="rail-btn rail-off" data-go="social" disabled>COMUNIDAD<em>PRÓX.</em></button>
-    </nav>
-
-    <!-- BOTTOM NAV -->
+    <!-- BOTTOM NAV (única barra: 5 accesos; el resto vive en MÁS) -->
     <nav id="bottomnav" aria-label="Navegación principal">
       <button class="nav-btn active" data-nav="home"><span>◈</span>INICIO</button>
-      <button class="nav-btn" data-nav="progress"><span>▤</span>PROGRESO</button>
-      <button class="nav-btn" data-nav="armory"><span>♟</span>ARMARIO</button>
-      <button class="nav-btn" data-nav="core"><span>◉</span>CORE</button>
+      <button class="nav-btn" data-nav="training"><span>▲</span>ENTRENAR</button>
+      <button class="nav-btn" data-nav="nutrition"><span>◍</span>COMER</button>
+      <button class="nav-btn" data-nav="recovery"><span>✚</span>RECUPERAR</button>
       <button class="nav-btn" data-nav="more"><span>⚙</span>MÁS</button>
     </nav>
   </div>

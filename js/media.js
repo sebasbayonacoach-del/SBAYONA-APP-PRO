@@ -51,6 +51,6 @@ export function tipFor(exKey) { return MEDIA_MAP[exKey]?.tip || ""; }
 
 // etiqueta de tipo de sesión → emoji de calendario
 export const DAY_ICONS = {
-  op_upper: "🏋️", op_lower: "🦵", op_full: "⚡",
-  bodyweight: "🤸", mobility_flow: "🧘", rest: "🌙",
+  op_upper: "▲", op_lower: "▼", op_full: "◆",
+  bodyweight: "◇", mobility_flow: "○", rest: "☾",
 };

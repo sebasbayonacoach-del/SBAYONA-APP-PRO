@@ -13,11 +13,11 @@ export const RANKS = [
 ];
 
 export const RARITY = {
-  COMMON:    { color: "#9aa4b0", weight: 1,   label: "COMÚN" },
-  RARE:      { color: "#59e0ff", weight: 1.5, label: "RARO" },
-  EPIC:      { color: "#b07aff", weight: 2.4, label: "ÉPICO" },
-  LEGENDARY: { color: "#d8b26a", weight: 4,   label: "LEGENDARIO" },
-  MYTHIC:    { color: "#ff7a3c", weight: 6,   label: "MÍTICO" },
+  COMMON:    { color: "#8a8a8a", weight: 1,   label: "COMÚN" },
+  RARE:      { color: "#ffffff", weight: 1.5, label: "RARO" },
+  EPIC:      { color: "#ff8c3b", weight: 2.4, label: "ÉPICO" },
+  LEGENDARY: { color: "#ff6a00", weight: 4,   label: "LEGENDARIO" },
+  MYTHIC:    { color: "#ff6a00", weight: 6,   label: "MÍTICO" },
 };
 
 // ------------------------------------------------------------
@@ -102,32 +102,32 @@ export const WORKOUTS = {
 // ------------------------------------------------------------
 export const ITEMS = [
   // TORSO
-  { id: "core_tee",    slot: "top", name: "CAMISETA CORE BAYONA", rarity: "COMMON",    physical: true,  vis: { kind: "tee",     color: "#1b2230", accent: "#d8b26a" } },
-  { id: "ember_tee",   slot: "top", name: "CAMISETA ASCUA",      rarity: "RARE",      physical: false, vis: { kind: "tee",     color: "#3a1d12", accent: "#ff7a3c" } },
-  { id: "apex_jacket", slot: "top", name: "CHAQUETA ÁPICE",      rarity: "EPIC",      physical: true,  vis: { kind: "jacket",  color: "#0f1a2e", accent: "#4a86ff" } },
-  { id: "titan_hoodie",slot: "top", name: "SUDADERA TITÁN",      rarity: "LEGENDARY", physical: true,  vis: { kind: "jacket",  color: "#241d0f", accent: "#d8b26a" } },
-  { id: "myth_shell",  slot: "top", name: "CUBIERTA MÍTICA",     rarity: "MYTHIC",    physical: false, vis: { kind: "jacket",  color: "#2a1206", accent: "#ff7a3c", glow: true } },
+  { id: "core_tee",    slot: "top", name: "CAMISETA CORE BAYONA", rarity: "COMMON",    physical: true,  vis: { kind: "tee",     color: "#111111", accent: "#ff6a00" } },
+  { id: "ember_tee",   slot: "top", name: "CAMISETA ASCUA",      rarity: "RARE",      physical: false, vis: { kind: "tee",     color: "#0d0d0d", accent: "#ff6a00" } },
+  { id: "apex_jacket", slot: "top", name: "CHAQUETA ÁPICE",      rarity: "EPIC",      physical: true,  vis: { kind: "jacket",  color: "#0a0a0a", accent: "#ffffff" } },
+  { id: "titan_hoodie",slot: "top", name: "SUDADERA TITÁN",      rarity: "LEGENDARY", physical: true,  vis: { kind: "jacket",  color: "#f2f2f2", accent: "#ff6a00" } },
+  { id: "myth_shell",  slot: "top", name: "CUBIERTA MÍTICA",     rarity: "MYTHIC",    physical: false, vis: { kind: "jacket",  color: "#0d0d0d", accent: "#ff6a00", glow: true } },
   // PIERNAS
-  { id: "core_pants",  slot: "bottom", name: "PANTALÓN CORE",       rarity: "COMMON",    physical: true,  vis: { kind: "long",  color: "#141a24" } },
-  { id: "sprint_shorts",slot:"bottom", name: "CORTOS SPRINT",       rarity: "RARE",      physical: true,  vis: { kind: "short", color: "#12243a" } },
-  { id: "vanguard_pants",slot:"bottom",name:"PANTALÓN VANGUARDIA",  rarity: "EPIC",      physical: false, vis: { kind: "long",  color: "#1a1030", accent: "#b07aff" } },
+  { id: "core_pants",  slot: "bottom", name: "PANTALÓN CORE",       rarity: "COMMON",    physical: true,  vis: { kind: "long",  color: "#0a0a0a" } },
+  { id: "sprint_shorts",slot:"bottom", name: "CORTOS SPRINT",       rarity: "RARE",      physical: true,  vis: { kind: "short", color: "#2b2b2b" } },
+  { id: "vanguard_pants",slot:"bottom",name:"PANTALÓN VANGUARDIA",  rarity: "EPIC",      physical: false, vis: { kind: "long",  color: "#111111", accent: "#ff8c3b" } },
   // CALZADO
-  { id: "core_runners",slot: "shoes", name: "ZAPATILLAS CORE",     rarity: "COMMON",    physical: true,  vis: { color: "#e8e4dd", accent: "#1b2230" } },
-  { id: "apex_lifters",slot: "shoes", name: "ZAPATILLAS ÁPICE",    rarity: "EPIC",      physical: true,  vis: { color: "#d8b26a", accent: "#14100a" } },
-  { id: "ghost_kicks", slot: "shoes", name: "ZAPATILLAS FANTASMA", rarity: "RARE",      physical: false, vis: { color: "#59e0ff", accent: "#06202a", glow: true } },
+  { id: "core_runners",slot: "shoes", name: "ZAPATILLAS CORE",     rarity: "COMMON",    physical: true,  vis: { color: "#f5f5f5", accent: "#111111" } },
+  { id: "apex_lifters",slot: "shoes", name: "ZAPATILLAS ÁPICE",    rarity: "EPIC",      physical: true,  vis: { color: "#ff6a00", accent: "#0d0d0d" } },
+  { id: "ghost_kicks", slot: "shoes", name: "ZAPATILLAS FANTASMA", rarity: "RARE",      physical: false, vis: { color: "#ffffff", accent: "#8a8a8a", glow: true } },
   // MUÑECA
-  { id: "perf_bands",  slot: "wrist", name: "MUÑEQUERAS RENDIMIENTO", rarity: "EPIC",   physical: true,  vis: { color: "#ff7a3c" } },
-  { id: "focus_straps",slot: "wrist", name: "TIRAS DE ENFOQUE",    rarity: "RARE",      physical: true,  vis: { color: "#59e0ff" } },
+  { id: "perf_bands",  slot: "wrist", name: "MUÑEQUERAS RENDIMIENTO", rarity: "EPIC",   physical: true,  vis: { color: "#ff6a00" } },
+  { id: "focus_straps",slot: "wrist", name: "TIRAS DE ENFOQUE",    rarity: "RARE",      physical: true,  vis: { color: "#ffffff" } },
   // CABEZA
-  { id: "bayona_cap",  slot: "head", name: "GORRA BAYONA",        rarity: "COMMON",    physical: true,  vis: { kind: "cap",        color: "#10151e", accent: "#d8b26a" } },
-  { id: "pulse_cans",  slot: "head", name: "AURICULARES PULSO",   rarity: "RARE",      physical: false, vis: { kind: "headphones", color: "#12243a", accent: "#59e0ff" } },
-  { id: "sage_wrap",   slot: "head", name: "BANDA SALVIA",        rarity: "COMMON",    physical: false, vis: { kind: "headband",   color: "#1c2c22", accent: "#4fd18b" } },
+  { id: "bayona_cap",  slot: "head", name: "GORRA BAYONA",        rarity: "COMMON",    physical: true,  vis: { kind: "cap",        color: "#111111", accent: "#ff6a00" } },
+  { id: "pulse_cans",  slot: "head", name: "AURICULARES PULSO",   rarity: "RARE",      physical: false, vis: { kind: "headphones", color: "#2b2b2b", accent: "#ffffff" } },
+  { id: "sage_wrap",   slot: "head", name: "BANDA SALVIA",        rarity: "COMMON",    physical: false, vis: { kind: "headband",   color: "#e0e0e0", accent: "#111111" } },
   // MOCHILA
-  { id: "field_pack",  slot: "back", name: "MOCHILA DE CAMPO",    rarity: "RARE",      physical: true,  vis: { color: "#1b2230", accent: "#d8b26a" } },
-  { id: "apex_wings",  slot: "back", name: "ALAS ÁPICE",          rarity: "LEGENDARY", physical: false, vis: { color: "#241d0f", accent: "#d8b26a", glow: true } },
+  { id: "field_pack",  slot: "back", name: "MOCHILA DE CAMPO",    rarity: "RARE",      physical: true,  vis: { color: "#111111", accent: "#ff6a00" } },
+  { id: "apex_wings",  slot: "back", name: "ALAS ÁPICE",          rarity: "LEGENDARY", physical: false, vis: { color: "#f2f2f2", accent: "#ff6a00", glow: true } },
   // EFECTOS
-  { id: "aura_sun",    slot: "effects", name: "AURA AMANECER",   rarity: "LEGENDARY", physical: false, vis: { color: "#ff7a3c" } },
-  { id: "aura_ice",    slot: "effects", name: "AURA GLACIAL",    rarity: "EPIC",      physical: false, vis: { color: "#59e0ff" } },
+  { id: "aura_sun",    slot: "effects", name: "AURA AMANECER",   rarity: "LEGENDARY", physical: false, vis: { color: "#ff6a00" } },
+  { id: "aura_ice",    slot: "effects", name: "AURA GLACIAL",    rarity: "EPIC",      physical: false, vis: { color: "#ffffff" } },
 ];
 
 export const SLOTS = ["head", "top", "bottom", "shoes", "wrist", "back", "effects"];
@@ -140,11 +140,11 @@ export const SLOT_LABEL = {
 // NUTRITION quick-log
 // ------------------------------------------------------------
 export const MEALS = [
-  { id: "m_breakfast", name: "DESAYUNO POWER", kcal: 520, p: 32, c: 58, f: 14, icon: "🍳" },
-  { id: "m_lunch",     name: "ALMUERZO COMPLETO", kcal: 680, p: 45, c: 62, f: 22, icon: "🥗" },
-  { id: "m_dinner",    name: "CENA LIGERA", kcal: 430, p: 38, c: 30, f: 15, icon: "🐟" },
-  { id: "m_snack",     name: "SNACK PROTEÍNA", kcal: 210, p: 25, c: 12, f: 5, icon: "🥜" },
-  { id: "m_shake",     name: "SHAKE POST-ENTRENO", kcal: 280, p: 30, c: 28, f: 4, icon: "🥤" },
+  { id: "m_breakfast", name: "DESAYUNO POWER", kcal: 520, p: 32, c: 58, f: 14, icon: "◍" },
+  { id: "m_lunch",     name: "ALMUERZO COMPLETO", kcal: 680, p: 45, c: 62, f: 22, icon: "◉" },
+  { id: "m_dinner",    name: "CENA LIGERA", kcal: 430, p: 38, c: 30, f: 15, icon: "◎" },
+  { id: "m_snack",     name: "SNACK PROTEÍNA", kcal: 210, p: 25, c: 12, f: 5, icon: "○" },
+  { id: "m_shake",     name: "SHAKE POST-ENTRENO", kcal: 280, p: 30, c: 28, f: 4, icon: "●" },
 ];
 
 export const AFFIRMATIONS = [

@@ -57,13 +57,12 @@ function sampleTone(ctx, S2) {
     if (mn < 18 || mx > 250) continue;
     r += rr; g += gg; b += bb; n++;
   }
-  if (!n) return "#e8b38a";
+  if (!n) return "#c9c9c9";
   r = Math.round(r / n); g = Math.round(g / n); b = Math.round(b / n);
-  // suaviza hacia tono de piel natural (corrige dominantes de color de la foto)
-  r = Math.min(255, Math.round(r * 1.06 + 8));
-  g = Math.round(g * 0.96 + 2);
-  b = Math.round(b * 0.88);
-  return "#" + [r, g, b].map((x) => x.toString(16).padStart(2, "0")).join("");
+  // MONO: el cuerpo del personaje es un maniquí en escala de grises
+  // (paleta estricta naranja/blanco/negro). Se preserva el matiz de luz.
+  const lum = Math.max(40, Math.min(235, Math.round(0.299 * r + 0.587 * g + 0.114 * b)));
+  return "#" + [lum, lum, lum].map((x) => x.toString(16).padStart(2, "0")).join("");
 }
 
 // Crea una imagen redonda lista para dibujar en canvas 2.5D

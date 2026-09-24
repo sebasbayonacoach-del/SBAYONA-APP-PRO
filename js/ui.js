@@ -71,6 +71,7 @@ export function refreshHud() {
   $("#m-readiness").title = rd == null ? t("state.notLogged") : "Preparación estimada con tus registros";
   $("#v-streak").textContent = S.data.streak + " D";
   $("#v-steps").textContent = fmtInt(S.data.today.steps);
+  $("#b-steps").style.width = Math.min(100, Math.round((S.data.today.steps / 10000) * 100)) + "%";
   $("#v-water").textContent = fmtInt(S.data.today.water) + " ml";
   $("#b-water").style.width = S.hydrationPct() + "%";
   updateMissionCard();
@@ -113,7 +114,7 @@ function updateMissionCard() {
     const bonus = workoutCompleteReward({ minutes: w.min, loggedSets: 0, plannedSets: 0 });
     const bits = [];
     if (!t2.trained) bits.push(`${w.min} min · ~${fmtInt(previewWorkoutXP(w).xp)} XP en series + ${bonus.xp} XP de cierre`);
-    if (t2.trained) bits.push("Sesión completada hoy ✅");
+    if (t2.trained) bits.push("Sesión completada hoy ✓");
     if (t2.water < 1500) bits.push(`hidratación ${fmtInt(t2.water)}/1.500 ml`);
     if (!t2.mobility) bits.push("movilidad pendiente");
     $("#mc-sub").textContent = bits.join(" · ");

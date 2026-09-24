@@ -41,9 +41,9 @@ export function formToInput(form = {}) {
 export function verdict(hm = {}) {
   const flags = hm.redFlags || [];
   const crisis = flags.some((f) => f.domain === 'mental' && /ideaci|autoles/i.test(f.source || ''));
-  let tone = 'ok', title = 'LISTO PARA EMPEZAR ✅';
-  if (hm.clearance === 'refer_required') { tone = 'stop'; title = 'VALORACIÓN MÉDICA ANTES DE ENTRENAR ⛔'; }
-  else if (flags.length || hm.clearance === 'conditional') { tone = 'warn'; title = 'ENTRENAR CON MODIFICACIONES ⚠️'; }
+  let tone = 'ok', title = 'LISTO PARA EMPEZAR ✓';
+  if (hm.clearance === 'refer_required') { tone = 'stop'; title = 'VALORACIÓN MÉDICA ANTES DE ENTRENAR ✕'; }
+  else if (flags.length || hm.clearance === 'conditional') { tone = 'warn'; title = 'ENTRENAR CON MODIFICACIONES ▲'; }
 
   const lines = [];
   if (hm.parq?.note) lines.push(hm.parq.note);
@@ -74,10 +74,10 @@ export function stepComplete(step, form = {}) {
 /* ===================== UI autoinyectada ===================== */
 
 const css = `
-#bh-launch{position:fixed;right:12px;top:50%;z-index:44;
-  border:1px solid var(--hair);border-radius:999px;background:var(--paper-2);color:var(--ink);
+#bh-launch{position:fixed;right:22px;top:50%;z-index:44;
+  border:1px solid var(--hair-strong);border-radius:2px;background:var(--paper-2);color:var(--ink);
   font:600 12px/1 Manrope,system-ui;padding:11px 14px;cursor:pointer;box-shadow:0 6px 20px #00000066}
-#bh-panel{position:fixed;right:12px;bottom:calc(120px + env(safe-area-inset-bottom));z-index:70;width:min(360px,94vw);
+#bh-panel{position:fixed;right:22px;bottom:calc(120px + env(safe-area-inset-bottom));z-index:70;width:min(360px,calc(100vw - 44px));
   max-height:min(78vh,640px);display:flex;flex-direction:column;
   background:var(--paper-2);border:1px solid var(--hair);border-radius:14px;box-shadow:0 12px 40px #00000088;
   padding:14px;font:14px/1.45 Manrope,system-ui;color:var(--ink)}
@@ -95,14 +95,14 @@ const css = `
 #bh-nav{display:flex;gap:6px;margin-top:10px}
 #bh-nav button{flex:1;padding:10px}
 #bh-note{font-size:10px;opacity:.65;margin-top:8px}
-#bh-panel select,#bh-panel input[type=text]{width:100%;border:1px solid var(--acc-ink)33;border-radius:8px;
-  padding:7px;font:12px Manrope;background:#fff;margin-top:4px}
-#bh-verdict{border:1px solid var(--acc-ink)22;border-radius:10px;padding:10px;margin:6px 0;font-size:12px}
-#bh-verdict.ok{background:#eaf5e6;border-color:#4a7a3a33}
-#bh-verdict.warn{background:#fdf3d8;border-color:#b8860b33}
-#bh-verdict.stop{background:#fbe3e0;border-color:var(--danger)aa}
+#bh-panel select,#bh-panel input[type=text]{width:100%;border:1px solid var(--hair);border-radius:2px;
+  padding:7px;font:12px Manrope;background:var(--paper-2);margin-top:4px}
+#bh-verdict{border:1px solid var(--hair);border-radius:2px;padding:10px;margin:6px 0;font-size:12px}
+#bh-verdict.ok{background:var(--acc-soft);border-color:var(--acc-2)}
+#bh-verdict.warn{background:var(--cream);border-color:var(--hair-strong)}
+#bh-verdict.stop{background:var(--acc-2);border-color:var(--acc-2);color:var(--acc-ink)}
 #bh-verdict ul{margin:6px 0 0;padding-left:16px}
-#bh-crisis{background:var(--danger);color:#fff;border-radius:10px;padding:10px;margin:6px 0;font-size:12px}
+#bh-crisis{background:var(--acc-2);color:var(--acc-ink);border-radius:2px;padding:10px;margin:6px 0;font-size:12px}
 `;
 
 const state = { step: 0, form: { parq: {}, phq2: {}, gad2: {}, pains: [], goals: [] }, result: null };
@@ -338,7 +338,7 @@ function render() {
 /* ---------- montaje ---------- */
 function buildUI() {
   document.head.appendChild(el(`<style>${css}</style>`));
-  const launch = el(`<button id="bh-launch" type="button">🩺 MAPA DE SALUD</button>`);
+  const launch = el(`<button id="bh-launch" type="button">✚ MAPA DE SALUD</button>`);
   launch.onclick = () => {
     let panel = document.getElementById('bh-panel');
     if (panel) { panel.remove(); return; }

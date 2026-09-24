@@ -143,7 +143,7 @@ export function planDelDia(Sx, opts = {}) {
   items.push({
     id: "movilidad", pri: "RECOMENDADO", done: !!t.mobility,
     titulo: "Movilidad · 10 min",
-    sub: t.mobility ? "Completada hoy ✅" : "Cuida el rango: previene y mejora la técnica",
+    sub: t.mobility ? "Completada hoy ✓" : "Cuida el rango: previene y mejora la técnica",
     cta: t.mobility ? null : "EMPEZAR", go: "training", workoutId: "mobility_flow",
   });
 
@@ -152,7 +152,7 @@ export function planDelDia(Sx, opts = {}) {
     id: "pausa", pri: "OPCIONAL", done: (t.activePauses || 0) > 0,
     titulo: "Pausa activa en el trabajo",
     sub: (t.activePauses || 0) > 0
-      ? `${t.activePauses} pausa(s) hoy ✅ · tu espalda lo nota`
+      ? `${t.activePauses} pausa(s) hoy ✓ · tu espalda lo nota`
       : "3 min de movilidad de escritorio · BAYONA te cuida mientras trabajas",
     cta: (t.activePauses || 0) > 0 ? null : "IR A TRABAJO", go: "trabajo",
   });
@@ -164,7 +164,7 @@ export function planDelDia(Sx, opts = {}) {
     items.push({
       id: "medicion", pri: "OPCIONAL", done: medidasHoy,
       titulo: "Medición corporal",
-      sub: medidasHoy ? "Medida hoy ✅ · tu evolución está al día" : prox.motivo,
+      sub: medidasHoy ? "Medida hoy ✓ · tu evolución está al día" : prox.motivo,
       cta: medidasHoy ? null : "MEDIR AHORA", go: "progress",
     });
   }
@@ -183,7 +183,7 @@ export function planDelDia(Sx, opts = {}) {
     items.push({
       id: m.id, pri: "OPCIONAL", done: m.done, mision: true, claimed: m.claimed,
       titulo: m.name,
-      sub: m.claimed ? `Bono +${m.xp} XP reclamado ✅`
+      sub: m.claimed ? `Bono +${m.xp} XP reclamado ✓`
         : m.done ? `Cumplida · reclama tu bono de +${m.xp} XP`
           : `${m.hint} · bono +${m.xp} XP`,
       cta: m.done && !m.claimed ? `RECLAMAR +${m.xp} XP` : null,

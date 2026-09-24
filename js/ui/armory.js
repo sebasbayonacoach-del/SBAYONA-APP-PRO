@@ -34,9 +34,9 @@ BUILDERS.armory = (body) => {
     ITEMS.filter((i) => i.slot === slot).forEach((it) => {
       const owned = S.isOwned(it.id);
       const equipped = S.data.inventory.equipped[slot] === it.id;
-      const rar = RARITY[it.rarity] || { color: "#9aa4b0", label: it.rarity };
+      const rar = RARITY[it.rarity] || { color: "#8a8a8a", label: it.rarity };
       const card = el("div", `item ${equipped ? "equipped" : ""} ${owned ? "" : "locked"}`);
-      const col = it.vis.color || "#222";
+      const col = it.vis.color || "#141414";
       const acc = it.vis.accent || col;
       card.innerHTML = `
         <div class="swatch" style="background:linear-gradient(135deg,${col},${acc})"></div>

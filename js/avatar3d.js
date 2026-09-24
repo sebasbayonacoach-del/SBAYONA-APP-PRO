@@ -258,17 +258,17 @@ export function openCreatorModal({ onExport, onClose, onNeedConsent } = {}) {
   layer.setAttribute("aria-label", "Creador de avatar 3D");
   const st = document.createElement("style");
   st.textContent = `
-    #a3d-layer{position:fixed;inset:0;z-index:200;background:rgba(5,6,10,.86);display:flex;
+    #a3d-layer{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.86);display:flex;
       align-items:center;justify-content:center;padding:12px;font:14px/1.5 Manrope,system-ui}
-    #a3d-box{background:var(--paper-2,#101319);border:1px solid var(--hair,#2a2f3a);border-radius:16px;
-      width:min(480px,100%);height:min(720px,94vh);display:flex;flex-direction:column;overflow:hidden;color:var(--ink,#f3eee7)}
-    #a3d-bar{display:flex;gap:8px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--hair,#2a2f3a)}
+    #a3d-box{background:var(--paper-2,#0d0d0d);border:1px solid var(--hair,rgba(255,255,255,.14));border-radius:16px;
+      width:min(480px,100%);height:min(720px,94vh);display:flex;flex-direction:column;overflow:hidden;color:var(--ink,#ffffff)}
+    #a3d-bar{display:flex;gap:8px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--hair,rgba(255,255,255,.14))}
     #a3d-bar b{flex:1;font-size:13px;letter-spacing:.04em}
-    #a3d-bar button{border:1px solid var(--hair-strong,#3a4150);border-radius:10px;background:var(--panel,#181d27);
-      color:var(--ink,#f3eee7);font-weight:700;font-size:12px;padding:9px 12px;cursor:pointer}
-    #a3d-slot{flex:1;position:relative;background:#0b0e14}
+    #a3d-bar button{border:1px solid var(--hair-strong,rgba(255,255,255,.3));border-radius:10px;background:var(--panel,#111111);
+      color:var(--ink,#ffffff);font-weight:700;font-size:12px;padding:9px 12px;cursor:pointer}
+    #a3d-slot{flex:1;position:relative;background:#0d0d0d}
     #a3d-slot iframe{width:100%;height:100%;border:0}
-    #a3d-note{padding:10px 12px;font-size:12px;color:var(--ink-soft,#b9b2a6)}`;
+    #a3d-note{padding:10px 12px;font-size:12px;color:var(--ink-soft,rgba(255,255,255,.6))}`;
   document.head.appendChild(st);
 
   const box = document.createElement("div");

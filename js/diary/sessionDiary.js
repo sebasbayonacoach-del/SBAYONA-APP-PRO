@@ -260,12 +260,12 @@ function mountUI() {
 
   const fab = document.createElement('button');
   fab.id = 'bd-fab';
-  fab.textContent = '🎬 DIARIO';
+  fab.textContent = '▶ DIARIO';
   fab.title = 'Diario de sesión cinematográfico';
   Object.assign(fab.style, {
-    position: 'fixed', right: '12px', top: '58%', zIndex: 44,
-    padding: '10px 14px', borderRadius: '999px', border: '1px solid var(--hair-strong)',
-    background: 'var(--paper-2)', color: 'var(--acc-1)', font: '800 12px/1 "Archivo Black", sans-serif',
+    position: 'fixed', right: '22px', top: '58%', zIndex: 44,
+    padding: '10px 14px', borderRadius: '2px', border: '1px solid var(--hair-strong)',
+    background: 'var(--paper-2)', color: 'var(--ink)', font: '800 12px/1 "Archivo Black", sans-serif',
     cursor: 'pointer', boxShadow: '0 6px 24px #0006', letterSpacing: '.04em',
   });
   fab.addEventListener('click', () => {
@@ -316,16 +316,16 @@ export function openDiary(diary) {
     .bd-empty .bd-close{margin-top:14px;padding:10px 16px;border-radius:10px;border:1px solid var(--acc-1);
       background:var(--acc-ink);color:var(--acc-1);font:800 12px/1 "Archivo Black",sans-serif;letter-spacing:.05em;cursor:pointer}
   </style>` + (storageFailed
-    ? `<div class="bd-storage">⚠ ${escHtml(t('err.storage'))}</div>`
+    ? `<div class="bd-storage">▲ ${escHtml(t('err.storage'))}</div>`
     : '');
 
   if (!diary || !diary.scenes?.length) {
-    ov.innerHTML = `${head}<div class="bd-empty">🎬<h2>AÚN NO HAY ESCENAS</h2>
+    ov.innerHTML = `${head}<div class="bd-empty">▶<h2>AÚN NO HAY ESCENAS</h2>
       <p>Haz una serie con el GEMELO-1 (cámara) y el diario escribirá tu sesión, repetición a repetición.</p>
       <button class="bd-close" type="button">CERRAR</button></div>`;
   } else {
     const { epilogue: ep } = diary;
-    const mvp = ep.mvp ? `<div class="bd-mvp">🏆 MOMENTO DEL DÍA · ${escHtml(ep.mvp.chapter)} · ${escHtml(ep.mvp.score)}/100</div>` : '';
+    const mvp = ep.mvp ? `<div class="bd-mvp">★ MOMENTO DEL DÍA · ${escHtml(ep.mvp.chapter)} · ${escHtml(ep.mvp.score)}/100</div>` : '';
     ov.innerHTML = `${head}
       <style>
         .bd-head{text-align:center;margin-bottom:22px}
@@ -337,9 +337,9 @@ export function openDiary(diary) {
         .bd-scene header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
         .bd-chapter{font:800 11px/1 "Archivo Black",sans-serif;letter-spacing:.14em;color:var(--acc-1)}
         .bd-grade{font:800 14px/1 "Archivo Black",sans-serif;padding:4px 8px;border-radius:8px}
-        .bd-gS{background:var(--acc-1);color:var(--acc-ink)}.bd-gA{background:#7fbf7f;color:var(--acc-ink)}
-        .bd-gB{background:#6f9fcf;color:var(--acc-ink)}.bd-gC{background:#cfa05a;color:var(--acc-ink)}
-        .bd-gD{background:#b06a5a;color:#fff}.bd-g—{background:var(--hair-strong);color:var(--ink-soft)}
+        .bd-gS{background:var(--acc-2);color:var(--acc-ink)}.bd-gA{background:var(--acc-1);color:var(--acc-ink)}
+        .bd-gB{background:var(--ink);color:var(--paper-2)}.bd-gC{background:var(--cream);color:var(--ink)}
+        .bd-gD{background:transparent;border:1px solid var(--hair-strong);color:var(--ink-soft)}.bd-g—{background:var(--hair-strong);color:var(--ink-soft)}
         .bd-scene h3{margin:0 0 8px;font:800 16px/1.2 "Archivo Black",sans-serif}
         .bd-scene h3 em{color:var(--acc-1);font-style:normal}
         .bd-scene ul{margin:0 0 10px;padding-left:18px}
@@ -360,7 +360,7 @@ export function openDiary(diary) {
         @keyframes bdfade{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
       </style>
       <div class="bd-head">
-        <h1>🎬 ${escHtml(diary.title)} · ${escHtml(diary.date)}</h1>
+        <h1>▶ ${escHtml(diary.title)} · ${escHtml(diary.date)}</h1>
         <div class="bd-sub">${escHtml(diary.subtitle)} · NOTA GLOBAL ${escHtml(diary.grade)}</div>
         ${liveSetCount() ? '<div class="bd-live">● SESIÓN EN CURSO — el diario sigue escribiéndose</div>' : ''}
       </div>
@@ -392,7 +392,7 @@ if (typeof window !== 'undefined') {
     noteSet(e.detail || {});
     const fab = document.getElementById('bd-fab');
     if (fab) {
-      fab.textContent = `🎬 DIARIO · ${liveSetCount()}×`;
+      fab.textContent = `▶ DIARIO · ${liveSetCount()}×`;
       fab.style.boxShadow = '0 0 18px var(--acc-2)';
       setTimeout(() => { fab.style.boxShadow = '0 6px 24px #0006'; }, 1400);
     }

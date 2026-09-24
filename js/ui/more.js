@@ -32,6 +32,20 @@ BUILDERS.more = (body) => {
     <div class="kv"><span class="k">CUENTA</span><span class="v">${fmtInt(d.points)} ◆ PUNTOS BAYONA · ${fmtInt(d.credits)} ✦ CRÉDITOS</span></div>`));
 
   // ---------- RESUMEN DEL DÍA ----------
+  body.appendChild(el("div", "sec-label", "MUNDOS Y HERRAMIENTAS"));
+  const wgrid = el("div", "opt-row");
+  [
+    ["training", "ENTRENAMIENTO"], ["nutrition", "NUTRICIÓN"], ["recovery", "RECUPERACIÓN"],
+    ["mind", "MENTE"], ["trabajo", "TRABAJO"], ["hoy", "HOY"],
+    ["progress", "PROGRESO"], ["plan", "PLAN"], ["armory", "ARMARIO"], ["core", "CORE"],
+  ].forEach(([k, nm]) => {
+    const b = el("button", "opt", nm);
+    b.type = "button";
+    b.addEventListener("click", () => openSection(k));
+    wgrid.appendChild(b);
+  });
+  body.appendChild(wgrid);
+
   body.appendChild(el("div", "sec-label", "RESUMEN DEL DÍA"));
   const rc = el("div", "card");
   rc.innerHTML = `<h4>CERRAR EL DÍA</h4><div class="sub">Un capítulo de tu día con lo que has registrado de verdad. Cada día cuenta.</div>`;
@@ -90,10 +104,10 @@ BUILDERS.more = (body) => {
   const apTheme = THEMES.find((x) => x.id === ap.theme) || THEMES[0];
   const apCard = el("div", "card shine");
   apCard.innerHTML = `
-    <div class="card-row"><h4>ATELIER DE DISEÑO</h4><span class="pill gold">${apTheme.name}</span></div>
-    <div class="sub">Aura de color, luz, tipografía, densidad, esquinas, cristal, brillo y movimiento. Todo en vivo y guardado solo en este dispositivo.</div>
-    <div class="kv"><span class="k">LUZ</span><span class="v">${ap.mode === "marfil" ? "MARFIL" : "NOCHE"}</span></div>
-    <div class="kv"><span class="k">TÍTULOS</span><span class="v">${ap.font === "atelier" ? "ATELIER" : "TITÁN"}</span></div>
+    <div class="card-row"><h4>DISEÑO · MONO NARANJA</h4><span class="pill gold">${apTheme.name}</span></div>
+    <div class="sub">Paleta estricta naranja · blanco · negro. Luz, densidad, esquinas y movimiento en vivo, guardados solo en este dispositivo.</div>
+    <div class="kv"><span class="k">LUZ</span><span class="v">${ap.mode === "marfil" ? "BLANCO" : "NEGRO"}</span></div>
+    <div class="kv"><span class="k">PALETA</span><span class="v">NARANJA</span></div>
     <div class="kv"><span class="k">MOVIMIENTO</span><span class="v">${ap.motion === "off" ? "NINGUNO" : ap.motion === "sereno" ? "SERENO" : "PLENO"}</span></div>`;
   const bAp = el("button", "btn btn-primary btn-block", "PERSONALIZAR INTERFAZ");
   bAp.style.marginTop = "12px";

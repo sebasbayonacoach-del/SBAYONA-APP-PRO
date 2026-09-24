@@ -6,6 +6,7 @@
 import { S } from "./state.js";
 import { World } from "./world.js";
 import { initUI } from "./ui.js";
+import { openSection } from "./ui/shared.js";
 import { ITEMS } from "./data.js";
 import { loadFaceImage } from "./face.js";
 
@@ -22,7 +23,7 @@ function boot() {
   // avatar con el outfit persistido
   const itemsById = {};
   ITEMS.forEach((i) => (itemsById[i.id] = i));
-  world.avatar.setSkin(["#e8b892", "#c98d5f", "#a06a3f", "#7a4a29", "#54301a", "#f0c9a5"][S.data.profile.skin] || S.data.profile.skinHex || "#e8b892");
+  world.avatar.setSkin(["#e0e0e0", "#c9c9c9", "#a6a6a6", "#808080", "#5c5c5c", "#3a3a3a"][S.data.profile.skin] || S.data.profile.skinHex || "#c9c9c9");
   world.avatar.setOutfit(S.data.inventory.equipped, itemsById);
 
   // avatar 3D (Avaturn): si falla, el de la foto sigue — nunca pantalla rota
@@ -56,7 +57,7 @@ function boot() {
   canvas.addEventListener("pointerdown", (e) => {
     if (world.fallback2d) {
       if (world.fallback2d.coreHit(e.clientX, e.clientY)) {
-        document.querySelector('[data-nav="core"]').click();
+        openSection("core");
       }
       return;
     }
@@ -64,7 +65,7 @@ function boot() {
     const y = -(e.clientY / innerHeight) * 2 + 1;
     const hits = world.raycastNDC(x, y, [world.core.group]);
     if (hits.length) {
-      document.querySelector('[data-nav="core"]').click();
+      openSection("core");
     }
   });
 
@@ -77,7 +78,7 @@ function boot() {
   // estado de día por si la app lleva abierta mucho
   setInterval(() => { S.rollDay(); }, 60000);
 
-  console.log("%cBAYONA · TU VIDA ES EL JUEGO", "color:#d8b26a;font-weight:bold");
+  console.log("%cBAYONA · TU VIDA ES EL JUEGO", "color:#ff6a00;font-weight:bold");
 
   // PWA: service worker (offline del shell de la app). ?nosw=1 lo desactiva (diagnóstico).
   if ("serviceWorker" in navigator && location.protocol !== "file:" && !location.search.includes("nosw=1")) {

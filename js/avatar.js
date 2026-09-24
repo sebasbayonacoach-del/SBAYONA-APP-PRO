@@ -5,7 +5,7 @@
 // ============================================================
 import * as THREE from "three";
 
-const SKIN_TONES = ["#e8b892", "#c98d5f", "#a06a3f", "#7a4a29", "#54301a", "#f0c9a5"];
+const SKIN_TONES = ["#e0e0e0", "#c9c9c9", "#a6a6a6", "#808080", "#5c5c5c", "#3a3a3a"];
 const CAP = 1.6; // radians blend cap
 
 function damp(cur, target, lambda, dt) {
@@ -278,8 +278,8 @@ export class Avatar {
     B.footR = mk(B.shinR, "footR", [0, -0.42, 0]);
 
     // --- body meshes (skin) ---
-    this.bodyMat = new THREE.MeshStandardMaterial({ color: 0xe8b892, roughness: 0.65, metalness: 0.02 });
-    this.darkMat = new THREE.MeshStandardMaterial({ color: 0x0d1117, roughness: 0.5, metalness: 0.1 });
+    this.bodyMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, roughness: 0.65, metalness: 0.02 });
+    this.darkMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.5, metalness: 0.1 });
 
     const seg = (parent, r, len, yOff, mat, x = 0) => {
       const m = new THREE.Mesh(new THREE.CapsuleGeometry(r, len, 4, 12), mat || this.bodyMat);
@@ -294,7 +294,7 @@ export class Avatar {
     const head = new THREE.Mesh(new THREE.SphereGeometry(0.135, 24, 20), this.bodyMat);
     head.scale.set(1, 1.12, 1.02); head.position.y = 0.08; head.castShadow = true; B.head.add(head);
     // pelo: casco corto (el maniquí calvo era lo "feo"; gorras y cascos van encima)
-    this.hairMat = new THREE.MeshStandardMaterial({ color: 0x2a1c11, roughness: 0.85, metalness: 0 });
+    this.hairMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.85, metalness: 0 });
     const hair = new THREE.Mesh(new THREE.SphereGeometry(0.142, 24, 16, 0, Math.PI * 2, 0, Math.PI / 2.15), this.hairMat);
     hair.scale.set(1.02, 1.05, 1.04); hair.position.set(0, 0.098, -0.012); hair.rotation.x = -0.22;
     hair.castShadow = true; B.head.add(hair);
@@ -377,9 +377,9 @@ export class Avatar {
     this.clearEquip();
     const B = this.bones;
     this.styleInfo = {
-      top: equipped.top && itemsById[equipped.top] ? itemsById[equipped.top].vis : { kind: "tee", color: "#1b2230", accent: "#d8b26a" },
-      bottom: equipped.bottom && itemsById[equipped.bottom] ? itemsById[equipped.bottom].vis : { kind: "long", color: "#141a24" },
-      shoes: equipped.shoes && itemsById[equipped.shoes] ? itemsById[equipped.shoes].vis : { color: "#e8e4dd" },
+      top: equipped.top && itemsById[equipped.top] ? itemsById[equipped.top].vis : { kind: "tee", color: "#111111", accent: "#ff6a00" },
+      bottom: equipped.bottom && itemsById[equipped.bottom] ? itemsById[equipped.bottom].vis : { kind: "long", color: "#0a0a0a" },
+      shoes: equipped.shoes && itemsById[equipped.shoes] ? itemsById[equipped.shoes].vis : { color: "#f5f5f5" },
       head: equipped.head && itemsById[equipped.head] ? itemsById[equipped.head].vis : null,
       effects: equipped.effects && itemsById[equipped.effects] ? itemsById[equipped.effects].vis : null,
     };
@@ -390,7 +390,7 @@ export class Avatar {
       });
 
     // ---- TOP ----
-    const top = equipped.top && itemsById[equipped.top]?.vis ? itemsById[equipped.top].vis : { kind: "tee", color: "#1b2230", accent: "#d8b26a" };
+    const top = equipped.top && itemsById[equipped.top]?.vis ? itemsById[equipped.top].vis : { kind: "tee", color: "#111111", accent: "#ff6a00" };
     {
       const m = mat(top.color, { metal: 0.06 });
       const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.195, 0.2, 4, 14), m);
@@ -419,7 +419,7 @@ export class Avatar {
     }
 
     // ---- BOTTOM ----
-    const bot = equipped.bottom && itemsById[equipped.bottom]?.vis ? itemsById[equipped.bottom].vis : { kind: "long", color: "#141a24" };
+    const bot = equipped.bottom && itemsById[equipped.bottom]?.vis ? itemsById[equipped.bottom].vis : { kind: "long", color: "#0a0a0a" };
     {
       const m = mat(bot.color, { metal: 0.05 });
       const parts = [];
@@ -437,13 +437,13 @@ export class Avatar {
     }
 
     // ---- SHOES ----
-    const sh = equipped.shoes && itemsById[equipped.shoes]?.vis ? itemsById[equipped.shoes].vis : { color: "#e8e4dd", accent: "#1b2230" };
+    const sh = equipped.shoes && itemsById[equipped.shoes]?.vis ? itemsById[equipped.shoes].vis : { color: "#f5f5f5", accent: "#111111" };
     {
       const parts = [];
       for (const s of ["L", "R"]) {
         const f = B["footMesh" + s];
         f.material = mat(sh.color, { metal: 0.05, glow: sh.glow });
-        const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.105, 0.02, 0.1), mat(sh.accent || "#111"));
+        const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.105, 0.02, 0.1), mat(sh.accent || "#111111"));
         stripe.position.set(0, 0.0, 0.02); f.add(stripe); parts.push(stripe);
       }
       this.equipParts.shoes = parts;
@@ -457,7 +457,7 @@ export class Avatar {
       if (hd.kind === "cap") {
         const crown = new THREE.Mesh(new THREE.SphereGeometry(0.145, 18, 12, 0, Math.PI * 2, 0, Math.PI / 2.1), m);
         crown.position.y = 0.08; B.head.add(crown); parts.push(crown);
-        const brim = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.02, 0.14), mat(hd.accent || "#111"));
+        const brim = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.02, 0.14), mat(hd.accent || "#111111"));
         brim.position.set(0, 0.1, 0.14); B.head.add(brim); parts.push(brim);
       } else if (hd.kind === "headphones") {
         const band = new THREE.Mesh(new THREE.TorusGeometry(0.15, 0.018, 8, 20, Math.PI), m);
@@ -490,7 +490,7 @@ export class Avatar {
     if (bk) {
       const pack = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.3, 0.12), mat(bk.color, { metal: 0.1, glow: bk.glow }));
       pack.position.set(0, 0.05, -0.22); B.chest.add(pack);
-      const strap = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.03, 0.3), mat(bk.accent || "#222"));
+      const strap = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.03, 0.3), mat(bk.accent || "#141414"));
       strap.position.y = 0.1; B.chest.add(strap);
       this.equipParts.back = [pack, strap];
     }

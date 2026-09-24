@@ -17,7 +17,7 @@ export function showLevelUp(lvl) {
   showModal(`
     <div class="cine-tag">EVOLUCIÓN</div>
     <div class="cine-title">NIVEL ${esc(lvl)}</div>
-    <div class="cine-sub">Tu personaje evoluciona porque tú evolucionas.<br>RANGO: <b style="color:var(--gold)">${esc(S.rank())}</b></div>
+    <div class="cine-sub">Tu personaje evoluciona porque tú evolucionas.<br>RANGO: <b style="color:var(--orange)">${esc(S.rank())}</b></div>
     <div class="reward-line"><span>NUEVO NIVEL</span><b>${esc(lvl)}</b></div>
     <div class="reward-line"><span>DESBLOQUEOS</span><b>ARMARIO · MUNDO</b></div>
     <button class="btn btn-gold btn-block btn-big" id="m-ok">CONTINUAR LA HISTORIA</button>`,

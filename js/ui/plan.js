@@ -28,7 +28,7 @@ BUILDERS.plan = (body) => {
     const p = phaseOfWeek(i);
     const bar = el("i");
     bar.style.height = `${Math.round(p.vol * 100)}%`;
-    if (i === week) bar.style.background = "linear-gradient(to top,var(--gold),#fff)";
+    if (i === week) bar.style.background = "linear-gradient(to top,var(--orange),var(--ink))";
     spark.appendChild(bar);
   }
   head.appendChild(spark);
@@ -68,7 +68,7 @@ function simpleView(week, phase) {
   card.innerHTML = `<h4>${w ? esc(w.name) : "DÍA DE RECUPERACIÓN"}</h4>
     <div class="sub">Fase ${esc(phase.name)} · semana ${esc(week)}/24 · intensidad objetivo ${Math.round(phase.int * 100)}% 1RM<br>
     ${w ? `Sesión prevista: ${esc(auto?.adjusted ?? "—")} de ${esc(auto?.original ?? "—")} series · ~${fmtInt(previewWorkoutXP(auto?.workout || w).xp)} XP en series + ${bonus.xp} XP de cierre` : "Movilidad + respiración programadas."}<br>
-    Estado: ${t2.trained ? "sesión completada ✅" : t2.trainingSets > 0 ? `sesión iniciada (${t2.trainingSets} series)` : "pendiente"}</div>`;
+    Estado: ${t2.trained ? "sesión completada ✓" : t2.trainingSets > 0 ? `sesión iniciada (${t2.trainingSets} series)` : "pendiente"}</div>`;
   wrap.appendChild(card);
   wrap.appendChild(el("div", "sec-label", "MICROCICLO · SEMANA EN CURSO"));
   const micro = el("div", "card");

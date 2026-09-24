@@ -42,7 +42,7 @@ BUILDERS.progress = (body) => {
     const v = d.skills[k];
     const m = el("div", "macro");
     m.innerHTML = `<div class="top"><span>${label}</span><span class="mono">${esc(v)}</span></div>
-      <div class="mbar"><i style="width:${Math.min(100, v)}%;background:linear-gradient(90deg,var(--blue),var(--cyan))"></i></div>`;
+      <div class="mbar"><i style="width:${Math.min(100, v)}%;background:var(--orange)"></i></div>`;
     body.appendChild(m);
   });
 
@@ -97,8 +97,8 @@ function analyticsBlock() {
       const coords = pts.map((p, i) => `${(i / Math.max(1, pts.length - 1)) * w2},${h2 - (p.e1 / max) * (h2 - 6)}`).join(" ");
       const svg = el("div");
       svg.innerHTML = `<svg viewBox="0 0 ${w2} ${h2}" style="width:100%;height:46px;margin-top:8px" role="img" aria-label="Curva de 1RM">
-        <polyline points="${coords}" fill="none" stroke="#e8500a" stroke-width="2" />
-        ${pts.map((p, i) => `<circle cx="${(i / Math.max(1, pts.length - 1)) * w2}" cy="${h2 - (p.e1 / max) * (h2 - 6)}" r="2.5" fill="#16130f" />`).join("")}
+        <polyline points="${coords}" fill="none" stroke="#ff6a00" stroke-width="2" />
+        ${pts.map((p, i) => `<circle cx="${(i / Math.max(1, pts.length - 1)) * w2}" cy="${h2 - (p.e1 / max) * (h2 - 6)}" r="2.5" fill="#ffffff" stroke="#ff6a00" stroke-width="1" />`).join("")}
       </svg>`;
       c.appendChild(svg);
       const proj = project1RM(ex, Math.round(((cur?.e1 || 60) * 1.15) / 5) * 5);

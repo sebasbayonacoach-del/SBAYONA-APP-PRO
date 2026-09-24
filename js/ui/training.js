@@ -63,7 +63,7 @@ BUILDERS.training = (body) => {
 
 function resumeCard(act) {
   const c = el("div", "card");
-  c.style.borderColor = "var(--gold)";
+  c.style.borderColor = "var(--orange)";
   c.innerHTML = `<h4>SESIÓN GUARDADA · ${esc(act.status.toUpperCase())}</h4>
     <div class="sub">${esc(act.name)} · ${esc(act.logged)}/${esc(act.plannedSets)} series · sobrevive a recargas y reinicios.</div>`;
   const row = el("div", "card-row");
@@ -160,7 +160,7 @@ function showDayDetail(wid, date, cell, grid) {
   box.textContent = "";
   const dstr = date.toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" });
   if (!wid) {
-    box.appendChild(el("div", "card", `<h4>🌙 ${esc(dstr.toUpperCase())}</h4><div class="sub">Día de descanso programado. El crecimiento ocurre mientras recuperas: sueño, hidratación y movilidad ligera.</div>`));
+    box.appendChild(el("div", "card", `<h4>☾ ${esc(dstr.toUpperCase())}</h4><div class="sub">Día de descanso programado. El crecimiento ocurre mientras recuperas: sueño, hidratación y movilidad ligera.</div>`));
     return;
   }
   const w = WORKOUTS[wid];

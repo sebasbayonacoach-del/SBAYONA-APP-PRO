@@ -68,7 +68,7 @@ BUILDERS.mind = (body) => {
   AFFIRMATIONS.forEach((a) => {
     const c = el("div", "card");
     c.innerHTML = `<div class="sub" style="color:var(--white);font-size:13px">“${esc(a)}”</div>`;
-    const bRec = el("button", "btn", "🎙 GRABAR CON MI VOZ");
+    const bRec = el("button", "btn", "◉ GRABAR CON MI VOZ");
     bRec.style.marginTop = "10px";
     bRec.addEventListener("click", () => recordVoice(a));
     c.appendChild(bRec);

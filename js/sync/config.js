@@ -1,9 +1,9 @@
 // ============================================================
 // BAYONA · SYNC/config — el ÚNICO sitio donde va tu credencial
 // ------------------------------------------------------------
-// ⚠️  La `anon` public key va aquí. Es pública por diseño (está en el
+// ▲  La `anon` public key va aquí. Es pública por diseño (está en el
 //    navegador de tus usuarios) y está protegida por RLS.
-// 🚫 NUNCA pongas la `service_role` key en este fichero ni en el cliente:
+// ✕ NUNCA pongas la `service_role` key en este fichero ni en el cliente:
 //    salta TODAS las políticas RLS y dejaría los datos de todos al aire.
 //
 // CÓMO RELLENARLO (30 segundos):

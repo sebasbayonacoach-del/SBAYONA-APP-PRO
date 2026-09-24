@@ -21,20 +21,20 @@ const state = {
 
 /* ---------------- estilos inyectados (sin tocar css/style.css) ---------------- */
 const css = `
-#bv-launch{position:fixed;right:12px;top:42%;z-index:44;
-  border:1px solid var(--hair);border-radius:999px;background:var(--paper-2);color:var(--ink);
+#bv-launch{position:fixed;right:22px;top:42%;z-index:44;
+  border:1px solid var(--hair-strong);border-radius:2px;background:var(--paper-2);color:var(--ink);
   font:600 12px/1 Manrope,system-ui;padding:11px 14px;cursor:pointer;box-shadow:0 6px 20px #00000066}
-#bv-panel{position:fixed;right:12px;bottom:calc(72px + env(safe-area-inset-bottom));z-index:70;width:min(320px,92vw);
-  background:var(--paper-2);border:1px solid var(--hair);border-radius:14px;box-shadow:0 12px 40px #00000088;
+#bv-panel{position:fixed;right:22px;bottom:calc(72px + env(safe-area-inset-bottom));z-index:70;width:min(320px,calc(100vw - 44px));
+  background:var(--paper-2);border:1px solid var(--hair);border-radius:2px;box-shadow:0 12px 40px #00000088;
   padding:12px;font:14px/1.4 Manrope,system-ui;color:var(--ink)}
 #bv-panel h3{margin:0 0 6px;font:800 13px/1 Archivo Black,Arial;letter-spacing:.04em}
 #bv-panel .bv-row{display:flex;gap:6px;margin:6px 0}
-#bv-panel button{flex:1;border:1px solid var(--hair-strong);border-radius:8px;background:var(--panel);color:var(--ink);
+#bv-panel button{flex:1;border:1px solid var(--hair-strong);border-radius:2px;background:transparent;color:var(--ink);
   font:700 11px/1 Manrope;padding:8px;cursor:pointer}
 #bv-panel button.on{background:var(--acc-2);color:var(--paper-2);border-color:var(--acc-2)}
-#bv-panel button.big{background:var(--ink);color:var(--paper-2);font-size:12px;padding:10px}
-#bv-panel video{width:100%;border-radius:10px;transform:scaleX(-1);background:#000;display:block}
-#bv-panel canvas{width:100%;border-radius:10px;margin-top:-100%;pointer-events:none}
+#bv-panel button.big{background:transparent;color:var(--acc-2);border-color:var(--acc-2);font-size:12px;padding:10px}
+#bv-panel video{width:100%;border-radius:2px;transform:scaleX(-1);background:#000;display:block}
+#bv-panel canvas{width:100%;border-radius:2px;margin-top:-100%;pointer-events:none}
 #bv-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px;text-align:center}
 #bv-stats b{display:block;font:700 16px/1.2 "Space Mono",monospace}
 #bv-stats span{font-size:9px;letter-spacing:.08em;opacity:.65}
@@ -217,7 +217,7 @@ function stop() {
     : 'Avatar con rig no conectado: se han registrado solo las métricas de la serie.';
   if (saved) {
     speak(`Serie guardada: ${summary.reps} repeticiones`, 'stop');
-    alert(`Serie guardada ✅\n${summary.reps} reps · técnica ${summary.formScore ?? '--'}/100\n${avatarLine}`);
+    alert(`Serie guardada ✓\n${summary.reps} reps · técnica ${summary.formScore ?? '--'}/100\n${avatarLine}`);
   } else {
     // estado honesto: no se pudo guardar en este dispositivo
     speak(`Serie registrada: ${summary.reps} repeticiones. No se pudo guardar en este dispositivo.`, 'stop');
@@ -285,7 +285,7 @@ function buildUI() {
     </div>
     <div class="bv-row"><button class="big" id="bv-start">▶ INICIAR SERIE</button></div>
     <div class="bv-row"><button id="bv-close">CERRAR</button></div>
-    <div id="bv-note">🔒 Procesado local · ningún vídeo ni imagen sale de tu dispositivo (ADR-003)</div>
+    <div id="bv-note">◆ Procesado local · ningún vídeo ni imagen sale de tu dispositivo (ADR-003)</div>
   </div>`);
   document.body.appendChild(panel);
 

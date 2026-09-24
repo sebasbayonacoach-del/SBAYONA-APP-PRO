@@ -17,13 +17,13 @@ const JOINTS = [
 ];
 
 const ENV_ART = {
-  home:     { top: "#f7f3ed", bottom: "#ece6dd", glow: "#e8500a", deco: "window" },
-  gym:      { top: "#f3eee7", bottom: "#e2dbd0", glow: "#e8500a", deco: "neon" },
-  kitchen:  { top: "#f7f3ed", bottom: "#efe9e0", glow: "#e8500a", deco: "counter" },
-  recovery: { top: "#f3eee7", bottom: "#e8e2d8", glow: "#e8500a", deco: "panels" },
-  mind:     { top: "#f7f4ef", bottom: "#efe9e0", glow: "#e8500a", deco: "halo" },
-  lab:      { top: "#f3eee7", bottom: "#e6dfd5", glow: "#e8500a", deco: "charts" },
-  locker:   { top: "#efe9e0", bottom: "#e2dbd0", glow: "#e8500a", deco: "lockers" },
+  home:     { top: "#ffffff", bottom: "#e8e8e8", glow: "#ff6a00", deco: "window" },
+  gym:      { top: "#f0f0f0", bottom: "#dcdcdc", glow: "#ff6a00", deco: "neon" },
+  kitchen:  { top: "#ffffff", bottom: "#ececec", glow: "#ff6a00", deco: "counter" },
+  recovery: { top: "#f0f0f0", bottom: "#e0e0e0", glow: "#ff6a00", deco: "panels" },
+  mind:     { top: "#fafafa", bottom: "#ececec", glow: "#ff6a00", deco: "halo" },
+  lab:      { top: "#f0f0f0", bottom: "#e4e4e4", glow: "#ff6a00", deco: "charts" },
+  locker:   { top: "#ececec", bottom: "#dcdcdc", glow: "#ff6a00", deco: "lockers" },
 };
 
 export class Fallback2D {
@@ -85,10 +85,10 @@ export class Fallback2D {
       P[name] = this.project(V, cx, cy, s);
     }
     const style = this.avatar.styleInfo || {};
-    const skin = this.avatar.skinTone || "#e8b38a";
-    const topCol = style.top?.color || "#17140f";
-    const botCol = style.bottom?.color || "#221e18";
-    const shoeCol = style.shoes?.color || "#f7f3ee";
+    const skin = this.avatar.skinTone || "#c9c9c9";
+    const topCol = style.top?.color || "#111111";
+    const botCol = style.bottom?.color || "#0a0a0a";
+    const shoeCol = style.shoes?.color || "#f5f5f5";
 
     // ground shadow
     const hip = P.hips;
@@ -123,7 +123,7 @@ export class Fallback2D {
     seg("spine", "chest", 0.175, topCol);
     seg("chest", "neck", 0.14, topCol);
     // accent stripe
-    seg("spine", "chest", 0.03, style.top?.accent || "#d8b26a");
+    seg("spine", "chest", 0.03, style.top?.accent || "#ff6a00");
 
     // head + cara real del usuario
     if (P.head) {
@@ -139,10 +139,10 @@ export class Fallback2D {
         ctx.restore();
       }
       if (style.head?.kind === "cap") {
-        ctx.fillStyle = style.head.color || "#10151e";
+        ctx.fillStyle = style.head.color || "#111111";
         ctx.beginPath(); ctx.arc(P.head.x, P.head.y - s * 0.09 * P.head.p, s * 0.13 * P.head.p, Math.PI, 0); ctx.fill();
       } else if (style.head?.kind === "headphones") {
-        ctx.strokeStyle = style.head.color || "#12243a"; ctx.lineWidth = s * 0.03;
+        ctx.strokeStyle = style.head.color || "#2b2b2b"; ctx.lineWidth = s * 0.03;
         ctx.beginPath(); ctx.arc(P.head.x, P.head.y - s * 0.06 * P.head.p, s * 0.15 * P.head.p, Math.PI * 1.1, Math.PI * 1.9); ctx.stroke();
       }
     }
@@ -170,15 +170,15 @@ export class Fallback2D {
     if (core) {
       const cp = this.project(core.group.position, cx, cy, s);
       this.coreScreen = cp;
-      const mood = core.mood === "alert" ? "#c0392b" : core.mood === "gold" ? "#e8500a" : "#16130f";
+      const mood = core.mood === "alert" ? "#ff6a00" : core.mood === "gold" ? "#ff6a00" : "#111111";
       const puls = 1 + Math.sin(t * 2.4) * 0.1;
       const gg = ctx.createRadialGradient(cp.x, cp.y, 1, cp.x, cp.y, s * 0.14 * puls);
       gg.addColorStop(0, mood); gg.addColorStop(0.35, mood + "66"); gg.addColorStop(1, "transparent");
       ctx.fillStyle = gg;
       ctx.beginPath(); ctx.arc(cp.x, cp.y, s * 0.14 * puls, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = "#fffdf9";
+      ctx.fillStyle = "#ffffff";
       ctx.beginPath(); ctx.arc(cp.x, cp.y, s * 0.03, 0, Math.PI * 2); ctx.fill();
-      ctx.strokeStyle = "#e8500a"; ctx.lineWidth = 1.5;
+      ctx.strokeStyle = "#ff6a00"; ctx.lineWidth = 1.5;
       ctx.beginPath(); ctx.ellipse(cp.x, cp.y, s * 0.09, s * 0.03, t, 0, Math.PI * 2); ctx.stroke();
     }
   }
