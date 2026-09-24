@@ -20,11 +20,11 @@ export const THEMES = [
 
 const DEFAULTS = {
   theme: "naranja",
-  mode: "noche",        // NEGRO
-  font: "titan",
+  mode: "cine",         // CINE = blanco + naranja · NOCHE = negro + naranja
+  font: "claude",       // firma tipográfica CLAUDE (Styrene B / Tiempos Text)
   density: "comoda",
-  radius: "recto",
-  glass: "off",
+  radius: "suave",
+  glass: "on",          // cristal (glassmorphism) activo por defecto
   glow: "bajo",
   scale: "100",
   motion: "pleno",
@@ -39,6 +39,9 @@ function load() {
     if (raw) ap = { ...DEFAULTS, ...JSON.parse(raw) };
   } catch (e) { /* almacenamiento no disponible */ }
   ap.theme = "naranja"; // paleta estricta: nunca se desvía
+  ap.font = "claude";
+  // legado: marfil → cine · noche → noche
+  if (ap.mode === "marfil") ap.mode = "cine";
   return ap;
 }
 
@@ -59,16 +62,24 @@ export function applyAppearance() {
   r.dataset.glow = AP.glow;
   r.dataset.scale = AP.scale;
   r.dataset.motion = AP.motion;
-  r.style.colorScheme = AP.mode === "marfil" ? "light" : "dark";
+  r.style.colorScheme = AP.mode === "noche" ? "dark" : "light";
 
-  // el mundo 3D respeta el mismo interruptor de movimiento
+  // el mundo 3D usa la MISMA luz (CINE / NOCHE) y el mismo movimiento
   if (S.data?.settings) {
     S.data.settings.motion = AP.motion !== "off";
     if (UI.W) UI.W.reducedMotion = AP.motion === "off";
   }
+  if (UI.W?.setMood) UI.W.setMood(AP.mode);
+  const mn = document.getElementById("mode-name");
+  if (mn) mn.textContent = AP.mode === "noche" ? "NOCHE" : "CINE";
   // color del tema de sistema del navegador (barra móvil)
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute("content", AP.mode === "marfil" ? "#ffffff" : "#000000");
+  if (meta) meta.setAttribute("content", AP.mode === "noche" ? "#0a0806" : "#f1ede5");
+}
+
+/** interruptor rápido CINE / NOCHE (HUD y portada) */
+export function setMode(mode) {
+  setAppearance({ mode: mode === "noche" ? "noche" : "cine" }, true);
 }
 
 export function getAppearance() { return { ...AP }; }
@@ -145,9 +156,9 @@ BUILDERS.appearance = (body) => {
       <h4>BAYONA</h4>
       <span class="pill gold">EN VIVO</span>
     </div>
-    <div class="sub">Cada cambio se aplica al instante y queda guardado en este dispositivo.</div>
+    <div class="sub">Cada cambio se aplica al instante.</div>
     <div class="stat-grid" style="margin-top:12px">
-      <div class="stat-cell"><div class="k">PALETA</div><div class="v" id="ap-prev-aura">MONO</div></div>
+      <div class="stat-cell"><div class="k">LUZ</div><div class="v" id="ap-prev-aura">CINE</div></div>
       <div class="stat-cell"><div class="k">FIJEZA</div><div class="v count-to" id="ap-prev-num" data-count-to="100">0</div></div>
     </div>
     <div class="mbar" style="margin-top:12px"><i style="width:72%"></i></div>
@@ -176,9 +187,13 @@ BUILDERS.appearance = (body) => {
   });
   body.appendChild(sw);
 
-  // ---------- LUZ ----------
-  options(body, "LUZ", "mode", [["noche", "NEGRO"], ["marfil", "BLANCO"]],
+  // ---------- LUZ (CINE = blanco · NOCHE = negro) ----------
+  options(body, "LUZ", "mode", [["cine", "CINE · BLANCO"], ["noche", "NOCHE · NEGRO"]],
     "Luz actualizada.");
+
+  // ---------- CRISTAL ----------
+  options(body, "CRISTAL", "glass", [["on", "CRISTAL"], ["off", "PLANO"]],
+    "Acabado actualizado.");
 
   // ---------- DENSIDAD ----------
   options(body, "DENSIDAD DE INTERFAZ", "density",

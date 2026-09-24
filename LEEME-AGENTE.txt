@@ -1,0 +1,57 @@
+BAYONA APP para el agente (v3 «CINE» — rediseño cinematográfico)
+================================================================
+1. Descomprime (la carpeta raíz es bayona-app/).
+2. vendor/ YA VIENE INCLUIDO (three.js + MediaPipe, ~26 MB con hashes verificados):
+   la app arranca tal cual. `npm run setup` solo sirve para RE-VERIFICAR los
+   SHA-256 o re-descargar si borras vendor/.
+   · opcional: node tools/fetch-fonts.mjs  (re-genera fonts/ desde Google Fonts)
+3. python -m http.server 8080 y abre http://127.0.0.1:8080
+4. npm test corre las 24 suites (node tests/run.mjs).
+
+NOVEDADES v3 (sobre el mono-naranja):
+- INGRESO cinematográfico: portada → ENTRAR → mundo. Nada se muestra de golpe.
+- TODO el contenido vive en el PANEL LATERAL (#drawer): misión, métricas, nivel
+  y los 14 mundos (#panel-nav). El HUD es mínimo (marca, luz, nivel).
+- MOVIMIENTO LIBRE del personaje (js/move.js): clic/toque = camina ahí,
+  WASD/flechas = caminar (SHIFT corre), arrastrar = orbitar cámara,
+  rueda = zoom, joystick virtual en móvil. El orbe CORE sigue abriendo el chat.
+- LUZ: CINE (blanco+naranja, por defecto) / NOCHE (negro+naranja). El negro
+  queda reservado al modo nocturno. Interruptor en portada y HUD (◐).
+- TIPOGRAFÍA CLAUDE (Anthropic): Styrene B / Tiempos Text declaradas primero;
+  gemelas libres auto-alojadas en fonts/ (Instrument Sans / Newsreader / Space
+  Mono). Sin dependencia de red.
+- Cristal (glassmorphism), grano de película, barras de encuadre, panel con
+  muelle, menos texto. Onboarding rediseñado.
+- Backend: 0004_perf_sync.sql (índices calientes, xp_ledger inmutable +
+  idempotencia, vistas de tablero security_invoker, updated_at en planes) y el
+  mismo script dentro de api/supabase/setup.sql.
+
+Estructura: index.html + js/ (world.js = escenario+mood, move.js = control
+libre, avatar3d.js = avatar 3D Avaturn, ui/ = mundos) + css/ (style = base,
+aurum = piel CINE, motion = animación) + fonts/ + api/supabase/migrations/ +
+tests/. Reglas: castellano simple; nunca pantalla rota (todo fallo -> fallback);
+cero secretos por chat; TEXT_ONLY (sin screenshots como observacion).
+Repo: github.com/sebascontigo/bayona-app (rama main).
+
+----------------------------------------------------------------------------
+ESTADO REAL MEDIDO POR EL AGENTE DE CASA (2026-09-24, Playwright 1440x900)
+----------------------------------------------------------------------------
+Lo verificado: 24/24 suites en verde · portada y ENTRAR funcionan · onboarding
+de 5 pasos llega al mundo · CINE/NOCHE cambia luces y escenario · WASD, SHIFT,
+clic-al-suelo, arrastrar-orbitar y rueda-zoom mueven el avatar (posiciones
+numéricas en WORKLOG.md, "OLA 5") · 0 errores de consola.
+
+LO QUE SIGUE ROTO, empiezas por aqui:
+1. Con el panel lateral ABIERTO, #drawer ocupa 1440x900 y se traga todos los
+   punteros: el mundo no recibe clic, arrastre ni rueda. Y el onboarding
+   TERMINA con el panel abierto (sesion de ENTRENAR), o sea el usuario nuevo
+   nunca ve el mundo hasta que pulsa la X. Decide: panel = hoja completa
+   (entonces el mundo no debe prometer movimiento ahi) o panel = lateral de
+   450px con el mundo vivo detras. Cerrado ya mide 450x876, asi que el
+   layout lateral existe: es el estado abierto el que se desborda.
+2. La sombra de contacto (shadowDisc, js/avatar.js:333) se dibuja como un
+   abanico de púas bajo los pies del personaje.
+3. Mancha blanca en el torso del avatar con la piel mono.
+
+NO TOQUES sin medir: los vendor/ de este zip y los del repo local son el mismo
+three.js r160 (solo difieren en CRLF/LF). No hay ningun parche que perder.

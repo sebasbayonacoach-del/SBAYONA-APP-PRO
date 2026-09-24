@@ -41,9 +41,11 @@ export const BUILDERS = {};
 // ============================================================
 export const PLACES = {
   home:      { env: "home",     action: "idle",     cam: [0, 1.15, 3.3],   tgt: [0, 0.95, 0] },
+  hoy:       { env: "home",     action: "idle",     cam: [0, 1.15, 3.3],   tgt: [0, 0.95, 0] },
   training:  { env: "gym",      action: "idle",     cam: [1.2, 1.35, 3.6], tgt: [0, 0.95, 0] },
   nutrition: { env: "kitchen",  action: "sit",      cam: [0.6, 1.25, 3.1], tgt: [0.2, 0.9, 0] },
   work:      { env: "work",     action: "sit",      cam: [0.9, 1.3, 3.1],  tgt: [0.1, 0.85, 0] },
+  trabajo:   { env: "work",     action: "sit",      cam: [0.9, 1.3, 3.1],  tgt: [0.1, 0.85, 0] },
   recovery:  { env: "recovery", action: "stretch",  cam: [0, 1.35, 3.4],   tgt: [0, 0.85, 0] },
   mind:      { env: "mind",     action: "meditate", cam: [0, 1.0, 2.9],    tgt: [0, 0.7, 0] },
   plan:      { env: "lab",      action: "idle",     cam: [-0.6, 1.4, 3.8], tgt: [0, 1.1, -1] },
@@ -51,6 +53,8 @@ export const PLACES = {
   armory:    { env: "locker",   action: "idle",     cam: [0, 1.1, 2.7],    tgt: [0, 0.95, 0] },
   core:      { env: "home",     action: "idle",     cam: [0, 1.15, 3.3],   tgt: [0, 0.95, 0] },
   progress:  { env: "home",     action: "idle",     cam: [0.8, 1.2, 3.2],  tgt: [0, 0.95, 0] },
+  appearance:{ env: "locker",   action: "idle",     cam: [0, 1.1, 2.7],    tgt: [0, 0.95, 0] },
+  account:   { env: "home",     action: "idle",     cam: [0, 1.15, 3.3],   tgt: [0, 0.95, 0] },
   more:      { env: "home",     action: "idle",     cam: [0, 1.15, 3.3],   tgt: [0, 0.95, 0] },
 };
 
@@ -62,11 +66,10 @@ export function travel(placeKey, after) {
 }
 
 export function enterHome(first) {
-  closeDrawer();
-  travel("home", () => UI.W?.avatar.setAction(S.data.today.trained ? "wave" : "idle"));
+  openSection("home");
+  if (UI.W) UI.W.avatar.setAction(S.data.today.trained ? "wave" : "idle");
   if (!first) setTimeout(() => UI.W?.avatar.setAction("idle"), 1800);
-  document.querySelectorAll(".rail-btn").forEach((x) => x.classList.remove("active"));
-  document.querySelectorAll(".nav-btn").forEach((x) => x.classList.toggle("active", x.dataset.nav === "home"));
+  document.querySelectorAll(".rail-btn").forEach((x) => x.classList.toggle("active", x.dataset.go === "home"));
 }
 
 // ============================================================
@@ -77,8 +80,11 @@ export function openDrawer(title, sub) {
   $("#drawer-sub").textContent = sub || "";
   const body = $("#drawer-body");
   body.textContent = "";
-  $("#drawer").classList.remove("hidden");
-  requestAnimationFrame(() => $("#drawer").classList.add("open"));
+  // el panel entra en escena solo cuando se ha cruzado el ingreso
+  if (document.body.classList.contains("entered")) {
+    $("#drawer").classList.remove("hidden");
+    requestAnimationFrame(() => $("#drawer").classList.add("open"));
+  }
   return body;
 }
 
@@ -86,9 +92,13 @@ export function closeDrawer() {
   $("#drawer").classList.remove("open");
   document.body.classList.remove("modo-sesion"); // el foco de sesión se cierra con el panel
   document.querySelectorAll(".rail-btn").forEach((x) => x.classList.remove("active"));
-  document.querySelectorAll(".nav-btn").forEach((x) =>
-    x.classList.toggle("active", x.dataset.nav === "home"));
   if (!UI.session) travel("home");
+}
+
+/** Reabre el panel lateral (desde el HUD o tras el ingreso). */
+export function reopenPanel() {
+  $("#drawer").classList.remove("hidden");
+  requestAnimationFrame(() => $("#drawer").classList.add("open"));
 }
 
 /**
@@ -108,21 +118,23 @@ export function openSection(name) {
   const title = TITLES[name] || TITLES.more;
   travel(name); // el personaje viaja; la UI se construye YA (sin pisar vistas por carrera)
   const body = openDrawer(title[0], title[1]);
-  if (BUILDERS[name]) BUILDERS[name](body);
+  const build = BUILDERS[name] || BUILDERS.home;
+  if (build) build(body);
 }
 
 export const TITLES = {
+  home:      ["INICIO", "TU MUNDO"],
   hoy:       ["HOY", "TU DÍA · QUÉ HACER AHORA"],
-  training:  ["ENTRENAMIENTO", "GIMNASIO BAYONA · OPERACIÓN DEL DÍA"],
-  nutrition: ["NUTRICIÓN", "COCINA · ENERGÍA Y MACROS"],
-  trabajo:   ["TRABAJO", "FOCO · BAYONA TE CUIDA MIENTRAS TRABAJAS"],
-  recovery:  ["RECUPERACIÓN", "LABORATORIO DE RECUPERACIÓN"],
-  mind:      ["MENTE", "SALA MENTE · SILENCIO"],
+  training:  ["ENTRENAMIENTO", "GIMNASIO BAYONA"],
+  nutrition: ["NUTRICIÓN", "COCINA · ENERGÍA"],
+  trabajo:   ["TRABAJO", "FOCO Y POSTURA"],
+  recovery:  ["RECUPERACIÓN", "LABORATORIO"],
+  mind:      ["MENTE", "SILENCIO"],
   progress:  ["PROGRESO", "MI HISTORIA"],
-  plan:      ["PLAN", "LABORATORIO · MACROCICLO"],
-  coachos:   ["COACH OS", "CENTRO DE MANDO · GESTIÓN DE CLIENTES"],
-  armory:    ["ARMARIO", "VESTIDOR BAYONA · EQUIPO"],
-  core:      ["CORE", "ASISTENTE LOCAL · SIN SALIDA DE DATOS"],
+  plan:      ["PLAN", "MACROCICLO"],
+  coachos:   ["COACH OS", "CENTRO DE MANDO"],
+  armory:    ["ARMARIO", "VESTIDOR BAYONA"],
+  core:      ["CORE", "ASISTENTE LOCAL"],
   more:      ["MÁS", "SISTEMA BAYONA"],
 };
 

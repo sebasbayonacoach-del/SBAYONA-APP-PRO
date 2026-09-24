@@ -32,15 +32,18 @@
   --blue: var(--ink);
   --cyan: var(--ink);
   --mono: "Space Mono", ui-monospace, monospace;
-  --sans: "Manrope", "Archivo", -apple-system, BlinkMacSystemFont, sans-serif;
-  --display: "Archivo Black", "Manrope", sans-serif;
+  /* firma tipográfica CLAUDE (Anthropic): Styrene B / Tiempos Text
+     + gemelas libres auto-alojadas (fonts/fonts.css) */
+  --sans: "Styrene B", "Styrene", "Instrument Sans", "Manrope", -apple-system, sans-serif;
+  --display: "Styrene B", "Styrene", "Instrument Sans", "Manrope", sans-serif;
+  --serif: "Tiempos Text", "Tiempos", "Newsreader", Georgia, serif;
   --mono2: "Space Mono", ui-monospace, monospace;
   --ease: cubic-bezier(0.16, 1, 0.3, 1);          /* ease-out-expo */
   --ease-io: cubic-bezier(0.65, 0, 0.35, 1);
   --shadow: 0 18px 50px -18px rgba(0, 0, 0, 0.6);
 }
 
-@import url("https://fonts.googleapis.com/css2?family=Archivo+Black&family=Manrope:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap");
+/* tipografía auto-alojada en fonts/fonts.css (ver index.html) */
 
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body { height: 100%; overflow: hidden; }

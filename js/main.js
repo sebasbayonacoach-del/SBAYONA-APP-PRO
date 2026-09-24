@@ -1,12 +1,13 @@
 // ============================================================
 // BAYONA — BOOTSTRAP
 // AppShell → WorldScene → PersistentAvatar → InterfaceOverlay
-// "BAYONA vive alrededor del personaje."
+// "BAYONA vive alrededor del personaje." · ingreso cinematográfico
+// → mundo limpio → TODO el contenido en el PANEL LATERAL.
 // ============================================================
 import { S } from "./state.js";
 import { World } from "./world.js";
 import { initUI } from "./ui.js";
-import { openSection } from "./ui/shared.js";
+import { openSection, enterHome } from "./ui/shared.js";
 import { ITEMS } from "./data.js";
 import { loadFaceImage } from "./face.js";
 
@@ -15,6 +16,8 @@ function boot() {
 
   const canvas = document.getElementById("scene");
   const world = new World(canvas);
+  world.setMood(document.documentElement.dataset.mode || "cine");
+  window.dispatchEvent(new CustomEvent("bayona:world-ready", { detail: world }));
 
   // reduced motion desde ajustes o sistema
   const prefersReduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -53,23 +56,16 @@ function boot() {
     }
   }, 500);
 
-  // CORE clickable en 3D (o por posición proyectada en fallback 2.5D)
+  // CORE clickable en modo fallback 2.5D (en 3D lo gestiona js/move.js)
   canvas.addEventListener("pointerdown", (e) => {
-    if (world.fallback2d) {
-      if (world.fallback2d.coreHit(e.clientX, e.clientY)) {
-        openSection("core");
-      }
-      return;
-    }
-    const x = (e.clientX / innerWidth) * 2 - 1;
-    const y = -(e.clientY / innerHeight) * 2 + 1;
-    const hits = world.raycastNDC(x, y, [world.core.group]);
-    if (hits.length) {
-      openSection("core");
-    }
+    if (world.fallback2d && world.fallback2d.coreHit(e.clientX, e.clientY)) openSection("core");
   });
 
   initUI(world);
+  wireEntry(world);
+
+  // depuración / agentes: manija pública al mundo (escena, no datos personales)
+  window.BAYONA = { world };
 
   // loop
   const loop = () => { world.update(); requestAnimationFrame(loop); };
@@ -84,6 +80,50 @@ function boot() {
   if ("serviceWorker" in navigator && location.protocol !== "file:" && !location.search.includes("nosw=1")) {
     navigator.serviceWorker.register("./sw.js").catch(() => { /* sin SW en este entorno */ });
   }
+}
+
+// ============================================================
+// INGRESO · portada cinematográfica (nada se muestra de golpe:
+// primero la portada, luego el mundo, el contenido vive en el panel)
+// ============================================================
+function wireEntry(world) {
+  const entry = document.getElementById("entry");
+  const go = document.getElementById("entry-go");
+  const modeName = document.getElementById("mode-name");
+  if (!entry || !go) return;
+
+  const syncModeUI = (m) => {
+    if (modeName) modeName.textContent = m === "noche" ? "NOCHE" : "CINE";
+    entry.querySelectorAll(".e-mode").forEach((x) => x.classList.toggle("on", x.dataset.mode === m));
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", m === "noche" ? "#0a0806" : "#f1ede5");
+  };
+  syncModeUI(document.documentElement.dataset.mode || "cine");
+
+  entry.querySelectorAll(".e-mode").forEach((b) =>
+    b.addEventListener("click", () => {
+      const m = b.dataset.mode;
+      syncModeUI(m);
+      import("./ui/appearance.js").then(({ setMode }) => setMode(m));
+    })
+  );
+
+  const enter = () => {
+    if (document.body.classList.contains("entered")) return;
+    document.body.classList.add("entered");
+    entry.classList.add("gone");
+    window.dispatchEvent(new CustomEvent("bayona:entered"));
+    // coreografía: el panel lateral entra después del mundo
+    setTimeout(() => enterHome(false), 380);
+  };
+  go.addEventListener("click", enter);
+  addEventListener("keydown", (e) => {
+    if (document.body.classList.contains("entered")) return;
+    if (e.key === "Enter" || e.key === " ") enter();
+  });
+}
+
+function toastUi(kind, text, cls) {
+  import("./ui/shared.js").then(({ toast }) => toast(kind, text, cls));
 }
 
 addEventListener("DOMContentLoaded", boot);

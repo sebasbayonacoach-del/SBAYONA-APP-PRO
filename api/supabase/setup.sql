@@ -291,6 +291,105 @@ create policy "health update requires consent" on health_samples
 
 
 -- =====================================================================
+-- BAYONA — 0004_perf_sync.sql · rendimiento, inmutabilidad del ledger y vistas
+-- (idempotente) — índices calientes · xp_ledger inmutable + idempotencia ·
+-- vistas de tablero con security_invoker · updated_at en planes
+-- =====================================================================
+
+create index if not exists workout_sessions_user_start_idx
+  on workout_sessions (user_id, started_at desc);
+create index if not exists workout_sessions_user_status_idx
+  on workout_sessions (user_id, status);
+create index if not exists sets_log_exercise_ts_idx
+  on sets_log (exercise_id, created_at desc);
+create index if not exists xp_ledger_user_ts_idx
+  on xp_ledger (user_id, created_at desc);
+create index if not exists health_samples_user_kind_ts_idx
+  on health_samples (user_id, kind, ts desc);
+create index if not exists red_flags_user_open_idx
+  on red_flags (user_id, resolved_at) where resolved_at is null;
+create index if not exists asignaciones_user_dia_idx
+  on entrenamientos_asignados (user_id, dia, estado);
+
+alter table xp_ledger add column if not exists idempotency_key text;
+create unique index if not exists xp_ledger_idem_uidx
+  on xp_ledger (user_id, kind, idempotency_key)
+  where idempotency_key is not null;
+
+create or replace function xp_ledger_guard() returns trigger
+language plpgsql as $$
+begin
+  raise exception 'xp_ledger es inmutable: % no permitido', tg_op;
+end;
+$$;
+
+drop trigger if exists xp_ledger_no_update on xp_ledger;
+create trigger xp_ledger_no_update
+  before update or delete on xp_ledger
+  for each row execute function xp_ledger_guard();
+
+create or replace view v_hoy_resumen
+with (security_invoker = true) as
+select
+  u.user_id,
+  u.day,
+  coalesce(r.score, 0)                                    as readiness,
+  coalesce(x.xp_hoy, 0)                                   as xp_hoy,
+  coalesce(s.series_hoy, 0)                               as series_hoy,
+  coalesce(s.sesiones_hoy, 0)                             as sesiones_hoy
+from (
+  select p.id as user_id, current_date as day from profiles p
+) u
+left join readiness_daily r   on r.user_id = u.user_id and r.day = u.day
+left join lateral (
+  select sum(l.amount) as xp_hoy
+  from xp_ledger l
+  where l.user_id = u.user_id and l.kind = 'xp'
+    and l.created_at >= u.day::timestamptz
+) x on true
+left join lateral (
+  select count(*) as series_hoy, count(distinct ws.id) as sesiones_hoy
+  from sets_log sl
+  join workout_sessions ws on ws.id = sl.session_id
+  where ws.user_id = u.user_id
+    and sl.created_at >= u.day::timestamptz
+) s on true;
+
+create or replace view v_progreso_semanal
+with (security_invoker = true) as
+select
+  ws.user_id,
+  date_trunc('week', sl.created_at)::date as semana,
+  sl.exercise_id,
+  count(*)                                          as series,
+  max(sl.load_kg)                                   as carga_max_kg,
+  round(avg(sl.form_score)::numeric, 1)             as tecnica_media
+from sets_log sl
+join workout_sessions ws on ws.id = sl.session_id
+group by 1, 2, 3;
+
+create or replace view v_flags_activas
+with (security_invoker = true) as
+select id, user_id, domain, severity, action_taken, referral_url, created_at
+from red_flags
+where resolved_at is null;
+
+alter table plans add column if not exists updated_at timestamptz default now();
+
+create or replace function touch_updated_at() returns trigger
+language plpgsql as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
+drop trigger if exists plans_touch on plans;
+create trigger plans_touch
+  before update on plans
+  for each row execute function touch_updated_at();
+
+-- =====================================================================
 -- VERIFICACIÓN RÁPIDA (ejecuta esto después de Run)
 -- =====================================================================
 select table_name,

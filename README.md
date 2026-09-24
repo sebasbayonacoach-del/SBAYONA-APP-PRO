@@ -8,6 +8,26 @@ tú entrenas → él entrena, tú comes → él come, tú bebes → él bebe.
 El avatar es un **gemelo de comportamiento**, no una mascota.
 **Todo lo visible al usuario está en español (es-ES).**
 
+## ✨ v3 · CINE (rediseño cinematográfico)
+
+- **Ingreso cinematográfico**: portada `#entry` → `ENTRAR` → mundo. Nada se
+  muestra de golpe: el contenido vive en el **panel lateral** (misión, métricas,
+  nivel + 14 mundos). HUD mínimo (marca · luz · nivel).
+- **Movimiento libre del personaje** (`js/move.js`): clic/toque = camina ahí,
+  WASD/flechas = caminar (SHIFT corre), arrastrar = cámara orbital, rueda =
+  zoom, joystick virtual en móvil.
+- **Luz CINE / NOCHE**: por defecto **blanco + naranja** en modo cinematográfico
+  (grano de película, barras de encuadre, viñeta); el **negro** queda reservado
+  al **modo nocturno**. El mundo 3D cambia de estudio claro a escenario nocturno.
+- **Tipografía CLAUDE** (Anthropic): `Styrene B` / `Tiempos Text` declaradas con
+  gemelas libres auto-alojadas (`fonts/`: Instrument Sans · Newsreader · Space
+  Mono, subset latin, 255 KB). Cero dependencias de red.
+- **Cristal** (glassmorphism) + muelles, panel lateral redondeado, onboarding
+  rediseñado. Menos texto, más lujo.
+- **Backend**: `api/supabase/migrations/0004_perf_sync.sql` — índices calientes,
+  `xp_ledger` inmutable + idempotencia, vistas de tablero con
+  `security_invoker`, `updated_at` en planes (también en `setup.sql`).
+
 ## ✨ v2.1 · MONO NARANJA (rediseño minimalista estricto)
 
 Firma visual nueva: **PALETA ESTRICTA · NARANJA · BLANCO · NEGRO. Nada más.**

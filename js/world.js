@@ -30,8 +30,8 @@ export class World {
     }
 
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0xf0f0f0);
-    this.scene.fog = new THREE.Fog(0xf0f0f0, 5, 15);
+    this.mood = "cine";
+    this.applyMoodColors("cine");
 
     this.camera = new THREE.PerspectiveCamera(34, 1, 0.1, 60);
     this.camTarget = new THREE.Vector3(0, 1.0, 0);
@@ -71,8 +71,141 @@ export class World {
     this.reducedMotion = false;
     this.clock = new THREE.Clock();
 
+    // ---- MOVIMIENTO LIBRE del personaje ----
+    this.bounds = { x: 3.2, z: 2.8 };     // límites del escenario
+    this.moveTarget = null;               // destino del clic (walk-to)
+    this.inputVec = { x: 0, z: 0 };       // teclado / joystick
+    this.idleAction = "idle";             // pose por defecto del lugar actual
+    this.speedRun = false;
+    // cámara orbital relativa al personaje (el encuadre viaja con él)
+    this.camGoalOffset = new THREE.Vector3(0, 0.2, 3.3);
+    this.camTgtOffset = new THREE.Vector3(0, 0.95, 0);
+    this.camGoal = null;
+    this.camTargetGoal = null;
+    this.floorPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+
     this.resize();
     addEventListener("resize", () => this.resize());
+  }
+
+  // ---------------- LUZ · CINE (blanco) / NOCHE (negro) ----------------
+  applyMoodColors(mood) {
+    const bg = mood === "noche" ? 0x070605 : 0xf1ede5;
+    this.scene.background = new THREE.Color(bg);
+    this.scene.fog = new THREE.Fog(bg, mood === "noche" ? 4 : 6, mood === "noche" ? 13 : 17);
+  }
+
+  setMood(mood) {
+    const m = mood === "noche" ? "noche" : "cine";
+    this.mood = m;
+    this.applyMoodColors(m);
+    if (m === "noche") {
+      this.hemi.intensity = 0.22;
+      this.hemi.color.setHex(0xbcd2ff); this.hemi.groundColor.setHex(0x0a0806);
+      this.key.intensity = 0.55; this.key.color.setHex(0xdfe6ff);
+      this.rim.intensity = 1.05;
+      if (this.renderer) this.renderer.toneMappingExposure = 1.18;
+    } else {
+      this.hemi.intensity = 0.85;
+      this.hemi.color.setHex(0xffffff); this.hemi.groundColor.setHex(0xe6ded2);
+      this.key.intensity = 1.35; this.key.color.setHex(0xfff3e6);
+      this.rim.intensity = 0.5;
+      if (this.renderer) this.renderer.toneMappingExposure = 1.05;
+    }
+    this.motes.material.opacity = m === "noche" ? 0.5 : 0.28;
+    // el escenario se reconstruye con la paleta del modo
+    const name = (this.currentEnv && this.currentEnv.userData.name) || "home";
+    this.envCache = {};
+    if (this.currentEnv) this.envGroup.remove(this.currentEnv);
+    this.currentEnv = this.envFor(name);
+    this.envGroup.add(this.currentEnv);
+    this.core.light.intensity = m === "noche" ? 1.4 : 0.8;
+  }
+
+  // ---------------- MOVIMIENTO LIBRE ----------------
+  /** punto del suelo bajo un pixel de pantalla (clic = camina ahí) */
+  screenToFloor(clientX, clientY) {
+    const x = (clientX / innerWidth) * 2 - 1;
+    const y = -(clientY / innerHeight) * 2 + 1;
+    const rc = new THREE.Raycaster();
+    rc.setFromCamera(new THREE.Vector2(x, y), this.camera);
+    const hit = new THREE.Vector3();
+    return rc.ray.intersectPlane(this.floorPlane, hit) ? hit : null;
+  }
+
+  /** destino de caminata (clic / toque) */
+  moveTo(point) {
+    if (!point) return;
+    this.moveTarget = new THREE.Vector3(
+      THREE.MathUtils.clamp(point.x, -this.bounds.x, this.bounds.x),
+      0,
+      THREE.MathUtils.clamp(point.z, -this.bounds.z, this.bounds.z)
+    );
+  }
+
+  /** entrada continua (WASD / joystick) en ejes de cámara: x=lateral, z=adelante */
+  setInput(x, z) {
+    this.inputVec.x = THREE.MathUtils.clamp(x, -1, 1);
+    this.inputVec.z = THREE.MathUtils.clamp(z, -1, 1);
+    if (x || z) this.moveTarget = null;
+  }
+
+  /** órbita de cámara (arrastrar) */
+  orbitBy(dAzim, dPitch) {
+    const o = this.camGoalOffset;
+    const cos = Math.cos(dAzim), sin = Math.sin(dAzim);
+    const nx = o.x * cos + o.z * sin;
+    const nz = -o.x * sin + o.z * cos;
+    o.x = nx; o.z = nz;
+    o.y = THREE.MathUtils.clamp(o.y + dPitch, -0.2, 1.6);
+  }
+
+  /** zoom (rueda / pinza) */
+  zoomBy(f) {
+    const o = this.camGoalOffset;
+    const len = THREE.MathUtils.clamp(o.length() * f, 1.7, 6.2);
+    o.setLength(len);
+  }
+
+  integrateMove(dt) {
+    const A = this.avatar.group;
+    const v = this.inputVec;
+    if (v && (Math.abs(v.x) > 0.05 || Math.abs(v.z) > 0.05)) {
+      // relativo a la cámara: “adelante” = adentro de la escena
+      const fwd = new THREE.Vector3().subVectors(
+        new THREE.Vector3().copy(A.position).add(this.camTgtOffset),
+        this.camera.position
+      );
+      fwd.y = 0;
+      if (fwd.lengthSq() < 1e-6) fwd.set(0, 0, -1);
+      fwd.normalize();
+      const right = new THREE.Vector3(fwd.z, 0, -fwd.x);
+      const dir = new THREE.Vector3().addScaledVector(fwd, v.z).addScaledVector(right, v.x);
+      if (dir.lengthSq() > 1e-6) this.step(dir.normalize(), dt);
+      return;
+    }
+    if (this.moveTarget) {
+      const to = new THREE.Vector3().subVectors(this.moveTarget, A.position);
+      to.y = 0;
+      if (to.length() < 0.07) {
+        this.moveTarget = null;
+        this.avatar.setAction(this.idleAction || "idle");
+        return;
+      }
+      this.step(to.normalize(), dt);
+    }
+  }
+
+  step(dir, dt) {
+    const A = this.avatar.group;
+    const sp = (this.speedRun ? 2.7 : 1.6) * dt;
+    A.position.x = THREE.MathUtils.clamp(A.position.x + dir.x * sp, -this.bounds.x, this.bounds.x);
+    A.position.z = THREE.MathUtils.clamp(A.position.z + dir.z * sp, -this.bounds.z, this.bounds.z);
+    // gira hacia la marcha (por el camino corto)
+    const yaw = Math.atan2(dir.x, dir.z);
+    let d = ((yaw - A.rotation.y + Math.PI) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2) - Math.PI;
+    A.rotation.y += d * (1 - Math.pow(0.0005, dt));
+    if (this.avatar.action !== "walk") this.avatar.setAction("walk");
   }
 
   // ---------------- CORE companion ----------------
@@ -143,8 +276,11 @@ export class World {
     const accentLight = new THREE.PointLight(0xff6a00, 0, 8);
     g.add(accentLight);
     const props = new THREE.Group(); g.add(props);
-    // paleta clara: crema, tinta, naranja
-    const FLOOR = 0xe8e8e8, WALL = 0xffffff, INK = 0x111111, ACC = 0xff6a00, SOFT = 0xd6d6d6;
+    // paleta por modo: CINE (blanco cálido + naranja) / NOCHE (negro + naranja)
+    const P = this.mood === "noche"
+      ? { FLOOR: 0x0e0b08, WALL: 0x171310, INK: 0x0a0806, ACC: 0xff6a00, SOFT: 0x28221b }
+      : { FLOOR: 0xe9e3d7, WALL: 0xf7f3ea, INK: 0x211d18, ACC: 0xff6a00, SOFT: 0xd9d2c4 };
+    const { FLOOR, WALL, INK, ACC, SOFT } = P;
 
     switch (name) {
       case "home": {
@@ -321,8 +457,9 @@ export class World {
   }
 
   envFor(name) {
-    if (!this.envCache[name]) this.envCache[name] = this.buildEnv(name);
-    return this.envCache[name];
+    const key = `${name}:${this.mood}`;
+    if (!this.envCache[key]) this.envCache[key] = this.buildEnv(name);
+    return this.envCache[key];
   }
 
   // ---------------- TRANSITIONS (300–900ms) ----------------
@@ -336,9 +473,10 @@ export class World {
       if (this.currentEnv) this.envGroup.remove(this.currentEnv);
       this.currentEnv = this.envFor(envName);
       this.envGroup.add(this.currentEnv);
+      this.idleAction = avatarAction;
+      this.moveTarget = null;
       this.avatar.setAction(avatarAction);
-      if (camPos) this.camGoal = new THREE.Vector3(...camPos);
-      if (camTarget) this.camTargetGoal = new THREE.Vector3(...camTarget);
+      if (camPos && camTarget) this.setCameraGoal(camPos, camTarget);
       if (onMid) onMid();
     };
 
@@ -353,8 +491,10 @@ export class World {
   }
 
   setCameraGoal(pos, target) {
-    this.camGoal = new THREE.Vector3(...pos);
-    this.camTargetGoal = new THREE.Vector3(...target);
+    // encuadre RELATIVO al personaje: la cámara viaja con él adonde vaya
+    const A = this.avatar.group.position;
+    this.camGoalOffset = new THREE.Vector3(pos[0] - target[0], pos[1] - target[1], pos[2] - target[2]);
+    this.camTgtOffset = new THREE.Vector3(target[0] - A.x, target[1], target[2] - A.z);
   }
 
   resize() {
@@ -378,23 +518,25 @@ export class World {
     const dt = Math.min(this.clock.getDelta(), 0.05);
     const t = this.clock.elapsedTime;
     this.avatar.update(dt, this.reducedMotion);
+    this.integrateMove(dt);
 
     // CORE follows avatar shoulder
     const c = this.core;
     c.phase += dt;
-    const ax = this.avatar.group.position.x;
-    const targetPos = new THREE.Vector3(ax + 0.55, 1.35 + Math.sin(c.phase * 1.2) * 0.05, 0.35);
+    const A = this.avatar.group.position;
+    const targetPos = new THREE.Vector3(A.x + 0.55, 1.35 + Math.sin(c.phase * 1.2) * 0.05, A.z + 0.35);
     c.group.position.lerp(targetPos, 1 - Math.pow(0.001, dt));
     c.orb.rotation.y += dt * 0.6; c.orb.rotation.x += dt * 0.25;
     c.ring.rotation.z += dt * 0.8;
     const pulse = c.mood === "alert" ? 3.5 : 1.6;
-    c.light.intensity = pulse * (0.85 + Math.sin(c.phase * 2.4) * 0.15);
+    c.light.intensity = pulse * (0.85 + Math.sin(c.phase * 2.4) * 0.15) * (this.mood === "noche" ? 1.5 : 0.8);
     c.halo.scale.setScalar(1 + Math.sin(c.phase * 2.4) * 0.08);
 
-    // camera easing
-    const goal = this.camGoal || this.camHome;
+    // camera: sigue al personaje con el encuadre orbital elegido
+    const A3 = this.avatar.group.position;
+    const tg = new THREE.Vector3(A3.x + this.camTgtOffset.x, this.camTgtOffset.y, A3.z + this.camTgtOffset.z);
+    const goal = new THREE.Vector3().copy(tg).add(this.camGoalOffset);
     this.camera.position.lerp(goal, 1 - Math.pow(0.004, dt));
-    const tg = this.camTargetGoal || this.camTarget;
     this.camera.lookAt(tg);
 
     // motes drift

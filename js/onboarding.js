@@ -40,12 +40,12 @@ function view() {
   if (st.step === 0) return `
     ${dots()}
     <h2>CREA TU PERSONAJE</h2>
-    <div class="ob-sub">Cuidar a tu personaje es cuidarte a ti. Este es el comienzo de tu historia.</div>
+    <div class="ob-sub">Cuidar a tu personaje es cuidarte a ti.</div>
     <label>TU NOMBRE O APODO (opcional)</label>
     <input id="ob-name" maxlength="18" placeholder="p. ej. Sebas" value="${esc(st.name)}" />
     <label>TONO DE PIEL</label>
     <div class="ob-row" id="ob-skins">${SKINS.map((s, i) =>
-      `<button data-skin="${i}" style="width:38px;height:38px;border-radius:50%;background:${s};border:3px solid ${i === st.skinIdx ? "var(--acc-2)" : "transparent"};box-shadow:${i === st.skinIdx ? "0 0 12px var(--acc-2)" : "none"}"></button>`).join("")}</div>
+      `<button data-skin="${i}" style="width:38px;height:38px;border-radius:50%;background:${s};border:3px solid ${i === st.skinIdx ? "var(--acc-2)" : "transparent"};box-shadow:${i === st.skinIdx ? "0 0 0 3px var(--acc-soft)" : "none"}"></button>`).join("")}</div>
     <label>FOTO (opcional) · será la cara de tu personaje, solo en tu dispositivo</label>
     <div class="ob-row">
       <label class="ob-file">SUBIR FOTO<input type="file" id="ob-face" accept="image/*" hidden /></label>
@@ -63,7 +63,7 @@ function view() {
   if (st.step === 1) return `
     ${dots()}
     <h2>TU OBJETIVO</h2>
-    <div class="ob-sub">Define tus misiones y tu plan. Lo cambiarás cuando quieras.</div>
+    <div class="ob-sub">Lo cambiarás cuando quieras.</div>
     <label>¿QUÉ QUIERES LOGRAR PRIMERO?</label>
     ${chipRow("goal", GOALS)}
     <label>EXPERIENCIA PREVIA</label>
@@ -74,7 +74,7 @@ function view() {
   if (st.step === 2) return `
     ${dots()}
     <h2>TU DISPONIBILIDAD</h2>
-    <div class="ob-sub">Esto CAMBIA de verdad tus opciones: el plan se ajusta a tu tiempo y tu material.</div>
+    <div class="ob-sub">Tu plan se ajusta a tu tiempo y a tu material.</div>
     <label>¿CUÁNTO PUEDES ENTRENAR?</label>
     ${chipRow("availability", AVAIL)}
     <label>¿QUÉ EQUIPAMIENTO TIENES?</label>
@@ -85,7 +85,7 @@ function view() {
   return `
     ${dots()}
     <h2>TU PRIVACIDAD</h2>
-    <div class="ob-sub">Cada permiso se activa solo si TÚ quieres y lo revocas cuando quieras (MÁS → Privacidad).</div>
+    <div class="ob-sub">Solo si TÚ quieres. Lo revocas en MÁS → Privacidad.</div>
     <div class="ob-check"><input type="checkbox" id="ob-cv" ${st.consentVision ? "checked" : ""} />
       <span><b>Cámara y movimiento:</b> cuenta tus reps y conduce tu personaje. <b>El vídeo NUNCA sale de tu dispositivo.</b></span></div>
     <div class="ob-check"><input type="checkbox" id="ob-ch" ${st.consentHealth ? "checked" : ""} />
@@ -235,34 +235,36 @@ async function processFace(file) {
 }
 
 const css = `
-#ob-layer{position:fixed;inset:0;z-index:120;background:color-mix(in srgb, var(--paper) 91%, transparent);display:flex;
-  align-items:center;justify-content:center;padding:16px;font:14px/1.5 Manrope,system-ui}
-#ob-box{background:var(--paper-2);border:1px solid var(--hair);border-radius:2px;max-width:380px;width:100%;padding:22px;color:var(--ink);max-height:92vh;overflow:auto;
-  box-shadow:var(--shadow-lift);position:relative;animation:modalIn .55s var(--spring) both;
+#ob-layer{position:fixed;inset:0;z-index:120;background:color-mix(in srgb, var(--paper) 58%, transparent);
+  -webkit-backdrop-filter:blur(14px) saturate(1.1);backdrop-filter:blur(14px) saturate(1.1);
+  display:flex;align-items:center;justify-content:center;padding:16px;font-family:var(--sans)}
+#ob-box{background:color-mix(in srgb, var(--paper-2) 82%, transparent);border:1px solid var(--hair);
+  border-radius:22px;max-width:400px;width:100%;padding:26px 26px 22px;color:var(--ink);max-height:92vh;overflow:auto;
+  box-shadow:var(--shadow-lift);position:relative;animation:modalIn .7s var(--spring) both;
   scrollbar-width:thin;scrollbar-color:var(--hair-strong) transparent}
 #ob-box::-webkit-scrollbar{width:4px}
-#ob-box::-webkit-scrollbar-thumb{background:var(--hair-strong)}
-#ob-box::-webkit-scrollbar-track{background:transparent}
-#ob-box::before{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:var(--acc-2)}
-#ob-box h2{margin:0 0 4px;font:800 18px/1.1 Archivo Black,Arial;letter-spacing:.02em;color:var(--ink)}
-#ob-box .ob-sub{font-size:13px;line-height:1.55;color:var(--ink-soft);margin-bottom:14px}
+#ob-box::-webkit-scrollbar-thumb{background:var(--hair-strong);border-radius:4px}
+#ob-box::before{content:"";position:absolute;left:26px;right:26px;top:0;height:2px;background:var(--acc-2);border-radius:2px}
+#ob-box h2{margin:0 0 4px;font:700 19px/1.1 var(--display);letter-spacing:.01em;color:var(--ink)}
+#ob-box .ob-sub{font-family:var(--serif);font-size:13.5px;line-height:1.55;color:var(--ink-soft);margin-bottom:14px}
 #ob-box .ob-row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
-#ob-box button{border:1px solid var(--hair-strong);border-radius:2px;background:var(--panel);color:var(--ink);
-  font:700 13px/1 Manrope;padding:11px 14px;cursor:pointer;transition:transform .18s var(--spring),border-color .2s,box-shadow .25s}
+#ob-box button{border:1px solid var(--hair-strong);border-radius:999px;background:transparent;color:var(--ink);
+  font:600 12px/1 var(--sans);letter-spacing:.08em;padding:11px 15px;cursor:pointer;
+  transition:transform .18s var(--spring),border-color .2s,box-shadow .25s}
 #ob-box button:hover{border-color:var(--acc-2);box-shadow:0 0 0 3px var(--acc-soft)}
 #ob-box button:active{transform:scale(.97)}
-#ob-box button.on{background:var(--ink);color:var(--paper-2);border-color:var(--ink)}
-#ob-box button.big{width:100%;background:var(--acc-2);color:var(--acc-ink);padding:16px;font-size:14px;font-weight:800;min-height:56px;margin-top:18px;border-color:transparent}
-#ob-box button.ob-back{background:var(--panel);color:var(--ink);border:1px solid var(--hair-strong)}
-#ob-box input[type=text],#ob-box input:not([type]){width:100%;padding:11px;border:1px solid var(--hair-strong);border-radius:2px;background:var(--panel);color:var(--ink);
-  font:14px Manrope;margin:6px 0;box-sizing:border-box}
-#ob-box label{font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--ink-mute);display:block;margin:14px 0 6px}
-#ob-box label.ob-file{display:inline-block;background:var(--panel);border:1px solid var(--hair-strong);border-radius:2px;padding:11px 14px;cursor:pointer;margin:0}
-#ob-box .ob-check{display:flex;gap:10px;align-items:flex-start;margin:10px 0;font-size:12px}
+#ob-box button.on{background:var(--acc-2);color:var(--acc-ink);border-color:var(--acc-2);font-weight:700}
+#ob-box button.big{width:100%;background:var(--acc-2);color:var(--acc-ink);padding:16px;font-size:13px;font-weight:700;min-height:56px;margin-top:18px;border-color:transparent;letter-spacing:.18em}
+#ob-box button.ob-back{background:transparent;color:var(--ink-soft);border:1px solid var(--hair-strong)}
+#ob-box input[type=text],#ob-box input:not([type]){width:100%;padding:12px 14px;border:1px solid var(--hair-strong);border-radius:12px;background:var(--panel);color:var(--ink);
+  font:14px var(--sans);margin:6px 0;box-sizing:border-box}
+#ob-box label{font-size:10px;font-weight:700;letter-spacing:.18em;color:var(--ink-mute);display:block;margin:16px 0 6px}
+#ob-box label.ob-file{display:inline-block;background:transparent;border:1px solid var(--hair-strong);border-radius:999px;padding:11px 15px;cursor:pointer;margin:0}
+#ob-box .ob-check{display:flex;gap:12px;align-items:flex-start;margin:14px 0 16px;font-family:var(--serif);font-size:13px;line-height:1.55;padding-bottom:2px}
 #ob-box .ob-check input[type=checkbox]{width:22px;height:22px;accent-color:var(--acc-2);margin:0;flex:0 0 auto;cursor:pointer}
-#ob-dots{display:flex;gap:6px;justify-content:center;margin-bottom:12px}
-#ob-dots i{width:7px;height:7px;border-radius:50%;background:var(--hair-strong);transition:all .3s var(--ease)}
-#ob-dots i.on{background:var(--acc-2);box-shadow:0 0 10px var(--acc-2);transform:scale(1.25)}
+#ob-dots{display:flex;gap:6px;justify-content:center;margin-bottom:14px}
+#ob-dots i{width:22px;height:3px;border-radius:2px;background:var(--hair-strong);transition:all .3s var(--ease)}
+#ob-dots i.on{background:var(--acc-2);box-shadow:0 0 10px var(--acc-soft)}
 `;
 
 function boot(retries = 20) {
@@ -272,6 +274,11 @@ function boot(retries = 20) {
     return;
   }
   if (S.data.profile?.onboarded) return;
+  // el onboarding espera a que se cruce el ingreso cinematográfico
+  if (!document.body.classList.contains("entered")) {
+    window.addEventListener("bayona:entered", () => boot(retries), { once: true });
+    return;
+  }
   document.head.appendChild(el(`<style>${css}</style>`));
   const layer = el(`<div id="ob-layer" role="dialog" aria-label="Bienvenida a BAYONA"><div id="ob-box"></div></div>`);
   document.body.appendChild(layer);

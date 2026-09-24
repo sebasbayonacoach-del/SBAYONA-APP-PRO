@@ -1,0 +1,41 @@
+/* ============================================================
+   BAYONA · tipografía auto-alojada (generada por tools/fetch-fonts.mjs)
+   Firma CLAUDE: Styrene B / Tiempos Text con gemelas libres.
+   ============================================================ */
+
+@font-face {
+  font-family: 'Instrument Sans';
+  font-style: normal;
+  font-weight: 400 700;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(./instrument-sans-pxiTypc9vs.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Newsreader';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url(./newsreader-cY9XfjOCX1.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Newsreader';
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url(./newsreader-cY9AfjOCX1.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Space Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(./space-mono-i7dPIFZifj.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Space Mono';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(./space-mono-i7dMIFZifj.woff2) format('woff2');
+}

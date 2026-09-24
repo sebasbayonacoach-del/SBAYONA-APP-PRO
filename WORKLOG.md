@@ -148,3 +148,40 @@ y el núcleo de XP no se toca: solo se añade `missionReward` a la fuente única
 - [x] **Panel APARIENCIA mínimo**: paleta fija (sin auras), LUZ NEGRO/BLANCO, densidad, texto, esquinas, movimiento.
 - [x] **Verificación**: 24/24 suites de tests ✅ · consola sin errores ✅ · capturas desktop 1440 + móvil 390 revisadas con crítica de diseño externa (3 iteraciones).
 - [x] **Iteraciones 5-6 (loop de pulido)**: rail eliminado (doble barra = ruido) → navegación única de 5 tabs con pestaña activa naranja + subrayado fino; MÁS incluye rejilla de mundos (MENTE/TRABAJO/HOY/PLAN/PROGRESO/ARMARIO/CORE); CTAs invertidos a jerarquía héroe (VER MI DÍA naranja > misión blanca); FABs (Cámara/Mapa de Salud/Diario) agrupados en columna derecha alineada a 22px y estilo outline unificado; TODOS los emojis en color eliminados (→ glifos monocromos ◈▲◍✚☾★…); gradiente azul/cian de skills → naranja; track XP con contraste; labels de métricas + contraste; onboarding con scrollbar fino y CTA 56px.
+
+---
+
+# 🎬 BAYONA — WORKLOG · OLA 5 «CINE» (2026-09-24)
+
+> **Procedencia:** esta ola NO se hizo en este repo. Llegó como `bayona-app-v3.zip`
+> (12.041.375 B · sha256 `ff4eae1b…`) generado en otra máquina, donde `origin/main`
+> seguía en el mono-naranja (49bc891). Casa la integra: 29 ficheros modificados, 5 nuevos, 0 borrados.
+> El WORKLOG de la ola no lo escribió quien la hizo; lo redacta casa desde su `LEEME-AGENTE.txt`.
+
+- [x] **Ingreso cinematográfico**: portada `CUIDA A TU PERSONAJE` → `ENTRAR` → mundo.
+- [x] **Contenido al panel lateral** (`#drawer` + `#panel-nav`): misión, métricas, nivel y los 14 mundos.
+- [x] **Movimiento libre** (`js/move.js`): clic al suelo · WASD/flechas · SHIFT corre · arrastrar orbita · rueda zoom · joystick móvil.
+- [x] **Luz CINE / NOCHE** vía `world.setMood()`; el negro queda solo para NOCHE.
+- [x] **Tipografía Claude auto-alojada** (`fonts/` + `tools/fetch-fonts.mjs`): cero dependencia de red.
+- [x] **Backend** `0004_perf_sync.sql`: índices calientes, `xp_ledger` inmutable + idempotencia, vistas `security_invoker`.
+- [x] **Tests**: `node tests/run.mjs` → **24 suites · 0 fallos** (medido en casa, no de oídas).
+
+## Movimiento medido (Playwright, 1440x900, panel CERRADO)
+
+| Entrada | antes | después |
+|---|---|---|
+| W 2 s | `0.000,0.000` | `-0.177,-0.531` |
+| SHIFT+D | `-0.177,-0.531` | `-0.553,-0.395` |
+| clic (720,620) | `0.000,0.000` | `-0.379,-1.138` |
+| clic (430,700) | `-0.405,-1.214` | `-1.457,-1.737` |
+| clic (980,560) | `-1.530,-1.769` | `-1.575,-2.800` |
+| arrastrar | cam `1.20,3.60` | cam `-3.04,2.27` |
+| rueda | dist `2.93` | dist `4.66` |
+
+Consola: **0 errores** en todo el recorrido. El avatar **no flota**: su caja mundial va de `y=-0.02` a `y=1.82` sobre el suelo en `y=0`.
+
+## 🔴 ABIERTO — herencia para la siguiente ola
+
+1. **El panel abierto tapa el mundo.** `#drawer.open` mide 1440x900 (cerrado: 450x876 a la derecha) y captura todos los punteros: con el panel abierto, clic / arrastre / rueda **no llegan al `<canvas>`**. Como el onboarding termina abriendo una sesión de ENTRENAR, lo primero que ve un usuario nuevo es el panel tapando el mundo. Hay que decidir si el panel es hoja completa o lateral, y dejar el mundo operativo en los dos estados.
+2. **Sombra de contacto rota**: `shadowDisc` (`js/avatar.js:333`) se ve como un abanico de púas bajo los pies.
+3. **Mancha blanca en el torso** del avatar con la piel mono.
