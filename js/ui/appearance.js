@@ -8,6 +8,7 @@
 // ============================================================
 import { S } from "../state.js";
 import { processFace } from "../face.js";
+import { setConsent, isGranted } from "../consents.js";
 import { UI, $, el, elT, toast, BUILDERS, TITLES, openSection } from "./shared.js";
 
 const KEY = "bayona.appearance.v1";
@@ -251,6 +252,57 @@ BUILDERS.appearance = (body) => {
   });
   fc.appendChild(fi);
   body.appendChild(fc);
+
+  // ---------- AVATAR 3D (AVATURN: selfie → cuerpo completo) ----------
+  body.appendChild(el("div", "sec-label", "AVATAR 3D"));
+  const ac = el("div", "card");
+  const a3ready = S.data.profile.avatar3d;
+  ac.innerHTML = `<h4>TU 3D</h4><div class="sub">${a3ready
+    ? "Avatar 3D activo: tu cuerpo completo en el juego."
+    : "Tu selfie se procesa en Avaturn (permiso Avatar 3D, revocable en MÁS → Privacidad). Sin red o si falla, sigues con tu foto."}</div>`;
+  const ab3d = el("button", "btn btn-gold btn-block", a3ready ? "ACTUALIZAR AVATAR 3D" : "CREAR MI AVATAR 3D ◈");
+  ab3d.style.marginTop = "12px";
+  ab3d.type = "button";
+  ab3d.addEventListener("click", async () => {
+    try {
+      const { openCreatorModal, attachAvatar3d } = await import("../avatar3d.js");
+      if (!isGranted("avatar_3d")) {
+        setConsent("avatar_3d", true); // el clic en CREAR es el OK informado (texto de arriba)
+        toast("PERMISO AVATAR 3D", "Activado para crear tu 3D. Revocable en MÁS → Privacidad.");
+      }
+      openCreatorModal({
+        onNeedConsent: () => isGranted("avatar_3d"),
+        onExport: (desc) => {
+          S.data.profile.avatar3d = desc;
+          S.save();
+          if (UI.W) attachAvatar3d(UI.W, desc).catch(() =>
+            toast("3D PENDIENTE", "Se activará solo al reabrir con conexión.", "danger"));
+          toast("AVATAR 3D ACTIVO", "Tu 3D entra en escena.");
+          BUILDERS.appearance(body);
+        },
+      });
+    } catch {
+      toast("SIN CONEXIÓN AL CREADOR", "Tu foto sigue contigo. Inténtalo con red.", "danger");
+    }
+  });
+  ac.appendChild(ab3d);
+  if (a3ready) {
+    const back3d = el("button", "btn btn-ghost btn-block", "VOLVER AL DE LA FOTO");
+    back3d.style.marginTop = "8px";
+    back3d.type = "button";
+    back3d.addEventListener("click", async () => {
+      try {
+        const { detachAvatar3d } = await import("../avatar3d.js");
+        detachAvatar3d(UI.W);
+      } catch { /* el de la foto ya estaba */ }
+      S.data.profile.avatar3d = null;
+      S.save();
+      toast("FOTO ACTIVA", "Tu 3D queda guardado para cuando quieras.");
+      BUILDERS.appearance(body);
+    });
+    ac.appendChild(back3d);
+  }
+  body.appendChild(ac);
 
   // ---------- RESTABLECER ----------
   body.appendChild(el("div", "sec-label", "DISEÑO"));

@@ -4,14 +4,14 @@
 // Con esto la app abre sin red y el registro de series funciona offline
 // (los datos viven en el dispositivo y se sincronizan después).
 // ============================================================
-const CACHE = "bayona-shell-v5";
+const CACHE = "bayona-shell-v6";
 const SHELL = [
   "./index.html",
   "./manifest.webmanifest",
   "./css/style.css",
   "./js/main.js", "./js/state.js", "./js/data.js", "./js/engine.js", "./js/rewards.js",
   "./js/i18n.js", "./js/consents.js", "./js/phygital.js", "./js/media.js", "./js/bridge.js",
-  "./js/onboarding.js", "./js/face.js", "./js/ui.js", "./js/avatar.js", "./js/world.js", "./js/fallback2d.js",
+  "./js/onboarding.js", "./js/face.js", "./js/avatar3d.js", "./js/ui.js", "./js/avatar.js", "./js/world.js", "./js/fallback2d.js",
   "./js/ui/shared.js", "./js/ui/cinematics.js", "./js/ui/training.js", "./js/ui/nutrition.js",
   "./js/ui/recovery.js", "./js/ui/mind.js", "./js/ui/plan.js", "./js/ui/armory.js",
   "./js/ui/progress.js", "./js/ui/core.js", "./js/ui/more.js",
@@ -22,6 +22,7 @@ const SHELL = [
   "./js/vision/boot.js", "./js/vision/pose.js", "./js/vision/repCounter.js", "./js/vision/angles.js",
   "./js/vision/formScore.js", "./js/vision/retarget.js",
   "./vendor/three.module.js",
+  "./vendor/avaturn-sdk.js", "./vendor/GLTFLoader.js", "./vendor/utils/BufferGeometryUtils.js",
   "./icon-192.png", "./icon-512.png",
 ];
 

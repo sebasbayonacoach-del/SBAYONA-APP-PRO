@@ -59,6 +59,7 @@ function freshProfile() {
     name: "", goal: "FUERZA", skin: 0, coach: "MENTOR", created: Date.now(),
     onboarded: false, experience: null, availability: null, equipment: null,
     heightCm: null, weightKg: null, age: null, face: null, skinHex: null,
+    avatar3d: null, // descriptor { provider, avatarId, urlType, cacheKey, httpUrl, at }
   };
 }
 

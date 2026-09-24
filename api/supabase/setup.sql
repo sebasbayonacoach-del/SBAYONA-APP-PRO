@@ -40,7 +40,7 @@ create table if not exists profiles (
 create table if not exists consents (
   user_id    uuid references profiles (id) on delete cascade,
   domain     text not null check (domain in ('vision','body_scan','health_wearables',
-                                             'health_clinical','nutrition_photo','voice')),
+                                             'health_clinical','nutrition_photo','voice','avatar_3d')),
   granted    boolean not null,
   granted_at timestamptz default now(),
   revoked_at timestamptz,

@@ -25,6 +25,12 @@ function boot() {
   world.avatar.setSkin(["#e8b892", "#c98d5f", "#a06a3f", "#7a4a29", "#54301a", "#f0c9a5"][S.data.profile.skin] || S.data.profile.skinHex || "#e8b892");
   world.avatar.setOutfit(S.data.inventory.equipped, itemsById);
 
+  // avatar 3D (Avaturn): si falla, el de la foto sigue — nunca pantalla rota
+  if (S.data.profile.avatar3d) {
+    import("./avatar3d.js").then(({ attachAvatar3d }) =>
+      attachAvatar3d(world, S.data.profile.avatar3d).catch(() => {}));
+  }
+
   // cara real del usuario (foto → avatar)
   if (S.data.profile.face) {
     world.avatar.setFace(S.data.profile.face);

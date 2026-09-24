@@ -293,6 +293,12 @@ export class Avatar {
     // head
     const head = new THREE.Mesh(new THREE.SphereGeometry(0.135, 24, 20), this.bodyMat);
     head.scale.set(1, 1.12, 1.02); head.position.y = 0.08; head.castShadow = true; B.head.add(head);
+    // pelo: casco corto (el maniquí calvo era lo "feo"; gorras y cascos van encima)
+    this.hairMat = new THREE.MeshStandardMaterial({ color: 0x2a1c11, roughness: 0.85, metalness: 0 });
+    const hair = new THREE.Mesh(new THREE.SphereGeometry(0.142, 24, 16, 0, Math.PI * 2, 0, Math.PI / 2.15), this.hairMat);
+    hair.scale.set(1.02, 1.05, 1.04); hair.position.set(0, 0.098, -0.012); hair.rotation.x = -0.22;
+    hair.castShadow = true; B.head.add(hair);
+    this.hairMesh = hair;
     // eyes (se ocultan cuando hay foto real)
     const eyeG = new THREE.SphereGeometry(0.018, 10, 8);
     this.eyeMeshes = [];

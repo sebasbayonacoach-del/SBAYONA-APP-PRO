@@ -14,7 +14,7 @@ import { S, on } from "../state.js";
 import { esc, fmtDate } from "../i18n.js";
 import { UI, el, elT, toast, BUILDERS, TITLES, openSection } from "../ui/shared.js";
 import { consentStatus, isGranted } from "../consents.js";
-import { payloadMedidas, payloadAsignaciones } from "./mirror.js";
+import { payloadMedidas, payloadAsignaciones, payloadAvatar } from "./mirror.js";
 import {
   isConfigured, currentSession, currentUser, onAuth,
   signInWithPassword, signUpWithPassword, signInWithMagicLink,
@@ -115,6 +115,14 @@ async function pushAsignaciones() {
   if (p.filas.length) await insert(p.tabla, p.filas);
 }
 
+/** espejo del AVATAR 3D (tabla avatars: existe en el esquema base) */
+async function pushAvatar() {
+  const u = currentUser();
+  const p = payloadAvatar(u.id, S.data.profile);
+  await remove(p.tabla, p.del);
+  if (p.filas.length) await insert(p.tabla, p.filas);
+}
+
 /** orquestador */
 export async function syncNow(opts = {}) {
   if (STATE.busy) return false;
@@ -127,8 +135,8 @@ export async function syncNow(opts = {}) {
     await pushProfile();
     await pushReadiness();
     await pushWorkouts();
-    // espejo ampliado: BEST-EFFORT (si falta la migración 0002, el resto sincroniza igual)
-    try { await pushMedidas(); await pushAsignaciones(); }
+    // espejo ampliado: BEST-EFFORT (si falta la migración, el resto sincroniza igual)
+    try { await pushMedidas(); await pushAsignaciones(); await pushAvatar(); }
     catch { /* tablas nuevas pendientes de migración: no rompe el espejo principal */ }
     STATE.last = new Date().toISOString();
     STATE.pending = 0;

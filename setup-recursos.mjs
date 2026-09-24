@@ -63,6 +63,24 @@ const RECURSOS = [
     sha256: "59929e1d1ee95287735ddd833b19cf4ac46d29bc7afddbbf6753c459690d574a",
     autor: "Apache-2.0 · Google MediaPipe",
   },
+  {
+    dest: "vendor/GLTFLoader.js",
+    url: "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js",
+    sha256: "d073b438e6a07e1359741dd5d6c76c953420cc0d4fd84eb1bdde94315540e6a3",
+    autor: "MIT · mrdoob/three.js (avatar 3D)",
+  },
+  {
+    dest: "vendor/utils/BufferGeometryUtils.js",
+    url: "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/utils/BufferGeometryUtils.js",
+    sha256: "9be041e96308775d00e2695cc607645b9a9b64fd7c0e759dd8f7c00a8d92becb",
+    autor: "MIT · mrdoob/three.js (avatar 3D)",
+  },
+  {
+    dest: "vendor/avaturn-sdk.js",
+    url: "https://cdn.jsdelivr.net/npm/@avaturn/sdk/dist/index.js",
+    sha256: "db9aed4f3a8b47c7c2ff89b70db6dc864765163eff36be59ecebf36eb0066754",
+    autor: "Avaturn SDK v1.1.4 (avatar 3D, embed gratis)",
+  },
 ];
 
 const sha256 = (buf) => createHash("sha256").update(buf).digest("hex");

@@ -13,6 +13,7 @@ const LEGACY = {
   health: ["bayona.consent.health", "bayona.health.consent", "***"],
   voice:  ["bayona.consent.voice"],
   photos: ["bayona.consent.photos"],
+  avatar_3d: ["bayona.consent.avatar_3d"], // avatar 3D (Avaturn): la selfie se procesa en sus servidores
 };
 
 function store() {
@@ -25,6 +26,7 @@ function blank() {
     health: { granted: false, at: null, revokedAt: null, version: CONSENT_VERSION },
     voice:  { granted: false, at: null, revokedAt: null, version: CONSENT_VERSION },
     photos: { granted: false, at: null, revokedAt: null, version: CONSENT_VERSION },
+    avatar_3d: { granted: false, at: null, revokedAt: null, version: CONSENT_VERSION },
   };
 }
 
@@ -49,7 +51,7 @@ function write(data) {
 
 /** Migra claves antiguas (incluida la clave rota '***') sin perder consentimientos ya dados. */
 export function migrateLegacyConsents() {
-  const data = readRaw() || blank();
+  const data = cache || readRaw() || blank();
   const s = store();
   if (!s) return data;
   let changed = false;

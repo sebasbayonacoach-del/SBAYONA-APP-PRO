@@ -18,8 +18,8 @@ const EQUIP = ["SIN EQUIPAMIENTO", "MANCUERNAS/BANDAS", "GIMNASIO COMPLETO"];
 const st = {
   step: 0,
   name: "", goal: "FUERZA", experience: EXP[1], availability: AVAIL[1], equipment: EQUIP[1],
-  skinIdx: 0, face: null, skinHex: null,
-  consentVision: false, consentHealth: false,
+  skinIdx: 0, face: null, skinHex: null, avatar3d: null,
+  consentVision: false, consentHealth: false, consentAvatar3d: false,
 };
 
 const el = (html) => {
@@ -51,6 +51,13 @@ function view() {
       <label class="ob-file">SUBIR FOTO<input type="file" id="ob-face" accept="image/*" hidden /></label>
       <span id="ob-face-ok" style="font-size:12px;align-self:center"></span>
     </div>
+    <label>AVATAR 3D (opcional) · tu cuerpo completo en el juego</label>
+    <div class="ob-row">
+      <button type="button" id="ob-a3d" style="border-color:var(--acc-2);font-weight:800">CREAR MI AVATAR 3D ◈</button>
+      <span id="ob-a3d-ok" style="font-size:12px;align-self:center"></span>
+    </div>
+    <div class="ob-check"><input type="checkbox" id="ob-ca3" ${st.consentAvatar3d ? "checked" : ""} />
+      <span><b>Avatar 3D:</b> tu selfie se procesa en Avaturn para crear el cuerpo 3D. Sin esto juegas con tu foto, y lo creas cuando quieras en APARIENCIA.</span></div>
     <button class="big" id="ob-next">CONTINUAR →</button>`;
 
   if (st.step === 1) return `
@@ -110,6 +117,41 @@ function render(box) {
       q("#ob-face-ok").textContent = "No se pudo procesar la imagen";
     }
   });
+  const ca3 = q("#ob-ca3");
+  ca3 && (ca3.onchange = () => { st.consentAvatar3d = ca3.checked; });
+  const a3btn = q("#ob-a3d");
+  const a3ok = () => {
+    const s = q("#ob-a3d-ok");
+    if (s) s.textContent = st.avatar3d ? "Avatar 3D listo ✓" : "";
+  };
+  a3ok();
+  a3btn && (a3btn.onclick = async () => {
+    st.consentAvatar3d = q("#ob-ca3")?.checked || false;
+    if (!st.consentAvatar3d) {
+      a3btn.textContent = "MARCA EL PERMISO AVATAR 3D ↑";
+      setTimeout(() => { a3btn.textContent = "CREAR MI AVATAR 3D ◈"; }, 2200);
+      return;
+    }
+    a3btn.textContent = "ABRIENDO CREADOR…";
+    try {
+      const { openCreatorModal } = await import("./avatar3d.js");
+      setConsent("avatar_3d", true);
+      openCreatorModal({
+        onNeedConsent: () => q("#ob-ca3")?.checked || st.consentAvatar3d,
+        onExport: (desc) => {
+          st.avatar3d = desc;
+          a3ok();
+          applyAvatar3d();
+          import("./ui.js").then(({ toast }) =>
+            toast("AVATAR 3D LISTO", "Tu 3D entra contigo al DÍA 1", "gold"));
+        },
+      });
+    } catch {
+      const s = q("#ob-a3d-ok");
+      if (s) s.textContent = "Sin conexión al creador: sigues con tu foto";
+    }
+    a3btn.textContent = "CREAR MI AVATAR 3D ◈";
+  });
   q("#ob-next") && (q("#ob-next").onclick = () => {
     if (st.step === 0) st.name = q("#ob-name").value.trim();
     st.step++;
@@ -121,6 +163,7 @@ function render(box) {
     st.consentHealth = q("#ob-ch").checked;
     if (st.consentVision) setConsent("vision", true);
     if (st.consentHealth) setConsent("health", true);
+    if (st.consentAvatar3d) setConsent("avatar_3d", true);
     S.onboard({
       name: st.name || "ATLETA",
       goal: st.goal,
@@ -130,7 +173,8 @@ function render(box) {
       skin: st.skinIdx,
       face: st.face,
       skinHex: st.skinHex,
-      consents: { vision: st.consentVision, health: st.consentHealth },
+      avatar3d: st.avatar3d || null,
+      consents: { vision: st.consentVision, health: st.consentHealth, avatar_3d: st.consentAvatar3d },
     });
     S.addXP(25, "discipline");
     document.getElementById("ob-layer")?.remove();
@@ -153,6 +197,14 @@ function applyAvatar() {
     if (!av) return;
     av.setSkin(st.skinHex || SKINS[st.skinIdx]);
     if (st.face) av.setFace(st.face);
+  });
+}
+
+/** Vista previa del 3D en cuanto se exporta (si falla, el de la foto sigue). */
+function applyAvatar3d() {
+  import("./ui/shared.js").then(({ UI }) => {
+    if (!UI.W || !st.avatar3d) return;
+    import("./avatar3d.js").then(({ attachAvatar3d }) => attachAvatar3d(UI.W, st.avatar3d).catch(() => {}));
   });
 }
 

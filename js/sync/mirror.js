@@ -70,3 +70,22 @@ export function payloadSesiones(userId, sesiones = []) {
     filas,
   };
 }
+
+/** payload del avatar 3D: UNA fila por proveedor (PK user_id+provider: idempotente).
+ *  Solo viaja referencia (URL o clave de caché) + perfil de rig. Cero fotos/vídeo (ADR-003). */
+export function payloadAvatar(userId, profile = {}) {
+  const a = profile && profile.avatar3d;
+  const filas = a && a.avatarId ? [{
+    user_id: userId,
+    provider: "avaturn",
+    glb_path: a.httpUrl || (a.cacheKey ? "cache:" + a.cacheKey : null),
+    rig_profile: "avaturn-fullbody-v1",
+    morphs: { avatar_id: a.avatarId, url_type: a.urlType || null },
+    fidelity_score: null,
+  }] : [];
+  return {
+    tabla: "avatars",
+    del: { user_id: `eq.${userId}` },
+    filas,
+  };
+}
