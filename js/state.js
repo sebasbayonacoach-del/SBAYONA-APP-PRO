@@ -189,6 +189,7 @@ export const S = {
       kcal: d.today.kcal, water: d.today.water,
       sets: d.today.trainingSets, muscles: Object.keys(d.today.muscleSets || {}),
       muscleSets: d.today.muscleSets || {}, prPoints: d.today.prPoints || [],
+      setLog: (d.today.setLog || []).slice(-60), // series reales (kg/reps/ex) para las gráficas de progreso (P14)
       strain: d.today.strain || 0,
       sleep: d.today.sleep, soreness: d.today.soreness, energy: d.today.energy,
     });

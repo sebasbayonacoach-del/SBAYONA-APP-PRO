@@ -4,15 +4,17 @@
    Los grises son tintas de blanco/negro (opacidad), nunca cromía.
    ============================================================ */
 :root {
-  /* ---- paleta canónica (los TRES únicos colores) ---- */
-  --black: #000000;
+  /* ---- paleta canónica (los TRES únicos colores) ----
+     NOTA: esta capa base la SOBRESCRIBE css/aurum.css (CINE/NOCHE) por orden de carga.
+     El negro cálido se reserva al modo nocturno (§H.11); fuera de noche no hay negro puro. ---- */
+  --black: #0a0806;
   --white: #ffffff;
   --orange: #ff6a00;                         /* naranja BAYONA (acento único) */
   --orange-deep: #e85d00;
   --orange-soft: rgba(255, 106, 0, 0.14);
 
   /* ---- neutros: solo negro/blanco en opacidad ---- */
-  --paper: #000000;                          /* negro (fondo mundo) */
+  --paper: #0a0806;                          /* negro cálido (fondo mundo; pisado por aurum) */
   --paper-2: #0d0d0d;                        /* superficie tarjetas/paneles */
   --panel: #111111;
   --cream: #161616;                          /* superficie secundaria */
@@ -713,9 +715,8 @@ body.modo-sesion .metrics,
 body.modo-sesion #mission-card,
 body.modo-sesion #action-rail,
 body.modo-sesion #bottomnav { display: none !important; }
-body.modo-sesion #drawer {
-  width: 100vw; max-width: 100vw; border-left: none;
-}
+/* (sin override de tamaño: el panel conserva su geometría lateral/hoja
+   para que el mundo siga operativo en abierto y en cerrado) */
 body.modo-sesion #drawer-body {
   padding: 18px 20px calc(34px + env(safe-area-inset-bottom));
 }

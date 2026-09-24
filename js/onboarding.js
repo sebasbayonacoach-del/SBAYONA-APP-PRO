@@ -29,11 +29,12 @@ const el = (html) => {
 };
 
 function dots() {
-  return `<div id="ob-dots">${[0, 1, 2, 3].map((i) => `<i class="${i === st.step ? "on" : ""}"></i>`).join("")}</div>`;
+  return `<div id="ob-dots" aria-hidden="true">${[0, 1, 2, 3].map((i) => `<i class="${i === st.step ? "on" : ""}"></i>`).join("")}</div>
+    <span class="sr-only">Paso ${st.step + 1} de 4</span>`;
 }
-function chipRow(key, values) {
-  return `<div class="ob-row">${values.map((v) =>
-    `<button data-k="${key}" data-v="${esc(v)}" class="${st[key] === v ? "on" : ""}">${esc(v)}</button>`).join("")}</div>`;
+function chipRow(key, values, labelId) {
+  return `<div class="ob-row" role="group" aria-labelledby="${labelId}">${values.map((v) =>
+    `<button data-k="${key}" data-v="${esc(v)}" aria-pressed="${st[key] === v}" class="${st[key] === v ? "on" : ""}">${esc(v)}</button>`).join("")}</div>`;
 }
 
 function view() {
@@ -41,33 +42,35 @@ function view() {
     ${dots()}
     <h2>CREA TU PERSONAJE</h2>
     <div class="ob-sub">Cuidar a tu personaje es cuidarte a ti.</div>
-    <label>TU NOMBRE O APODO (opcional)</label>
+    <label id="lbl-name" for="ob-name">TU NOMBRE O APODO (opcional)</label>
     <input id="ob-name" maxlength="18" placeholder="p. ej. Sebas" value="${esc(st.name)}" />
-    <label>TONO DE PIEL</label>
-    <div class="ob-row" id="ob-skins">${SKINS.map((s, i) =>
-      `<button data-skin="${i}" style="width:38px;height:38px;border-radius:50%;background:${s};border:3px solid ${i === st.skinIdx ? "var(--acc-2)" : "transparent"};box-shadow:${i === st.skinIdx ? "0 0 0 3px var(--acc-soft)" : "none"}"></button>`).join("")}</div>
-    <label>FOTO (opcional) · será la cara de tu personaje, solo en tu dispositivo</label>
+    <label id="lbl-skin">TONO DE PIEL</label>
+    <div class="ob-row" id="ob-skins" role="group" aria-labelledby="lbl-skin">${SKINS.map((s, i) =>
+      `<button data-skin="${i}" aria-label="Tono de piel ${i + 1}" aria-pressed="${i === st.skinIdx}" style="width:38px;height:38px;border-radius:50%;background:${s};border:3px solid ${i === st.skinIdx ? "var(--acc-2)" : "transparent"};box-shadow:${i === st.skinIdx ? "0 0 0 3px var(--acc-soft)" : "none"}"></button>`).join("")}</div>
+    <label id="lbl-face">FOTO (opcional) · será la cara de tu personaje, solo en tu dispositivo</label>
     <div class="ob-row">
       <label class="ob-file">SUBIR FOTO<input type="file" id="ob-face" accept="image/*" hidden /></label>
       <span id="ob-face-ok" style="font-size:12px;align-self:center"></span>
     </div>
-    <label>AVATAR 3D (opcional) · tu cuerpo completo en el juego</label>
+    <label id="lbl-a3d">AVATAR 3D (opcional) · tu cuerpo completo en el juego</label>
     <div class="ob-row">
       <button type="button" id="ob-a3d" style="border-color:var(--acc-2);font-weight:800">CREAR MI AVATAR 3D ◈</button>
       <span id="ob-a3d-ok" style="font-size:12px;align-self:center"></span>
     </div>
-    <div class="ob-check"><input type="checkbox" id="ob-ca3" ${st.consentAvatar3d ? "checked" : ""} />
-      <span><b>Avatar 3D:</b> tu selfie se procesa en Avaturn para crear el cuerpo 3D. Sin esto juegas con tu foto, y lo creas cuando quieras en APARIENCIA.</span></div>
-    <button class="big" id="ob-next">CONTINUAR →</button>`;
+    <label class="ob-check"><input type="checkbox" id="ob-ca3" ${st.consentAvatar3d ? "checked" : ""} />
+      <span><b>Avatar 3D:</b> tu selfie se procesa en Avaturn para crear el cuerpo 3D. Sin esto juegas con tu foto, y lo creas cuando quieras en APARIENCIA.</span></label>
+    <button class="big" id="ob-next">CONTINUAR →</button>
+    <button class="big ob-fast" id="ob-fast">EMPEZAR YA</button>
+    <div class="ob-fast-note">Con valores por defecto (objetivo FUERZA · 3 días/semana). Los cambias cuando quieras.</div>`;
 
   if (st.step === 1) return `
     ${dots()}
     <h2>TU OBJETIVO</h2>
     <div class="ob-sub">Lo cambiarás cuando quieras.</div>
-    <label>¿QUÉ QUIERES LOGRAR PRIMERO?</label>
-    ${chipRow("goal", GOALS)}
-    <label>EXPERIENCIA PREVIA</label>
-    ${chipRow("experience", EXP)}
+    <label id="lbl-goal">¿QUÉ QUIERES LOGRAR PRIMERO?</label>
+    ${chipRow("goal", GOALS, "lbl-goal")}
+    <label id="lbl-exp">EXPERIENCIA PREVIA</label>
+    ${chipRow("experience", EXP, "lbl-exp")}
     <button class="big" id="ob-next">CONTINUAR →</button>
     <button class="big ob-back" id="ob-back">← ATRÁS</button>`;
 
@@ -75,10 +78,10 @@ function view() {
     ${dots()}
     <h2>TU DISPONIBILIDAD</h2>
     <div class="ob-sub">Tu plan se ajusta a tu tiempo y a tu material.</div>
-    <label>¿CUÁNTO PUEDES ENTRENAR?</label>
-    ${chipRow("availability", AVAIL)}
-    <label>¿QUÉ EQUIPAMIENTO TIENES?</label>
-    ${chipRow("equipment", EQUIP)}
+    <label id="lbl-avail">¿CUÁNTO PUEDES ENTRENAR?</label>
+    ${chipRow("availability", AVAIL, "lbl-avail")}
+    <label id="lbl-equip">¿QUÉ EQUIPAMIENTO TIENES?</label>
+    ${chipRow("equipment", EQUIP, "lbl-equip")}
     <button class="big" id="ob-next">CONTINUAR →</button>
     <button class="big ob-back" id="ob-back">← ATRÁS</button>`;
 
@@ -86,10 +89,10 @@ function view() {
     ${dots()}
     <h2>TU PRIVACIDAD</h2>
     <div class="ob-sub">Solo si TÚ quieres. Lo revocas en MÁS → Privacidad.</div>
-    <div class="ob-check"><input type="checkbox" id="ob-cv" ${st.consentVision ? "checked" : ""} />
-      <span><b>Cámara y movimiento:</b> cuenta tus reps y conduce tu personaje. <b>El vídeo NUNCA sale de tu dispositivo.</b></span></div>
-    <div class="ob-check"><input type="checkbox" id="ob-ch" ${st.consentHealth ? "checked" : ""} />
-      <span><b>Salud y bienestar:</b> Mapa de Salud (screening, nunca diagnóstico) con derivación profesional cuando toca.</span></div>
+    <label class="ob-check"><input type="checkbox" id="ob-cv" ${st.consentVision ? "checked" : ""} />
+      <span><b>Cámara y movimiento:</b> cuenta tus reps y conduce tu personaje. <b>El vídeo NUNCA sale de tu dispositivo.</b></span></label>
+    <label class="ob-check"><input type="checkbox" id="ob-ch" ${st.consentHealth ? "checked" : ""} />
+      <span><b>Salud y bienestar:</b> Mapa de Salud (screening, nunca diagnóstico) con derivación profesional cuando toca.</span></label>
     <button class="big" id="ob-done">EMPEZAR MI CAMINO ◈</button>
     <button class="big ob-back" id="ob-back">← ATRÁS</button>`;
 }
@@ -157,14 +160,19 @@ function render(box) {
     st.step++;
     render(box);
   });
+  q("#ob-fast") && (q("#ob-fast").onclick = () => completar(perfilRapido()));
   q("#ob-back") && (q("#ob-back").onclick = () => { st.step--; render(box); }); // lo escrito se conserva
+  const nameInput = q("#ob-name");
+  nameInput && (nameInput.onkeydown = (e) => {
+    if (e.key === "Enter") { e.preventDefault(); q("#ob-next")?.click(); } // teclado: Enter avanza
+  });
   q("#ob-done") && (q("#ob-done").onclick = () => {
     st.consentVision = q("#ob-cv").checked;
     st.consentHealth = q("#ob-ch").checked;
     if (st.consentVision) setConsent("vision", true);
     if (st.consentHealth) setConsent("health", true);
     if (st.consentAvatar3d) setConsent("avatar_3d", true);
-    S.onboard({
+    completar({
       name: st.name || "ATLETA",
       goal: st.goal,
       experience: st.experience,
@@ -176,20 +184,41 @@ function render(box) {
       avatar3d: st.avatar3d || null,
       consents: { vision: st.consentVision, health: st.consentHealth, avatar_3d: st.consentAvatar3d },
     });
-    S.addXP(25, "discipline");
-    document.getElementById("ob-layer")?.remove();
-    import("./ui.js").then(({ toast }) => {
-      toast("BIENVENIDO AL DÍA 1", `${st.name || "ATLETA"} · tu primera misión te espera · +25 XP`, "gold");
-    });
-    // la primera acción realizable: entrenamiento de hoy (o flujo de recuperación)
-    import("./ui/shared.js").then(({ UI }) => {
-      setTimeout(() => {
-        const w = S.todayWorkout();
-        UI.actions.openTraining?.(w ? w.id : "mobility_flow");
-      }, 600);
-    });
+  });
+  // foco visible en la acción primaria de cada paso (teclado y lector de pantalla)
+  const primario = q("#ob-next") || q("#ob-done");
+  primario && primario.focus({ preventScroll: true });
+}
+
+/** Cierra el onboarding y deja al usuario en una acción real (nunca en un vacío). */
+function completar(perfil) {
+  S.onboard(perfil);
+  S.addXP(25, "discipline");
+  document.getElementById("ob-layer")?.remove();
+  import("./ui.js").then(({ toast }) => {
+    toast("BIENVENIDO AL DÍA 1", `${perfil.name} · tu primera misión te espera · +25 XP`, "gold");
+  });
+  // la primera acción realizable: entrenamiento de hoy (o flujo de recuperación)
+  import("./ui/shared.js").then(({ UI }) => {
+    setTimeout(() => {
+      const w = S.todayWorkout();
+      UI.actions.openTraining?.(w ? w.id : "mobility_flow");
+    }, 600);
   });
 }
+
+/** Perfil honesto del camino rápido: valores por defecto y CERO consentimientos. */
+export function perfilRapido() {
+  return {
+    name: "ATLETA",
+    goal: GOALS[0], experience: EXP[1], availability: AVAIL[1], equipment: EQUIP[1],
+    skin: 0, face: null, skinHex: null, avatar3d: null,
+    consents: { vision: false, health: false, avatar_3d: false },
+  };
+}
+
+/** G2: portada → primera acción real. 1 toque ENTRAR + 1 toque EMPEZAR YA. */
+export const G2_TOQUES_RAPIDO = 2;
 
 function applyAvatar() {
   import("./ui/shared.js").then(({ UI }) => {
@@ -255,6 +284,9 @@ const css = `
 #ob-box button:active{transform:scale(.97)}
 #ob-box button.on{background:var(--acc-2);color:var(--acc-ink);border-color:var(--acc-2);font-weight:700}
 #ob-box button.big{width:100%;background:var(--acc-2);color:var(--acc-ink);padding:16px;font-size:13px;font-weight:700;min-height:56px;margin-top:18px;border-color:transparent;letter-spacing:.18em}
+#ob-box button.ob-fast{background:transparent;color:var(--ink-soft);border:1px solid var(--hair-strong);margin-top:10px;letter-spacing:.14em}
+#ob-box .ob-fast-note{font-family:var(--serif);font-size:11.5px;line-height:1.5;color:var(--ink-mute);margin-top:8px;text-align:center}
+#ob-box button:focus-visible,#ob-box input:focus-visible{outline:2px solid var(--acc-deep);outline-offset:2px}
 #ob-box button.ob-back{background:transparent;color:var(--ink-soft);border:1px solid var(--hair-strong)}
 #ob-box input[type=text],#ob-box input:not([type]){width:100%;padding:12px 14px;border:1px solid var(--hair-strong);border-radius:12px;background:var(--panel);color:var(--ink);
   font:14px var(--sans);margin:6px 0;box-sizing:border-box}
@@ -265,6 +297,7 @@ const css = `
 #ob-dots{display:flex;gap:6px;justify-content:center;margin-bottom:14px}
 #ob-dots i{width:22px;height:3px;border-radius:2px;background:var(--hair-strong);transition:all .3s var(--ease)}
 #ob-dots i.on{background:var(--acc-2);box-shadow:0 0 10px var(--acc-soft)}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 `;
 
 function boot(retries = 20) {
@@ -280,7 +313,7 @@ function boot(retries = 20) {
     return;
   }
   document.head.appendChild(el(`<style>${css}</style>`));
-  const layer = el(`<div id="ob-layer" role="dialog" aria-label="Bienvenida a BAYONA"><div id="ob-box"></div></div>`);
+  const layer = el(`<div id="ob-layer" role="dialog" aria-modal="true" aria-label="Bienvenida a BAYONA"><div id="ob-box"></div></div>`);
   document.body.appendChild(layer);
   render(layer.querySelector("#ob-box"));
 }
@@ -290,4 +323,4 @@ if (typeof document !== "undefined") {
   else boot();
 }
 
-export { st as __obState };
+export { st as __obState, view as __obView };

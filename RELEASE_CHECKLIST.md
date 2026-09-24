@@ -1,45 +1,66 @@
-# 🎯 BAYONA — CHECKLIST: de BETA a v1.0 PLENA
+# BAYONA · RELEASE_CHECKLIST.md
+### Checklist de lanzamiento — se firma con números, no con «creo que está bien»
 
-> Estado real hoy: **beta técnica sólida** (120 tests + golden 100%, app boot sin errores).
-> Para ser "plena" (tiendas + backend vivo + gemelo real) faltan estas piezas.
+> Regla madre: **nada sale sin la batería verde y la matriz limpia.** Lo que no se puede
+> medir se explica; lo bloqueado se marca con su motivo. Un release sin números no existe.
 
-## 🧑‍💻 LO QUE NECESITO DE TI (≈30 min de tu tiempo + decisiones)
+---
 
-| # | Qué | Por qué | Coste |
-|---|-----|---------|-------|
-| 1 | **Cuenta Supabase** (creas en supabase.com y me pasas el *project url + anon key*) | Ejecutar el SQL de 12 tablas + RLS y que la cola offline fluya de verdad | Gratis (plan free) |
-| 2 | **Cuenta Google Play Console** | Publicar Android (obligan test de 12 testers / 14 días) | $25 una vez |
-| 3 | **Cuenta Apple Developer** | Publicar iPhone | $99/año |
-| 4 | **Dominio** (ej. bayona.fit) para la política de privacidad | Ambas tiendas exigen URL pública de privacidad | ~$10/año |
-| 5 | **Un iPhone y un Android gama media** para QA real (TestFlight + test cerrado) | Lo de la cámara se prueba con cuerpos y luces reales | prestados vale |
-| 6 | **Decisiones de marca:** nombre final (¿BAYONA?), paleta naranja actual sí/no, icono | Assets de tienda + identidad | 5 min de feedback |
-| 7 | **Tus fotos/video de prueba** para el spike del avatar real (360° + 5 caras) | Decidir proveedor de avatar con TU cuerpo de referencia | 10 min grabando |
-| 8 | Wearable opcional (Apple Watch / Garmin / báscula) | Integración real de datos de salud | si ya tienes |
+## 0 · Estado del contenido
+- [ ] **Versión** semver fijada: `v____.__.__` (coherente en `package.json`, `sw.js` cache-name, `index.html`).
+- [ ] **Changelog** escrito (qué cambia, en castellano simple, sin marketing vacío).
+- [ ] **Migraciones** de datos/documentadas: ¿cambió el esquema de `localStorage`/IndexedDB? → script de migración + prueba de idempotencia.
+- [ ] **Rollback** definido: cómo volver a la versión anterior en <5 min (tag previo + cache-name anterior).
 
-## 🛠️ LO QUE CONSTRUYO YO (roadmap de la fase plena)
+## 1 · Puertas automáticas (sin esto no se firma)
+- [ ] `node tests/run.mjs` → **24/24 suites** (o el nº que mande la batería) en verde.
+- [ ] `node tools/audit-contraste.mjs` → **PASS · 0 pares AA fallando** (CINE y NOCHE).
+- [ ] `node tools/audit-paleta.mjs` → **PASS** (negro solo en noche · 0 colores fuera de familia · 0 Google Fonts).
+- [ ] `node tools/audit-seguridad.mjs` → **PASS** (0 secretos · 0 innerHTML crudos de datos de usuario).
+- [ ] Presupuestos duros (§I): JS inicial ≤ 250 KB · GLB/VRM ≤ 8 MB · first paint ≤ 1 s · CLS < 0.1 · errores de consola = 0.
 
-| # | Pieza | Hoy | Para v1.0 | Esfuerzo |
-|---|-------|-----|-----------|----------|
-| 1 | **Backend vivo** (Supabase: auth, tablas, RLS, signed URLs) | SQL listo ✅ | desplegado + cola offline sincronizando | 1-2 días |
-| 2 | **Onboarding completo** (nombre, objetivo, medidas, PAR-Q+, consentimientos) | piezas sueltas ✅ | flujo único guiado con voz | 2-3 días |
-| 3 | **Avatar real (BAYONA Scan)** | rig procedural ✅ | SDK selfie (in3D/Avaturn/RPM) elegido por scorecard | 1-2 semanas |
-| 4 | **Coach IA conectado** | núcleo clínico + tools ✅ | LLM + RAG (ACSM/NSCA/OMS) + SSE | 1-2 semanas |
-| 5 | **Catálogo de ejercicios completo** | 12 con vídeo ✅ | 35-50 con cues y ROM targets | 1 semana |
-| 6 | **Planes por perfil** (fuerza / principiante / vuelta a entrenar) | macrociclo único ✅ | 3 macrociclos + auto-regulación | 3-5 días |
-| 7 | **Wearables** (HealthKit / Health Connect) | contratos API ✅ | sync real de pasos/sueño/HRV | 1 semana |
-| 8 | **Store assets** (iconos 512/1024, screenshots, copy sin promesas médicas) | screenshots parciales ✅ | pack completo ambos stores | 2-3 días |
-| 9 | **Política de privacidad + Data safety** | PRIVACY_CENTER spec ✅ | publicada en tu dominio | 1 día |
-| 10 | **QA con humanos** (12 testers Android 14 días + TestFlight) | 0 personas ❌ | beta pública completada | 2-3 semanas |
-| 11 | App nativa compilada (Capacitor) en ambos stores | kit listo ✅ | aprobada y publicada | 1-2 semanas de revisión |
+## 2 · Matriz de regresión (navegador)
+- [ ] `verify.sh 1440 900 TAG` y `verify.sh 390 844 TAG` ejecutados.
+- [ ] Métricas por viewport: caja `#drawer` (abierto/cerrado) · píxeles de canvas expuestos ·
+      `moveTarget` tras clic · delta `camGoalOffset` en arrastre · zoom antes/después · **0 errores de consola**.
+- [ ] Capturas fijas auditadas (portada, onboarding, panel abierto/cerrado, torso, sombra) con mimo-omni.
 
-## 📅 PLAN DE BATALLA (si arrancamos esta semana)
+## 3 · Accesibilidad (P18)
+- [ ] Recorrido solo-teclado sin atascos (portada, panel, modales, juegos).
+- [ ] Foco visible siempre · ARIA correcto (roles, labels, `aria-live`) · `prefers-reduced-motion` global.
+- [ ] Contraste AA (lo garantiza `audit-contraste`) · objetivos táctiles ≥ 44 px.
 
-- **Semana 1:** tu parte (#1-#4) + backend vivo + onboarding completo → **beta cerrada con amigos**
-- **Semana 2-3:** avatar real + coach IA + catálogo → **beta con 12 testers (arranca el reloj de Google)**
-- **Semana 4-5:** store assets + privacidad publicada + QA → **envío a tiendas**
-- **Semana 6-8:** revisiones + fixes → **v1.0 PLENA en Play Store y App Store** 🚀
+## 4 · Privacidad y GDPR (P11)
+- [ ] Vídeo/imagen de cámara **nunca** sale del dispositivo (verificado: 0 peticiones de red en captura).
+- [ ] Consentimientos granulares con revocación real y efectos inmediatos.
+- [ ] Borrado de cuenta con **acuse** descargable (qué se borró y cuándo).
+- [ ] 30/30 diálogos peligrosos → derivación profesional (nunca consejo clínico).
 
-## ✅ REGLAS QUE NO SE TOCAN PARA "PLENA"
-1. Cero promesas médicas: "detecta, programa, acompaña y deriva".
-2. Cero frames fuera del dispositivo.
-3. Progresar sin pagar. Siempre.
+## 5 · Rendimiento y offline (P16)
+- [ ] Lighthouse ≥ 95 (rendimiento, accesibilidad, buenas prácticas, SEO) adjunto.
+- [ ] Service worker versionado con actualización limpia · offline total.
+- [ ] Heap estable 30 min (0 crecimiento) · budgets en CI.
+
+## 6 · Honestidad de producto (anti-slop §H)
+- [ ] Sin degradados morados/azules · sin emojis como iconografía principal · sin copy vacío.
+- [ ] «Descansar es progreso» verificado en copy · «pagar no compra nivel ni fuerza» verificado en código y copy.
+- [ ] Sin métricas inventadas · sin gamificación de casino · sin funciones sociales falsas.
+
+## 7 · Firma
+- [ ] Números de cierre rellenados abajo.
+- [ ] Decisiones/riesgos abiertos comunicados al humano (§K).
+- [ ] Commit/tag de release creado: `release: vX.Y.Z (<resumen>)`.
+
+### Números de cierre (al firmar)
+```
+Versión ................ v____.__.__
+Tests .................. ___/___  suites
+Contraste AA ........... ___/___  pares (CINE+NOCHE)
+Paleta ................. PASS / FAIL
+Seguridad .............. PASS / FAIL · secretos ___ · innerHTML crudos ___
+Lighthouse ............. rend ___ · acc ___ · buenas prácticas ___ · SEO ___
+Matriz 1440x900 ........ errores consola ___
+Matriz 390x844 ......... errores consola ___
+Heap 30 min ............ Δ ___ KB
+Firma agente ........... _______________  Fecha ________
+```

@@ -216,5 +216,5 @@ export function archiveSet(exKey, kg, reps, rir) {
   t.strain = sessionStrain(
     (t.setLog = t.setLog || []).concat([{ kg, reps, rir, e1Base: S.data.prs[exKey]?.e1 || e1 }])
   );
-  t.setLog.push({ kg, reps, rir });
+  t.setLog.push({ ex: exKey, kg, reps, rir }); // ex: para las gráficas de progreso (P14)
 }

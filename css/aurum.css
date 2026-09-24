@@ -12,11 +12,11 @@
 :root {
   /* ---- acento único: naranja BAYONA ---- */
   --acc-1: #ff8c3b;
-  --acc-2: #ff6a00;
-  --acc-deep: #d95300;
-  --acc-soft: rgba(255, 106, 0, 0.12);
+  --acc-2: #db5b00;
+  --acc-deep: #b84000;
+  --acc-soft: rgba(219, 91, 0, 0.12);
   --acc-ink: #1a1208;              /* texto sobre naranja */
-  --metal: #ff6a00;
+  --metal: #db5b00;
 
   /* ---- CINE · blanco cinematográfico (tinte cálido, nunca #fff puro) ---- */
   --paper: #f1ede5;
@@ -72,6 +72,7 @@ html[data-mode="noche"] {
   --glass-hi: rgba(255, 255, 255, 0.1);
   --grain-a: 0.07;
   --acc-ink: #1a1208;
+  --acc-deep: #ff6714;             /* sobre negro: el tostado se aclara para ser legible */
   --shadow: 0 24px 60px -30px rgba(0, 0, 0, 0.8);
   --shadow-lift: 0 34px 80px -34px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 106, 0, 0.3);
 }
@@ -386,7 +387,9 @@ html[data-mode="noche"] #entry {
   transform: translate(-50%, -50%); border-radius: 50%;
   background: var(--acc-2); box-shadow: 0 8px 22px -8px rgba(255, 106, 0, 0.8);
 }
-body.modo-sesion #stick, body.modo-sesion #move-hint { display: none; }
+/* el joystick ES movimiento del mundo: nunca se oculta;
+   solo se apaga la pista de texto en modo sesión */
+body.modo-sesion #move-hint { display: none; }
 
 /* ============================================================
    PANEL LATERAL · TODO el contenido vive aquí
@@ -660,7 +663,7 @@ html { scrollbar-width: thin; scrollbar-color: var(--hair-strong) transparent; }
 @media (max-width: 900px) {
   #drawer {
     top: auto; right: 8px; left: 8px; bottom: 8px;
-    width: auto; height: min(64vh, 560px);
+    width: auto; height: min(52vh, 460px);
     transform: translateY(calc(100% + 24px));
     border-radius: calc(var(--radius) + 8px);
   }
@@ -668,6 +671,8 @@ html { scrollbar-width: thin; scrollbar-color: var(--hair-strong) transparent; }
   #drawer::before { top: 0; bottom: auto; left: 0; right: 0; width: auto; height: 2px;
     background: linear-gradient(90deg, var(--acc-2), transparent 70%); }
   #drawer-body { padding: 18px 18px 22px; }
+  /* el panel nunca tapa el mundo: el joystick salta ENCIMA de la hoja */
+  body:has(#drawer.open) #stick { bottom: calc(min(52vh, 460px) + 24px); }
   .metrics { grid-template-columns: 1fr 1fr; }
   .wallet .cr { display: none; }
   .chip-level .rank { display: none; }
@@ -685,11 +690,9 @@ html { scrollbar-width: thin; scrollbar-color: var(--hair-strong) transparent; }
   .chip-level .xptxt { display: none; }
 }
 
-/* modo sesión: foco total */
+/* modo sesión: foco PERO con el mundo vivo — el panel es SIEMPRE lateral
+   (escritorio ~450px) u hoja inferior parcial (móvil); jamás pantalla completa */
 body.modo-sesion #topbar, body.modo-sesion #panel-nav { display: none !important; }
-body.modo-sesion #drawer {
-  inset: 0; width: 100vw; max-width: 100vw; border-radius: 0; transform: none;
-}
 body.modo-sesion #frame-top, body.modo-sesion #frame-bot { display: none; }
 
 @media (prefers-reduced-motion: reduce) {

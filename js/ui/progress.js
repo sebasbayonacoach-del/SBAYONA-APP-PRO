@@ -4,10 +4,13 @@
 // ============================================================
 import { S } from "../state.js";
 import { EXERCISES } from "../data.js";
-import { recoveryScore, trend1RM, project1RM, volumeStatus } from "../engine.js";
+import { recoveryScore, project1RM, volumeStatus } from "../engine.js";
 import { isGranted, setConsent } from "../consents.js";
 import { CAMPOS, normalizaMedida, deltas, proyeccion, proximaMedicion, serie } from "../medidas.js";
 import { lineaDelTiempo } from "../timeline.js";
+import {
+  volumenPorSemana, constancia, progresoFuerza, exportarDatos, borrarCuenta, claveSemana,
+} from "../progreso.js";
 import { esc, fmtDate, fmtInt } from "../i18n.js";
 import {
   UI, $, el, showModal, hideModal, toast, BUILDERS,
@@ -35,6 +38,9 @@ BUILDERS.progress = (body) => {
   medidasBlock(body);
   body.appendChild(el("div", "sec-label", "ANALÍTICA DE RENDIMIENTO"));
   body.appendChild(analyticsBlock());
+
+  body.appendChild(el("div", "sec-label", "PROGRESO HONESTO · SOLO TUS DATOS"));
+  body.appendChild(progresoHonestoBlock());
 
   body.appendChild(el("div", "sec-label", "HABILIDADES"));
   const SK = { strength: "FUERZA", cardio: "RESISTENCIA", mobility: "MOVILIDAD", recovery: "RECUPERACIÓN", discipline: "DISCIPLINA", mind: "MENTE" };
@@ -85,32 +91,7 @@ function analyticsBlock() {
   box.appendChild(el("div", "media-caption",
     "RECUPERACIÓN = estimación con tus registros (sueño × molestia × energía × carga). CARGA = esfuerzo muscular del día (Epley + RIR). Sin diagnóstico."));
 
-  box.appendChild(el("div", "sec-label", "TENDENCIA 1RM"));
-  ["squat", "bench", "deadlift"].forEach((ex) => {
-    const pts = trend1RM(ex);
-    const cur = S.data.prs[ex];
-    const c = el("div", "card");
-    c.innerHTML = `<div class="card-row"><h4>${esc(EXERCISES[ex].name)}</h4><span class="pill gold">${cur ? esc(cur.e1) + " kg" : "sin datos"}</span></div>`;
-    if (pts.length >= 1) {
-      const max = Math.max(...pts.map((p) => p.e1), 60);
-      const w2 = 320, h2 = 46;
-      const coords = pts.map((p, i) => `${(i / Math.max(1, pts.length - 1)) * w2},${h2 - (p.e1 / max) * (h2 - 6)}`).join(" ");
-      const svg = el("div");
-      svg.innerHTML = `<svg viewBox="0 0 ${w2} ${h2}" style="width:100%;height:46px;margin-top:8px" role="img" aria-label="Curva de 1RM">
-        <polyline points="${coords}" fill="none" stroke="#ff6a00" stroke-width="2" />
-        ${pts.map((p, i) => `<circle cx="${(i / Math.max(1, pts.length - 1)) * w2}" cy="${h2 - (p.e1 / max) * (h2 - 6)}" r="2.5" fill="#ffffff" stroke="#ff6a00" stroke-width="1" />`).join("")}
-      </svg>`;
-      c.appendChild(svg);
-      const proj = project1RM(ex, Math.round(((cur?.e1 || 60) * 1.15) / 5) * 5);
-      c.appendChild(el("div", "media-caption", proj
-        ? `PROYECCIÓN · +${proj.rate} kg/sem · objetivo en ~${proj.weeks} semanas (estimación con tus datos)`
-        : "Sin datos suficientes para proyectar."));
-    } else {
-      c.appendChild(el("div", "media-caption", "Completa sesiones para trazar tu curva real."));
-    }
-    box.appendChild(c);
-  });
-
+  // (la curva de 1RM vive en el bloque PROGRESO HONESTO, con datos por serie)
   box.appendChild(el("div", "sec-label", "VOLUMEN OBJETIVO · SEMANA"));
   ["PECHO", "ESPALDA", "PIERNA", "HOMBRO", "BRAZO", "CORE"].forEach((m) => {
     const v = volumeStatus(m);
@@ -233,4 +214,215 @@ function comparator() {
     $("#cmp-ib").onchange = (e) => { b.src = photos[+e.target.value].dataUrl; };
     $("#cmp-ok").onclick = hideModal;
   });
+}
+
+// ---------------- PROGRESO HONESTO (P14) ----------------
+// Las 3 gráficas salen SOLO de datos registrados (lógica probada en
+// tests/progreso-eval.mjs). Sin registro no hay dato: los huecos se
+// muestran como huecos. "Descansar es progreso": descansar no castiga.
+
+/** Registros reales para las gráficas: series del histórico + hoy.
+ *  Día con algo registrado pero sin detalle de series → marca `actividad`
+ *  (viene de lo que la persona registró de verdad: sesión, agua…). */
+function registrosDeProgreso() {
+  const d = S.data;
+  const out = [];
+  const push = (fecha, series, activo) => {
+    if (series.length) out.push({ fecha, series });
+    else if (activo) out.push({ fecha, actividad: true });
+  };
+  for (const h of d.history || []) {
+    const series = (h.setLog || []).map((s) => ({ ejercicio: s.ex || null, kg: s.kg, reps: s.reps }));
+    push(h.date, series, (h.workouts > 0) || (h.sets > 0) || (h.water >= 1500));
+  }
+  const t = d.today || {};
+  const seriesHoy = (t.setLog || []).map((s) => ({ ejercicio: s.ex || null, kg: s.kg, reps: s.reps }));
+  push(t.date, seriesHoy, !!(t.trained || t.startedWorkout || t.mobility || t.mind > 0 || t.water >= 1500));
+  return out;
+}
+
+/** Registros de fuerza: series reales + récords ya registrados (e1RM guardado). */
+function registrosFuerza() {
+  const rows = registrosDeProgreso().map((r) => ({ fecha: r.fecha, series: (r.series || []).slice() }));
+  const add = (fecha, s) => {
+    let row = rows.find((x) => x.fecha === fecha);
+    if (!row) { row = { fecha, series: [] }; rows.push(row); }
+    row.series.push(s);
+  };
+  for (const h of S.data.history || []) (h.prPoints || []).forEach((p) => add(h.date, { ejercicio: p.ex, e1RM: p.e1 }));
+  ((S.data.today || {}).prPoints || []).forEach((p) => add(S.data.today.date, { ejercicio: p.ex, e1RM: p.e1 }));
+  return rows;
+}
+
+function progresoHonestoBlock() {
+  const box = el("div");
+  const rows = registrosDeProgreso();
+
+  // 1 · VOLUMEN POR SEMANA
+  const c1 = el("div", "card");
+  c1.innerHTML = `<h4>VOLUMEN POR SEMANA</h4><div class="sub">Kilos × repeticiones que registraste. Las semanas sin datos se quedan vacías: <b>aquí no se rellena con ceros</b>.</div>`;
+  c1.appendChild(svgVolumen(volumenPorSemana(rows)));
+  box.appendChild(c1);
+
+  // 2 · CONSTANCIA
+  const cst = constancia(rows);
+  const c2 = el("div", "card");
+  c2.innerHTML = `<h4>CONSTANCIA</h4>
+    <div class="card-row"><span class="pill gold">RACHA ${esc(cst.rachaActual)} DÍAS</span><span class="pill">MEJOR ${esc(cst.mejorRacha)}</span><span class="pill">ACTIVOS ${esc(cst.diasActivos)}</span></div>
+    <div class="sub"><b>Descansar es progreso:</b> un día de descanso no borra tu racha. Solo una ausencia de más de 2 días empieza una racha nueva.</div>`;
+  c2.appendChild(svgConstancia(rows));
+  box.appendChild(c2);
+
+  // 3 · FUERZA · 1RM ESTIMADO
+  const c3 = el("div", "card");
+  c3.innerHTML = `<h4>FUERZA · 1RM ESTIMADO</h4><div class="sub">Estimación de Epley (carga × (1 + reps/30)) sobre tus series reales. Es una <b>estimación</b>, no una medición.</div>`;
+  c3.appendChild(svgFuerza(registrosFuerza()));
+  box.appendChild(c3);
+
+  // 4 · TUS DATOS (GDPR)
+  box.appendChild(datosBlock());
+  return box;
+}
+
+function svgVolumen(rows) {
+  const wrap = el("div");
+  const datos = rows.filter((r) => r.volumen_kg != null);
+  if (!datos.length) {
+    wrap.appendChild(el("div", "media-caption", "Aún no hay series con carga registrada. Tu primer entrenamiento dibujará la primera barra."));
+    return wrap;
+  }
+  const W = 320, H = 108, base = H - 16;
+  const max = Math.max(...datos.map((r) => r.volumen_kg));
+  const paso = W / rows.length;
+  const bw = Math.max(5, Math.min(26, paso - 6));
+  const bars = rows.map((r, i) => {
+    const x = i * paso + (paso - bw) / 2;
+    if (r.volumen_kg == null) {
+      return `<text x="${x + bw / 2}" y="${base - 4}" font-size="8" text-anchor="middle" fill="var(--mute)">—</text>`;
+    }
+    const bh = Math.max(3, (r.volumen_kg / max) * (base - 18));
+    return `<rect x="${x}" y="${base - bh}" width="${bw}" height="${bh}" rx="3" fill="var(--orange)"><title>${r.semana} · ${Math.round(r.volumen_kg)} kg</title></rect>
+      <text x="${x + bw / 2}" y="${base - bh - 3}" font-size="7" text-anchor="middle" fill="var(--mute)">${Math.round(r.volumen_kg)}</text>`;
+  }).join("");
+  const labels = rows.map((r, i) => `<text x="${i * paso + paso / 2}" y="${H - 3}" font-size="7" text-anchor="middle" fill="var(--mute)">${r.semana.slice(5)}</text>`).join("");
+  const svg = el("div");
+  svg.innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:108px" role="img" aria-label="Volumen de entrenamiento por semana">${bars}${labels}</svg>`;
+  wrap.appendChild(svg);
+  return wrap;
+}
+
+function svgConstancia(rows) {
+  const wrap = el("div");
+  const porSemana = new Map();
+  for (const r of rows) {
+    const k = claveSemana(r.fecha);
+    if (!k) continue;
+    porSemana.set(k, (porSemana.get(k) || 0) + 1);
+  }
+  if (!porSemana.size) {
+    wrap.appendChild(el("div", "media-caption", "Sin días registrados todavía. Aquí verás tus días activos por semana."));
+    return wrap;
+  }
+  const claves = [...porSemana.keys()].sort();
+  const semanas = [];
+  const ini = Date.parse(claves[0] + "T00:00:00Z"), fin = Date.parse(claves[claves.length - 1] + "T00:00:00Z");
+  for (let t = ini; t <= fin; t += 7 * 864e5) semanas.push(new Date(t).toISOString().slice(0, 10));
+  const W = 320, H = 78, base = H - 14;
+  const paso = W / semanas.length;
+  const bw = Math.max(5, Math.min(26, paso - 6));
+  const bars = semanas.map((k, i) => {
+    const n = porSemana.get(k) || 0; // 0 días ACTIVOS registrados (hecho, no estimación)
+    const x = i * paso + (paso - bw) / 2;
+    const bh = n ? Math.max(4, (n / 7) * (base - 12)) : 2;
+    return `<rect x="${x}" y="${base - bh}" width="${bw}" height="${bh}" rx="3" fill="${n ? "var(--orange)" : "var(--mute)"}"><title>${k} · ${n} días activos</title></rect>`;
+  }).join("");
+  const labels = semanas.map((k, i) => `<text x="${i * paso + paso / 2}" y="${H - 3}" font-size="7" text-anchor="middle" fill="var(--mute)">${k.slice(5)}</text>`).join("");
+  const svg = el("div");
+  svg.innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:78px" role="img" aria-label="Días activos por semana">${bars}${labels}</svg>`;
+  wrap.appendChild(svg);
+  wrap.appendChild(el("div", "media-caption", "Una barra corta = semana con pocos días registrados. Ninguna cifra se estima: solo se cuenta lo que registraste."));
+  return wrap;
+}
+
+function svgFuerza(rows) {
+  const wrap = el("div");
+  const f = progresoFuerza(rows).filter((x) => x.puntos.length >= 1).slice(0, 3);
+  if (!f.length) {
+    wrap.appendChild(el("div", "media-caption", "Sin series cargadas todavía. Cuando registres cargas, aquí verás tu curva real de 1RM estimado."));
+    return wrap;
+  }
+  const W = 320, H = 112;
+  const all = f.flatMap((x) => x.puntos.map((p) => p.e1RM));
+  const max = Math.max(...all), min = Math.min(...all);
+  const yy = (v) => H - 16 - ((v - min) / Math.max(1, max - min)) * (H - 34);
+  const xx = (n, i) => 10 + (i / Math.max(1, n - 1)) * (W - 20);
+  const COLORS = ["var(--orange)", "var(--ink)", "var(--mute)"];
+  const g = f.map((ex, k) => {
+    const pts = ex.puntos.map((p, i) => `${xx(ex.puntos.length, i)},${yy(p.e1RM)}`).join(" ");
+    const dots = ex.puntos.map((p, i) => `<circle cx="${xx(ex.puntos.length, i)}" cy="${yy(p.e1RM)}" r="2.5" fill="${COLORS[k]}"><title>${p.fecha} · ${p.e1RM} kg (estimado)</title></circle>`).join("");
+    return `<polyline points="${pts}" fill="none" stroke="${COLORS[k]}" stroke-width="2" />${dots}`;
+  }).join("");
+  const svg = el("div");
+  svg.innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:112px" role="img" aria-label="Progreso de 1RM estimado por ejercicio">${g}</svg>`;
+  wrap.appendChild(svg);
+  f.forEach((ex, k) => {
+    const last = ex.puntos[ex.puntos.length - 1];
+    const cur = S.data.prs[ex.ejercicio];
+    const proj = project1RM(ex.ejercicio, Math.round(((cur?.e1 || last.e1RM) * 1.15) / 5) * 5);
+    wrap.appendChild(el("div", "sub", `<span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${COLORS[k]};margin-right:6px"></span>${esc(EXERCISES[ex.ejercicio]?.name || ex.ejercicio)} · ${esc(last.e1RM)} kg e1RM${proj ? ` · proyección +${esc(proj.rate)} kg/sem (~${esc(proj.weeks)} sem)` : ""}`));
+  });
+  return wrap;
+}
+
+function datosBlock() {
+  const box = el("div", "card");
+  box.innerHTML = `<h4>TUS DATOS</h4><div class="sub">Tus datos son tuyos: puedes descargarlos en JSON y borrar la cuenta cuando quieras. El borrado deja un <b>acuse</b> con qué se borró y cuándo.</div>`;
+  const b1 = el("button", "btn btn-block", "EXPORTAR MIS DATOS (JSON)");
+  b1.style.marginTop = "10px";
+  b1.onclick = () => {
+    descargar(`bayona-mis-datos-${new Date().toISOString().slice(0, 10)}.json`, exportarDatos(S.data));
+    toast("DATOS EXPORTADOS", "Copia JSON completa de todo lo registrado. Nada se queda fuera.");
+  };
+  const b2 = el("button", "btn btn-danger btn-block", "BORRAR MI CUENTA");
+  b2.style.marginTop = "8px";
+  b2.onclick = flujoBorrado;
+  box.appendChild(b1);
+  box.appendChild(b2);
+  return box;
+}
+
+function flujoBorrado() {
+  showModal(`
+    <div class="cine-tag">BORRAR CUENTA</div>
+    <div class="cine-title" style="font-size:20px">¿BORRAR TODO?</div>
+    <div class="sub">Se borran <b>tus datos de este dispositivo</b>: perfil, entrenos, medidas, fotos, diario y récords. No se puede deshacer.<br/>Antes de borrar se descarga un <b>acuse</b> con qué se borró y cuándo.</div>
+    <label style="display:block;margin:10px 0">MOTIVO (OPCIONAL)<input id="del-motivo" type="text" maxlength="120" placeholder="por ejemplo: cambio de app" /></label>
+    <div style="display:flex;gap:8px">
+      <button class="btn grow" id="del-cancel">VOLVER</button>
+      <button class="btn btn-danger grow" id="del-ok">BORRAR MI CUENTA</button>
+    </div>`, () => {
+    $("#del-cancel").onclick = hideModal;
+    $("#del-ok").onclick = () => {
+      const motivo = ($("#del-motivo").value || "").trim() || null;
+      const acuse = borrarCuenta(S.data, motivo); // acuse ANTES de borrar (qué existía)
+      descargar(`bayona-acuse-borrado-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(acuse, null, 2));
+      S.reset(true);
+      S.save();
+      hideModal();
+      BUILDERS.progress();
+      toast("CUENTA BORRADA", "Datos eliminados de este dispositivo. El acuse de borrado se ha descargado.");
+    };
+  });
+}
+
+function descargar(nombre, texto) {
+  const blob = new Blob([texto], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = nombre;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
 }

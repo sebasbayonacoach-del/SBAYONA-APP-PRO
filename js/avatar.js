@@ -286,9 +286,12 @@ export class Avatar {
       m.position.set(x, yOff, 0); m.castShadow = true; parent.add(m); return m;
     };
 
-    seg(B.hips, 0.14, 0.1, 0.02);                    // pelvis
-    seg(B.spine, 0.155, 0.14, 0.12);                 // abdomen
-    this.chestMesh = seg(B.chest, 0.185, 0.14, 0.06); // chest
+    // radios de piel SIEMPRE por debajo de la ropa (margen ≥18mm):
+    // si la piel es más gruesa que la tela en cualquier eje, asoma la
+    // mancha clara del torso (piel mono sobre camiseta negra).
+    seg(B.hips, 0.132, 0.1, 0.02);                    // pelvis
+    seg(B.spine, 0.148, 0.14, 0.12);                 // abdomen
+    this.chestMesh = seg(B.chest, 0.175, 0.14, 0.06); // chest
     seg(B.neck, 0.05, 0.06, 0.02);
     // head
     const head = new THREE.Mesh(new THREE.SphereGeometry(0.135, 24, 20), this.bodyMat);
@@ -323,12 +326,30 @@ export class Avatar {
       B["footMesh" + side] = f;
     }
 
-    // soft shadow disc
-    const disc = new THREE.Mesh(
-      new THREE.CircleGeometry(0.5, 32),
-      new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.35 })
-    );
-    disc.rotation.x = -Math.PI / 2; disc.position.y = 0.012;
+    // Sombra de contacto SUAVE: mancha con gradiente radial.
+    // Ojo: antes era un CircleGeometry (abanico de triángulos) a la MISMA
+    // altura que el parche/alfombra del suelo → z-fighting = «abanico de
+    // púas». Ahora: plano con degradado + depthWrite:false + polygonOffset
+    // + altura desacoplada del suelo (alfombra 0.011, parche gym 0.012).
+    const shadowMat = new THREE.MeshBasicMaterial({
+      color: 0x000000, transparent: true, opacity: 0.35,
+      depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4,
+    });
+    if (typeof document !== "undefined" && document.createElement) {
+      const c = document.createElement("canvas");
+      c.width = c.height = 128;
+      const g2d = c.getContext("2d");
+      const grd = g2d.createRadialGradient(64, 64, 4, 64, 64, 62);
+      grd.addColorStop(0, "rgba(0,0,0,0.95)");
+      grd.addColorStop(0.55, "rgba(0,0,0,0.55)");
+      grd.addColorStop(1, "rgba(0,0,0,0)");
+      g2d.fillStyle = grd;
+      g2d.fillRect(0, 0, 128, 128);
+      shadowMat.map = new THREE.CanvasTexture(c);
+      shadowMat.needsUpdate = true;
+    }
+    const disc = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), shadowMat);
+    disc.rotation.x = -Math.PI / 2; disc.position.y = 0.03; disc.renderOrder = 1;
     this.group.add(disc);
     this.shadowDisc = disc;
   }
@@ -393,10 +414,12 @@ export class Avatar {
     const top = equipped.top && itemsById[equipped.top]?.vis ? itemsById[equipped.top].vis : { kind: "tee", color: "#111111", accent: "#ff6a00" };
     {
       const m = mat(top.color, { metal: 0.06 });
+      // la camiseta envuelve el torso en TODOS los ejes (sin aplastar en z:
+      // aplastar dejaba la piel fuera = mancha blanca del torso)
       const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.195, 0.2, 4, 14), m);
-      torso.position.y = 0.1; torso.scale.z = 0.92; B.chest.add(torso);
+      torso.position.y = 0.1; B.chest.add(torso);
       const belly = new THREE.Mesh(new THREE.CapsuleGeometry(0.17, 0.12, 4, 14), m);
-      belly.position.y = 0.1; belly.scale.z = 0.9; B.spine.add(belly);
+      belly.position.y = 0.1; B.spine.add(belly);
       const parts = [torso, belly];
       // accent stripe
       const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.02, 0.32), mat(top.accent, { metal: 0.3 }));
@@ -432,7 +455,7 @@ export class Avatar {
         }
       }
       const waist = new THREE.Mesh(new THREE.CapsuleGeometry(0.15, 0.08, 4, 14), m);
-      waist.position.y = 0.0; waist.scale.z = 0.92; B.hips.add(waist); parts.push(waist);
+      waist.position.y = 0.0; B.hips.add(waist); parts.push(waist);
       this.equipParts.bottom = parts;
     }
 
