@@ -1,0 +1,15 @@
+name: bateria
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node tests/run.mjs
+      - run: node tests/eval-10.mjs
