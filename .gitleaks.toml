@@ -1,0 +1,4 @@
+# Gitleaks: .env.example y plantillas son formas, no secretos.
+[allowlist]
+description = "plantillas de ejemplo"
+paths = ['''.*\.example$''', '''.*\.template$''']
