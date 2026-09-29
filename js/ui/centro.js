@@ -12,6 +12,7 @@ import { kpis, dia, haceCuanto, reservasDe, riesgoBaja } from "../gym/model.js";
 import { BUILDERS, $, el, elT, openSection, showModal, hideModal, toast, UI } from "./shared.js";
 import { esc, fmtInt, t, tE } from "../i18n.js";
 import { abrirPortalSocio } from "./portal.js";
+import { nombrePasarela } from "../gym/pagos.js";
 
 /* ---------- piezas ---------- */
 function stat(valor, etiqueta, nota) {
@@ -371,24 +372,46 @@ function modalPlan(socioId, alTerminar) {
 
 function modalCobro(socioId, alTerminar) {
   const deuda = G.deudaDe(socioId);
+  const plan = G.planDe(socioId);
+  const enLinea = G.puedeCobrarEnLinea(socioId);
+  const pasarela = plan ? nombrePasarela(plan.linkPago) : "";
+  const nota = enLinea
+    ? t("gym.cobro.notaEnLinea", { pasarela })
+    : t("gym.cobro.notaManual");
   showModal(`
-    <div class="cine-tag">COBRO</div>
-    <div class="cine-title" style="font-size:18px">Registrar un cobro</div>
-    <div class="sub">Sin pasarela de pago conectada, este cobro se registra a mano. La app no cobra por ti ni finge que sí.</div>
+    <div class="cine-tag">${esc(t("gym.cobro"))}</div>
+    <div class="cine-title" style="font-size:18px">${esc(t("gym.cobro.registrar"))}</div>
+    <div class="sub">${esc(nota)}</div>
+    ${enLinea ? `<div class="gym-acciones"><button class="btn" id="gc-abrir">${esc(t("gym.cobro.abrir", { pasarela }))}</button></div>` : ""}
     <div class="gym-form">
-      <label><span>IMPORTE (€)</span><input id="gc-i" type="number" min="0.01" step="0.01" value="${deuda.importe || ""}" /></label>
-      <label><span>CONCEPTO</span><input id="gc-c" type="text" maxlength="120" placeholder="Cuota mensual, packs, material…" /></label>
+      <label><span>${esc(t("gym.cobro.importe"))}</span><input id="gc-i" type="number" min="0.01" step="0.01" value="${deuda.importe || ""}" /></label>
+      <label><span>${esc(t("gym.cobro.referencia"))}</span><input id="gc-r" type="text" maxlength="60" placeholder="${esc(t("gym.cobro.referenciaPh"))}" /></label>
+      <label><span>${esc(t("gym.cobro.concepto"))}</span><input id="gc-c" type="text" maxlength="120" placeholder="${esc(t("gym.cobro.conceptoPh"))}" /></label>
     </div>
     <div class="gym-acciones">
-      <button class="btn btn-primary" id="gc-ok">REGISTRAR</button>
-      <button class="btn" id="gc-x">CANCELAR</button>
+      <button class="btn btn-primary" id="gc-ok">${esc(t("gym.registrarCobro"))}</button>
+      <button class="btn" id="gc-x">${esc(t("act.cancel"))}</button>
     </div>`, () => {
     $("#gc-x").onclick = hideModal;
+    $("#gc-abrir")?.addEventListener("click", () => {
+      // Se abre la página de la PASARELA, no una de la app: el socio
+      // paga en su banco. `noopener` para que la pestaña no nos
+      // alcance con `window.opener`.
+      window.open(plan.linkPago, "_blank", "noopener,noreferrer");
+      toast(t("gym.cobro.abierto"), pasarela);
+    });
     $("#gc-ok").onclick = () => {
-      const r = G.registrarPago({ socioId, importe: $("#gc-i").value, concepto: $("#gc-c").value, pasarela: "manual" });
+      const ref = $("#gc-r").value;
+      // La referencia es lo que la pasarela devuelve. Sin ella el
+      // cobro queda como manual: no se inventa de dónde vino.
+      const r = G.registrarPago({
+        socioId, importe: $("#gc-i").value, concepto: $("#gc-c").value,
+        pasarela: enLinea && ref.trim() ? pasarela : "manual",
+        referencia: ref,
+      });
       if (!r.ok) return toast(t("state.error"), tE(r.error), "danger");
       hideModal();
-      toast(t("gym.cobroRegistrado"), `${r.pago.importe} €`);
+      toast(t("gym.cobroRegistrado"), r.pago.referencia ? `${r.pago.importe} € · ${r.pago.referencia}` : `${r.pago.importe} €`);
       alTerminar && alTerminar();
     };
   });

@@ -16,6 +16,7 @@ import {
   nuevoSocio, nuevoPlan, nuevaClase, PERIODO_LABEL,
   dia, riesgoBaja, deudaDe, visitasDe,
 } from "./model.js";
+import { esLinkPago, normalizaReferencia, nombrePasarela } from "./pagos.js";
 
 const KEY = "bayona.centro.v1";
 const ANILLO = "bayona.centro.anillo.v1";
@@ -251,22 +252,51 @@ export const G = {
   /** Periodicidad en palabras («mes», «año»…), no la clave cruda. */
   periodoDe(plan) { return plan ? (PERIODO_LABEL[plan.periodo] || plan.periodo) : ""; },
 
+  /* ---------- enlace de cobro del plan ---------- */
+  /**
+   * Enlaza un plan a la página de cobro de la pasarela. El enlace es
+   * público por diseño (no lleva clave), pero aun así se valida antes
+   * de guardarlo: un QR o un correo malicioso no debe acabar con un
+   * `javascript:` esperando a que alguien pulse «Cobrar».
+   */
+  enlazarPago(planId, url) {
+    const plan = this.plan(planId);
+    if (!plan) return { ok: false, error: "plan-no-existe" };
+    if (url === null || url === undefined || String(url).trim() === "") {
+      delete plan.linkPago;
+      this.save();
+      return { ok: true, plan };
+    }
+    const v = esLinkPago(url);
+    if (!v.ok) return { ok: false, error: v.error };
+    plan.linkPago = v.url;
+    this.save();
+    return { ok: true, plan, pasarela: nombrePasarela(v.url) };
+  },
+  puedeCobrarEnLinea(socioId) {
+    const plan = this.planDe(socioId);
+    return Boolean(plan && plan.activo && esLinkPago(plan.linkPago).ok);
+  },
+
   /* ---------- pagos ---------- */
   /**
-   * Registrar un cobro. `pasarela` documenta el origen: con la
-   * pasarela conectada se marca «automático»; sin ella es un cobro
-   * MANUAL y la app lo dice en la ficha. Nunca se finge un cobro.
+   * Registrar un cobro. `pasarela` documenta el ORIGEN del dinero, no
+   * quién lo ha movido: con un enlace de pasarela el socio paga en la
+   * página de su banco y quien lo mete aquí solo apunta la referencia.
+   * La app nunca marca un cobro como «automático»: no hay webhook.
    */
-  registrarPago({ socioId, importe, pasarela = "manual", concepto = "" }) {
+  registrarPago({ socioId, importe, pasarela = "manual", concepto = "", referencia = "" }) {
     if (!this.socio(socioId)) return { ok: false, error: "socio-no-existe" };
     const n = Number(importe);
     if (!Number.isFinite(n) || n <= 0) return { ok: false, error: "importe-no-valido" };
     if (n > 100000) return { ok: false, error: "importe-absurdo" };
+    const ref = normalizaReferencia(referencia);
     const pago = {
       id: `pg_${Date.now()}`,
       socioId,
       importe: Math.round(n * 100) / 100,
-      pasarela,
+      pasarela: String(pasarela).slice(0, 40) || "manual",
+      referencia: ref,
       concepto: String(concepto).slice(0, 120),
       fecha: new Date().toISOString(),
     };

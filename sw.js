@@ -4,10 +4,10 @@
 // Con esto la app abre sin red y el registro de series funciona offline
 // (los datos viven en el dispositivo y se sincronizan después).
 // ============================================================
-const CACHE = "bayona-shell-v17";
+const CACHE = "bayona-shell-v19";
 const SHELL = [
   "./css/pro.css",
-  "./js/gym/model.js", "./js/gym/store.js", "./js/gym/acceso.js", "./js/gym/informes.js",
+  "./js/gym/model.js", "./js/gym/store.js", "./js/gym/acceso.js", "./js/gym/informes.js", "./js/gym/pagos.js",
   "./js/ui/centro.js", "./js/ui/cuotas.js", "./js/ui/agenda.js",
   "./js/ui/acceso.js", "./js/ui/portal.js", "./js/ui/informes.js",
   "./css/fitness.css", "./js/ui/fitness.js",
@@ -36,13 +36,22 @@ const SHELL = [
   "./js/vision/boot.js", "./js/vision/pose.js", "./js/vision/repCounter.js", "./js/vision/angles.js",
   "./js/vision/formScore.js", "./js/vision/retarget.js",
   "./vendor/three.module.js",
-  "./vendor/avaturn-sdk.js", "./vendor/GLTFLoader.js", "./vendor/utils/BufferGeometryUtils.js",
   "./icon-192.png", "./icon-512.png",
 ];
 
 self.addEventListener("install", (e) => {
+  // `cache.addAll()` es TODO O NADA: si UNA sola entrada da 404, la
+  // promesa se rechaza, el `install` falla y la app se queda SIN
+  // OFFLINE sin decir nada. Por eso se cachea de uno en uno: un
+  // recurso que falte no puede tumbar el precache entero.
   e.waitUntil(
-    caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting())
+    caches.open(CACHE)
+      .then((c) => Promise.all(SHELL.map((ruta) =>
+        c.add(new Request(ruta, { cache: "reload" })).catch(() => {
+          console.warn("[sw] no se pudo precachear", ruta);
+        })
+      )))
+      .then(() => self.skipWaiting())
   );
 });
 

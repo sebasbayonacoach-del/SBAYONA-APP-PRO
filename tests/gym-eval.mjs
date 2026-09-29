@@ -33,6 +33,7 @@ import {
 import {
   facturacionMensual, asistenciaDiaria, ocupacionClases, watchlist, morosos, resumenMensual, aCSV,
 } from "../js/gym/informes.js";
+import { esLinkPago, nombrePasarela, normalizaReferencia, estadoCobro } from "../js/gym/pagos.js";
 
 /* ---------- laboratorio: localStorage falso con cuota real ---------- */
 const store = new Map();
@@ -481,14 +482,79 @@ assert(G.estado.socios.length === 1, "y conserva lo que sí es válido");
 assert(G.estado.programas && !Array.isArray(G.estado.programas), "y un `programas` corrupto tampoco entra en el estado");
 
 /* ============================================================
-   16 · LA INTERFAZ ESTÁ CABLEADA Y CON ESTILO
+   16 · COBRO POR ENLACE DE PASARELA
+   ------------------------------------------------------------
+   Lo que se puede hacer sin servidor y lo que no: se abre la página
+   de cobro de la pasarela y se guarda la referencia. Lo que NO se
+   finge es la confirmación automática: eso necesita un webhook y
+   algo que lo reciba, y aquí no hay servidor.
+   ============================================================ */
+console.log("— cobro por enlace —");
+assert(esLinkPago("https://mollie.com/payscreen/1234").ok, "un enlace https de pasarela se acepta");
+assert(esLinkPago("  https://mollie.com/payscreen/1234  ").ok, "los espacios sobrantes no lo hunden");
+assert(esLinkPago("https://buy.stripe.com/test_123").ok, "también Stripe Payment Links");
+assert(!esLinkPago("").ok && esLinkPago("").error === "link-vacio", "un enlace vacío se dice vacío");
+assert(!esLinkPago("mollie.com/payscreen").ok, "una URL sin esquema no vale");
+assert(!esLinkPago("no es una url").ok, "un texto suelto tampoco");
+// seguridad: un QR o un correo malicioso no debe acabar con un
+// `javascript:` esperando a que alguien pulse «Cobrar»
+assert(!esLinkPago("javascript:alert(1)").ok, "un javascript: NUNCA se acepta");
+assert(esLinkPago("javascript:alert(1)").error === "link-esquema", "y se dice por qué");
+assert(!esLinkPago("data:text/html,<script>alert(1)</script>").ok, "un data: tampoco");
+assert(!esLinkPago("vbscript:msgbox(1)").ok, "ni vbscript:");
+assert(!esLinkPago("file:///etc/passwd").ok, "ni file:");
+assert(!esLinkPago("https://").ok, "ni un https sin host");
+assert(!esLinkPago("https://localhost").ok, "ni un host sin punto (no es un dominio público)");
+assert(!esLinkPago("https://x.com/" + "a".repeat(2100)).ok, "ni una URL de 2 KB (no es un enlace de cobro)");
+assert(nombrePasarela("https://www.mollie.com/payscreen/1") === "Mollie", "el nombre de la pasarela sale del dominio");
+assert(nombrePasarela("https://buy.stripe.com/x") === "Buy", "y también de un subdominio");
+assert(nombrePasarela("no-es-url") === "", "una URL rota no inventa pasarela");
+assert(normalizaReferencia("  tr_1234  ") === "tr_1234", "la referencia se limpia");
+assert(normalizaReferencia("x".repeat(200)).length === 60, "y se acota: va a una hoja de cálculo");
+assert(normalizaReferencia(undefined) === "", "sin referencia no hay referencia, no un undefined");
+
+// --- el store enlaza y solo enlaza lo válido ---
+const planLink = G.altaPlan({ nombre: "Anual con link", precio: 399, periodo: "anual" }).plan;
+const socioLink = G.altaSocio({ nombre: "Omar Enlaza" }).socio;
+G.asignarPlan(socioLink.id, planLink.id);
+assert(!G.puedeCobrarEnLinea(socioLink.id), "sin enlace, no se puede cobrar en línea");
+assert(estadoCobro(planLink).motivo === "plan-sin-link", "y el estado lo explica");
+assert(!G.enlazarPago(planLink.id, "javascript:alert(1)").ok, "el store NO guarda un javascript: aunque se le pase");
+assert(!G.enlazarPago(planLink.id, "no-es-url").ok, "ni una basura");
+assert(G.plan(planLink.id).linkPago === undefined, "y un intento fallido NO deja nada a medias");
+assert(!G.puedeCobrarEnLinea(socioLink.id), "sigue sin poder cobrar en línea");
+const rLink = G.enlazarPago(planLink.id, "https://mollie.com/payscreen/1234");
+assert(rLink.ok && rLink.pasarela === "Mollie", "con una URL válida, el plan queda enlazado");
+assert(G.puedeCobrarEnLinea(socioLink.id), "y ahora sí se puede cobrar en línea");
+assert(G.puedeCobrarEnLinea("socio-que-no-existe") === false, "un socio que no existe no se cobra");
+assert(!G.enlazarPago("plan-que-no-existe", "https://x.com/p").ok, "ni se enlaza un plan inexistente");
+G.enlazarPago(planLink.id, null);
+assert(!G.puedeCobrarEnLinea(socioLink.id), "quitar el enlace deja de permitir el cobro en línea");
+assert(G.plan(planLink.id).linkPago === undefined, "y no queda el rastro del enlace quitado");
+
+// --- el cobro guarda de DÓNDE vino el dinero ---
+G.enlazarPago(planLink.id, "https://mollie.com/payscreen/1234");
+const p1 = G.registrarPago({ socioId: socioLink.id, importe: 50, pasarela: "Mollie", referencia: "tr_ABC123" }).pago;
+assert(p1.pasarela === "Mollie" && p1.referencia === "tr_ABC123", "un cobro con referencia guarda pasarela y referencia");
+const p2 = G.registrarPago({ socioId: socioLink.id, importe: 10 }).pago;
+assert(p2.pasarela === "manual" && p2.referencia === "", "y uno sin pasarela es MANUAL, no se inventa de dónde vino");
+assert(p1.pasarela !== "automatico" && p2.pasarela !== "automatico",
+  "ningún cobro se marca como automático: esta app no tiene webhook y no miente");
+assert(G.estado.pagos.every((p) => p.pasarela !== "auto" && p.pasarela !== "automático"),
+  "ni aunque venga con ese nombre por delante");
+const antesPagos = G.estado.pagos.length;
+G.registrarPago({ socioId: socioLink.id, importe: 0, referencia: "tr_X" });
+assert(G.estado.pagos.length === antesPagos, "un importe de 0 no se registra como cobro");
+
+/* ============================================================
+   17 · LA INTERFAZ ESTÁ CABLEADA Y CON ESTILO
    ============================================================ */
 console.log("— interfaz y estilo —");
 const leer = (p) => readFileSync(join(root, p), "utf8");
 const index = leer("index.html");
 const pro = leer("css/pro.css");
 for (const f of [
-  "js/gym/model.js", "js/gym/store.js", "js/gym/acceso.js", "js/gym/informes.js",
+  "js/gym/model.js", "js/gym/store.js", "js/gym/acceso.js", "js/gym/informes.js", "js/gym/pagos.js",
   "js/ui/centro.js", "js/ui/cuotas.js", "js/ui/agenda.js",
   "js/ui/acceso.js", "js/ui/portal.js", "js/ui/informes.js",
 ]) {
@@ -511,7 +577,7 @@ assert(sinEstilo.length === 0, `las ${clases.length} clases gym-* tienen estilo`
 assert(clases.length >= 12, `la pantalla del centro tiene piezas propias (${clases.length} clases)`);
 // todo texto de puerta, avisos e informes sale del catálogo
 const i18n = leer("js/i18n.js");
-for (const prefijo of ["gym.puerta.", "gym.portal.", "gym.informe.", "gym.aviso.", "gym.rechazo."]) {
+for (const prefijo of ["gym.puerta.", "gym.portal.", "gym.informe.", "gym.aviso.", "gym.rechazo.", "gym.link.", "gym.cobro."]) {
   assert(new RegExp(`"${prefijo}`).test(i18n), `el catálogo tiene claves ${prefijo}*`);
 }
 // el dominio NO escribe pantallas: los motivos son códigos, no frases
