@@ -31,6 +31,11 @@ import "./ui/more.js";
 import "./ui/personal.js";
 import "./ui/appearance.js";
 import "./sync/account.js";
+// CENTRO · gestión del gimnasio (socios, cuotas, agenda, acceso)
+import "../gym/store.js";
+import "./ui/centro.js";
+import "./ui/cuotas.js";
+import "./ui/agenda.js";
 
 export function initUI(world) {
   UI.W = world;

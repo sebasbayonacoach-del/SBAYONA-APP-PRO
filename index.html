@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="css/dashboard.css?v=1" />
 <!-- PRO · el lenguaje visual real. Se carga EL ÚLTIMO y manda sobre
      las capas anteriores: neutro, denso, sin botones gigantes. -->
-<link rel="stylesheet" href="css/pro.css?v=1" />
+<link rel="stylesheet" href="css/pro.css?v=2" />
 <link rel="manifest" href="manifest.webmanifest" />
 <script>
   /* firma visual v3 «CINE»: se aplica antes del primer pintado (sin parpadeos).
@@ -52,22 +52,20 @@
   <div id="frame-bot" aria-hidden="true"></div>
   <div id="aurora" aria-hidden="true"></div>
 
-  <!-- ============ INGRESO · portada cinematográfica ============ -->
+  <!-- ============ INGRESO · una pantalla, una acción ============
+       Aquí NO hay selector de tema ni CTA demarketing: una frase y un
+       botón. El cambio de luz (CINE/NOCHE) vive en APARIENCIA y en el
+       HUD, que es donde se decide, no en la puerta. -->
   <div id="entry" role="dialog" aria-label="Entrar en BAYONA">
     <div class="e-corner">
       <span class="brand-mark">◈</span>
       <span class="brand-name">BAYONA</span>
     </div>
     <div class="e-kicker">TU ENTRENAMIENTO. TU RITMO.</div>
-    <h1 class="e-title">MÁS FUERTE.<br /><em>MÁS TÚ.</em></h1>
-    <div class="e-line"></div>
+    <h1 class="e-title">Más fuerte.<br />Más tú.</h1>
     <div class="e-sub">Un plan que encaja contigo. Cada ejercicio, cada serie y cada pequeño avance, en un solo lugar.</div>
     <div class="e-actions">
       <button class="e-enter" id="entry-go">ENTRAR</button>
-      <div class="e-modes" role="group" aria-label="Luz">
-        <button class="e-mode on" data-mode="cine">◐ CINE</button>
-        <button class="e-mode" data-mode="noche">● NOCHE</button>
-      </div>
     </div>
   </div>
 

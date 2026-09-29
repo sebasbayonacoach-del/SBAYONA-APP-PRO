@@ -267,7 +267,10 @@ body.fitness-app .card {
 body.fitness-app .card.shine::after,
 body.fitness-app .card::after { display: none !important; }
 body.fitness-app .card-row { gap: 8px; align-items: center; }
-body.fitness-app .card h4 { font-size: 14px; }
+/* El `font` entero, no solo font-size: la capa anterior usa el atajo
+   `font` y dejar dos declaraciones para el mismo rasgo es una fuente
+   de sorpresas según el orden de carga. */
+body.fitness-app .card h4 { font: 600 14px/1.35 var(--sans); }
 
 /* ============================================================
    8 · BOTONES · 30 px. Ni uno grande.
@@ -677,6 +680,11 @@ body.fitness-app .toast.gold { background: var(--fit-ink); }
    18 · ONBOARDING · un formulario, no un cartel
    ============================================================ */
 body.fitness-app #ob-box { border-radius: 8px; padding: 20px; }
+/* en móvil el onboarding ocupa toda la altura: sin radio, que una caja
+   a pantalla completa con esquinas redondeadas parece un error */
+@media (max-width: 760px) {
+  body.fitness-app #ob-box { border-radius: 0; padding: 24px 20px; }
+}
 body.fitness-app #ob-box h2 { font: 600 20px/1.2 var(--sans); letter-spacing: -.025em; }
 body.fitness-app #ob-box .ob-sub, body.fitness-app #ob-box .ob-check { font: 400 13px/1.55 var(--sans); color: var(--fit-muted); }
 body.fitness-app #ob-box button { min-height: 32px; height: 32px; border-radius: 5px; font: 500 13px/1 var(--sans); letter-spacing: 0; }
@@ -698,7 +706,107 @@ body.fitness-app .data-shot + .data-shot { margin-top: 4px; }
 body.fitness-app .data-shot .ds-meta { font: 400 11.5px/1.4 var(--sans); color: var(--fit-muted); font-variant-numeric: tabular-nums; }
 
 /* ============================================================
-   20 · IMPRESIÓN Y MOVIMIENTO REDUCIDO
+   20 · CENTRO · gestión del gimnasio
+   ------------------------------------------------------------
+   Mismo lenguaje que el resto: filas de 28 px, filete de 1 px,
+   cifras tabulares y el color SOLO para el estado (alerta). Sin
+   tarjetas gigantes ni botones de 48 px.
+   ============================================================ */
+body.fitness-app .gym-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 1px;
+  background: var(--fit-line);
+  border: 1px solid var(--fit-line);
+  border-radius: var(--pro-radius);
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+body.fitness-app .gym-stat { background: var(--fit-surface); padding: 10px 12px; }
+body.fitness-app .gym-stat-v {
+  font: 600 19px/1.15 var(--sans);
+  letter-spacing: -.025em;
+  font-variant-numeric: tabular-nums;
+}
+body.fitness-app .gym-stat-k {
+  font: 500 10.5px/1.4 var(--sans);
+  color: var(--fit-muted);
+  margin-top: 3px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+body.fitness-app .gym-stat-n { font: 400 11px/1.4 var(--sans); color: var(--fit-muted); margin-top: 2px; }
+
+body.fitness-app .gym-panel {
+  background: var(--fit-surface);
+  border: 1px solid var(--fit-line);
+  border-radius: var(--pro-radius);
+  padding: 10px 12px;
+  margin-bottom: 6px;
+}
+body.fitness-app .gym-fila {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 28px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--fit-line);
+}
+body.fitness-app .gym-fila:last-child { border-bottom: 0; }
+body.fitness-app .gym-fila-k { font: 500 12.5px/1.45 var(--sans); color: var(--fit-ink); text-transform: capitalize; }
+body.fitness-app .gym-fila-v { font: 500 12.5px/1.45 var(--sans); color: var(--fit-muted); font-variant-numeric: tabular-nums; }
+body.fitness-app .gym-fila-v.alerta { color: var(--danger); font-weight: 600; }
+
+body.fitness-app .gym-porque {
+  font: 400 12px/1.5 var(--sans);
+  color: var(--fit-muted);
+  margin: 4px 0 8px;
+}
+body.fitness-app .gym-porque.alerta { color: var(--danger); }
+
+body.fitness-app .gym-pill {
+  font: 500 10px/1.4 var(--sans);
+  letter-spacing: .04em;
+  padding: 2px 6px;
+  border-radius: 3px;
+  border: 1px solid var(--fit-line);
+  background: var(--fit-bg);
+  color: var(--fit-muted);
+  white-space: nowrap;
+}
+body.fitness-app .gym-pill.ok { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 30%, var(--fit-line)); }
+body.fitness-app .gym-pill.danger { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 30%, var(--fit-line)); background: color-mix(in srgb, var(--danger) 6%, var(--fit-surface)); }
+body.fitness-app .gym-pill.quiet { opacity: .8; }
+
+body.fitness-app .gym-barra { height: 3px; background: var(--fit-line); border-radius: 0; margin: 6px 0; }
+body.fitness-app .gym-barra i { display: block; height: 100%; background: var(--fit-ink); }
+
+body.fitness-app .gym-cabecera { padding: 6px 0 10px; border-bottom: 1px solid var(--fit-line); margin-bottom: 4px; }
+body.fitness-app .gym-cabecera-n { font: 600 19px/1.25 var(--sans); letter-spacing: -.02em; text-transform: capitalize; }
+
+body.fitness-app .gym-buscador { display: flex; gap: 6px; margin-bottom: 10px; }
+body.fitness-app .gym-buscador input { flex: 1; min-width: 0; }
+body.fitness-app .gym-acciones { display: flex; gap: 6px; flex-wrap: wrap; margin: 10px 0 4px; }
+
+body.fitness-app .gym-form { display: grid; gap: 0; margin: 10px 0 4px; }
+body.fitness-app .gym-form label { display: flex; flex-direction: column; gap: 3px; padding: 7px 0; border-bottom: 1px solid var(--fit-line); }
+body.fitness-app .gym-form span { font: 500 10.5px/1.4 var(--sans); color: var(--fit-muted); letter-spacing: .04em; }
+
+body.fitness-app .gym-vacio {
+  border: 1px dashed var(--fit-line);
+  border-radius: var(--pro-radius);
+  padding: 18px 14px;
+  font: 400 12.5px/1.6 var(--sans);
+  color: var(--fit-muted);
+  text-align: center;
+  margin: 8px 0;
+}
+body.fitness-app .gym-nota-form { display: flex; gap: 6px; margin-bottom: 8px; }
+body.fitness-app .gym-nota-form input { flex: 1; min-width: 0; }
+
+/* ============================================================
+   21 · IMPRESIÓN Y MOVIMIENTO REDUCIDO
    ============================================================ */
 @media (prefers-reduced-motion: reduce) {
   body.fitness-app * { animation: none !important; transition: none !important; }

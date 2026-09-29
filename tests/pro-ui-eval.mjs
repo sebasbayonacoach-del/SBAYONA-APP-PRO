@@ -110,9 +110,115 @@ const topePortada = Number((entrada.match(/font:[^;]*?(\d+)px/) || [])[1]);
 assert(topePortada > 0 && topePortada <= 40, `la portada arranca en ${topePortada || "?"} px (no 100)`, entrada);
 
 /* ============================================================
-   6 · NO ROMPE LA CAPA ANTERIOR
+   6 · LA CAPA PRO MANDA DE VERDAD (no «creo que gana»)
+   ------------------------------------------------------------
+   Decir «mi selector es más específico» no es una prueba: si una
+   capa anterior empatara, ganaría la ÚLTIMA hoja, y si alguien
+   añadiera una regla más específica después, la nuestra dejaría de
+   aplicarse sin que se enterase nadie. Aquí se resuelve la cascada
+   a mano (especificidad + orden de carga) y se exige que, para las
+   propiedades clave, gane pro.css.
    ============================================================ */
-console.log("— la capa anterior sigue siendo dueña de su estructura —");
+console.log("— la cascada la resuelve pro.css —");
+
+/** Divide una lista de selectores por comas SIN partir dentro de :not(...). */
+function partirSelectores(sel) {
+  const out = [];
+  let depth = 0, actual = "";
+  for (const ch of sel) {
+    if (ch === "(") depth++;
+    if (ch === ")") depth--;
+    if (ch === "," && depth === 0) { out.push(actual); actual = ""; continue; }
+    actual += ch;
+  }
+  if (actual.trim()) out.push(actual);
+  return out.map((s) => s.trim().replace(/\s+/g, " ")).filter(Boolean);
+}
+
+/** Reglas de una hoja: selector → mapa de propiedad→valor. */
+function reglasDe(css) {
+  // Se descartan los bloques @media: no añaden especificidad y aquí
+  // solo necesitamos la declaración de la regla normal.
+  const limpio = css.replace(/@media[^{]*\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/g, "");
+  const out = [];
+  for (const m of limpio.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    const sel = m[1].trim();
+    if (!sel || sel.startsWith("@")) continue;
+    const props = new Map();
+    for (const d of m[2].split(";")) {
+      const i = d.indexOf(":");
+      if (i > 0) props.set(d.slice(0, i).trim(), d.slice(i + 1).trim());
+    }
+    if (!props.size) continue;
+    // una regla con «a, b, c» son TRES reglas para la cascada
+    for (const uno of partirSelectores(sel)) out.push({ sel: uno, props });
+  }
+  return out;
+}
+const compFinal = (sel) => sel.trim().split(/[\s>+~]+/).pop();
+function especificidad(sel) {
+  const ids = (sel.match(/#[\w-]+/g) || []).length;
+  const clases = (sel.match(/\.[\w-]+/g) || []).length;
+  const pseudos = (sel.match(/:(?!:)[\w-]+/g) || []).length;
+  const elementos = (sel.match(/(^|[\s>+~])[a-zA-Z][\w-]*/g) || []).length;
+  return ids * 10000 + (clases + pseudos) * 100 + Math.min(99, elementos);
+}
+const hojasCargadas = hojas.map((nombre) => ({ nombre, reglas: reglasDe(leer(nombre)) }));
+
+/** Qué declaración gana de verdad para un elemento y una propiedad. */
+function ganaDe(elemento, propiedad) {
+  let mejor = null;
+  hojasCargadas.forEach((hoja, i) => {
+    for (const r of hoja.reglas) {
+      if (compFinal(r.sel) !== elemento || !r.props.has(propiedad)) continue;
+      const sp = especificidad(r.sel);
+      if (!mejor || sp > mejor.sp || (sp === mejor.sp && i > mejor.i)) mejor = { hoja: hoja.nombre, valor: r.props.get(propiedad), sp, i, sel: r.sel };
+    }
+  });
+  return mejor;
+}
+
+const DEBE_GANAR_PRO = [
+  [".btn", "min-height", "el botón"],
+  [".btn", "height", "la altura del botón"],
+  [".e-title", "font", "el titular de la portada"],
+  ["h4", "font", "el título de las tarjetas"],
+  ["#drawer-title", "font", "el título del panel"],
+  [".rail-btn", "min-height", "los elementos del menú"],
+  [".card", "border-radius", "el radio de las tarjetas"],
+  [".pill", "border-radius", "el radio de las etiquetas"],
+  ["#modal-box", "border-radius", "el modal"],
+  [".dash-val", "font", "las cifras del tablero"],
+  [".sec-label", "font", "las etiquetas de sección"],
+  ["input:not([type=\"checkbox\"]):not([type=\"range\"])", "min-height", "los campos de texto"],
+];
+for (const [elemento, propiedad, que] of DEBE_GANAR_PRO) {
+  const g = ganaDe(elemento, propiedad);
+  assert(g && g.hoja === "css/pro.css",
+    `${que}: gana ${g ? g.hoja + " (" + (g.valor || "").slice(0, 28) + ")" : "nadie"}`,
+    g ? `gana ${g.hoja} con «${g.sel}»` : "no hay ninguna regla");
+}
+
+/* ============================================================
+   7 · NO ROMPE LA CAPA ANTERIOR
+   ============================================================ */
+/* ============================================================
+   8 · LA PUERTA ES UNA PANTALLA, NO UN CARTEL
+   ============================================================ */
+console.log("— la entrada: una acción y ya —");
+const splash = (index.match(/<div id="entry"[\s\S]*?<\/div>\s*<!--/)?.[0]) || index;
+assert(!/e-modes|class="e-mode"/.test(index), "la portada ya no ofrece el selector de luz");
+assert(/id="entry-go"/.test(index), "la portada tiene su única acción: ENTRAR");
+assert((splash.match(/<button/g) || []).length === 1, "la portada tiene UN botón, no una fila de opciones");
+assert(/js\/ui\/appearance\.js/.test(leer("js/main.js")) === false,
+  "main.js ya no arrastra el interruptor de la portada (vive en Apariencia y el HUD)");
+const apariencia = leer("js/ui/appearance.js");
+assert(/CINE . BLANCO|"cine"/.test(apariencia) && /noche/.test(apariencia),
+  "el cambio de luz sigue disponible donde se decide: Apariencia");
+
+/* ============================================================
+   9 · NO ROMPE LA CAPA ANTERIOR
+   ============================================================ */
 const dash = leer("css/dashboard.css");
 assert(/body\.fitness-app\.dash-pc #scene-wrap \{[\s\S]*?inset:\s*var\(--dash-top\)\s*var\(--dash-panel\)\s*0\s*var\(--dash-rail\)/.test(dash),
   "la rejilla del tablero sigue intacta (pro.css solo la pisa, no la rompe)");
