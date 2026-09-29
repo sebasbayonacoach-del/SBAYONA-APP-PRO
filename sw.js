@@ -4,8 +4,11 @@
 // Con esto la app abre sin red y el registro de series funciona offline
 // (los datos viven en el dispositivo y se sincronizan después).
 // ============================================================
-const CACHE = "bayona-shell-v8";
+const CACHE = "bayona-shell-v10";
 const SHELL = [
+  "./css/fitness.css", "./js/ui/fitness.js",
+  "./js/personalization.js", "./js/cycle.js", "./js/ui/personal.js", "./css/personal.css",
+  "./js/sync/config.js", "./js/sync/supabase.js", "./js/nutricion-db.js", "./js/data/alimentos.json",
   "./index.html",
   "./manifest.webmanifest",
   "./css/style.css", "./css/aurum.css", "./css/motion.css",
@@ -40,7 +43,7 @@ self.addEventListener("install", (e) => {
 self.addEventListener("activate", (e) => {
   e.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k.startsWith("bayona-shell-") && k !== CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
@@ -59,13 +62,13 @@ self.addEventListener("fetch", (e) => {
           caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => { /* cuota */ });
         }
         return res;
-      }).catch(() => caches.match(req).then((hit) => hit || caches.match("./index.html")))
+      }).catch(() => caches.match(req, { ignoreSearch: true }).then((hit) => hit || (req.mode === "navigate" ? caches.match("./index.html") : new Response("Sin conexión", { status: 503 }))))
     );
     return;
   }
   // media/wasm: cache primero (son estables y pesados)
   e.respondWith(
-    caches.match(req).then((hit) => {
+    caches.match(req, { ignoreSearch: true }).then((hit) => {
       const net = fetch(req).then((res) => {
         if (res && res.status === 200) {
           const copy = res.clone();

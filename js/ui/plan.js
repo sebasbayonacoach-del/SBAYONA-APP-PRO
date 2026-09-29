@@ -72,7 +72,7 @@ function simpleView(week, phase) {
   wrap.appendChild(card);
   wrap.appendChild(el("div", "sec-label", "MICROCICLO · SEMANA EN CURSO"));
   const micro = el("div", "card");
-  MACRO.dayPlan.forEach((id, i) => {
+  S.weekPlan().forEach((id, i) => {
     micro.appendChild(el("div", "kv",
       `<span class="k">${MACRO.dayNames[i]}</span><span class="v">${id ? esc(WORKOUTS[id].name.replace("OPERACIÓN: ", "")) : "DESCANSO"}</span>`));
   });
@@ -87,7 +87,7 @@ function labView(week) {
   // adherencia real: sesiones completadas por semana del plan
   const done = S.data.plan.sessionsDone || {};
   const adherence = (wk) => {
-    const planned = MACRO.dayPlan.filter(Boolean).length;
+    const planned = S.weekPlan().filter(Boolean).length;
     let n = 0;
     for (const k of Object.keys(done)) if (k.startsWith(wk + "-")) n++;
     return planned ? Math.round((n / planned) * 100) : 0;
@@ -103,7 +103,7 @@ function labView(week) {
     rows += `<tr class="${i === week ? "current" : ""}">
       <td>SEM ${String(i).padStart(2, "0")}</td>
       <td>${esc(p.name)}</td>
-      <td>${MACRO.dayPlan.filter(Boolean).length}</td>
+      <td>${S.weekPlan().filter(Boolean).length}</td>
       <td>${volSets}</td>
       <td>${(p.int * 100).toFixed(0)}%</td>
       <td>${fmtInt(tonnage)} kg</td>

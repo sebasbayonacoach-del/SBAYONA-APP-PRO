@@ -1,3 +1,4 @@
+import { rhythmTrainingCard } from "./personal.js";
 // ============================================================
 // BAYONA — GIMNASIO: sesión real, registro de series, descanso, PR
 // Todo lo anunciado se aplica: el volumen autoregulado recorta de verdad,
@@ -10,7 +11,7 @@ import {
 } from "../engine.js";
 import { previewWorkoutXP, workoutCompleteReward, setReward, prReward } from "../rewards.js";
 import { videoFor, posterFor, tipFor, DAY_ICONS } from "../media.js";
-import { esc, fmtDec, fmtInt, fmtDate } from "../i18n.js";
+import { esc, fmtDec, fmtInt, fmtDate, t } from "../i18n.js";
 import {
   UI, $, el, elT, openDrawer, openSection, showModal, hideModal, toast,
   haptic, playTone, enterHome, BUILDERS,
@@ -46,8 +47,10 @@ BUILDERS.training = (body) => {
   if (act && act.status !== "completada" && act.status !== "abandonada") {
     body.appendChild(resumeCard(act));
   }
+  const rhythm = rhythmTrainingCard();
+  if (rhythm) body.appendChild(rhythm);
   const goal = S.data.profile.goal;
-  body.appendChild(el("div", "sec-label", `PLAN PERSONALIZADO · ${esc(goal)}`));
+  body.appendChild(el("div", "sec-label", t("training.personalPlan", { goal: esc(goal) })));
   const w = S.todayWorkout();
   if (!w) {
     body.appendChild(el("div", "card", `<h4>DÍA DE RECUPERACIÓN</h4><div class="sub">Hoy no hay sesión de fuerza programada. La fase actual prioriza recuperación activa.</div>`));
@@ -55,10 +58,21 @@ BUILDERS.training = (body) => {
   } else {
     body.appendChild(workoutCard(w));
   }
-  body.appendChild(el("div", "sec-label", "CALENDARIO DE LA SEMANA"));
+  body.appendChild(el("div", "sec-label", t("training.weekCalendar")));
   body.appendChild(weekCalendar());
-  body.appendChild(el("div", "sec-label", "TODOS LOS PROTOCOLOS"));
-  Object.values(WORKOUTS).forEach((x) => x !== w && body.appendChild(workoutCard(x)));
+  body.appendChild(el("div", "sec-label", t("training.catalog")));
+  const label = el("label", "fit-search-label", t("training.searchLabel"));
+  label.htmlFor = "workout-search";
+  const search = el("input", "fit-search"); search.id = "workout-search"; search.type = "search"; search.placeholder = t("training.searchPlaceholder");
+  const results = el("div", "fit-catalog-grid");
+  const renderResults = () => {
+    results.textContent = "";
+    const term = search.value.trim().toLocaleLowerCase("es");
+    const found = Object.values(WORKOUTS).filter(x => `${x.name} ${x.tag} ${x.desc} ${x.exercises.map(e=>EXERCISES[e.ex]?.muscle).join(" ")}`.toLocaleLowerCase("es").includes(term));
+    for (const x of found) results.append(workoutCard(x));
+    if (!found.length) results.append(el("p", "fit-catalog-empty", t("training.searchEmpty")));
+  };
+  search.addEventListener("input", renderResults);body.append(label, search, results);renderResults();
 };
 
 function resumeCard(act) {
@@ -149,7 +163,7 @@ function weekCalendar() {
 
 // acceso directo al ciclo de datos
 const MACRO_WEEKS = () => MACRO.totalWeeks;
-const MACRO_DAYPLAN = () => MACRO.dayPlan;
+const MACRO_DAYPLAN = () => S.weekPlan();
 const DAY_NAMES = () => MACRO.dayNames;
 
 function showDayDetail(wid, date, cell, grid) {
@@ -165,7 +179,7 @@ function showDayDetail(wid, date, cell, grid) {
   }
   const w = WORKOUTS[wid];
   const c = el("div", "card");
-  c.innerHTML = `<h4>${DAY_ICONS[wid]} ${esc(w.name)}</h4><div class="sub">${esc(dstr)} · ${esc(w.min)} min · ${esc(w.desc)}</div>`;
+  c.innerHTML = `<h4>${DAY_ICONS[wid]} ${esc(w.name.replace(/^OPERACIÓN:\s*/, ""))}</h4><div class="sub">${esc(dstr)} · ${esc(w.min)} min · ${esc(w.desc)}</div>`;
   const b = el("button", "btn btn-primary btn-block", "EMPEZAR SESIÓN");
   b.style.marginTop = "12px";
   b.addEventListener("click", () => startWorkout(w));
@@ -173,7 +187,7 @@ function showDayDetail(wid, date, cell, grid) {
   box.appendChild(c);
   w.exercises.forEach((s) => {
     const E = EXERCISES[s.ex];
-    const row = el("div", "ex-media-row");
+    const row = el("button", "ex-media-row");
     const thumb = posterFor(s.ex)
       ? `<img src="${posterFor(s.ex)}" loading="lazy" alt="${esc(E.name)}" />`
       : `<div class="no-thumb">—</div>`;
@@ -195,24 +209,24 @@ function workoutCard(w) {
   const isToday = auto && auto.workout.id === w.id;
   const prev = previewWorkoutXP(w);
   const bonus = workoutCompleteReward({ minutes: w.min });
-  const c = el("div", "card");
+  const c = el("div", "card workout-card");
   c.innerHTML = `
     <div class="card-row">
       <div class="grow">
-        <h4>${esc(w.name)}</h4>
+        <h4>${esc(w.name.replace(/^OPERACIÓN:\s*/, ""))}</h4>
         <div class="sub">${esc(w.desc)}</div>
       </div>
     </div>
     <div class="card-row" style="margin-top:10px">
       <span class="pill blue">${esc(w.tag)}</span>
       <span class="pill">${esc(w.min)} MIN</span>
-      <span class="pill gold">~${fmtInt(prev.xp)} XP + ${bonus.xp} cierre</span>
+      <span class="pill">${w.exercises.length} EJERCICIOS</span>
       ${done ? '<span class="pill green">COMPLETADO HOY</span>' : ""}
     </div>`;
   if (isToday && auto.applied) {
     c.appendChild(el("div", "sub", `<div class="autoreg">AUTORREGULADO · ${esc(auto.adjusted)}/${esc(auto.original)} series (se aplica al empezar)<br>${esc(auto.note)}</div>`));
   }
-  const btn = el("button", "btn btn-primary btn-block", done ? "REPETIR SESIÓN" : isToday ? "EMPEZAR MISIÓN" : "EMPEZAR");
+  const btn = el("button", "btn btn-primary btn-block", done ? "REPETIR SESIÓN" : isToday ? "EMPEZAR ENTRENAMIENTO" : "EMPEZAR");
   btn.style.marginTop = "12px";
   if (done) btn.title = "Repetir registra series reales, pero el bono de finalización diario ya se usó.";
   btn.addEventListener("click", () => startWorkout(w));
@@ -259,7 +273,7 @@ function renderSession() {
   document.querySelectorAll(".rail-btn").forEach((x) => x.classList.toggle("active", x.dataset.go === "training"));
 
   const prog = el("div", "card");
-  prog.innerHTML = `<div class="card-row"><span class="pill gold">MISIÓN ${esc(session.logged)}/${esc(session.plannedSets)} SERIES</span><span class="pill blue">XP ACUMULADO ${fmtInt(session.xpAcc || 0)}</span></div>`;
+  prog.innerHTML = `<div class="card-row"><span class="pill gold">${esc(session.logged)} / ${esc(session.plannedSets)} SERIES REGISTRADAS</span><span class="pill">EJERCICIO ${Math.min(session.exIdx+1,session.exercises.length)} DE ${session.exercises.length}</span></div><div class="fit-session-progress" role="progressbar" aria-label="Series registradas" aria-valuemin="0" aria-valuemax="${session.plannedSets}" aria-valuenow="${session.logged}"><i style="width:${session.logged/Math.max(1,session.plannedSets)*100}%"></i></div>`;
   body.appendChild(prog);
 
   if (exIdx >= session.exercises.length) return finishWorkout();
@@ -274,34 +288,27 @@ function renderSession() {
     <div class="scheme">SERIE ${setIdx + 1}/${s.sets} · ${esc(schemeText(s))}</div>`;
   body.appendChild(hero);
 
+  const sug = s.kg > 0 ? nextLoad(s.ex, s.kg, s.reps, s.rir) : 0;
+  body.appendChild(setForm(s, setIdx, sug));
+  const technique = el("details", "fit-technique");
+  technique.append(el("summary", "", "Técnica e instrucciones"));
   const vid = videoFor(s.ex);
   if (vid) {
-    const mh = el("div", "media-hero");
-    mh.innerHTML = `<span class="badge demo">DEMO PREGRABADA</span>
-      <video src="${vid}" autoplay loop muted playsinline poster="${posterFor(s.ex) || ""}"></video>`;
-    body.appendChild(mh);
-    body.appendChild(el("div", "media-caption", `VÍDEO DE DEMOSTRACIÓN · TÉCNICA — ${tipFor(s.ex)}`));
-  } else {
-    body.appendChild(el("div", "media-hero missing",
-      `<span class="badge demo">SIN VÍDEO</span><div class="media-missing">Sin demostración en vídeo para ${esc(E.name)}.<br>Sigue las instrucciones:</div>`));
-    body.appendChild(el("div", "media-caption", esc(tipFor(s.ex))));
+    technique.append(el("div", "media-hero", `<video src="${vid}" controls muted playsinline preload="none" poster="${posterFor(s.ex) || ""}"></video>`));
+    technique.append(el("div", "media-caption", "Demostración pregrabada"));
   }
-  body.appendChild(el("div", "media-caption",
-    EXACT_POSE[s.ex] ? "Tu avatar ejecuta el movimiento en el mundo." : "Animación orientativa del avatar (no es una captura tuya)."));
-
-  // carga sugerida de hoy (se pre-llena y se USA realmente en el registro)
-  const sug = s.kg > 0 ? nextLoad(s.ex, s.kg, s.reps, s.rir) : 0;
-  // ---- REGISTRO DE SERIE (editable antes de confirmar) ----
-  body.appendChild(setForm(s, setIdx, sug));
+  technique.append(el("p", "media-caption", esc(tipFor(s.ex))));
+  body.append(technique);
 
   // ---- MOTOR DE RENDIMIENTO: la carga sugerida SE USA en el registro ----
   const sug2 = sug;
   const last = S.data.prs[s.ex];
   const pro = el("div", "card");
-  pro.innerHTML = `
+  const performanceHtml = `
     <div class="sec-label" style="margin-top:0">MOTOR DE RENDIMIENTO</div>
     <div class="kv"><span class="k">ÚLTIMO RÉCORD</span><span class="v">${last ? `${esc(last.kg)} kg × ${esc(last.reps)} · 1RM ${esc(last.e1)}` : "— el primero es hoy —"}</span></div>
     ${s.kg > 0 ? `<div class="kv"><span class="k">CARGA SUGERIDA HOY</span><span class="v" style="color:var(--orange)">${fmtDec(sug2)} kg (base ${fmtDec(s.kg)})</span></div>` : ""}`;
+  pro.innerHTML = performanceHtml;
   const warm = warmupSets(sug2 || s.kg);
   if (warm.length) {
     pro.appendChild(el("div", "kv", `<span class="k">CALENTAMIENTO</span><span class="v">${warm.map((x) => `${fmtDec(x.kg)}×${x.reps}`).join(" · ")}</span>`));
@@ -320,7 +327,7 @@ function renderSession() {
   body.appendChild(el("div", "sec-label", `PLAN DE HOY · ${session.exercises.length} EJERCICIOS`));
   session.exercises.forEach((sx, i) => {
     const E2 = EXERCISES[sx.ex];
-    const row = el("div", "ex-media-row");
+    const row = el("button", "ex-media-row");
     let dots = "";
     for (let k = 0; k < sx.sets; k++) dots += `<span class="set-dot ${i < exIdx || (i === exIdx && k < setIdx) ? "done" : ""}"></span>`;
     const thumb = posterFor(sx.ex) ? `<img src="${posterFor(sx.ex)}" alt="${esc(E2.name)}" loading="lazy" />` : `<div class="no-thumb">—</div>`;
@@ -351,7 +358,7 @@ function renderSession() {
 
   const row2 = el("div", "card-row");
   const bPause = el("button", "btn grow", "PAUSAR");
-  bPause.addEventListener("click", () => pauseSession("Sesión pausada"));
+  bPause.addEventListener("click", () => { pauseSession("Sesión pausada"); openSection("hoy"); });
   const bEnd = el("button", "btn btn-danger grow", "FINALIZAR SESIÓN");
   bEnd.addEventListener("click", async () => {
     const ok = await confirmEarlyFinish({ loggedSets: session.logged, plannedSets: session.plannedSets, minutes: session.minutes });
@@ -388,10 +395,11 @@ function setForm(s, setIdx, sug) {
     <div class="sub">Edita los valores reales antes de confirmar. RIR = repeticiones que te quedaban en reserva.</div>
     <button class="btn btn-primary btn-block btn-big" id="sf-ok">REGISTRAR SERIE</button>`;
   wrap.querySelector("#sf-ok").addEventListener("click", () => {
-    const kg = s.kg > 0 ? parseFloat(wrap.querySelector("#sf-kg").value) || 0 : 0;
+    const kg = s.kg > 0 ? Number(wrap.querySelector("#sf-kg").value) : 0;
     const reps = parseInt(wrap.querySelector("#sf-reps").value, 10) || 0;
     const rir = parseInt(wrap.querySelector("#sf-rir").value, 10);
     if (reps <= 0) return toast("REVISA LA SERIE", timed ? "Indica los segundos realizados." : "Indica las repeticiones realizadas.", "danger");
+    if (!Number.isFinite(kg) || kg < 0 || !Number.isInteger(rir) || rir < 0 || rir > 4) return toast("REVISA LA SERIE", "La carga debe ser cero o positiva y el RIR debe estar entre 0 y 4.", "danger");
     logCurrentSet({ kg, reps, rir });
   });
   return wrap;
@@ -423,10 +431,11 @@ function logCurrentSet({ kg, reps, rir }) {
   else session.setIdx++;
   persist();
   renderSession();
-  startRest(90);
+  if (UI.session) startRest(90);
 }
 
 function undoLastSet() {
+  endRest();
   const session = UI.session;
   const r = session.setsDone.pop();
   if (!r) return;
@@ -442,12 +451,16 @@ function undoLastSet() {
 
 // ---------------- DESCANSO (pausa · continuar · saltar) ----------------
 function startRest(sec) {
+  if (!UI.session) return;
+  const restingSessionId = UI.session.id;
   if (UI.restTimer) { clearInterval(UI.restTimer.t); UI.restTimer = null; }
   const body = openDrawer("DESCANSO", "RECUPERACIÓN ENTRE SERIES");
   let left = sec, paused = false;
   const wrap = el("div", "breath-wrap");
-  wrap.innerHTML = `<div class="breath-circle big" id="rest-circle">${left} s</div><div class="mono" style="color:var(--mute);font-size:11px">RESPIRA · TU AVATAR DESCANSA CONTIGO</div>`;
+  wrap.innerHTML = `<div class="breath-circle big" id="rest-circle">${left} s</div><div class="mono" style="color:var(--mute);font-size:11px">RECUPERA EL ALIENTO. LA SIGUIENTE SERIE TE ESPERA.</div>`;
   body.appendChild(wrap);
+  const next = UI.session.exercises[UI.session.exIdx];
+  if (next) body.append(el("p", "fit-rest-next", `Después: ${esc(EXERCISES[next.ex].name)} · serie ${UI.session.setIdx + 1}/${next.sets}`));
   UI.W?.avatar.setAction("idle");
   const row = el("div", "card-row");
   const bPause = el("button", "btn grow", "PAUSA");
@@ -457,6 +470,7 @@ function startRest(sec) {
   row.append(bPause, bSkip);
   body.appendChild(row);
   const tick = () => {
+    if (!UI.session || UI.session.id !== restingSessionId || $("#drawer").dataset.section !== "training") { endRest(); return; }
     left--;
     const c = $("#rest-circle");
     if (c) { c.textContent = `${left} s`; if (left <= 5) c.style.color = "var(--orange)"; }
@@ -477,12 +491,14 @@ function endRest() {
 
 // ---------------- PAUSAR / REANUDAR / ABANDONAR ----------------
 function pauseSession(reason = "Sesión pausada") {
+  endRest();
   if (!UI.session) return;
   UI.session.status = "pausada";
   persist();
   S.data.activeSession = UI.session;
   S.save();
   UI.session = null;
+  document.body.classList.remove("modo-sesion");
   toast("SESIÓN PAUSADA", `${reason} · se guarda en este dispositivo y puedes reanudarla.`);
 }
 function resumeSession() {
@@ -508,6 +524,7 @@ function abandonSession() {
     $("#m-keep").onclick = hideModal;
     $("#m-ab").onclick = () => {
       hideModal();
+      endRest();
       S.abandonWorkout(act.workoutId, { loggedSets: act.logged });
       act.status = "abandonada";
       UI.session = null;
@@ -520,6 +537,7 @@ function abandonSession() {
 
 // ---------------- FINALIZAR ----------------
 function finishWorkout() {
+  endRest();
   const session = UI.session;
   if (!session) return BUILDERS.training();
   document.body.classList.remove("modo-sesion"); // resumen → vuelve el sistema completo

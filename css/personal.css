@@ -1,0 +1,40 @@
+/* BAYONA: personalized profile and optional menstrual diary. */
+.personal-hero{padding:24px 0 22px;border-bottom:1px solid var(--hair);margin-bottom:20px}
+.personal-eyebrow{font:600 10px/1.5 var(--mono);letter-spacing:.16em;color:var(--acc-2);margin-bottom:16px}
+.personal-hero h3{font:400 clamp(28px,5vw,40px)/1.08 var(--serif);letter-spacing:-.035em;color:var(--ink);margin:0 0 16px}
+.personal-hero p,.personal-privacy p,.personal-guidance p,.personal-settings p{font:400 14px/1.6 var(--sans);color:var(--ink-soft);margin:10px 0 0}
+.personal-form{display:grid;gap:10px}
+.personal-form>label:not(.personal-check){font:600 12px/1.4 var(--sans);margin-top:8px;color:var(--ink)}
+.personal-form input:not([type=checkbox]),.personal-form select{width:100%;min-width:0;box-sizing:border-box;min-height:48px;border:1px solid var(--hair-strong);border-radius:10px;padding:12px;background:var(--paper);color:var(--ink);font:400 16px/1.4 var(--sans)}
+.personal-form option{background:var(--paper);color:var(--ink)}
+.personal-check{display:flex;align-items:flex-start;gap:12px;font:400 13px/1.55 var(--sans);margin:8px 0;cursor:pointer;color:var(--ink)}
+.personal-check input{width:22px;height:22px;flex-shrink:0;margin-top:0;accent-color:var(--acc-2)}
+.personal-note{font:400 12px/1.65 var(--sans);color:var(--ink-soft);margin:8px 0 16px}
+.personal-form [role=status]{min-height:20px;font:500 13px/1.5 var(--sans);margin:0}
+.personal-form [data-error=true]{font-weight:700}
+.personal-week{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin:10px 0}
+.personal-week>div{text-align:center;border:1px solid var(--hair);padding:9px 2px;border-radius:8px;font:500 11px/1.5 var(--mono);color:var(--ink-soft)}
+.personal-week b{display:block;margin-top:8px}.personal-week .planned{border-color:var(--acc-2);color:var(--acc-2)}
+.personal-metrics{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0 8px}
+.personal-metrics>div{padding:16px 12px;border:1px solid var(--hair);border-radius:12px}
+.personal-metrics span{display:block;font:500 9px/1.5 var(--mono);letter-spacing:.05em;color:var(--ink-soft)}
+.personal-metrics strong{display:block;font:400 24px/1.2 var(--serif);margin-top:10px;color:var(--ink)}
+.personal-settings summary,.personal-history summary{cursor:pointer;min-height:44px;font:600 12px/1.6 var(--sans);padding-top:6px;color:var(--ink)}
+.personal-history-row{display:flex;gap:16px;justify-content:space-between;padding:14px 0;border-top:1px solid var(--hair);font:400 12px/1.6 var(--sans);color:var(--ink-soft)}
+.personal-history-row time{white-space:nowrap;font-family:var(--mono)}
+.personal-guidance{border-left:3px solid var(--acc-2)}
+.personal-guidance .btn{margin-top:16px}
+.personal-form :focus-visible,.personal-settings :focus-visible,.personal-history :focus-visible{outline:2px solid var(--acc-2);outline-offset:4px}
+.e-title{overflow-wrap:anywhere}
+@media(max-width:420px){.personal-metrics{gap:8px}.personal-metrics strong{font-size:22px}.personal-history-row{gap:8px}}
+@media(prefers-reduced-motion:reduce){#ob-box{animation:none!important}}
+
+#drawer[data-section="profile"] #drawer-body>*,#drawer[data-section="rhythm"] #drawer-body>*{animation:none;filter:none}
+@media(max-width:700px){
+  #drawer[data-section="profile"],#drawer[data-section="rhythm"]{top:82px;bottom:8px;height:auto;max-height:none}
+  #drawer[data-section="profile"] .personal-hero,#drawer[data-section="rhythm"] .personal-hero{padding-top:12px}
+}
+/* Readable feedback in both light and dark modes. */
+.toast{background:var(--paper-2);color:var(--ink);border-radius:16px}
+.toast.gold{background:var(--acc-2);color:var(--acc-ink)}
+#drawer[data-section="profile"],#drawer[data-section="rhythm"]{background:var(--paper-2)}

@@ -66,10 +66,10 @@ export function travel(placeKey, after) {
 }
 
 export function enterHome(first) {
-  openSection("home");
+  openSection("hoy");
   if (UI.W) UI.W.avatar.setAction(S.data.today.trained ? "wave" : "idle");
   if (!first) setTimeout(() => UI.W?.avatar.setAction("idle"), 1800);
-  document.querySelectorAll(".rail-btn").forEach((x) => x.classList.toggle("active", x.dataset.go === "home"));
+  document.querySelectorAll(".rail-btn").forEach((x) => x.classList.toggle("active", x.dataset.go === "hoy"));
 }
 
 // ============================================================
@@ -89,6 +89,8 @@ export function openDrawer(title, sub) {
 }
 
 export function closeDrawer() {
+  if (document.body.classList.contains("fitness-app")) return openSection("hoy");
+  if (UI.session) UI.actions.pauseSession?.("Has cerrado el panel");
   $("#drawer").classList.remove("open");
   document.body.classList.remove("modo-sesion"); // el foco de sesión se cierra con el panel
   document.querySelectorAll(".rail-btn").forEach((x) => x.classList.remove("active"));
@@ -106,6 +108,10 @@ export function reopenPanel() {
  * (nunca se pierde; se reanuda desde ENTRENAMIENTO).
  */
 export function openSection(name) {
+  if (document.body.classList.contains("fitness-app") && name === "home") name = "hoy";
+  document.body.classList.toggle("avatar-view", name === "armory");
+  document.body.dataset.section = name;
+  $("#drawer").dataset.section = name;
   if (UI.session && name !== "training") {
     UI.actions.pauseSession?.("Has salido del entrenamiento");
   }
@@ -116,21 +122,32 @@ export function openSection(name) {
     x.classList.toggle("active", x.dataset.nav === name)
   );
   const title = TITLES[name] || TITLES.more;
-  travel(name); // el personaje viaja; la UI se construye YA (sin pisar vistas por carrera)
+  if (!document.body.classList.contains("fitness-app") || name === "armory") travel(name); // el personaje viaja; la UI se construye YA (sin pisar vistas por carrera)
   const body = openDrawer(title[0], title[1]);
   const build = BUILDERS[name] || BUILDERS.home;
   if (build) build(body);
+  body.scrollTop = 0;
+  const group = ["nutrition","recovery","mind","rhythm","daily"].includes(name) ? "wellbeing" : ["appearance","account","more","armory","core","trabajo","coachos"].includes(name) ? "profile" : name === "plan" ? "training" : name;
+  document.querySelectorAll("#panel-nav [data-go]").forEach(node => {
+    const active = node.dataset.go === group; node.classList.toggle("active", active);
+    if (active) node.setAttribute("aria-current", "page"); else node.removeAttribute("aria-current");
+  });
+  if (document.body.classList.contains("entered")) $("#drawer-title").focus({preventScroll:true});
 }
 
 export const TITLES = {
+  wellbeing: ["Bienestar", "RECUPERAR TAMBIÉN ES AVANZAR"],
+  daily: ["Mi día", "TUS HÁBITOS Y REGISTROS"],
+  rhythm: ["MI RITMO", "TU CUERPO · TUS DECISIONES"],
+  profile: ["Perfil", "UN PLAN QUE ENCAJA CONTIGO"],
   home:      ["INICIO", "TU MUNDO"],
-  hoy:       ["HOY", "TU DÍA · QUÉ HACER AHORA"],
-  training:  ["ENTRENAMIENTO", "GIMNASIO BAYONA"],
+  hoy:       ["Hoy", "ENTRENA A TU RITMO"],
+  training:  ["Entrenar", "TU PLAN · TU SIGUIENTE SERIE"],
   nutrition: ["NUTRICIÓN", "COCINA · ENERGÍA"],
   trabajo:   ["TRABAJO", "FOCO Y POSTURA"],
   recovery:  ["RECUPERACIÓN", "LABORATORIO"],
   mind:      ["MENTE", "SILENCIO"],
-  progress:  ["PROGRESO", "MI HISTORIA"],
+  progress:  ["Progreso", "CADA SERIE CUENTA"],
   plan:      ["PLAN", "MACROCICLO"],
   coachos:   ["COACH OS", "CENTRO DE MANDO"],
   armory:    ["ARMARIO", "VESTIDOR BAYONA"],

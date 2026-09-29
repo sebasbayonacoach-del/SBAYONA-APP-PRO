@@ -8,6 +8,38 @@
 export const locale = "es-ES";
 
 const es = {
+  "measure.title": "MEDICIONES · OPCIONAL",
+  "measure.note": "Registra solo lo que hayas medido hoy. La grasa corporal es una estimación. Deja vacíos los campos que no quieras registrar; actualizar el mismo día no duplica datos.",
+  "measure.save": "GUARDAR MEDICIÓN DE HOY",
+  "measure.empty": "Añade al menos una medición válida.",
+  "measure.failed": "No se pudo guardar. Revisa el almacenamiento y reintenta.",
+  "measure.saved": "MEDICIÓN GUARDADA",
+  "measure.savedNote": "Tu evolución se ha actualizado con datos reales.",
+
+  "personal.name": "¿Cómo te llamamos?",
+  "personal.weekPreview": "Vista previa de la semana",
+  "fitness.week": "Tu semana de entrenamiento",
+  "fitness.dayAria": "{date}: {state}{today}",
+  "fitness.dayDone": "entrenamiento registrado",
+  "fitness.dayPlanned": "sesión programada",
+  "fitness.dayRecovery": "recuperación",
+  "fitness.todaySuffix": ", hoy",
+  "fitness.tagline": "ENTRENA A TU RITMO",
+  "training.personalPlan": "PLAN PERSONALIZADO · {goal}",
+  "training.weekCalendar": "CALENDARIO DE LA SEMANA",
+  "training.catalog": "EXPLORA TUS ENTRENAMIENTOS",
+  "training.searchLabel": "Buscar por entrenamiento o músculo",
+  "training.searchPlaceholder": "Pierna, fuerza, movilidad…",
+  "training.searchEmpty": "No hay entrenamientos con ese nombre. Prueba con otro ejercicio o músculo.",
+  "cycle.since": "DESDE EL INICIO REGISTRADO",
+  "cycle.today": "¿CÓMO ESTÁS HOY?",
+  "cycle.history": "TUS ÚLTIMOS REGISTROS",
+  "cycle.start": "Inicio de la última menstruación · opcional",
+  "cycle.saved": "Tu día está guardado. Puedes actualizarlo cuando quieras.",
+  "cycle.deleteTitle": "DESACTIVAR Y BORRAR EL DIARIO",
+  "cycle.deleteText": "Se eliminarán las fechas, sensaciones y preferencias de sesión del diario. El resto de tu progreso se conserva.",
+  "cycle.deleteError": "NO SE PUDO BORRAR · REINTENTAR",
+
   // navegación / secciones
   "nav.home": "INICIO",
   "nav.training": "ENTRENAMIENTO",

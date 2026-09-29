@@ -6,6 +6,8 @@
 // partida válida por añadir campos).
 // ============================================================
 import { RANKS, ITEMS, WORKOUTS, MACRO, MEALS, EXERCISES, phaseOfWeek } from "./data.js";
+import { profileWeek, personalizeWorkout } from "./personalization.js";
+import { deleteCycle, readCycle } from "./cycle.js";
 import { resetConsents } from "./consents.js";
 import {
   setReward, prReward, workoutCompleteReward, mealReward, waterReward,
@@ -563,12 +565,15 @@ export const S = {
 
   hydrationPct() { return Math.min(100, Math.round((this.data.today.water / 2500) * 100)); },
 
+  weekPlan() {
+    const base = this.data.profile.onboarded ? profileWeek(this.data.profile) : MACRO.dayPlan;
+    return base.map((id, day) => { const custom = this.data.plan.custom?.[day]; return custom === "-" ? null : custom || id; });
+  },
   todayWorkout() {
     const dow = (new Date().getDay() + 6) % 7;
-    const custom = (this.data.plan.custom || {})[dow];
-    if (custom === "-") return null;                 // descanso explícito del entrenador
-    const id = custom || MACRO.dayPlan[dow];          // "" = plan estándar del macrociclo
-    return id ? WORKOUTS[id] : null;
+    const id = this.weekPlan()[dow];
+    const workout = id ? WORKOUTS[id] : null;
+    return this.data.plan.custom?.[dow] ? workout : personalizeWorkout(workout, this.data.profile);
   },
   /** El entrenador reescribe el plan semanal (Coach OS → app del cliente). */
   setPlanDia(dow, workoutId) {
@@ -644,10 +649,11 @@ export const S = {
 
   // ---------- PRIVACIDAD ----------
   exportAll() {
-    return { exportedAt: new Date().toISOString(), schema: SCHEMA, save: this.data };
+    return { exportedAt: new Date().toISOString(), schema: SCHEMA, save: this.data, cycle: readCycle() };
   },
   deleteAll() {
     try { localStorage.removeItem(KEY); } catch { /* nada */ }
+    deleteCycle();
     resetConsents(); // la clave de consents solo la toca consents.js
     this.reset(false);
   },

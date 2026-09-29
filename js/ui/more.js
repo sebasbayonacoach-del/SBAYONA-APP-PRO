@@ -35,6 +35,7 @@ BUILDERS.more = (body) => {
   body.appendChild(el("div", "sec-label", "MUNDOS Y HERRAMIENTAS"));
   const wgrid = el("div", "opt-row");
   [
+    ["profile", "EDITAR MI PERFIL"], ["rhythm", "MI RITMO Y CICLO"],
     ["training", "ENTRENAMIENTO"], ["nutrition", "NUTRICIÓN"], ["recovery", "RECUPERACIÓN"],
     ["mind", "MENTE"], ["trabajo", "TRABAJO"], ["hoy", "HOY"],
     ["progress", "PROGRESO"], ["plan", "PLAN"], ["armory", "ARMARIO"], ["core", "CORE"],

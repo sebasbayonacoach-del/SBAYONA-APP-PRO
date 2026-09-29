@@ -8,6 +8,7 @@ import { S } from "./state.js";
 import { World } from "./world.js";
 import { initUI } from "./ui.js";
 import { openSection, enterHome } from "./ui/shared.js";
+import { installFitnessUI } from "./ui/fitness.js";
 import { ITEMS } from "./data.js";
 import { loadFaceImage } from "./face.js";
 
@@ -61,6 +62,7 @@ function boot() {
     if (world.fallback2d && world.fallback2d.coreHit(e.clientX, e.clientY)) openSection("core");
   });
 
+  installFitnessUI();
   initUI(world);
   wireEntry(world);
 
@@ -68,7 +70,7 @@ function boot() {
   window.BAYONA = { world };
 
   // loop
-  const loop = () => { world.update(); requestAnimationFrame(loop); };
+  const loop = () => { if (!document.hidden && document.body.classList.contains("avatar-view")) world.update(); requestAnimationFrame(loop); };
   loop();
 
   // estado de día por si la app lleva abierta mucho
@@ -92,6 +94,12 @@ function wireEntry(world) {
   const modeName = document.getElementById("mode-name");
   if (!entry || !go) return;
 
+  if (S.data.profile.onboarded) {
+    entry.querySelector(".e-kicker").textContent = `TU DÍA ${S.dayNumber()} · A TU RITMO`;
+    entry.querySelector(".e-title").textContent = `HOLA, ${S.data.profile.name || "ATLETA"}`;
+    entry.querySelector(".e-sub").textContent = `${S.data.profile.goal} · ${S.data.profile.availability || "Tu propio ritmo"}. Tu progreso te espera.`;
+    go.textContent = S.getActiveSession() ? "VOLVER A MI SESIÓN" : "CONTINUAR MI DÍA";
+  }
   const syncModeUI = (m) => {
     if (modeName) modeName.textContent = m === "noche" ? "NOCHE" : "CINE";
     entry.querySelectorAll(".e-mode").forEach((x) => x.classList.toggle("on", x.dataset.mode === m));
@@ -113,12 +121,13 @@ function wireEntry(world) {
     entry.classList.add("gone");
     window.dispatchEvent(new CustomEvent("bayona:entered"));
     // coreografía: el panel lateral entra después del mundo
-    setTimeout(() => enterHome(false), 380);
+    setTimeout(() => S.data.profile.onboarded ? openSection(S.getActiveSession() ? "training" : "hoy") : enterHome(false), 380);
   };
   go.addEventListener("click", enter);
+  if (S.data.profile.onboarded) enter();
   addEventListener("keydown", (e) => {
     if (document.body.classList.contains("entered")) return;
-    if (e.key === "Enter" || e.key === " ") enter();
+    if ((e.key === "Enter" || e.key === " ") && !e.target.closest("button, input, select, textarea")) enter();
   });
 }
 

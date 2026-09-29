@@ -18,6 +18,7 @@ const EQUIP = ["SIN EQUIPAMIENTO", "MANCUERNAS/BANDAS", "GIMNASIO COMPLETO"];
 const st = {
   step: 0,
   name: "", goal: "FUERZA", experience: EXP[1], availability: AVAIL[1], equipment: EQUIP[1],
+  sessionMinutes: "30",
   skinIdx: 0, face: null, skinHex: null, avatar3d: null,
   consentVision: false, consentHealth: false, consentAvatar3d: false,
 };
@@ -40,10 +41,12 @@ function chipRow(key, values, labelId) {
 function view() {
   if (st.step === 0) return `
     ${dots()}
-    <h2>CREA TU PERSONAJE</h2>
-    <div class="ob-sub">Cuidar a tu personaje es cuidarte a ti.</div>
+    <div class="ob-eyebrow">BIENVENIDA A TU NUEVO RITMO</div>
+    <h2>EMPIEZA CONTIGO</h2>
+    <div class="ob-sub">Tu entrenamiento, tu tiempo y tu forma de avanzar. Vamos a preparar tu punto de partida.</div>
     <label id="lbl-name" for="ob-name">TU NOMBRE O APODO (opcional)</label>
     <input id="ob-name" maxlength="18" placeholder="p. ej. Sebas" value="${esc(st.name)}" />
+    <details class="ob-avatar-options"><summary>PERSONALIZAR MI PERSONAJE · OPCIONAL</summary>
     <label id="lbl-skin">TONO DE PIEL</label>
     <div class="ob-row" id="ob-skins" role="group" aria-labelledby="lbl-skin">${SKINS.map((s, i) =>
       `<button data-skin="${i}" aria-label="Tono de piel ${i + 1}" aria-pressed="${i === st.skinIdx}" style="width:38px;height:38px;border-radius:50%;background:${s};border:3px solid ${i === st.skinIdx ? "var(--acc-2)" : "transparent"};box-shadow:${i === st.skinIdx ? "0 0 0 3px var(--acc-soft)" : "none"}"></button>`).join("")}</div>
@@ -59,6 +62,7 @@ function view() {
     </div>
     <label class="ob-check"><input type="checkbox" id="ob-ca3" ${st.consentAvatar3d ? "checked" : ""} />
       <span><b>Avatar 3D:</b> tu selfie se procesa en Avaturn para crear el cuerpo 3D. Sin esto juegas con tu foto, y lo creas cuando quieras en APARIENCIA.</span></label>
+    </details>
     <button class="big" id="ob-next">CONTINUAR →</button>
     <button class="big ob-fast" id="ob-fast">EMPEZAR YA</button>
     <div class="ob-fast-note">Con valores por defecto (objetivo FUERZA · 3 días/semana). Los cambias cuando quieras.</div>`;
@@ -82,12 +86,16 @@ function view() {
     ${chipRow("availability", AVAIL, "lbl-avail")}
     <label id="lbl-equip">¿QUÉ EQUIPAMIENTO TIENES?</label>
     ${chipRow("equipment", EQUIP, "lbl-equip")}
+    <label id="lbl-duration">MINUTOS POR SESIÓN · ESTIMACIÓN</label>
+    ${chipRow("sessionMinutes", ["15", "30", "45", "60"], "lbl-duration")}
+    <div class="ob-sub">Después podrás activar tu diario de ciclo en MI RITMO. Es opcional y privado en este dispositivo.</div>
     <button class="big" id="ob-next">CONTINUAR →</button>
     <button class="big ob-back" id="ob-back">← ATRÁS</button>`;
 
   return `
     ${dots()}
-    <h2>TU PRIVACIDAD</h2>
+    <h2>TU PLAN, TU CONTROL</h2>
+    <div class="ob-plan-summary"><b>${esc(st.name || "ATLETA")}</b><span>${esc(st.goal)} · ${esc(st.availability)}</span><span>${esc(st.equipment)} · ~${esc(st.sessionMinutes)} min</span></div>
     <div class="ob-sub">Solo si TÚ quieres. Lo revocas en MÁS → Privacidad.</div>
     <label class="ob-check"><input type="checkbox" id="ob-cv" ${st.consentVision ? "checked" : ""} />
       <span><b>Cámara y movimiento:</b> cuenta tus reps y conduce tu personaje. <b>El vídeo NUNCA sale de tu dispositivo.</b></span></label>
@@ -163,9 +171,11 @@ function render(box) {
   q("#ob-fast") && (q("#ob-fast").onclick = () => completar(perfilRapido()));
   q("#ob-back") && (q("#ob-back").onclick = () => { st.step--; render(box); }); // lo escrito se conserva
   const nameInput = q("#ob-name");
+  nameInput && (nameInput.oninput = () => { st.name = nameInput.value; });
   nameInput && (nameInput.onkeydown = (e) => {
     if (e.key === "Enter") { e.preventDefault(); q("#ob-next")?.click(); } // teclado: Enter avanza
   });
+  for (const [id,key] of [["#ob-cv","consentVision"],["#ob-ch","consentHealth"]]) { const input=q(id); if(input) input.onchange=()=>{ st[key]=input.checked; }; }
   q("#ob-done") && (q("#ob-done").onclick = () => {
     st.consentVision = q("#ob-cv").checked;
     st.consentHealth = q("#ob-ch").checked;
@@ -178,6 +188,7 @@ function render(box) {
       experience: st.experience,
       availability: st.availability,
       equipment: st.equipment,
+      sessionMinutes: Number(st.sessionMinutes),
       skin: st.skinIdx,
       face: st.face,
       skinHex: st.skinHex,
@@ -212,6 +223,7 @@ export function perfilRapido() {
   return {
     name: "ATLETA",
     goal: GOALS[0], experience: EXP[1], availability: AVAIL[1], equipment: EQUIP[1],
+    sessionMinutes: 30,
     skin: 0, face: null, skinHex: null, avatar3d: null,
     consents: { vision: false, health: false, avatar_3d: false },
   };
@@ -264,6 +276,12 @@ async function processFace(file) {
 }
 
 const css = `
+#ob-box .ob-eyebrow{font:600 9px/1.5 var(--mono);letter-spacing:.14em;color:var(--acc-2);margin-bottom:18px}
+#ob-box .ob-avatar-options{border-block:1px solid var(--hair);margin-top:18px;padding:8px 0}
+#ob-box .ob-avatar-options summary{font:600 10px/1.5 var(--sans);letter-spacing:.06em;cursor:pointer;padding:12px 0}
+#ob-box .ob-plan-summary{display:grid;gap:8px;padding:16px;border:1px solid var(--hair);border-radius:12px;margin:18px 0;font:400 12px/1.5 var(--sans)}
+#ob-box .ob-plan-summary b{font-size:16px}
+
 #ob-layer{position:fixed;inset:0;z-index:120;background:color-mix(in srgb, var(--paper) 58%, transparent);
   -webkit-backdrop-filter:blur(14px) saturate(1.1);backdrop-filter:blur(14px) saturate(1.1);
   display:flex;align-items:center;justify-content:center;padding:16px;font-family:var(--sans)}
@@ -292,7 +310,7 @@ const css = `
   font:14px var(--sans);margin:6px 0;box-sizing:border-box}
 #ob-box label{font-size:10px;font-weight:700;letter-spacing:.18em;color:var(--ink-mute);display:block;margin:16px 0 6px}
 #ob-box label.ob-file{display:inline-block;background:transparent;border:1px solid var(--hair-strong);border-radius:999px;padding:11px 15px;cursor:pointer;margin:0}
-#ob-box .ob-check{display:flex;gap:12px;align-items:flex-start;margin:14px 0 16px;font-family:var(--serif);font-size:13px;line-height:1.55;padding-bottom:2px}
+#ob-box .ob-check{letter-spacing:normal;text-transform:none;font-weight:400;display:flex;gap:12px;align-items:flex-start;margin:14px 0 16px;font-family:var(--serif);font-size:13px;line-height:1.55;padding-bottom:2px}
 #ob-box .ob-check input[type=checkbox]{width:22px;height:22px;accent-color:var(--acc-2);margin:0;flex:0 0 auto;cursor:pointer}
 #ob-dots{display:flex;gap:6px;justify-content:center;margin-bottom:14px}
 #ob-dots i{width:22px;height:3px;border-radius:2px;background:var(--hair-strong);transition:all .3s var(--ease)}
@@ -314,6 +332,13 @@ function boot(retries = 20) {
   }
   document.head.appendChild(el(`<style>${css}</style>`));
   const layer = el(`<div id="ob-layer" role="dialog" aria-modal="true" aria-label="Bienvenida a BAYONA"><div id="ob-box"></div></div>`);
+  layer.addEventListener("keydown", (event) => {
+    if (event.key !== "Tab") return;
+    const controls = [...layer.querySelectorAll("button,input,select,summary,[tabindex]")].filter(n => !n.disabled && n.tabIndex >= 0 && n.getClientRects().length);
+    const first = controls[0], last = controls[controls.length-1];
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+    if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+  });
   document.body.appendChild(layer);
   render(layer.querySelector("#ob-box"));
 }

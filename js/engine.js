@@ -4,6 +4,7 @@
 // series de calentamiento, cálculo de discos, landmarks de volumen
 // (MEV/MAV/MRV) y 1RM estimado (Epley). Sin marcas de terceros.
 // ============================================================
+import { readCycle, cycleSummary } from "./cycle.js";
 import { S } from "./state.js";
 import { EXERCISES, WORKOUTS, MACRO, phaseOfWeek } from "./data.js";
 
@@ -172,6 +173,11 @@ export function todaysSession() {
   else if (rd == null) note = "Sin registros de preparación hoy: misión estándar. Registra sueño y energía para adaptarla.";
   else if (rd > 80) note = "Estado óptimo según tus registros: reserva tu récord de la semana.";
   if (phase.code === "DESCARGA") { setsCap = Math.round(original * 0.5); note = "Semana de descarga: 50% de volumen para consolidar."; }
+  const cycle = cycleSummary(readCycle());
+  if (cycle.entry?.mode === "suave") {
+    setsCap = Math.min(setsCap, Math.max(w.exercises.length, Math.floor(original * 0.7)));
+    note += " Has elegido una sesión suave: máximo 70% de las series, con al menos una por ejercicio. No se cambia por una fase estimada.";
+  }
   const capped = applyVolumeCap(w, setsCap);
   return {
     workout: capped.workout, // ← ESTE es el que se ejecuta (volumen aplicado de verdad)

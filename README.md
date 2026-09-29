@@ -123,3 +123,20 @@ Diagnóstico sin service worker: `index.html?nosw=1`.
 - Pagar no compra nivel, fuerza, récords ni disciplina.
 - Lo que no se ha registrado no se inventa: sin datos → «Todavía no lo has registrado».
 - Descansar bien también es progreso (sin castigo por faltar).
+
+
+## Actualización de la app · 29 septiembre 2026
+
+Requiere Node.js 22 o posterior para las pruebas (importación JSON).
+
+- Entrada guiada: duración por sesión, resumen del perfil, avatar opcional desplegable y saludo al volver.
+- MI PERFIL: edición del perfil y calendario según disponibilidad/material; asignaciones del entrenador tienen prioridad.
+- MI RITMO: diario menstrual opcional local con consentimiento, fechas, sensaciones, historial y borrado. No infiere ovulación ni fertilidad.
+- Modo suave: reduce las series de la misión por elección explícita; no por una supuesta fase hormonal. Una sesión ya iniciada se conserva.
+- Progreso: formulario de medidas recuperado; exportación local incluye el diario; borrar datos también elimina el diario.
+- Pausar una sesión devuelve a HOY y recupera la navegación.
+- PWA: recursos del avatar recuperados, caché de recursos versionados y paquete móvil completo.
+
+`npm test` ejecuta las 31 suites. `npm run mobile:pack` genera los recursos para Capacitor; no compila ni firma un APK/IPA. Backend, credenciales, servicios externos y publicación en tiendas requieren configuración y validación independientes.
+
+Criterio para ciclo y entrenamiento: [consenso UEFA, 2025](https://bmjopensem.bmj.com/content/11/3/e002769). La evidencia no respalda prescribir automáticamente la intensidad según una fase estimada del calendario; se priorizan síntomas, autonomía y contexto individual.

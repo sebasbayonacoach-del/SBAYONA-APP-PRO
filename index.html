@@ -2,13 +2,15 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#f1ede5" />
-<title>BAYONA — Tu vida es el juego</title>
+<title>BAYONA — Entrena a tu ritmo</title>
 <link rel="stylesheet" href="fonts/fonts.css" />
 <link rel="stylesheet" href="css/style.css?v=8" />
 <link rel="stylesheet" href="css/aurum.css?v=3" />
 <link rel="stylesheet" href="css/motion.css?v=3" />
+<link rel="stylesheet" href="css/personal.css?v=1" />
+<link rel="stylesheet" href="css/fitness.css?v=10" />
 <link rel="manifest" href="manifest.webmanifest" />
 <script>
   /* firma visual v3 «CINE»: se aplica antes del primer pintado (sin parpadeos).
@@ -33,7 +35,7 @@
   { "imports": { "three": "./vendor/three.module.js" } }
 </script>
 </head>
-<body>
+<body class="fitness-app">
   <!-- ============ WORLD LAYER (3D) ============ -->
   <div id="scene-wrap">
     <canvas id="scene"></canvas>
@@ -51,10 +53,10 @@
       <span class="brand-mark">◈</span>
       <span class="brand-name">BAYONA</span>
     </div>
-    <div class="e-kicker">TU VIDA ES EL JUEGO</div>
-    <h1 class="e-title">CUIDA<br />A TU <em>PERSONAJE</em></h1>
+    <div class="e-kicker">TU ENTRENAMIENTO. TU RITMO.</div>
+    <h1 class="e-title">MÁS FUERTE.<br /><em>MÁS TÚ.</em></h1>
     <div class="e-line"></div>
-    <div class="e-sub">Cuidar a tu personaje es cuidarte a ti. Entrena, come, descansa — y él vive contigo.</div>
+    <div class="e-sub">Un plan que encaja contigo. Cada ejercicio, cada serie y cada pequeño avance, en un solo lugar.</div>
     <div class="e-actions">
       <button class="e-enter" id="entry-go">ENTRAR</button>
       <div class="e-modes" role="group" aria-label="Luz">
@@ -91,34 +93,19 @@
   </div>
 
   <!-- ============ PANEL LATERAL · TODO vive aquí ============ -->
-  <aside id="drawer" aria-live="polite">
+  <main id="drawer" aria-label="Contenido de la app">
     <div class="drawer-head">
-      <h2 id="drawer-title">INICIO</h2>
+      <h2 id="drawer-title" tabindex="-1">INICIO</h2>
       <div class="drawer-sub mono" id="drawer-sub">MUNDO BAYONA</div>
       <button id="drawer-close" aria-label="Colapsar panel">✕</button>
     </div>
-    <nav id="panel-nav" aria-label="Mundos BAYONA">
-      <button class="rail-btn active" data-go="home">◈ INICIO</button>
-      <button class="rail-btn" data-go="hoy">◔ HOY</button>
-      <button class="rail-btn" data-go="training">▲ ENTRENAR</button>
-      <button class="rail-btn" data-go="nutrition">◍ COMER</button>
-      <button class="rail-btn" data-go="trabajo">▤ TRABAJO</button>
-      <button class="rail-btn" data-go="recovery">✚ RECUPERAR</button>
-      <button class="rail-btn" data-go="mind">◌ MENTE</button>
-      <button class="rail-btn" data-go="plan">◇ PLAN</button>
-      <button class="rail-btn" data-go="coachos">◆ COACH</button>
-      <button class="rail-btn" data-go="armory">✦ ARMARIO</button>
-      <button class="rail-btn" data-go="progress">⇗ PROGRESO</button>
-      <button class="rail-btn" data-go="core">● CORE</button>
-      <button class="rail-btn" data-go="appearance">◐ DISEÑO</button>
-      <button class="rail-btn" data-go="more">⚙ MÁS</button>
-    </nav>
+    <nav id="panel-nav" aria-label="Navegación principal"></nav>
     <div id="drawer-body"></div>
     <div id="panel-foot">
       <span class="dotline"><i class="live"></i> BAYONA · EN VIVO</span>
       <span id="foot-hint">MUEVE A TU PERSONAJE LIBREMENTE</span>
     </div>
-  </aside>
+  </main>
 
   <!-- ============ MODAL / CINEMATIC LAYER ============ -->
   <div id="modal-layer" class="hidden">
@@ -126,7 +113,7 @@
   </div>
 
   <!-- ============ TOASTS ============ -->
-  <div id="toasts"></div>
+  <div id="toasts" role="status" aria-live="polite"></div>
 
   <script type="module" src="js/main.js"></script>
   <!-- ATELIER · personalización de la interfaz + motor de movimiento -->

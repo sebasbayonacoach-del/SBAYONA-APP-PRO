@@ -150,9 +150,9 @@ function rerender() {
   const body = $("#drawer-body");
   if (!body) return;
   body.textContent = "";
-  renderHoy(body);
+  (BUILDERS[$("#drawer").dataset.section] || renderHoy)(body);
 }
 
 BUILDERS.hoy = (body) => renderHoy(body);
 UI.actions.openHoy = () => openSection("hoy");
-on("today", () => { if ($("#drawer").classList.contains("open") && document.querySelector(".rail-btn.active")?.dataset.go === "hoy") rerender(); });
+on("today", () => { if ($("#drawer").classList.contains("open") && ["hoy","daily"].includes($("#drawer").dataset.section)) rerender(); });

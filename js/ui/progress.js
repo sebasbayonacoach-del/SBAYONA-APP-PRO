@@ -2,7 +2,7 @@
 // BAYONA — PROGRESO (MI HISTORIA): métricas, analítica, fotos privadas
 // Las fotos son PRIVADAS por defecto: solo en tu dispositivo, sin publicación.
 // ============================================================
-import { S } from "../state.js";
+import { S, todayKey } from "../state.js";
 import { EXERCISES } from "../data.js";
 import { recoveryScore, project1RM, volumeStatus } from "../engine.js";
 import { isGranted, setConsent } from "../consents.js";
@@ -11,7 +11,7 @@ import { lineaDelTiempo } from "../timeline.js";
 import {
   volumenPorSemana, constancia, progresoFuerza, exportarDatos, borrarCuenta, claveSemana,
 } from "../progreso.js";
-import { esc, fmtDate, fmtInt } from "../i18n.js";
+import { esc, fmtDate, fmtInt, t } from "../i18n.js";
 import {
   UI, $, el, showModal, hideModal, toast, BUILDERS,
 } from "./shared.js";
@@ -20,12 +20,12 @@ BUILDERS.progress = (body) => {
   body = body || $("#drawer-body");
   const d = S.data;
   body.textContent = "";
-  body.appendChild(el("div", "sec-label", "BÓVEDA DE PROGRESO · PRIVADA"));
+  body.appendChild(el("div", "sec-label", "TU ENTRENAMIENTO EN NÚMEROS"));
   const grid = el("div", "stat-grid");
   const L = S.level();
   [
-    ["NIVEL", L.lvl, S.rank()],
-    ["DÍA", S.dayNumber(), "DE TU HISTORIA"],
+    ["TIEMPO DE SESIONES", d.stats.sessionsMin, "MIN PLANIFICADOS"],
+    ["CONSTANCIA", d.streak, "DÍAS DE RACHA"],
     ["ENTRENOS", d.stats.workouts, "SESIONES"],
     ["RÉCORDS", d.stats.prs, "PRs"],
     ["SERIES", d.stats.sets, "REGISTRADAS"],
@@ -68,7 +68,7 @@ BUILDERS.progress = (body) => {
     history: d.history || [], journey: d.journey || [],
   });
   const TIPO_TAG = { medicion: "MEDICIÓN", foto: "FOTO", pr: "RÉCORD", hito: "HITO" };
-  if (!evs.length) tl.appendChild(el("div", "tl-item", `<div class="tl-txt">Día 1. Todo empieza con una primera misión.</div>`));
+  if (!evs.length) tl.appendChild(el("div", "tl-item", `<div class="tl-txt">Día 1. Todo empieza con tu primer entrenamiento.</div>`));
   evs.forEach((e) => {
     tl.appendChild(el("div", "tl-item" + (e.tipo === "pr" ? " pr" : ""),
       `<div class="tl-day">${esc(fmtDate(e.fecha))} · ${esc(TIPO_TAG[e.tipo] || "HITO")}</div><div class="tl-txt">${esc(e.texto)}</div>${e.xp ? `<div class="tl-xp">+${esc(e.xp)} XP</div>` : ""}`));
@@ -380,7 +380,7 @@ function datosBlock() {
   const b1 = el("button", "btn btn-block", "EXPORTAR MIS DATOS (JSON)");
   b1.style.marginTop = "10px";
   b1.onclick = () => {
-    descargar(`bayona-mis-datos-${new Date().toISOString().slice(0, 10)}.json`, exportarDatos(S.data));
+    descargar(`bayona-mis-datos-${new Date().toISOString().slice(0, 10)}.json`, exportarDatos(S.exportAll()));
     toast("DATOS EXPORTADOS", "Copia JSON completa de todo lo registrado. Nada se queda fuera.");
   };
   const b2 = el("button", "btn btn-danger btn-block", "BORRAR MI CUENTA");
@@ -406,8 +406,8 @@ function flujoBorrado() {
       const motivo = ($("#del-motivo").value || "").trim() || null;
       const acuse = borrarCuenta(S.data, motivo); // acuse ANTES de borrar (qué existía)
       descargar(`bayona-acuse-borrado-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(acuse, null, 2));
-      S.reset(true);
-      S.save();
+      S.deleteAll();
+      UI.session = null;
       hideModal();
       BUILDERS.progress();
       toast("CUENTA BORRADA", "Datos eliminados de este dispositivo. El acuse de borrado se ha descargado.");
@@ -425,4 +425,39 @@ function descargar(nombre, texto) {
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+// The domain existed, but its panel was missing and crashed all progress views.
+function medidasBlock(body) {
+  const card = el("form", "card personal-form");
+  card.appendChild(el("h4", "", esc(t("measure.title"))));
+  card.appendChild(el("p", "personal-note", esc(t("measure.note"))));
+  const latest = S.medidasList().find(m => m.fecha === todayKey()) || {};
+  for (const c of CAMPOS) {
+    const label = el("label"); label.htmlFor = `measure-${c.k}`;
+    label.textContent = `${c.label} (${c.unidad})${c.estimado ? " · ESTIMACIÓN" : ""}`;
+    const input = el("input"); input.id = label.htmlFor; input.name = c.k; input.type = "number";
+    input.min = c.min; input.max = c.max; input.step = "0.1"; input.inputMode = "decimal";
+    input.value = latest[c.k] ?? "";
+    card.append(label,input);
+  }
+  const result = el("p", "personal-note"); result.setAttribute("role","status");
+  const save = el("button", "btn btn-primary btn-block", esc(t("measure.save"))); save.type="submit";
+  card.append(save,result);
+  card.onsubmit = e => {
+    e.preventDefault();
+    const m = normalizaMedida({ ...Object.fromEntries(new FormData(card)), fecha: todayKey() });
+    if (!m) { result.textContent = t("measure.empty"); return; }
+    const old = JSON.parse(JSON.stringify(S.data));
+    S.addMedida(m);
+    if (S.storageFailed) { S.data = old; result.textContent = t("measure.failed"); return; }
+    BUILDERS.progress(body);
+    toast(t("measure.saved"), t("measure.savedNote"));
+  };
+  const diff = deltas(S.medidasList());
+  for (const c of CAMPOS) if (diff[c.k]) {
+    const d = diff[c.k];
+    card.appendChild(el("div", "kv", `<span class="k">${esc(c.label)}</span><span class="v">${esc(d.actual)} ${esc(c.unidad)} · ${d.puntos > 1 ? `${d.delta > 0 ? "+" : ""}${esc(d.delta)} desde el inicio` : "Primer registro"}</span>`));
+  }
+  body.append(card);
 }

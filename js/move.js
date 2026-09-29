@@ -39,6 +39,7 @@ function attach() {
     if (x || z) dimHint();
   };
   addEventListener("keydown", (e) => {
+    if (!document.body.classList.contains("avatar-view")) return;
     if (e.target && /input|textarea|select/i.test(e.target.tagName)) return;
     if (!KEYMAP[e.code]) return;
     e.preventDefault();

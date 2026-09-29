@@ -10,3 +10,6 @@ dist/
 
 # scratch interno
 .openclaw/
+
+# Generated mobile bundle
+mobile/web-build/

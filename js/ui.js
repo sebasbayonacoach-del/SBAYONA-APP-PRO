@@ -28,6 +28,7 @@ import "./ui/armory.js";
 import "./ui/progress.js";
 import "./ui/core.js";
 import "./ui/more.js";
+import "./ui/personal.js";
 import "./ui/appearance.js";
 import "./sync/account.js";
 
