@@ -117,7 +117,11 @@ console.log("\n— contexto real, cero invención —");
    ============================================================ */
 console.log("\n— herramientas —");
 {
-  assert(TOOL_NAMES.length === 6, `seis herramientas (hay ${TOOL_NAMES.length})`);
+  // la allowlist CRECE a propósito (v6: asignar_routine), pero sigue
+  // siendo una lista cerrada: lo que no esté aquí, no se ejecuta.
+  assert(TOOL_NAMES.length === Object.keys(COACH_TOOLS).length,
+    `la allowlist tiene ${TOOL_NAMES.length} herramientas y todas están declaradas`);
+  assert(TOOL_NAMES.includes("assign_routine"), "el coach puede asignar rutinas");
 
   const ok = normalizeToolCall("adjust_session", '{"razon":"preparación baja","cambio":"deload"}');
   assert(ok?.name === "adjust_session" && ok.args.cambio === "deload",
@@ -146,8 +150,10 @@ console.log("\n— herramientas —");
 
   // el esquema enviado al modelo no expone nada raro
   const sch = toolSchema();
-  assert(sch.function.parameters.properties.herramientas.items.properties.nombre.enum.length === 6,
-    "el esquema declara los mismos 6 nombres que la allowlist");
+  const enumNombres = sch.function.parameters.properties.herramientas.items.properties.nombre.enum;
+  assert(enumNombres.length === TOOL_NAMES.length
+      && enumNombres.every((n) => TOOL_NAMES.includes(n)),
+    "el esquema declara exactamente los mismos nombres que la allowlist", enumNombres.join(", "));
   assert(sch.function.parameters.additionalProperties === false,
     "el esquema es estricto: no acepta campos inventados");
 }

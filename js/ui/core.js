@@ -15,10 +15,12 @@
 // La lógica (puerta de seguridad, contexto, herramientas) NO vive
 // aquí: está en js/coach/ai.js y su núcleo puro en ai-core.js.
 // ============================================================
-import { S } from "../state.js";
-import { UI, $, el, elT, BUILDERS, openSection } from "./shared.js";
-import { t } from "../i18n.js";
+import { S, todayKey } from "../state.js";
+import { UI, $, el, elT, BUILDERS, openSection, toast } from "./shared.js";
+import { t, esc } from "../i18n.js";
 import { askCore, buildCoachContext, probeCloud } from "../coach/ai.js";
+import { WORKOUTS } from "../data.js";
+import { validaAsignacion } from "../coachos.js";
 
 const STORE = "bayona.coach.chat.v1";
 const MAX_TURNS = 40;
@@ -173,6 +175,22 @@ BUILDERS.core = (body) => {
     if (tool.args?.tema) card.appendChild(elT("div", "coach-tool-r", tool.args.tema));
 
     // acción real, solo cuando el coach propone algo aplicable
+    if (tool.name === "assign_routine" && tool.args?.workoutId && WORKOUTS[tool.args.workoutId]) {
+      const w = WORKOUTS[tool.args.workoutId];
+      const dia = /^\d{4}-\d{2}-\d{2}$/.test(tool.args.dia || "") ? tool.args.dia : todayKey();
+      card.appendChild(elT("div", "coach-tool-r",
+        `${esc(w.name)} · ${esc(w.min)} min · ${esc(dia)}${tool.args.nota ? ` · «${esc(tool.args.nota)}»` : ""}`));
+      const b = el("button", "btn btn-primary", t("coach.assignToPlan"));
+      b.onclick = () => {
+        const v = validaAsignacion({ clienteId: "local", workoutId: tool.args.workoutId, dia, nota: tool.args.nota || "" });
+        if (!v.ok) return toast(t("state.error"), v.error, "danger");
+        S.addAsignacion({ clienteId: "local", workoutId: tool.args.workoutId, dia, nota: tool.args.nota || "" });
+        b.textContent = t("coach.assigned");
+        b.disabled = true;
+        toast(t("coach.assigned"), t("coach.assignedNote", { name: w.name }));
+      };
+      card.appendChild(b);
+    }
     if (tool.name === "open_short_session" && tool.args?.workout) {
       const b = el("button", "btn btn-primary", t("coach.applySession"));
       b.onclick = () => UI.actions.startWorkout?.(tool.args.workout);

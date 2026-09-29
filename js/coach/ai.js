@@ -9,9 +9,10 @@
 //
 // Reexporta el núcleo para que la interfaz importe desde un sitio.
 // ============================================================
-import { S } from "../state.js";
+import { S, todayKey } from "../state.js";
 import { t } from "../i18n.js";
-import { coreReply } from "./replies.js";
+import { WORKOUTS } from "../data.js";
+import { coreReply, intencionAsignacion } from "./replies.js";
 import { shortSession, todaysSession } from "../engine.js";
 import * as core from "./ai-core.js";
 
@@ -20,6 +21,7 @@ export {
   toolSchema, normalizeToolCall, TONE, HONESTY, buildSystemPrompt, trimHistory,
   createSseParser, SIN_REGISTRAR,
 } from "./ai-core.js";
+export { intencionAsignacion } from "./replies.js";
 
 const val = (v, alt = core.SIN_REGISTRAR) => (v === null || v === undefined || v === "" ? alt : v);
 
@@ -88,7 +90,7 @@ export function buildCoachContext() {
 }
 
 /** Contexto plano que consume el motor de reglas local. */
-export function localCtx(mins) {
+export function localCtx(mins, extra = {}) {
   const t = S.data?.today || {};
   return {
     readiness: S.readiness(),
@@ -108,6 +110,9 @@ export function localCtx(mins) {
     kcalGoal: 2400,
     pGoal: 150,
     missionNote: todaysSession()?.note || null,
+    catalogo: WORKOUTS,
+    hoy: todayKey(),
+    ...extra,
   };
 }
 
@@ -159,7 +164,10 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
  */
 export async function runLocal(text, { onDelta, onTool, onDone, speed = 16 } = {}) {
   const mins = minutesIn(text);
-  const full = coreReply(text, localCtx(mins));
+  // intención de ASIGNAR RUTINA: se detecta antes de responder para que
+  // el texto y la tarjeta hablen de lo mismo.
+  const asignacionPropuesta = intencionAsignacion(text, WORKOUTS);
+  const full = coreReply(text, localCtx(mins, { asignacionPropuesta }));
 
   for (const chunk of full.split(/(\s+)/)) {
     onDelta?.(chunk);
@@ -167,6 +175,13 @@ export async function runLocal(text, { onDelta, onTool, onDone, speed = 16 } = {
   }
 
   // adaptaciones REALES, igual que en el camino de la nube
+  if (asignacionPropuesta) {
+    onTool?.({
+      name: "assign_routine",
+      label: t("coach.toolAssignRoutine"),
+      args: asignacionPropuesta,
+    });
+  }
   if (Number.isFinite(mins) && mins >= 10 && mins <= 45) {
     const s = shortSession(mins);
     onTool?.({

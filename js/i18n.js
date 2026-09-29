@@ -116,6 +116,10 @@ const es = {
   "coach.sug.why": "¿Por qué esta semana hay menos volumen?",
   "coach.toolShortSession": "Abrir sesión de {m} min",
   "coach.toolViewMission": "Ver tu misión recortada",
+  "coach.toolAssignRoutine": "Asignar una rutina a tu plan",
+  "coach.assignToPlan": "ASIGNAR A MI PLAN",
+  "coach.assigned": "EN TU PLAN",
+  "coach.assignedNote": "{name} ya está en tu HOY, con su nota.",
 
   // ---------- DASHBOARD DE ESCRITORIO ----------
   "dash.ariaLabel": "Resumen en vivo alrededor de tu personaje",

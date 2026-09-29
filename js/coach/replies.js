@@ -6,6 +6,60 @@
 
 const noData = (what) => `No tengo suficiente información sobre ${what}. Regístralo en la app y te responderé con datos reales.`;
 
+/* ============================================================
+   ASIGNAR RUTINAS (motor local, sin nube)
+   ------------------------------------------------------------
+   El entrenador no necesita una nube para tellar a un alumno qué
+   toca: escribe «asigname fuerza superior» y el coach propone la
+   sesión del catálogo. Se propone con una tarjeta y un botón:
+   NUNCA se escribe en el plan sin que alguien lo pulse.
+   ============================================================ */
+
+/** Palabras que piden una rutina (no una pregunta sobre ella). */
+const PIDE_ASIGNAR = /\b(as[ií]gn\w*|program\w*|pon\w*|mete|coloca\w*|quiero (?:hacer|hacer|entrenar)|para (?:hoy|mañana|manana))\b/i;
+/** Y que no sea una pregunta sobre el plan que ya existe. */
+const ES_PREGUNTA = /\?$|\b(qu[eé]|por qu[eé]|quien|cu[aá]ndo|cu[aá]nto|como est[aá])\b/i;
+
+/** Palabras clave → id del catálogo. Orden importa: la más específica gana. */
+const CLAVES = [
+  [/inferior|pierna|pierna|sentadilla|tir[oó]n|muslo|gl[uú]teo|femur/, "op_lower"],
+  [/superior|empuje|tiraci[oó]n|torso|pecho|espalda|dominadas/, "op_upper"],
+  [/cuerpo entero|full|completo|general|generalista/, "op_full"],
+  [/peso corporal|sin equipado|sin material|casa/, "bodyweight"],
+  [/movilidad|recuperaci[oó]n|descanso|flujo|respiraci[oó]n/, "mobility_flow"],
+  [/fuerza|potencia|pesado|pesas|barra/, "op_upper"],
+];
+
+/** Fecha local AAAA-MM-DD (nunca UTC: el día del usuario es el suyo). */
+const hoy = (d = new Date()) => {
+  const p = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+};
+
+/**
+ * Detecta «asigname X» y devuelve la asignación propuesta.
+ * Puro y testeable: el catálogo entra por parámetro.
+ * @returns {{workoutId:string, dia:string, nota:string}|null}
+ */
+export function intencionAsignacion(text, catalogo) {
+  const s = String(text || "");
+  if (!catalogo || !PIDE_ASIGNAR.test(s) || ES_PREGUNTA.test(s.trim())) return null;
+  const normal = s.toLowerCase();
+  let workoutId = null;
+  for (const [re, id] of CLAVES) {
+    if (re.test(normal) && catalogo[id]) { workoutId = id; break; }
+  }
+  // sin clave reconocible pero con intención clara: cuerpo entero
+  if (!workoutId) workoutId = catalogo.op_full ? "op_full" : Object.keys(catalogo)[0];
+  if (!workoutId) return null;
+
+  const manana = new Date();
+  manana.setDate(manana.getDate() + 1);
+  const dia = /mañana|manana/.test(normal) ? hoy(manana) : hoy();
+  const m = s.match(/["«“]([^"»”]{3,120})["»”]/);
+  return { workoutId, dia, nota: m ? m[1].trim() : "" };
+}
+
 export function coreReply(text, ctx) {
   const t = (text || "").toLowerCase();
   const { readiness, streak, water, sleep, todayWorkout, trained, level, mins, missionNote } = ctx;
@@ -23,6 +77,7 @@ export function coreReply(text, ctx) {
     hurt:  /(dol|lesion|lesión|molest|rodilla|espalda)/,
     motivate: /(motiv|ánimo|animo|no me apetece|pereza|empezar)/,
     train: /(entren|sesión|sesion|gym|hoy qué|hoy que)/,
+    assign: /(asign|programa|rutina)/,
     hi:    /^(hola|buenas|hey|holi|qué tal|que tal)/,
   };
 
@@ -61,6 +116,12 @@ export function coreReply(text, ctx) {
 
   if (T.motivate.test(t))
     return `Llevas ${streak} días de constancia y ${trained ? "hoy ya cerraste tu sesión" : "hoy la sesión sigue pendiente"}. La regla: cuidar al personaje es cuidarte a ti. Empieza pequeño y deja constancia real. ¿Empezamos?`;
+
+  if (T.assign.test(t) && ctx.asignacionPropuesta) {
+    const a = ctx.asignacionPropuesta;
+    const w = ctx.catalogo?.[a.workoutId];
+    return `Te propongo ${w ? w.name : a.workoutId}${a.dia !== ctx.hoy ? ` para ${a.dia}` : " para hoy"}${w ? ` (${w.min} min)` : ""}. Revísalo en la tarjeta de abajo y, si te encaja, queda en tu plan y en tu HOY. Yo no lo escribo por ti sin que lo pulses.`;
+  }
 
   if (T.train.test(t))
     return todayWorkout

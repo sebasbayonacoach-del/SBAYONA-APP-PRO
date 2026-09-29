@@ -12,6 +12,7 @@
 // ============================================================
 import { protegerDialogo } from "../seguridad-guion.js";
 import { CLINICAL_POLICY } from "./coachStub.js";
+import { t } from "../i18n.js";
 
 /* ============================================================
    1 · PUERTA DE SEGURIDAD
@@ -80,12 +81,30 @@ export function contextToPrompt(ctx) {
 
 const CORTA = { type: "string", description: "corta, en español" };
 
-/** Única lista de herramientas. El modelo solo puede pedir estas seis. */
+/** Única lista de herramientas. El modelo solo puede pedir estas siete. */
 export const COACH_TOOLS = {
   get_plan_day: {
     label: "Consultar tu plan de hoy",
     desc: "Muestra qué entrenamiento tienes programado hoy y cómo se ha recortado por tu estado real.",
     args: { type: "object", properties: {}, additionalProperties: false },
+  },
+  assign_routine: {
+    label: t("coach.toolAssignRoutine"),
+    desc: "Programa una sesión del catálogo (hoy o un día concreto) en el plan del usuario, con una nota opcional. Es la rutina que el usuario va a ver en su HOY y a ejecutar tal cual.",
+    args: {
+      type: "object",
+      properties: {
+        workoutId: {
+          type: "string",
+          enum: ["op_upper", "op_lower", "op_full", "bodyweight", "mobility_flow"],
+        },
+        dia: { type: "string", description: "AAAA-MM-DD. Si lo omites, es hoy." },
+        nota: CORTA,
+        razon: CORTA,
+      },
+      required: ["workoutId"],
+      additionalProperties: false,
+    },
   },
   adjust_session: {
     label: "Ajustar tu sesión",
