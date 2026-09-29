@@ -14,20 +14,12 @@ import { BUILDERS, $, el, elT, UI, showModal, hideModal, toast } from "./shared.
 import { esc, t, tE } from "../i18n.js";
 import { crearClase } from "./centro.js";
 
-/** Por qué no se puede reservar, en palabras. */
-export const MOTIVOS = {
-  "clase-cancelada": "La clase está cancelada.",
-  "clase-pasada": "Esa clase ya pasó.",
-  "clase-no-existe": "La clase ya no existe.",
-  "socio-desconocido": "Elige un socio.",
-  "socio-de-baja": "Este socio está dado de baja.",
-  "socio-pausado": "Este socio tiene la membresía en pausa.",
-  "ya-reservada": "Ya tiene sitio en esta clase.",
-  solape: "Se solapa con otra clase suya.",
-  "sin-plazas": "No quedan plazas.",
-};
-
-const motivo = (m) => MOTIVOS[m] || t("gym.error.reserva-no-validada");
+/**
+ * Por qué no se puede reservar, en palabras. El CÓDIGO lo pone el
+ * dominio (`puedeReservar`) y la frase vive en el catálogo
+ * (`gym.error.*`): una sola lista, sin dos verdades.
+ */
+const motivo = (m) => tE(m || "reserva-no-validada");
 
 /* ---------- detalle de una clase ---------- */
 function detalle(claseId) {

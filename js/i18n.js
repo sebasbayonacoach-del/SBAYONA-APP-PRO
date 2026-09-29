@@ -196,6 +196,8 @@ const es = {
   "gym.membresia": "MEMBRESÍA Y DEUDA",
   "gym.plan": "Plan",
   "gym.cuotasDebidas": "Cuotas pendientes",
+  "gym.cuotasVencidas": "cuota(s) vencida(s) de",
+  "gym.exigible": "exigible ahora",
   "gym.deuda": "Deuda",
   "gym.alDia": "Al día",
   "gym.saldoFavor": "Saldo a favor",
@@ -249,7 +251,116 @@ const es = {
   "gym.error.reserva-no-existe": "Esa reserva no existe.",
   "gym.error.ya-cancelada": "Esa reserva ya estaba cancelada.",
   "gym.error.reserva-no-validada": "No se puede completar la reserva.",
+  "gym.error.clase-no-existe": "La clase ya no existe.",
+  "gym.error.clase-cancelada": "La clase está cancelada.",
+  "gym.error.clase-pasada": "Esa clase ya pasó.",
+  "gym.error.socio-desconocido": "Elige un socio.",
+  "gym.error.ya-reservada": "Ya tiene sitio en esta clase.",
+  "gym.error.solape": "Se solapa con otra clase suya.",
+  "gym.error.sin-plazas": "No quedan plazas.",
+  "gym.error.programa-desconocido": "Ese programa no existe.",
   "gym.sinDatos": "Todavía no hay datos registrados de esta persona.",
+
+  // ---------- LA PUERTA: por qué se pasa o no se pasa ----------
+  "gym.rechazo.codigo-desconocido": "Ese código no es de ningún socio.",
+  "gym.rechazo.socio-de-baja": "Este socio está dado de baja.",
+  "gym.rechazo.socio-pausado": "Membresía en pausa: se reactiva en recepción.",
+  "gym.rechazo.impagado": "Tiene cuotas pendientes: se abona en recepción.",
+  "gym.rechazo.ya-dentro": "Ya está dentro.",
+
+  // ---------- PUERTA (pantalla) ----------
+  "gym.puerta.titulo": "CONTROL DE ACCESO",
+  "gym.puerta.sub": "Un código por socio. La app decide y explica por qué.",
+  "gym.puerta.nota": "El código se valida en este dispositivo: es una credencial de puerta, no criptografía. Con un lector real se teclea el mismo código.",
+  "gym.puerta.codigo": "CÓDIGO DEL SOCIO",
+  "gym.puerta.validar": "VALIDAR",
+  "gym.puerta.pasa": "SE PASA",
+  "gym.puerta.noPasa": "NO SE PASA",
+  "gym.puerta.abrir": "Puerta",
+  "gym.puerta.pasar": "Pasar",
+  "gym.puerta.dentroAhora": "AHORA MISMO DENTRO",
+  "gym.puerta.buscar": "BUSCAR POR CÓDIGO O NOMBRE",
+  "gym.puerta.buscarPlaceholder": "Código o nombre…",
+  "gym.puerta.sinCoincidencia": "Ningún socio coincide con esa búsqueda.",
+  "gym.puerta.verDeuda": "Ver la deuda",
+  "gym.puerta.deferir": "Deferir entrada",
+
+  // ---------- AVISOS ----------
+  "gym.avisos": "AVISOS PENDIENTES",
+  "gym.avisosNota": "Aquí NO se envía nada: se genera el texto y lo copias. Sin pasarela de SMS o correo conectada, la app no finge que ha avisado a nadie.",
+  "gym.sinAvisos": "Ningún aviso pendiente con los datos de hoy.",
+  "gym.copiar": "Copiar texto",
+  "gym.copiado": "TEXTO COPIADO",
+  "gym.aviso.impago": "IMPAGO",
+  "gym.aviso.inactivo": "INACTIVO",
+  "gym.aviso.plan-proximo": "POR VENCER",
+  "gym.aviso.vence-hoy": "VENCE HOY",
+
+  // ---------- PORTAL DEL SOCIO ----------
+  "gym.portal": "Portal del socio",
+  "gym.portal.ver": "Ver su portal",
+  "gym.portal.quien": "Socio cuyo portal se mira",
+  "gym.portal.elige": "Elige un socio…",
+  "gym.portal.sinSocios": "No hay socios dados de alta: no hay portal que mirar todavía.",
+  "gym.portal.miPortal": "SU PORTAL",
+  "gym.portal.membresia": "SU MEMBRESÍA",
+  "gym.portal.codigo": "Código de acceso",
+  "gym.portal.cuenta": "Cuenta",
+  "gym.portal.deudas": "PAGO PENDIENTE",
+  "gym.portal.programa": "PROGRAMA",
+  "gym.portal.sinPrograma": "Sin programa asignado",
+  "gym.portal.elegirPrograma": "Elegir programa",
+  "gym.portal.misClases": "SUS CLASES",
+  "gym.portal.sinReservas": "No tiene ninguna clase reservada.",
+  "gym.portal.apuntarse": "APUNTARME A UNA CLASE",
+  "gym.portal.clase": "CLASE",
+  "gym.portal.reservar": "RESERVAR",
+  "gym.portal.sinClasesProximas": "No hay ninguna clase programada para los próximos días.",
+  "gym.portal.historial": "SU HISTORIAL",
+  "gym.portal.dentro": "Dentro ahora",
+  "gym.portal.mensajes": "LO QUE LE HA DICHO SU ENTRENADOR",
+
+  // ---------- INFORMES ----------
+  "gym.informe": "Informes",
+  "gym.informe.mes": "Informe del mes {mes}",
+  "gym.informe.cobrado": "Cobrado",
+  "gym.informe.ticketMedio": "Ticket medio",
+  "gym.informe.ticketNota": "por operación registrada",
+  "gym.informe.visitas": "Visitas",
+  "gym.informe.visitasNota": "entradas registradas en el mes",
+  "gym.informe.nuevos": "altas en el mes",
+  "gym.informe.de": "periodos",
+  "gym.informe.facturacion": "FACTURACIÓN · 6 MESES",
+  "gym.informe.facturacionNota": "Solo cobros registrados. No hay estimación: si este mes no aparece, es que no se ha registrado ninguno.",
+  "gym.informe.asistencia": "ASISTENCIA · 14 DÍAS",
+  "gym.informe.ocupacion": "OCUPACIÓN DE LO QUE VIENE",
+  "gym.informe.llamarHoy": "A QUIÉN LLAMAR HOY",
+  "gym.informe.puntos": "puntos de riesgo",
+  "gym.informe.visitasSocio": "{n} visitas en los últimos 30 días",
+  "gym.informe.nadieDebe": "Ningún socio activo debe cuotas vencidas.",
+  "gym.informe.cuotas": "cuotas vencidas",
+  "gym.informe.moraDias": "{n} días de mora",
+  "gym.informe.verCuota": "Ver su cuota",
+  "gym.informe.exportar": "EXPORTAR",
+  "gym.informe.exportarNota": "Un CSV por hoja, generado aquí y descargado a este dispositivo.",
+  "gym.informe.exportarTitle": "Datos del centro fuera de la app",
+  "gym.informe.exportarPrivacy": "El fichero se genera en este dispositivo y no se sube a ningún servidor. Contiene datos personales de socios: guárdalo donde corresponde.",
+  "gym.informe.entendido": "Entendido",
+  "gym.informe.hojaSocios": "Descargar socios (CSV)",
+  "gym.informe.hojaPagos": "Descargar cobros (CSV)",
+  "gym.informe.hojaAccesos": "Descargar accesos (CSV)",
+  "gym.informe.sinFilas": "No hay datos para exportar.",
+  "gym.informe.descargado": "CSV GENERADO",
+  "gym.informe.filas": "filas",
+  "gym.informe.volverCentro": "Volver al centro",
+  "gym.cuotasIndice": "Cuotas",
+  "gym.agendaIndice": "Agenda",
+  "gym.informe.subSocios": "Fichas y membresía",
+  "gym.informe.subCuotas": "Planes, cobros y deuda",
+  "gym.informe.subAgenda": "Clases y aforo",
+  "gym.informe.subAcceso": "Códigos y bloqueo",
+  "gym.informe.subPortal": "Lo que ve el socio",
+  "gym.informe.subInformes": "Facturación y avisos",
 
   // ---------- MOTIVOS DE RIESGO (siempre con explicación) ----------
   "gym.motivo.ya-baja": "Ya está dado de baja.",
@@ -295,6 +406,15 @@ export function t(key, vars) {
  */
 export function tE(codigo) {
   return t(`gym.error.${codigo}`);
+}
+
+/**
+ * Texto de un rechazo en la puerta. Igual que `tE`, pero con su
+ * propio espacio de nombres: el bloqueo explica OTRA cosa (que el
+ * socio debe) que un error de validación de formulario.
+ */
+export function tR(codigo) {
+  return t(`gym.rechazo.${codigo}`);
 }
 
 /** Escape para cualquier texto de usuario que se inserte en HTML. */

@@ -805,6 +805,80 @@ body.fitness-app .gym-vacio {
 body.fitness-app .gym-nota-form { display: flex; gap: 6px; margin-bottom: 8px; }
 body.fitness-app .gym-nota-form input { flex: 1; min-width: 0; }
 
+/* ---- índice del centro: las secciones, a la vista ---- */
+body.fitness-app .gym-rutas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1px;
+  background: var(--fit-line);
+  border: 1px solid var(--fit-line);
+  border-radius: var(--pro-radius);
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+body.fitness-app .gym-ruta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  background: var(--fit-surface);
+  border: 0;
+  border-radius: 0;
+  text-align: left;
+  cursor: pointer;
+  transition: background 120ms;
+}
+body.fitness-app .gym-ruta:hover { background: var(--fit-bg); }
+body.fitness-app .gym-ruta strong {
+  font: 600 12.5px/1.3 var(--sans);
+  color: var(--fit-ink);
+  text-transform: uppercase;
+  letter-spacing: .02em;
+}
+body.fitness-app .gym-ruta small { font: 400 11px/1.4 var(--sans); color: var(--fit-muted); }
+
+/* ---- la puerta: SE PASA / NO SE PASA. Sin color si no hay motivo. ---- */
+body.fitness-app .gym-decision {
+  border: 1px solid var(--fit-line);
+  border-left: 3px solid var(--fit-line);
+  border-radius: var(--pro-radius);
+  background: var(--fit-surface);
+  padding: 14px 16px;
+  margin: 10px 0 4px;
+}
+body.fitness-app .gym-decision.ok { border-left-color: var(--ok); }
+body.fitness-app .gym-decision.no { border-left-color: var(--danger); background: color-mix(in srgb, var(--danger) 4%, var(--fit-surface)); }
+body.fitness-app .gym-decision-v {
+  font: 600 21px/1.15 var(--sans);
+  letter-spacing: -.02em;
+  color: var(--fit-ink);
+}
+body.fitness-app .gym-decision.ok .gym-decision-v { color: var(--ok); }
+body.fitness-app .gym-decision.no .gym-decision-v { color: var(--danger); }
+body.fitness-app .gym-decision-n {
+  font: 500 14px/1.35 var(--sans);
+  color: var(--fit-ink);
+  text-transform: capitalize;
+  margin-top: 6px;
+}
+
+/* ---- el texto que se copia y se manda: se lee como un mensaje ---- */
+body.fitness-app .gym-texto-aviso {
+  font: 400 12.5px/1.6 var(--sans);
+  color: var(--fit-ink);
+  background: var(--fit-bg);
+  border: 1px solid var(--fit-line);
+  border-radius: var(--pro-radius);
+  padding: 10px 12px;
+  margin: 0 0 8px;
+  white-space: pre-wrap;
+}
+body.fitness-app .gym-alerta {
+  border-color: color-mix(in srgb, var(--danger) 30%, var(--fit-line));
+  background: color-mix(in srgb, var(--danger) 5%, var(--fit-surface));
+}
+
 /* ============================================================
    21 · IMPRESIÓN Y MOVIMIENTO REDUCIDO
    ============================================================ */

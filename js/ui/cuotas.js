@@ -90,8 +90,16 @@ BUILDERS.cuotas = (body) => {
       elT("span", `gym-fila-v ${d.vencida ? "alerta" : ""}`, d.vencida ? eur(d.importe) : t("gym.alDia")),
     );
     p.appendChild(fila);
-    p.appendChild(elT("div", "gym-porque",
-      plan ? `${plan.nombre} · ${d.cuotas} cuota(s) pendiente(s)` : t("gym.sinPlan")));
+    // La cifra grande es la DEUDA (todo lo que debe, cuota en curso
+    // incluida). El detalle separa lo ya exigible de lo que aún no:
+    // son dos números distintos y confundirlos es engañar. Si no debe
+    // nada, no se fala de cuotas vencidas: está al día y se dice.
+    let detalle = plan ? plan.nombre : t("gym.sinPlan");
+    if (d.vencida) {
+      detalle += ` · ${d.cuotas} ${t("gym.cuotasVencidas")} ${d.periodos} ${t("gym.informe.de")}`;
+      if (d.vencido < d.importe) detalle += ` · ${t("gym.exigible")} ${eur(d.vencido)}`;
+    }
+    p.appendChild(elT("div", "gym-porque", detalle));
     const acciones = el("div", "gym-fila");
     if (plan) {
       const cobrar = el("button", "btn btn-mini", t("gym.registrarCobro"));

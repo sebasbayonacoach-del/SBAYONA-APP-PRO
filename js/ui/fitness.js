@@ -21,6 +21,8 @@ const paths = {
  plan:'M4 5h16v16H4Z M8 3v5 M16 3v5 M4 11h16',
  settings:'M4 6h16 M4 12h16 M4 18h16 M8 3v6 M16 9v6 M10 15v6',
  centro:'M4 21h16 M6 21V9 M10 21V9 M14 21V9 M18 21V9 M3 9l9-5 9 5',
+ acceso:'M4 21h16 M6 21V10 M10 21V10 M14 21V10 M18 21V10 M3 10l9-6 9 6 M12 14v3',
+ portal:'M4 4h16v16H4Z M4 9h16 M8 13h8 M8 16h5',
 };
 export const icon = (key) => `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${(paths[key] || paths.arrow).split(' M').map((d,i)=>`<path d="${i?'M':''}${d}"/>`).join('')}</svg>`;
 const friendly = w => (w?.name || '').replace(/^OPERACIÓN:\s*/, '').toLocaleLowerCase('es').replace(/^./,x=>x.toUpperCase());

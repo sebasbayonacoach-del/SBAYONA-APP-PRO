@@ -13,7 +13,7 @@
 // ficha por un byte malo.
 import {
   reservar as reservarEn, cancelarReserva as cancelarEn, registrarAcceso as accesoEn, estaDentro,
-  nuevoSocio, nuevoPlan, nuevaClase,
+  nuevoSocio, nuevoPlan, nuevaClase, PERIODO_LABEL,
   dia, riesgoBaja, deudaDe, visitasDe,
 } from "./model.js";
 
@@ -33,6 +33,7 @@ const VACIO = () => ({
   accesos: [],
   pagos: [],
   notas: {},        // socioId → [{de, texto}]
+  programas: {},    // socioId → clave de WORKOUTS (lo que ve en su portal)
   actualizado: null,
 });
 
@@ -151,6 +152,7 @@ function sanear(bruto) {
     accesos: lista(bruto.accesos, (a) => a && typeof a.socioId === "string" && typeof a.entrada === "string"),
     pagos: lista(bruto.pagos, (p) => p && typeof p.socioId === "string" && Number.isFinite(p.importe)),
     notas: bruto.notas && typeof bruto.notas === "object" && !Array.isArray(bruto.notas) ? bruto.notas : {},
+    programas: bruto.programas && typeof bruto.programas === "object" && !Array.isArray(bruto.programas) ? bruto.programas : {},
     actualizado: typeof bruto.actualizado === "string" ? bruto.actualizado : null,
   };
 }
@@ -246,6 +248,8 @@ export const G = {
   },
   quitarPlan(socioId) { delete this.estado.membresias[socioId]; this.save(); return { ok: true }; },
   planDe(socioId) { return this.plan(this.estado.membresias[socioId]); },
+  /** Periodicidad en palabras («mes», «año»…), no la clave cruda. */
+  periodoDe(plan) { return plan ? (PERIODO_LABEL[plan.periodo] || plan.periodo) : ""; },
 
   /* ---------- pagos ---------- */
   /**
@@ -324,6 +328,22 @@ export const G = {
     return { ok: true };
   },
   notas(socioId) { return this.estado.notas[socioId] || []; },
+
+  /* ---------- programa que ve el socio en su portal ---------- */
+  /** Se guarda la CLAVE del programa, no el workout entero: los datos
+   *  de entrenamiento son de la app; aquí solo la referencia. */
+  asignarPrograma(socioId, clave) {
+    if (!this.socio(socioId)) return { ok: false, error: "socio-no-existe" };
+    if (clave) {
+      if (typeof clave !== "string" || !/^[a-z0-9_]{1,40}$/.test(clave)) return { ok: false, error: "programa-desconocido" };
+      this.estado.programas[socioId] = clave;
+    } else {
+      delete this.estado.programas[socioId];
+    }
+    this.save();
+    return { ok: true };
+  },
+  programa(socioId) { return this.estado.programas[socioId] || null; },
 
   /* ---------- lectura ---------- */
   riesgo(socioId, hoy = dia()) {

@@ -1,9 +1,9 @@
 // ============================================================
 // BAYONA · CENTRO — dominio puro de gestión del gimnasio
 // ------------------------------------------------------------
-// Lo que hace Trainingym, aquí calculado y SIN servidor:
-// socios · membresías · cuotas · deuda · agenda · reservas ·
-// acceso · riesgo de baja · KPIs.
+// El catálogo de problemas que resuelve un centro de gimnasio, calculado
+// aquí y SIN servidor: socios · membresías · cuotas · deuda · agenda ·
+// reservas · acceso · riesgo de baja · KPIs.
 //
 // REGLAS DEL PROYECTO que este fichero respeta:
 //   · NUNCA se inventa un dato. Si no hay registros, se dice
@@ -127,6 +127,20 @@ export function cuotasDe(socio, plan, hasta = dia()) {
   return out;
 }
 
+/**
+ * Fin de la MEMBRESÍA en curso: último periodo cuyo inicio ya pasó.
+ * Si el alta es futura, no hay periodo todavía (null).
+ */
+export function finDeMembresia(socio, plan, hoy = dia()) {
+  if (!socio || !plan || !plan.activo) return null;
+  if (socio.alta > hoy) return null;
+  let hasta = null;
+  for (const c of cuotasDe(socio, plan, hoy)) {
+    if (c.desde <= hoy) hasta = c.hasta;
+  }
+  return hasta;
+}
+
 /** Pagos registrados a un socio. */
 export function pagosDe(socioId, pagos = []) {
   return lista(pagos).filter((x) => x && x.socioId === socioId && x.importe > 0);
@@ -141,14 +155,25 @@ export function deudaDe(socio, plan, pagos = [], hoy = dia()) {
   const pagado = pagosDe(socio?.id, pagos).reduce((a, x) => a + x.importe, 0);
   const debe = cuotas.reduce((a, c) => a + c.importe, 0);
   const diff = Math.round((debe - pagado) * 100) / 100;
-  const impagadas = cuotas.filter((c) => c.vencida).length;
+  const vencidas = cuotas.filter((c) => c.vencida);
+  const impagadas = vencidas.length;
+  // Lo que NO se puede exigir todavía: el periodo en curso todavía no
+  // ha terminado. `importe` es la cuenta (lo que debe de verdad, con el
+  // periodo abierto dentro); `vencido` es solo lo que ya pasó de fecha.
+  // Confundir los dos es decir «te deben 196 €» cuando lo vencido son 147.
+  const vencido = Math.max(0, Math.round((vencidas.reduce((a, c) => a + c.importe, 0) - pagado) * 100) / 100);
   return {
     debe, pagado,
     importe: Math.max(0, diff),
     aFavor: Math.max(0, -diff),
+    vencido,
+    periodos: cuotas.length,
     cuotas: impagadas,
     impagadas,
-    vencida: impagadas > 0,
+    // OJO: `vencida` NO es «hay periodos caducados», es «hay dinero
+    // vencido». Un socio que paga por adelantado tiene periodos
+    // caducados y debe cero: si no, se le bloquea la puerta injusto.
+    vencida: vencido > 0,
   };
 }
 
