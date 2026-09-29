@@ -1,0 +1,112 @@
+// ============================================================
+// BAYONA · UI/CUOTAS — planes, cuotas y deuda
+// ------------------------------------------------------------
+// La pantalla que evita la llamada de «me debes el mes»:
+// quién debe, cuánto y desde cuándo. El dinero entra por cobros
+// REGISTRADOS; sin pasarela conectada se registra a mano y la app
+// lo dice. Nunca se finge un cobro automático.
+import { G } from "../gym/store.js";
+import { dia, deudaDe, PERIODO_LABEL } from "../gym/model.js";
+import { BUILDERS, $, el, elT, openSection, showModal, hideModal, toast } from "./shared.js";
+import { esc, fmtInt, t, tE } from "../i18n.js";
+import { cobrarDesde, planDesde } from "./centro.js";
+
+const eur = (n) => `${fmtInt(Math.round((n + Number.EPSILON) * 100) / 100)} €`;
+
+function modalPlanNuevo(alTerminar) {
+  showModal(`
+    <div class="cine-tag">PLANES</div>
+    <div class="cine-title" style="font-size:18px">Nuevo plan</div>
+    <div class="gym-form">
+      <label><span>NOMBRE</span><input id="pn-n" type="text" maxlength="60" placeholder="Mensual, Trimestral, Anual…" /></label>
+      <label><span>PRECIO (€)</span><input id="pn-p" type="number" min="0" step="0.01" value="49" /></label>
+      <label><span>PERIODICIDAD</span><select id="pn-t">${Object.keys(PERIODO_LABEL).map((k) => `<option value="${k}">${PERIODO_LABEL[k]}</option>`).join("")}</select></label>
+    </div>
+    <div class="gym-acciones">
+      <button class="btn btn-primary" id="pn-ok">CREAR</button>
+      <button class="btn" id="pn-x">CANCELAR</button>
+    </div>`, () => {
+    $("#pn-x").onclick = hideModal;
+    $("#pn-ok").onclick = () => {
+      const r = G.altaPlan({ nombre: $("#pn-n").value.trim(), precio: $("#pn-p").value, periodo: $("#pn-t").value });
+      if (!r.ok) return toast(t("state.error"), r.error, "danger");
+      hideModal();
+      toast(t("gym.planCreado"), r.plan.nombre);
+      alTerminar && alTerminar();
+    };
+  });
+}
+
+BUILDERS.cuotas = (body) => {
+  body.textContent = "";
+  const hoy = dia();
+  const e = G.estado;
+
+  const filas = e.socios
+    .filter((s) => s.estado !== "baja")
+    .map((s) => ({ s, plan: G.planDe(s.id), d: G.deudaDe(s.id, hoy) }))
+    .sort((a, b) => b.d.importe - a.d.importe);
+  const deben = filas.filter((f) => f.d.vencida);
+  const total = deben.reduce((a, f) => a + f.d.importe, 0);
+
+  const cabecera = el("div", "gym-kpis");
+  const k1 = el("div", "gym-stat");
+  k1.append(elT("div", "gym-stat-v", eur(total)), elT("div", "gym-stat-k", t("gym.deudaTotal")));
+  const k2 = el("div", "gym-stat");
+  k2.append(elT("div", "gym-stat-v", String(deben.length)), elT("div", "gym-stat-k", t("gym.enMora")));
+  const k3 = el("div", "gym-stat");
+  k3.append(elT("div", "gym-stat-v", eur(e.pagos.filter((p) => String(p.fecha).slice(0, 7) === hoy.slice(0, 7)).reduce((a, p) => a + p.importe, 0))),
+    elT("div", "gym-stat-k", t("gym.ingresosMes")));
+  cabecera.append(k1, k2, k3);
+  body.appendChild(cabecera);
+
+  body.appendChild(elT("div", "sec-label", t("gym.planes")));
+  const planes = Object.values(e.planes);
+  const cajaPlanes = el("div", "gym-panel");
+  if (!planes.length) {
+    cajaPlanes.appendChild(elT("div", "gym-porque", t("gym.sinPlanes")));
+  } else {
+    for (const p of planes) {
+      const fila = el("div", "gym-fila");
+      fila.append(elT("span", "gym-fila-k", p.nombre), elT("span", "gym-fila-v", `${eur(p.precio)} / ${p.periodo}`));
+      cajaPlanes.appendChild(fila);
+    }
+  }
+  const nuevoPlan = el("button", "btn btn-block", t("gym.nuevoPlan"));
+  nuevoPlan.onclick = () => modalPlanNuevo(() => BUILDERS.cuotas(document.getElementById("drawer-body")));
+  cajaPlanes.appendChild(nuevoPlan);
+  body.appendChild(cajaPlanes);
+
+  body.appendChild(elT("div", "sec-label", t("gym.cuotasSocios")));
+  if (!filas.length) {
+    body.appendChild(el("div", "gym-vacio", esc(t("gym.sinSocios"))));
+    return;
+  }
+  for (const { s, plan, d } of filas) {
+    const p = el("div", "gym-panel");
+    const fila = el("div", "gym-fila");
+    fila.append(
+      elT("span", "gym-fila-k", s.nombre),
+      elT("span", `gym-fila-v ${d.vencida ? "alerta" : ""}`, d.vencida ? eur(d.importe) : t("gym.alDia")),
+    );
+    p.appendChild(fila);
+    p.appendChild(elT("div", "gym-porque",
+      plan ? `${plan.nombre} · ${d.cuotas} cuota(s) pendiente(s)` : t("gym.sinPlan")));
+    const acciones = el("div", "gym-fila");
+    if (plan) {
+      const cobrar = el("button", "btn btn-mini", t("gym.registrarCobro"));
+      cobrar.onclick = () => cobrarDesde(s.id, () => BUILDERS.cuotas(document.getElementById("drawer-body")));
+      acciones.appendChild(cobrar);
+    } else {
+      const asignar = el("button", "btn btn-mini", t("gym.asignarPlan"));
+      asignar.onclick = () => planDesde(s.id, () => BUILDERS.cuotas(document.getElementById("drawer-body")));
+      acciones.appendChild(asignar);
+    }
+    p.appendChild(acciones);
+    body.appendChild(p);
+  }
+
+  const pie = el("div", "gym-panel");
+  pie.appendChild(elT("div", "gym-porque", t("gym.pagosNota")));
+  body.appendChild(pie);
+};

@@ -8,6 +8,44 @@ tú entrenas → él entrena, tú comes → él come, tú bebes → él bebe.
 El avatar es un **gemelo de comportamiento**, no una mascota.
 **Todo lo visible al usuario está en español (es-ES).**
 
+## ✨ v8 · CENTRO (gestión de gimnasio, como Trainingym)
+
+Lo que se ha añadido encima, **sin quitar nada de lo que había**:
+un centro de mando para el gimnasio. Socios, membresías, cuotas, deuda,
+agenda con aforo, control de acceso y un aviso de quién está a punto de
+darse de baja.
+
+- **`js/gym/model.js`** — el dominio **puro** (sin DOM ni `localStorage`):
+  `nuevoSocio` · `nuevoPlan` · `cuotasDe` · `deudaDe` · `diasDeMora` ·
+  `nuevaClase` · `puedeReservar` · `reservar` · `cancelarReserva` ·
+  `registrarAcceso` · `visitasDe` · `riesgoBaja` · `kpis`.
+- **`js/gym/store.js`** — persistencia en su **PROPIA clave**
+  (`bayona.centro.v1`): los datos de otras personas no se mezclan con la
+  partida del atleta. Lleva **anillo de seguridad propio** (5 instantáneas) y
+  recorte por cuota que suelta **accesos y reservas viejas, nunca la lista
+  de socios**.
+- **`js/ui/centro.js` · `js/ui/cuotas.js` · `js/ui/agenda.js`** — las tres
+  pantallas, en el mismo lenguaje PRO (filetes de 1 px, filas de 28 px,
+  cifras tabulares; el color solo para el estado).
+
+**Las reglas que no se negocian** (100 comprobaciones en `tests/gym-eval.mjs`):
+
+| Regla | Qué evita |
+|---|---|
+| No se sobrevende una clase | Clases con más reservas que aforo |
+| No se repite ni se solapa | Un socio en dos clases a la vez, o dos veces en la misma |
+| La deuda nunca es negativa | Pagar de más es saldo a favor, no deber −40 € |
+| El riesgo **siempre** explica sus motivos | Un número sin razones es adivinar |
+| Sin registros **no** se inventa riesgo | Un socio nuevo no es «riesgo alto» por azar |
+| Baja o pausa bloquea la reserva y el acceso | Alguien que dejó el centro no entra |
+| Cuota llena → se sueltan accesos, no socios | Perder la ficha de un cliente |
+
+**Lo que NO hace, y dice que no hace**: no cobra. Sin pasarela conectada los
+cobros se registran a mano y la ficha lo indica. No predice bajas con una caja
+negra: el riesgo sale de reglas explicables sobre registros reales, y cada
+punto dice qué señal lo ha subido. Sin `OPENAI_API_KEY`, todo el centro
+funciona igual: no depende de la nube.
+
 ## ✨ v7 · PRO (lenguaje de software, no de cartel)
 
 «Esta app se ve fea» no es una opinión: es un defecto de sistema. Las
@@ -26,9 +64,8 @@ todas las capas anteriores**: es el aspecto real de la app.
   que sí flota.
 - **Caja oracionaria.** Los textos venían en MAYÚSCULAS desde el HTML; ahora
   los títulos pasan por `capitalize`. Las mayúsculas se quedan solo donde son
-  etiquetas.
-- **Sin romper nada.** `css/dashboard.css` sigue siendo dueña de la rejilla del
-  tablero (su contrato con el JS no se toca): PRO solo la pisa por cascada.
+  etiquetas.- **Sin romper nada.** `css/dashboard.css` sigue siendo dueña de la rejilla del tablero (su contrato con el JS no se toca): PRO solo la pisa por cascada. Y que «la pisa» está **probado**, no supuesto: `tests/pro-ui-eval.mjs` resuelve la cascada a mano (especificidad + orden de carga) y exige que, para 12 elementos clave (botón, tarjetas, menú, modal, campos, cifras del tablero…), la declaración ganadora sea de `pro.css`.
+- **La puerta deja de ser un cartel.** La portada tenía dos píldoras CINE/NOCHE y un titular de 100 px: ahora es una frase y **un botón**. El cambio de luz vive donde se decide (Apariencia y el HUD), no en la puerta.
 
 Y la otra mitad del encargo: **la IA asigna rutinas y el alumno las ve**.
 
@@ -242,8 +279,9 @@ npm run mobile:pack  # → empaquetado web para Capacitor (ver docs/MOBILE_RELEA
 | `js/hoy.js` | **Plan del día**: jerarquía CRÍTICO→HOY→RECOMENDADO→OPCIONAL→COMPLETADO + misiones diarias deterministas (panel en `js/ui/hoy.js`) |
 | `js/i18n.js` · `js/consents.js` · `js/phygital.js` | Catálogo/formato es-ES + `esc()` · consentimientos centralizados · códigos físico→digital |
 | `js/data/offlineQueue.js` | Cola offline FIFO idempotente + zona de recuperación (nada se pierde en silencio) |
-| `tests/` + `ml/evals/` | 35 suites ejecutables (visión, coach, salud, HOY, cola, economía, estado, phygital, tablero, recetas, plan de 5.000 preguntas, contrato de diseño) + golden set |
+| `tests/` + `ml/evals/` | 36 suites ejecutables (visión, coach, salud, HOY, cola, economía, estado, phygital, tablero, recetas, plan de 5.000 preguntas, contrato de diseño, centro) + golden set |
 | `css/pro.css` | **El aspecto real de la app**: capa neutra y densa que se carga la última y pisa a todas las demás |
+| `js/gym/` · `js/ui/centro.js` · `cuotas.js` · `agenda.js` | **CENTRO**: gestión del gimnasio (socios, membresías, cuotas, agenda, acceso, riesgo de baja) |
 | `api/` | Proxy del coach (`api/coach.js` + **`api/COACH_IA.md`**) · proxy de fotos de receta (`api/image.js`) · SQL Supabase (tablas + RLS) + contratos REST · **`api/supabase/SETUP.md`** = guía para crear la cuenta y desplegar · **`api/supabase/setup.sql`** = script único e idempotente para el SQL Editor |
 | `mobile/` | Contenedor **Capacitor** → Android / iOS (configurado; sin compilar en esta fase) |
 | `sw.js` + `manifest.webmanifest` | PWA: shell offline (network-first para código) + instalable |
@@ -274,7 +312,9 @@ Diagnóstico sin service worker: `index.html?nosw=1`.
 | Red de seguridad del progreso (8 instantáneas, recuperación, cuota llena, borrado real) | ✅ | `tests/qa-5000-eval.mjs` |
 | Plan de 5.000 preguntas ejecutado: 17.640 comprobaciones, 0 fallos | ✅ | `npm run qa:5000` |
 | Lenguaje visual PRO (neutro, denso, sin botones grandes) en toda la app | ✅ | `tests/pro-ui-eval.mjs` |
+| La capa PRO gana de verdad la cascada (12 elementos clave comprobados) | ✅ | `tests/pro-ui-eval.mjs` |
 | Rutinas asignadas por IA y visibles por el alumno (autor, fecha, nota) | ✅ | `tests/pro-ui-eval.mjs` + `tests/coach-ai-eval.mjs` |
+| Centro de gestión de gimnasio: socios, cuotas, agenda, acceso y riesgo de baja | ✅ | `tests/gym-eval.mjs` |
 | Plan macrociclo: vista SIMPLE / LABORATORIO (hoja profesional, adherencia real) | ✅ | E2E navegador |
 | Armario: rarezas, DIGITAL/FÍSICO, equipamiento persistente, códigos phygital (formato+control+uso único+auditoría) | ✅ (validación local; server-side pendiente de backend) | `tests/phygital-eval.mjs` + E2E |
 | Progreso: analítica real, fotos privadas (solo dispositivo), comparador ANTES/AHORA | ✅ | E2E navegador |
@@ -306,6 +346,6 @@ Requiere Node.js 22 o posterior para las pruebas (importación JSON).
 - Pausar una sesión devuelve a HOY y recupera la navegación.
 - PWA: recursos del avatar recuperados, caché de recursos versionados y paquete móvil completo.
 
-`npm test` ejecuta las 35 suites; `npm run qa:5000` ejecuta el plan de 5.000 preguntas y `tests/pro-ui-eval.mjs` el contrato de diseño. `npm run mobile:pack` genera los recursos para Capacitor; no compila ni firma un APK/IPA. El coach con IA es opcional: sin `OPENAI_API_KEY`, CORE sigue funcionando con su motor local (`api/COACH_IA.md`). Backend de cuentas, credenciales y publicación en tiendas requieren configuración y validación independientes.
+`npm test` ejecuta las 36 suites; `npm run qa:5000` ejecuta el plan de 5.000 preguntas y `tests/pro-ui-eval.mjs` el contrato de diseño. `npm run mobile:pack` genera los recursos para Capacitor; no compila ni firma un APK/IPA. El coach con IA es opcional: sin `OPENAI_API_KEY`, CORE sigue funcionando con su motor local (`api/COACH_IA.md`). Backend de cuentas, credenciales y publicación en tiendas requieren configuración y validación independientes.
 
 Criterio para ciclo y entrenamiento: [consenso UEFA, 2025](https://bmjopensem.bmj.com/content/11/3/e002769). La evidencia no respalda prescribir automáticamente la intensidad según una fase estimada del calendario; se priorizan síntomas, autonomía y contexto individual.

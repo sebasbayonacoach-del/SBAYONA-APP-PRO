@@ -20,6 +20,7 @@ const paths = {
  mind:'M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9',
  plan:'M4 5h16v16H4Z M8 3v5 M16 3v5 M4 11h16',
  settings:'M4 6h16 M4 12h16 M4 18h16 M8 3v6 M16 9v6 M10 15v6',
+ centro:'M4 21h16 M6 21V9 M10 21V9 M14 21V9 M18 21V9 M3 9l9-5 9 5',
 };
 export const icon = (key) => `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${(paths[key] || paths.arrow).split(' M').map((d,i)=>`<path d="${i?'M':''}${d}"/>`).join('')}</svg>`;
 const friendly = w => (w?.name || '').replace(/^OPERACIÓN:\s*/, '').toLocaleLowerCase('es').replace(/^./,x=>x.toUpperCase());
@@ -86,7 +87,7 @@ function home(body){
 function openTool(id){const b=document.getElementById(id);if(b)b.click();else toast('UN MOMENTO','La herramienta aún se está preparando. Vuelve a intentarlo.');}
 export function installFitnessUI(){
  const nav=document.getElementById('panel-nav');
- nav.innerHTML=[['hoy','Hoy'],['training','Entrenar'],['progress','Progreso'],['wellbeing','Bienestar'],['profile','Perfil']].map(([key,label])=>`<button class="rail-btn" data-go="${key}">${icon(key)}<span>${label}</span></button>`).join('');
+ nav.innerHTML=[['hoy','Hoy'],['training','Entrenar'],['progress','Progreso'],['wellbeing','Bienestar'],['profile','Perfil'],['centro','Centro']].map(([key,label])=>`<button class="rail-btn" data-go="${key}">${icon(key)}<span>${label}</span></button>`).join('');
  BUILDERS.daily=renderHoy;BUILDERS.home=home;BUILDERS.hoy=home;
  BUILDERS.wellbeing=body=>{
   body.append(el('div','fit-page-intro','<span class="fit-eyebrow">EL OTRO LADO DEL ENTRENAMIENTO</span><h3>Cuida lo que te mueve.</h3><p>Comer, descansar y escuchar a tu cuerpo también forman parte de tu plan.</p>'));

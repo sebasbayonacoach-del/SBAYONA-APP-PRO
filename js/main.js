@@ -105,24 +105,17 @@ function wireEntry(world) {
 
   if (S.data.profile.onboarded) {
     entry.querySelector(".e-kicker").textContent = `TU DÍA ${S.dayNumber()} · A TU RITMO`;
-    entry.querySelector(".e-title").textContent = `HOLA, ${S.data.profile.name || "ATLETA"}`;
+    entry.querySelector(".e-title").textContent = `Hola, ${S.data.profile.name || "atleta"}`;
     entry.querySelector(".e-sub").textContent = `${S.data.profile.goal} · ${S.data.profile.availability || "Tu propio ritmo"}. Tu progreso te espera.`;
     go.textContent = S.getActiveSession() ? "VOLVER A MI SESIÓN" : "CONTINUAR MI DÍA";
   }
-  const syncModeUI = (m) => {
+  // El selector de luz se fue de aquí (vive en APARIENCIA y en el HUD):
+  // la puerta solo sincroniza el color de la barra del navegador.
+  const syncChrome = (m) => {
     if (modeName) modeName.textContent = m === "noche" ? "NOCHE" : "CINE";
-    entry.querySelectorAll(".e-mode").forEach((x) => x.classList.toggle("on", x.dataset.mode === m));
-    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", m === "noche" ? "#0a0806" : "#f1ede5");
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", m === "noche" ? "#0e1013" : "#f6f6f7");
   };
-  syncModeUI(document.documentElement.dataset.mode || "cine");
-
-  entry.querySelectorAll(".e-mode").forEach((b) =>
-    b.addEventListener("click", () => {
-      const m = b.dataset.mode;
-      syncModeUI(m);
-      import("./ui/appearance.js").then(({ setMode }) => setMode(m));
-    })
-  );
+  syncChrome(document.documentElement.dataset.mode || "cine");
 
   const enter = () => {
     if (document.body.classList.contains("entered")) return;
