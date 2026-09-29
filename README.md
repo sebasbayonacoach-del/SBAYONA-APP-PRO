@@ -8,6 +8,43 @@ tú entrenas → él entrena, tú comes → él come, tú bebes → él bebe.
 El avatar es un **gemelo de comportamiento**, no una mascota.
 **Todo lo visible al usuario está en español (es-ES).**
 
+## ✨ v9 · TECLADO (paleta de comandos ⌘K, atajos directos y foco que no se escapa)
+
+Lo que separa un juguete de un software no es el color: es que **se pueda
+usar entero sin tocar el ratón**. Esta versión añade la capa de teclado
+completa, sin quitar nada de lo anterior.
+
+- **`js/comandos.js`** — el núcleo **puro** (sin DOM): normalizar lo que se
+  escribe (minúsculas, sin tildes, sin espacios de más), puntuar cada
+  comando (exacto > prefijo > palabra > alias > contiene > difusa), decidir
+  qué sale y en qué orden, mover el cursor dando la vuelta y **comprobar si
+  un evento de teclado es «ese» atajo**. Al vivir fuera del DOM se puede
+  probar en Node: un criterio de búsqueda escrito dentro de la interfaz no lo
+  podría comprobar nadie.
+- **`js/ui/command.js`** — la paleta: `⌘K` / `Ctrl+K` (el símbolo se decide
+  según la plataforma), `↑` `↓` `Inicio` `Fin` `Enter` `Esc`, y el foco
+  vuelve **al control que la abrió** al cerrarse. Es un `combobox` de
+  verdad: `aria-activedescendant` dice qué fila está marcada y cada fila es
+  un `role="option"`.
+- **Busca socios de verdad**: escribir «paola» o un teléfono ofrece la ficha
+  de esa persona y Enter la abre. Se acabó buscar en la lista de socios.
+- **Atajos directos**: `Alt+1`…`Alt+6` saltan al raíl, en el mismo orden en
+  el que se ve. Se reconocen por `event.code`, porque en Mac `Alt+1` no
+  entrega la tecla «1» sino «¡».
+- **Hoja de atajos con `?`** — generada **a partir del registro**: no hay
+  ninguna lista escrita a mano que se pueda quedar vieja.
+- **Foco atrapado** (`trapFoco` en `js/ui/shared.js`): el `Tab` no se sale del
+  modal ni de la paleta hacia la página que hay detrás. Antes, `Escape` solo
+  cerraba el modal; ahora cierra lo que esté abierto y devuelve el foco.
+- Un atajo **suelto** («?») no salta mientras se escribe en un campo, y
+  encima de un modal abierto no se apila otra capa.
+
+**`tests/paleta-eval.mjs` (143 comprobaciones)** vigila lo que se puede
+comprobar sin navegador: la búsqueda con tildes y mayúsculas, el orden de los
+resultados, que un atajo no salte de más, que las filas que se pintan llevan
+su ARIA, que el foco no se escape, que los dos ficheros nuevos estén en el
+precache y que ninguna palabra de la paleta viva fuera del catálogo.
+
 ## ✨ v8 · CENTRO (gestión de gimnasio: socios, cuotas, agenda, puerta, portal e informes)
 
 Lo que se ha añadido encima, **sin quitar nada de lo que había**:
@@ -387,6 +424,7 @@ Diagnóstico sin service worker: `index.html?nosw=1`.
 | Plan de 5.000 preguntas ejecutado: 17.640 comprobaciones, 0 fallos | ✅ | `npm run qa:5000` |
 | Lenguaje visual PRO (neutro, denso, sin botones grandes) en toda la app | ✅ | `tests/pro-ui-eval.mjs` |
 | La capa PRO gana de verdad la cascada (12 elementos clave comprobados) | ✅ | `tests/pro-ui-eval.mjs` |
+| Paleta de comandos (⌘K), atajos directos, hoja de atajos y foco atrapado | ✅ | `tests/paleta-eval.mjs` |
 | Rutinas asignadas por IA y visibles por el alumno (autor, fecha, nota) | ✅ | `tests/pro-ui-eval.mjs` + `tests/coach-ai-eval.mjs` |
 | Centro de gestión de gimnasio: socios, cuotas, agenda, acceso y riesgo de baja | ✅ | `tests/gym-eval.mjs` |
 | Plan macrociclo: vista SIMPLE / LABORATORIO (hoja profesional, adherencia real) | ✅ | E2E navegador |
@@ -420,6 +458,6 @@ Requiere Node.js 22 o posterior para las pruebas (importación JSON).
 - Pausar una sesión devuelve a HOY y recupera la navegación.
 - PWA: recursos del avatar recuperados, caché de recursos versionados y paquete móvil completo.
 
-`npm test` ejecuta las 36 suites; `npm run qa:5000` ejecuta el plan de 5.000 preguntas y `tests/pro-ui-eval.mjs` el contrato de diseño. `npm run mobile:pack` genera los recursos para Capacitor; no compila ni firma un APK/IPA. El coach con IA es opcional: sin `OPENAI_API_KEY`, CORE sigue funcionando con su motor local (`api/COACH_IA.md`). Backend de cuentas, credenciales y publicación en tiendas requieren configuración y validación independientes.
+`npm test` ejecuta las 38 suites; `npm run qa:5000` ejecuta el plan de 5.000 preguntas, `tests/pro-ui-eval.mjs` el contrato de diseño y `tests/paleta-eval.mjs` el de teclado. `npm run mobile:pack` genera los recursos para Capacitor; no compila ni firma un APK/IPA. El coach con IA es opcional: sin `OPENAI_API_KEY`, CORE sigue funcionando con su motor local (`api/COACH_IA.md`). Backend de cuentas, credenciales y publicación en tiendas requieren configuración y validación independientes.
 
 Criterio para ciclo y entrenamiento: [consenso UEFA, 2025](https://bmjopensem.bmj.com/content/11/3/e002769). La evidencia no respalda prescribir automáticamente la intensidad según una fase estimada del calendario; se priorizan síntomas, autonomía y contexto individual.

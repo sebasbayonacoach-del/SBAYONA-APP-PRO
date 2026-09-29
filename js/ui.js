@@ -39,10 +39,13 @@ import "./ui/agenda.js";
 import "./ui/acceso.js";
 import "./ui/portal.js";
 import "./ui/informes.js";
+// TECLADO · paleta de comandos (⌘K / Ctrl+K) y atajos directos
+import { installPaleta } from "./ui/command.js";
 
 export function initUI(world) {
   UI.W = world;
   wireHud();
+  installPaleta();
   wireModalLayer();
   on("xp", ({ amount }) => { refreshHud(); xpBurst(amount); });
   on("wallet", refreshHud);
