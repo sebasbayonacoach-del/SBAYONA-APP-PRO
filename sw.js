@@ -4,9 +4,10 @@
 // Con esto la app abre sin red y el registro de series funciona offline
 // (los datos viven en el dispositivo y se sincronizan después).
 // ============================================================
-const CACHE = "bayona-shell-v10";
+const CACHE = "bayona-shell-v11";
 const SHELL = [
   "./css/fitness.css", "./js/ui/fitness.js",
+  "./css/coach.css", "./js/coach/ai-core.js", "./js/coach/ai.js",
   "./js/personalization.js", "./js/cycle.js", "./js/ui/personal.js", "./css/personal.css",
   "./js/sync/config.js", "./js/sync/supabase.js", "./js/nutricion-db.js", "./js/data/alimentos.json",
   "./index.html",
@@ -25,7 +26,7 @@ const SHELL = [
   "./js/ui/hoy.js", "./js/ui/trabajo.js", "./js/ui/coachos.js", "./js/ui/appearance.js", "./js/ui/motion.js",
   "./js/sync/account.js", "./js/hoy.js", "./js/contexto.js", "./js/coachos.js", "./js/medidas.js",
   "./js/timeline.js", "./js/nutricion.js", "./js/sync/mirror.js",
-  "./js/coach/coachStub.js", "./js/coach/replies.js", "./js/data/offlineQueue.js",
+  "./js/coach/coachStub.js", "./js/coach/replies.js", "./js/seguridad-guion.js", "./js/data/offlineQueue.js",
   "./js/diary/sessionDiary.js", "./js/health/healthMap.js", "./js/health/healthUI.js",
   "./js/vision/boot.js", "./js/vision/pose.js", "./js/vision/repCounter.js", "./js/vision/angles.js",
   "./js/vision/formScore.js", "./js/vision/retarget.js",

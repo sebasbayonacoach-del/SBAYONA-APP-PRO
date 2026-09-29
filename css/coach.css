@@ -1,0 +1,258 @@
+/* ============================================================
+   BAYONA · CORE — coach conversacional
+   ------------------------------------------------------------
+   El chat es lo primero que se ve al abrir el mundo CORE, así
+   que no es un bloque más: es la pieza protagonista.
+
+   Reglas de la casa (v3 «CINE»): superficies planas, filetes de
+   1 px, radios mínimos, cero degradados metálicos, cero neón.
+   El naranja es para acción, dato vivo y foco. Nada más.
+
+   Móvil primero: el composer vive pegado al pulgar, respeta las
+   safe areas y crece con el texto en vez de encogerlo.
+   ============================================================ */
+
+.coach-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-height: 0;
+}
+
+/* ---------- cabecera · quién responde ahora ---------- */
+.coach-head { margin-bottom: 10px; }
+
+.coach-orb {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid var(--hair);
+  border-radius: var(--radius-sm);
+  background: var(--paper-2);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .18s var(--ease), transform .18s var(--spring);
+}
+.coach-orb:hover { border-color: var(--hair-strong); }
+.coach-orb:active { transform: scale(.995); }
+.coach-orb:focus-visible { outline: 2px solid var(--acc-2); outline-offset: 2px; }
+.coach-orb .grow { min-width: 0; }
+.coach-orb h4 { font: 700 15px/1.2 var(--sans); letter-spacing: .01em; }
+.coach-orb .sub {
+  font: 500 11.5px/1.35 var(--sans);
+  color: var(--ink-mute);
+  margin-top: 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.coach-state { /* el estado del motor, una línea siempre */ }
+.coach-engine { flex: 0 0 auto; align-self: center; }
+
+/* el punto late solo cuando hay IA de verdad detrás */
+.coach-dot {
+  flex: 0 0 auto;
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: var(--ink-mute);
+  transition: background .2s var(--ease);
+}
+.coach-orb.live .coach-dot { background: var(--acc-2); animation: coachPulse 2.4s var(--ease-io) infinite; }
+.coach-orb.thinking .coach-dot { animation: coachPulse .7s var(--ease-io) infinite; }
+.coach-orb.busy { opacity: .7; }
+
+@keyframes coachPulse {
+  0%, 100% { box-shadow: 0 0 0 0 var(--acc-soft); opacity: 1; }
+  50%      { box-shadow: 0 0 0 6px transparent; opacity: .55; }
+}
+
+/* ---------- nota de honestidad ---------- */
+.coach-note {
+  font: 500 11.5px/1.55 var(--sans);
+  color: var(--ink-mute);
+  border-left: 2px solid var(--hair-strong);
+  padding: 2px 0 2px 10px;
+  margin: 0 0 18px;
+}
+
+/* ---------- personalidad ---------- */
+.coach-pers { margin-bottom: 4px; }
+.coach-pers button {
+  font: 600 10.5px/1 var(--sans);
+  letter-spacing: .06em;
+  padding: 8px 11px;
+}
+.coach-pers button.on {
+  border-color: var(--acc-2);
+  color: var(--acc-2);
+  background: var(--acc-soft);
+}
+
+/* ---------- conversación ---------- */
+.coach-log {
+  flex: 1 1 auto;
+  min-height: 240px;
+  max-height: min(58vh, 620px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 4px 2px 12px;
+  scrollbar-width: thin;
+}
+
+.coach-msg {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+  animation: coachIn .34s var(--spring) both;
+}
+.coach-msg.me { flex-direction: row-reverse; }
+
+@keyframes coachIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.coach-av {
+  flex: 0 0 auto;
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font: 700 9.5px/1 var(--mono2);
+  letter-spacing: .04em;
+  background: var(--cream);
+  color: var(--ink-mute);
+  border: 1px solid var(--hair);
+  margin-top: 2px;
+}
+.coach-msg.core .coach-av { background: var(--ink); color: var(--paper-2); border-color: var(--ink); }
+
+.coach-bub {
+  max-width: min(86%, 62ch);
+  padding: 11px 14px;
+  border: 1px solid var(--hair);
+  border-radius: 3px 12px 12px 12px;
+  background: var(--paper-2);
+}
+.coach-msg.me .coach-bub {
+  border-radius: 12px 3px 12px 12px;
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper-2);
+}
+.coach-text {
+  font: 450 13.5px/1.62 var(--sans);
+  color: var(--ink-soft);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.coach-msg.me .coach-text { color: var(--paper-2); }
+
+/* cursor de escritura: solo mientras llega texto de verdad */
+.coach-caret {
+  display: inline-block;
+  width: 2px; height: 1em;
+  margin-left: 2px;
+  vertical-align: -.14em;
+  background: var(--acc-2);
+  animation: coachBlink 1s steps(2, start) infinite;
+}
+@keyframes coachBlink { 50% { opacity: 0; } }
+
+/* ---------- banner de derivación (guion de seguridad) ---------- */
+.coach-msg.risk .coach-bub {
+  border-color: var(--acc-2);
+  border-left-width: 3px;
+  background: var(--acc-soft);
+}
+.coach-msg.risk .coach-text { color: var(--ink); font-weight: 500; }
+.coach-msg.degraded .coach-bub { border-style: dashed; }
+.coach-msg.sys .coach-bub { background: transparent; border-style: dashed; }
+.coach-msg.sys .coach-text { font-size: 12.5px; color: var(--ink-mute); }
+
+/* ---------- tarjetas de herramienta ---------- */
+.coach-tool {
+  align-self: stretch;
+  border: 1px solid var(--hair);
+  border-left: 2px solid var(--acc-2);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background: var(--paper-2);
+  padding: 11px 14px;
+  animation: coachIn .34s var(--spring) both;
+}
+.coach-tool-l {
+  font: 700 9.5px/1 var(--mono2);
+  letter-spacing: .14em;
+  color: var(--acc-2);
+  margin-bottom: 6px;
+}
+.coach-tool-t { font: 600 13px/1.4 var(--sans); color: var(--ink); }
+.coach-tool-r { font: 450 12px/1.5 var(--sans); color: var(--ink-mute); margin-top: 4px; }
+.coach-tool .btn { margin-top: 10px; min-height: 40px; }
+.coach-tool .btn:disabled { opacity: .6; cursor: default; }
+
+/* ---------- propuestas ---------- */
+.coach-quick { margin: 4px 0 12px; }
+.coach-quick button {
+  font: 450 12.5px/1.3 var(--sans);
+  padding: 9px 13px;
+  text-align: left;
+}
+
+/* ---------- composer ---------- */
+.coach-row {
+  position: sticky;
+  bottom: 0;
+  gap: 8px;
+  padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
+  background: linear-gradient(to top, var(--paper) 62%, transparent);
+}
+.coach-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 44px;
+  max-height: 132px;
+  padding: 12px 14px;
+  border: 1px solid var(--hair-strong);
+  border-radius: var(--radius-sm);
+  background: var(--paper-2);
+  color: var(--ink);
+  font: 450 13.5px/1.5 var(--sans);
+  resize: none;
+  overflow-y: auto;
+}
+.coach-input:focus {
+  outline: none;
+  border-color: var(--acc-2);
+  box-shadow: 0 0 0 3px var(--acc-soft);
+}
+.coach-input:disabled { opacity: .55; }
+
+.coach-send {
+  flex: 0 0 auto;
+  width: 46px; height: 46px;
+  min-height: 46px;
+  padding: 0;
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+}
+.coach-send:disabled { opacity: .35; cursor: default; }
+
+/* ---------- prefers-reduced-motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .coach-msg, .coach-tool { animation: none; }
+  .coach-dot, .coach-caret { animation: none; }
+}
+
+/* ---------- escritorio: la conversación respira más ---------- */
+@media (min-width: 900px) {
+  .coach-log { max-height: min(62vh, 720px); }
+  .coach-bub { max-width: 78%; }
+}
