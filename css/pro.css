@@ -880,7 +880,141 @@ body.fitness-app .gym-alerta {
 }
 
 /* ============================================================
-   21 · IMPRESIÓN Y MOVIMIENTO REDUCIDO
+   22 · TECLADO · paleta, atajos y foco visible
+   ------------------------------------------------------------
+   Lo que hace que esto se lea como software y no como una web:
+   se maneja entero con el teclado, el foco se ve siempre y la
+   fila elegida se distingue SIN depender del color (borde de
+   2 px a la izquierda + fondo), porque el color solo informa.
+   ============================================================ */
+body.fitness-app .cmd-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  min-height: 26px;
+  padding: 0 8px;
+  border: 1px solid var(--fit-line);
+  border-radius: 4px;
+  background: var(--fit-surface);
+  color: var(--fit-muted);
+  cursor: pointer;
+  transition: border-color 120ms, color 120ms;
+}
+body.fitness-app .cmd-chip:hover { border-color: var(--hair-strong); color: var(--fit-ink); }
+
+body.fitness-app kbd {
+  display: inline-block;
+  padding: 2px 5px;
+  min-width: 18px;
+  border: 1px solid var(--fit-line);
+  border-radius: 3px;
+  background: var(--fit-bg);
+  color: var(--fit-muted);
+  font: 500 10.5px/1.1 var(--mono);
+  text-align: center;
+  white-space: nowrap;
+}
+body.fitness-app .cmd-chip kbd { background: transparent; border-color: transparent; color: inherit; padding: 0; }
+
+body.fitness-app #cmd-layer {
+  position: fixed;
+  inset: 0;
+  /* por encima del modal (80) y por debajo de los avisos (90) */
+  z-index: 85;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: clamp(36px, 11vh, 120px) 16px 16px;
+  background: rgba(21, 23, 28, .26);
+}
+body.fitness-app #cmd-layer.hidden { display: none; }
+body.fitness-app #cmd-box {
+  width: min(560px, 100%);
+  max-height: min(70vh, 520px);
+  display: flex;
+  flex-direction: column;
+  background: var(--fit-surface);
+  border: 1px solid var(--fit-line);
+  border-radius: 8px;
+  /* misma excepción que el modal: una capa que flota necesita separarse */
+  box-shadow: 0 14px 44px rgba(16, 18, 22, .18) !important;
+  overflow: hidden;
+}
+body.fitness-app .cmd-cabecera { display: flex; align-items: center; border-bottom: 1px solid var(--fit-line); }
+body.fitness-app #cmd-q {
+  flex: 1;
+  min-width: 0;
+  height: 40px;
+  min-height: 40px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  font: 400 14px/1 var(--sans);
+}
+body.fitness-app #cmd-q:focus { outline: none; border-color: var(--fit-line); }
+body.fitness-app #cmd-lista { overflow-y: auto; flex: 1; }
+body.fitness-app .cmd-fila {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 34px;
+  padding: 5px 12px;
+  border-bottom: 1px solid var(--fit-line);
+  border-left: 2px solid transparent;
+  cursor: pointer;
+  font: 400 13px/1.35 var(--sans);
+  color: var(--fit-ink);
+}
+body.fitness-app .cmd-fila:last-child { border-bottom: 0; }
+body.fitness-app .cmd-fila:hover { background: var(--fit-bg); }
+/* la fila activa se marca con el filete, no solo con el color */
+body.fitness-app .cmd-fila.activa,
+body.fitness-app .cmd-fila[aria-selected="true"] {
+  background: var(--fit-bg);
+  border-left-color: var(--fit-ink);
+}
+body.fitness-app .cmd-fila-t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+body.fitness-app .cmd-fila-g {
+  font: 400 10.5px/1.4 var(--sans);
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--fit-muted);
+  white-space: nowrap;
+}
+body.fitness-app .cmd-atajo { display: inline-flex; gap: 3px; }
+body.fitness-app .cmd-vacio {
+  padding: 22px 14px;
+  text-align: center;
+  font: 400 12.5px/1.6 var(--sans);
+  color: var(--fit-muted);
+}
+body.fitness-app .cmd-pie {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 7px 12px;
+  border-top: 1px solid var(--fit-line);
+  background: var(--fit-bg);
+}
+body.fitness-app .cmd-pie-g {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font: 400 11px/1.4 var(--sans);
+  color: var(--fit-muted);
+}
+/* la hoja de atajos: mismas filas de datos que el resto */
+body.fitness-app .cmd-atajos { margin-top: 10px; border-top: 1px solid var(--fit-line); }
+body.fitness-app .cmd-atajos .kv .v { display: inline-flex; gap: 3px; justify-content: flex-end; }
+
+@media (max-width: 520px) {
+  body.fitness-app #cmd-layer { padding-top: 56px; }
+  body.fitness-app .cmd-pie { gap: 10px; }
+  body.fitness-app .cmd-fila-g { display: none; }
+}
+
+/* ============================================================
+   23 · IMPRESIÓN Y MOVIMIENTO REDUCIDO
    ============================================================ */
 @media (prefers-reduced-motion: reduce) {
   body.fitness-app * { animation: none !important; transition: none !important; }

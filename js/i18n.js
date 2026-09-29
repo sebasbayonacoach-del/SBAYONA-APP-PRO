@@ -421,6 +421,30 @@ const es = {
   "data.safetyConfirm": "VOLVER AQUÍ",
   "data.safetyRestored": "PROGRESO RESTAURADO",
   "data.safetyRestoredNote": "Volvemos a ese punto. Ya puedes continuar.",
+
+  // ---------- PALETA DE COMANDOS Y TECLADO ----------
+  // El título de cada sección sale de la propia pantalla; aquí solo
+  // están las palabras de la paleta, sus grupos y sus acciones.
+  "cmd.titulo": "Paleta de comandos",
+  "cmd.buscar": "Buscar o ir a",
+  "cmd.placeholder": "Sección, socio o acción…",
+  "cmd.resultados": "Resultados",
+  "cmd.vacio": "Nada coincide con esa búsqueda.",
+  "cmd.boton": "Abrir la paleta de comandos",
+  "cmd.pie.mover": "moverse",
+  "cmd.pie.abrir": "abrir",
+  "cmd.pie.cerrar": "cerrar",
+  "cmd.grupo.ir": "Ir a",
+  "cmd.grupo.centro": "Centro",
+  "cmd.grupo.acciones": "Acciones",
+  "cmd.grupo.socios": "Socio",
+  "cmd.grupo.ayuda": "Ayuda",
+  "cmd.altaSocio": "Alta de socio",
+  "cmd.acceso": "Registrar un acceso",
+  "cmd.clase": "Nueva clase",
+  "cmd.atajos": "Atajos de teclado",
+  "cmd.atajos.titulo": "Atajos de teclado",
+  "cmd.atajos.nota": "La app se maneja entera sin ratón. La lista sale de los atajos que hay ahora mismo, no de una cuenta pendiente de actualizar.",
 };
 
 const CATS = { "es-ES": es };

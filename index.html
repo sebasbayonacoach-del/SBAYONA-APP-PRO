@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="css/dashboard.css?v=1" />
 <!-- PRO · el lenguaje visual real. Se carga EL ÚLTIMO y manda sobre
      las capas anteriores: neutro, denso, sin botones gigantes. -->
-<link rel="stylesheet" href="css/pro.css?v=2" />
+<link rel="stylesheet" href="css/pro.css?v=3" />
 <link rel="manifest" href="manifest.webmanifest" />
 <script>
   /* firma visual v3 «CINE»: se aplica antes del primer pintado (sin parpadeos).
@@ -76,6 +76,10 @@
         <span class="brand-mark">◈</span>
         <span class="brand-name">BAYONA</span>
       </div>
+      <!-- Paleta de comandos. El contenido (el atajo, ⌘K o Ctrl+K) lo
+           pone la propia capa según la plataforma: aquí no se escribe
+           texto de pantalla, solo el hueco donde va. -->
+      <button id="cmd-chip" class="chip cmd-chip" aria-keyshortcuts="Meta+K Control+K"></button>
       <div class="top-right">
         <button id="mode-chip" class="chip" title="Cine / Noche">◐ <b id="mode-name">CINE</b></button>
         <button id="level-chip" class="chip chip-level" title="Progreso">

@@ -172,6 +172,34 @@ export const TITLES = {
 // ============================================================
 // MODALES (foco, teclado, retorno al control que los abrió)
 // ============================================================
+const FOCALIZABLES = 'a[href],button:not([disabled]),input:not([disabled]):not([type="hidden"]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+
+/** Los controles que se pueden tabular dentro de un contenedor. */
+export function focalizables(raiz) {
+  if (!raiz || typeof raiz.querySelectorAll !== "function") return [];
+  return [...raiz.querySelectorAll(FOCALIZABLES)]
+    .filter((n) => !n.hidden && n.getAttribute?.("aria-hidden") !== "true");
+}
+
+/**
+ * Mantiene el foco DENTRO de la capa mientras esté abierta: si el
+ * Tab se sale por debajo, el teclado del usuario empieza a recorrer
+ * la página que hay detrás del modal y no sabe volver.
+ */
+export function trapFoco(raiz, e) {
+  const f = focalizables(raiz);
+  if (!f.length) return;
+  const primero = f[0], ultimo = f[f.length - 1];
+  const activo = document.activeElement;
+  const dentro = activo && typeof raiz.contains === "function" && raiz.contains(activo);
+  if (e.shiftKey) {
+    if (activo === primero || !dentro) { ultimo.focus(); e.preventDefault(); }
+  } else if (activo === ultimo || !dentro) {
+    primero.focus();
+    e.preventDefault();
+  }
+}
+
 export function showModal(html, after) {
   UI.lastFocus = document.activeElement;
   $("#modal-box").innerHTML = html;
@@ -192,7 +220,10 @@ export function wireModalLayer() {
   const layer = $("#modal-layer");
   layer && layer.addEventListener("click", (e) => { if (e.target === layer) hideModal(); });
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && layer && !layer.classList.contains("hidden")) hideModal();
+    if (!layer || layer.classList.contains("hidden")) return;
+    if (e.key === "Escape") { hideModal(); return; }
+    // el Tab no se sale del modal hacia lo que hay detrás
+    if (e.key === "Tab") trapFoco($("#modal-box"), e);
   });
 }
 
