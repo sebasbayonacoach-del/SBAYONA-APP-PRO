@@ -8,43 +8,83 @@ tú entrenas → él entrena, tú comes → él come, tú bebes → él bebe.
 El avatar es un **gemelo de comportamiento**, no una mascota.
 **Todo lo visible al usuario está en español (es-ES).**
 
-## ✨ v8 · CENTRO (gestión de gimnasio, como Trainingym)
+## ✨ v8 · CENTRO (gestión de gimnasio: socios, cuotas, agenda, puerta, portal e informes)
 
 Lo que se ha añadido encima, **sin quitar nada de lo que había**:
 un centro de mando para el gimnasio. Socios, membresías, cuotas, deuda,
-agenda con aforo, control de acceso y un aviso de quién está a punto de
-darse de baja.
+agenda con aforo, control de acceso con código y bloqueo por impago, el
+portal que ve el propio socio, informes del mes y una cola de avisos
+para trabajar. Todo con índice: seis secciones, como en cualquier
+software de gestión.
 
 - **`js/gym/model.js`** — el dominio **puro** (sin DOM ni `localStorage`):
   `nuevoSocio` · `nuevoPlan` · `cuotasDe` · `deudaDe` · `diasDeMora` ·
-  `nuevaClase` · `puedeReservar` · `reservar` · `cancelarReserva` ·
-  `registrarAcceso` · `visitasDe` · `riesgoBaja` · `kpis`.
+  `finDeMembresia` · `nuevaClase` · `puedeReservar` · `reservar` ·
+  `cancelarReserva` · `registrarAcceso` · `visitasDe` · `riesgoBaja` · `kpis`.
 - **`js/gym/store.js`** — persistencia en su **PROPIA clave**
   (`bayona.centro.v1`): los datos de otras personas no se mezclan con la
   partida del atleta. Lleva **anillo de seguridad propio** (5 instantáneas) y
   recorte por cuota que suelta **accesos y reservas viejas, nunca la lista
   de socios**.
-- **`js/ui/centro.js` · `js/ui/cuotas.js` · `js/ui/agenda.js`** — las tres
-  pantallas, en el mismo lenguaje PRO (filetes de 1 px, filas de 28 px,
-  cifras tabulares; el color solo para el estado).
+- **`js/gym/acceso.js`** — la puerta: `codigoAcceso` (8 caracteres de un
+  alfabeto sin `0/O/1/I/L`, determinista por socio), `normalizaCodigo`,
+  `socioPorCodigo`, `validarAcceso` y `avisosPendientes`. El dominio
+  devuelve **códigos de motivo**, nunca frases: el texto vive en
+  `js/i18n.js` (`gym.rechazo.*`).
+- **`js/gym/informes.js`** — `facturacionMensual` · `asistenciaDiaria` ·
+  `ocupacionClases` · `watchlist` · `morosos` · `resumenMensual` · `aCSV`.
+  Cifras de registros reales; sin datos sale 0, nunca una estimación.
+- **`js/ui/centro.js` · `cuotas.js` · `agenda.js` · `acceso.js` · `portal.js` · `informes.js`** —
+  las seis pantallas, en el mismo lenguaje PRO (filetes de 1 px, filas de
+  28 px, cifras tabulares; el color solo para el estado).
 
-**Las reglas que no se negocian** (100 comprobaciones en `tests/gym-eval.mjs`):
+**La puerta** (`PUERTA`): se teclea el código y la app dice SÍ o NO **con el
+motivo**, nunca en silencio. Bloquea por deuda vencida, por baja y por pausa;
+quien atiende puede **deferir** la entrada y queda la visita fichada. Honesto
+por escrito dentro de la app: el código es una credencial de puerta, no
+criptografía, y se valida en el dispositivo; un torniquete real (QR, pulsera,
+lector facial) es un proyecto de hardware aparte, y aquí está la **decisión y
+el código** que el lector leería.
+
+**El portal del socio** (`PORTAL DEL SOCIO`): lo que ve quien se apunta, no lo
+que ve el entrenador. Su membresía, su código, su programa de entrenamiento,
+sus reservas (apuntar y cancelar), su historial de visitas y las notas del
+entrenador. Se entra desde la ficha de cada socio.
+
+**Los informes** (`INFORMES`): el mes en cifras (cobrado, ticket medio,
+visitas, socios activos y altas), la facturación de los últimos 6 meses, la
+asistencia de 14 días, la ocupación de las clases que vienen, **a quién llamar
+hoy** con su riesgo y sus motivos, los morosos con sus días de mora, y
+exportación a **CSV** (socios, cobros y accesos) que se genera en el
+dispositivo y no se sube a ningún servidor.
+
+**La cola de avisos** (`AVISOS PENDIENTES`): impago, inactividad real (14 días
+sin visitas) y membresía por vencer (≤ 7 días), cada uno explicando **de
+dónde sale** el aviso. Sin proveedor de SMS o correo, la app **genera el
+texto y lo copias**: no finge que ha avisado a nadie.
+
+**Las reglas que no se negocian** (214 comprobaciones en `tests/gym-eval.mjs`):
 
 | Regla | Qué evita |
 |---|---|
 | No se sobrevende una clase | Clases con más reservas que aforo |
 | No se repite ni se solapa | Un socio en dos clases a la vez, o dos veces en la misma |
 | La deuda nunca es negativa | Pagar de más es saldo a favor, no deber −40 € |
+| «Vencido» es dinero vencido, no periodos caducados | Bloquear en la puerta a quien ya pagó el año |
+| El bloqueo **siempre** dice por qué | Alguien rechazado sin explicación en la cara |
+| El aviso **nunca** se da por enviado | Decir que has avisado sin haber avisado |
 | El riesgo **siempre** explica sus motivos | Un número sin razones es adivinar |
 | Sin registros **no** se inventa riesgo | Un socio nuevo no es «riesgo alto» por azar |
 | Baja o pausa bloquea la reserva y el acceso | Alguien que dejó el centro no entra |
 | Cuota llena → se sueltan accesos, no socios | Perder la ficha de un cliente |
+| El CSV escapa `;` y comillas | Una columna partida al abrirlo en Excel |
 
 **Lo que NO hace, y dice que no hace**: no cobra. Sin pasarela conectada los
-cobros se registran a mano y la ficha lo indica. No predice bajas con una caja
-negra: el riesgo sale de reglas explicables sobre registros reales, y cada
-punto dice qué señal lo ha subido. Sin `OPENAI_API_KEY`, todo el centro
-funciona igual: no depende de la nube.
+cobros se registran a mano y la ficha lo indica; los cobros automáticos y el
+hardware de torniquete quedan fuera hasta que haya pasarela y lector. No
+predice bajas con una caja negra: el riesgo sale de reglas explicables sobre
+registros reales, y cada punto dice qué señal lo ha subido. Sin
+`OPENAI_API_KEY`, todo el centro funciona igual: no depende de la nube.
 
 ## ✨ v7 · PRO (lenguaje de software, no de cartel)
 

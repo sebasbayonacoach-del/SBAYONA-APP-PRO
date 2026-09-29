@@ -11,6 +11,7 @@ import { G } from "../gym/store.js";
 import { kpis, dia, haceCuanto, reservasDe, riesgoBaja } from "../gym/model.js";
 import { BUILDERS, $, el, elT, openSection, showModal, hideModal, toast, UI } from "./shared.js";
 import { esc, fmtInt, t, tE } from "../i18n.js";
+import { abrirPortalSocio } from "./portal.js";
 
 /* ---------- piezas ---------- */
 function stat(valor, etiqueta, nota) {
@@ -33,12 +34,37 @@ const nivelPill = (nivel) => {
 /* ============================================================
    1 · CENTRO DE MANDO
    ============================================================ */
+
+/** El índice del centro: seis secciones, como en cualquier software
+ *  de gestión. El raíl lateral se queda corto a propósito (seis
+ *  destinos); el resto se entra desde aquí. */
+const SECCIONES = [
+  ["socios", "gym.socios", "gym.informe.subSocios"],
+  ["cuotas", "gym.cuotasIndice", "gym.informe.subCuotas"],
+  ["agenda", "gym.agendaIndice", "gym.informe.subAgenda"],
+  ["acceso", "gym.puerta.titulo", "gym.informe.subAcceso"],
+  ["portal", "gym.portal", "gym.informe.subPortal"],
+  ["informes", "gym.informe", "gym.informe.subInformes"],
+];
+
+function indice(body) {
+  const rutas = el("div", "gym-rutas");
+  for (const [clave, titulo, sub] of SECCIONES) {
+    const b = el("button", "gym-ruta", `<strong>${esc(t(titulo))}</strong><small>${esc(t(sub))}</small>`);
+    b.onclick = () => openSection(clave);
+    rutas.appendChild(b);
+  }
+  body.appendChild(rutas);
+}
+
 function mando(body) {
   body.textContent = "";
   const hoy = dia();
   const e = G.estado;
   const k = kpis(e, hoy);
   const dentro = e.socios.filter((s) => G.dentro(s.id));
+
+  indice(body);
 
   body.appendChild(elT("div", "sec-label", t("gym.hoy")));
   const cabecera = el("div", "gym-kpis");
@@ -115,8 +141,9 @@ function mando(body) {
   acciones.appendChild(bAcceso);
   acciones.appendChild(Object.assign(el("button", "btn", t("gym.socios")), { onclick: () => openSection("socios") }));
   acciones.appendChild(Object.assign(el("button", "btn", t("gym.nuevaClase")), { onclick: modalClase }));
+  acciones.appendChild(Object.assign(el("button", "btn", t("gym.puerta.abrir")), { onclick: () => openSection("acceso") }));
+  acciones.appendChild(Object.assign(el("button", "btn", t("gym.informe")), { onclick: () => openSection("informes") }));
   body.appendChild(acciones);
-
   if (!e.socios.length) {
     body.appendChild(el("div", "gym-vacio", esc(t("gym.vacio"))));
   }
@@ -166,7 +193,7 @@ function listaSocios(body, filtro = "") {
     const plan = G.planDe(s.id);
     const deuda = G.deudaDe(s.id, hoy);
     p.appendChild(elT("div", "gym-porque",
-      [plan ? plan.nombre : t("gym.sinPlan"), `${G.visitas(s.id, 30)} visitas/30 d`, deuda.vencida ? t("gym.debe", { n: deuda.importe.toFixed(2).replace(".", ",") }) : null]
+      [plan ? plan.nombre : t("gym.sinPlan"), `${G.visitas(s.id, 30)} visitas/30 d`, deuda.vencida ? t("gym.debe", { n: deuda.vencido.toFixed(2).replace(".", ",") }) : null]
         .filter(Boolean).join(" · ")));
     const b = el("button", "btn btn-mini", t("gym.verFicha"));
     b.onclick = () => ficha(s.id);
@@ -218,7 +245,7 @@ function ficha(socioId) {
 
   body.appendChild(elT("div", "sec-label", t("gym.membresia")));
   const mem = el("div", "gym-panel");
-  mem.append(fila(t("gym.plan"), plan ? `${plan.nombre} · ${plan.precio} € / ${plan.periodo}` : t("gym.sinPlan")));
+  mem.append(fila(t("gym.plan"), plan ? `${plan.nombre} · ${plan.precio} € / ${G.periodoDe(plan)}` : t("gym.sinPlan")));
   if (plan) {
     mem.append(fila(t("gym.cuotasDebidas"), String(deuda.cuotas)));
     mem.append(fila(t("gym.deuda"), deuda.importe > 0 ? `${deuda.importe.toFixed(2).replace(".", ",")} €` : t("gym.alDia")));
@@ -265,6 +292,7 @@ function ficha(socioId) {
   body.appendChild(notas);
 
   const acciones = el("div", "gym-acciones");
+  acciones.appendChild(Object.assign(el("button", "btn", t("gym.portal.ver")), { onclick: () => abrirPortalSocio(s.id) }));
   if (s.estado === "activo") {
     const b = el("button", "btn btn-danger", t("gym.darDeBaja"));
     b.onclick = () => { G.darDeBaja(s.id); toast(t("gym.bajaHecha"), s.nombre); ficha(s.id); };
