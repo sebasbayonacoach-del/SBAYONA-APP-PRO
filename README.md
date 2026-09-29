@@ -8,6 +8,41 @@ tú entrenas → él entrena, tú comes → él come, tú bebes → él bebe.
 El avatar es un **gemelo de comportamiento**, no una mascota.
 **Todo lo visible al usuario está en español (es-ES).**
 
+## ✨ v7 · PRO (lenguaje de software, no de cartel)
+
+«Esta app se ve fea» no es una opinión: es un defecto de sistema. Las
+decisiones anteriores (botones de 48 px, títulos de 42 px, sombras difusas,
+cartas de 22 px de radio, naranja en todo) hacían que BAYONA se leyera como
+una landing de gimnasio. **`css/pro.css` se carga el último y manda sobre
+todas las capas anteriores**: es el aspecto real de la app.
+
+- **Neutro.** Fuera el naranja: papel `#f6f6f7`, tinta `#15171c`, filetes de
+  1 px. **El acento es el propio negro** (botón negro sobre papel). El color
+  solo informa: verde va bien, ámbar ojo, rojo para.
+- **Denso.** Botones de **30 px**, filas de 28, tipografía de 12-14 px, cifras
+  tabulares alineadas. Nada de botones gigantes ni círculos de 220 px.
+- **Plano.** Cero sombras y cero cristal esmerilado. Un borde de 1 px separa
+  mejor y no ensucia con 40 tarjetas. La única sombra de la app es el modal,
+  que sí flota.
+- **Caja oracionaria.** Los textos venían en MAYÚSCULAS desde el HTML; ahora
+  los títulos pasan por `capitalize`. Las mayúsculas se quedan solo donde son
+  etiquetas.
+- **Sin romper nada.** `css/dashboard.css` sigue siendo dueña de la rejilla del
+  tablero (su contrato con el JS no se toca): PRO solo la pisa por cascada.
+
+Y la otra mitad del encargo: **la IA asigna rutinas y el alumno las ve**.
+
+- **`assign_routine`** entra en la allowlist cerrada del coach (7 herramientas).
+  El modelo solo puede pedir una sesión **del catálogo** (`enum` con los 5 ids
+  reales), y la interfaz la valida con `validaAsignacion` antes de escribir.
+- **Sin nube también funciona**: el motor local detecta «asigname fuerza
+  superior» / «programa pierna» / «quiero hacer movilidad hoy» y propone la
+  rutina en una tarjeta. Preguntar *por qué* no asigna nada, y **nada se escribe
+  sin que alguien pulse el botón**.
+- **El alumno lo ve como una orden de trabajo**: quién lo asignó, desde cuándo,
+  qué sesión, la nota y un botón para abrirla. `origen` y `autor` viajan en la
+  asignación: ninguna rutina es anónima.
+
 ## ✨ v6 · RED DE SEGURIDAD DEL PROGRESO (tu partida no se pierde)
 
 «¿Cómo vas a segurar el progreso?» Una partida vive en `localStorage`, y
@@ -188,6 +223,7 @@ Detalle completo y capturas: **`docs-luxe/`**.
 ./run.sh             # → http://localhost:8080   (o: npm start)
 npm test             # → batería multiplataforma (tests/run.mjs) + golden set de biomecánica
 npm run qa:5000      # → el plan de 5.000 preguntas, ejecutado (17.640 comprobaciones)
+node tests/pro-ui-eval.mjs   # → el contrato de diseño (neutro, denso, sin botones grandes)
 npm run coach:smoke  # → prueba de extremo a extremo del coach y las fotos contra /api
 npm run mobile:pack  # → empaquetado web para Capacitor (ver docs/MOBILE_RELEASE.md)
 ```
@@ -206,7 +242,8 @@ npm run mobile:pack  # → empaquetado web para Capacitor (ver docs/MOBILE_RELEA
 | `js/hoy.js` | **Plan del día**: jerarquía CRÍTICO→HOY→RECOMENDADO→OPCIONAL→COMPLETADO + misiones diarias deterministas (panel en `js/ui/hoy.js`) |
 | `js/i18n.js` · `js/consents.js` · `js/phygital.js` | Catálogo/formato es-ES + `esc()` · consentimientos centralizados · códigos físico→digital |
 | `js/data/offlineQueue.js` | Cola offline FIFO idempotente + zona de recuperación (nada se pierde en silencio) |
-| `tests/` + `ml/evals/` | 34 suites ejecutables (visión, coach, salud, HOY, cola, economía, estado, phygital, tablero, recetas, **plan de 5.000 preguntas**) + golden set |
+| `tests/` + `ml/evals/` | 35 suites ejecutables (visión, coach, salud, HOY, cola, economía, estado, phygital, tablero, recetas, plan de 5.000 preguntas, contrato de diseño) + golden set |
+| `css/pro.css` | **El aspecto real de la app**: capa neutra y densa que se carga la última y pisa a todas las demás |
 | `api/` | Proxy del coach (`api/coach.js` + **`api/COACH_IA.md`**) · proxy de fotos de receta (`api/image.js`) · SQL Supabase (tablas + RLS) + contratos REST · **`api/supabase/SETUP.md`** = guía para crear la cuenta y desplegar · **`api/supabase/setup.sql`** = script único e idempotente para el SQL Editor |
 | `mobile/` | Contenedor **Capacitor** → Android / iOS (configurado; sin compilar en esta fase) |
 | `sw.js` + `manifest.webmanifest` | PWA: shell offline (network-first para código) + instalable |
@@ -236,6 +273,8 @@ Diagnóstico sin service worker: `index.html?nosw=1`.
 | Recuperación con desglose «¿POR QUÉ?» y honestidad de datos ausentes | ✅ | E2E navegador |
 | Red de seguridad del progreso (8 instantáneas, recuperación, cuota llena, borrado real) | ✅ | `tests/qa-5000-eval.mjs` |
 | Plan de 5.000 preguntas ejecutado: 17.640 comprobaciones, 0 fallos | ✅ | `npm run qa:5000` |
+| Lenguaje visual PRO (neutro, denso, sin botones grandes) en toda la app | ✅ | `tests/pro-ui-eval.mjs` |
+| Rutinas asignadas por IA y visibles por el alumno (autor, fecha, nota) | ✅ | `tests/pro-ui-eval.mjs` + `tests/coach-ai-eval.mjs` |
 | Plan macrociclo: vista SIMPLE / LABORATORIO (hoja profesional, adherencia real) | ✅ | E2E navegador |
 | Armario: rarezas, DIGITAL/FÍSICO, equipamiento persistente, códigos phygital (formato+control+uso único+auditoría) | ✅ (validación local; server-side pendiente de backend) | `tests/phygital-eval.mjs` + E2E |
 | Progreso: analítica real, fotos privadas (solo dispositivo), comparador ANTES/AHORA | ✅ | E2E navegador |
@@ -267,6 +306,6 @@ Requiere Node.js 22 o posterior para las pruebas (importación JSON).
 - Pausar una sesión devuelve a HOY y recupera la navegación.
 - PWA: recursos del avatar recuperados, caché de recursos versionados y paquete móvil completo.
 
-`npm test` ejecuta las 34 suites; `npm run qa:5000` ejecuta el plan de 5.000 preguntas. `npm run mobile:pack` genera los recursos para Capacitor; no compila ni firma un APK/IPA. El coach con IA es opcional: sin `OPENAI_API_KEY`, CORE sigue funcionando con su motor local (`api/COACH_IA.md`). Backend de cuentas, credenciales y publicación en tiendas requieren configuración y validación independientes.
+`npm test` ejecuta las 35 suites; `npm run qa:5000` ejecuta el plan de 5.000 preguntas y `tests/pro-ui-eval.mjs` el contrato de diseño. `npm run mobile:pack` genera los recursos para Capacitor; no compila ni firma un APK/IPA. El coach con IA es opcional: sin `OPENAI_API_KEY`, CORE sigue funcionando con su motor local (`api/COACH_IA.md`). Backend de cuentas, credenciales y publicación en tiendas requieren configuración y validación independientes.
 
 Criterio para ciclo y entrenamiento: [consenso UEFA, 2025](https://bmjopensem.bmj.com/content/11/3/e002769). La evidencia no respalda prescribir automáticamente la intensidad según una fase estimada del calendario; se priorizan síntomas, autonomía y contexto individual.

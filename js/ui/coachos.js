@@ -209,6 +209,7 @@ function planificarModal(c, body) {
       const a = {
         clienteId: "local", workoutId: $("#as-w").value,
         dia: $("#as-d").value, nota: $("#as-n").value.trim(),
+        origen: "coachos", autor: "Coach OS",
       };
       const v = validaAsignacion(a);
       hideModal();

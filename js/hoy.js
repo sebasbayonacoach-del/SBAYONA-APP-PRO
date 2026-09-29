@@ -89,9 +89,13 @@ export function planDelDia(Sx, opts = {}) {
     const aw = WORKOUTS[asign.workoutId];
     items.push({
       id: "sesion", pri: "HOY", done: false, asignada: true,
-      titulo: `Plan de tu entrenador · ${aw.name}`,
-      sub: asign.nota ? `NOTA DEL ENTRENADOR: ${asign.nota}` : `Sesión asignada por tu entrenador · ${aw.min} min`,
-      cta: "COMENZAR LO ASIGNADO", go: "training", workoutId: asign.workoutId,
+      titulo: aw.name,
+      sub: asign.nota || `${aw.min} min · ${aw.tag || "sesión"}`,
+      autor: asign.autor || null,
+      origen: asign.origen || "core",
+      creada: asign.creada || null,
+      nota: asign.nota || "",
+      cta: "Abrir la rutina", go: "training", workoutId: asign.workoutId,
     });
   } else if (w && !t.trained) {
     const bonus = workoutCompleteReward({ minutes: w.min, loggedSets: 0, plannedSets: 0 });

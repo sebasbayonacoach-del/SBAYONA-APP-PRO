@@ -56,6 +56,10 @@ export function renderHoy(body) {
 }
 
 function itemCard(it) {
+  // Una rutina ASIGNADA no es un ítem más del día: es una orden de trabajo
+  // con autor y fecha. Se lee distinta a propósito.
+  if (it.asignada) return asignacionCard(it);
+
   const card = el("div", "card hoy-item" + (it.done ? " done" : ""));
   const tag = PRI_TAG[it.done ? "COMPLETADO" : it.pri] ?? "";
   card.innerHTML = `
@@ -75,6 +79,28 @@ function itemCard(it) {
     card.appendChild(b);
   }
   return card;
+}
+
+/** La rutina que te asignó tu entrenador: quién, cuándo, qué y por qué. */
+function asignacionCard(it) {
+  const box = el("div", "asignacion");
+  const autor = it.autor || (it.origen === "coachos" ? "Coach OS" : "CORE");
+  const cuando = it.creada ? ` · ${new Date(it.creada).toLocaleDateString("es-ES", { day: "numeric", month: "short" })}` : "";
+  box.append(elT("div", "asignacion-a", ""));
+  box.querySelector(".asignacion-a").append(
+    elT("span", "", "RUTINA ASIGNADA"),
+    elT("b", "", autor + cuando),
+  );
+  box.appendChild(elT("div", "asignacion-t", it.titulo));
+  if (it.sub) box.appendChild(elT("div", "asignacion-n", it.sub));
+  if (it.cta) {
+    const cta = el("div", "asignacion-cta");
+    const b = el("button", "btn btn-primary", it.cta);
+    b.addEventListener("click", () => UI.actions.openTraining?.(it.workoutId));
+    cta.appendChild(b);
+    box.appendChild(cta);
+  }
+  return box;
 }
 
 /** desvía cada acción a su destino REAL (sin pantallas muertas). */

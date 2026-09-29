@@ -553,7 +553,7 @@ export const S = {
     this.data.asignaciones = this.data.asignaciones || [];
     const i = this.data.asignaciones.findIndex((x) =>
       x.clienteId === a.clienteId && x.dia === a.dia && x.workoutId === a.workoutId && x.estado === "pendiente");
-    const rec = { id: `as_${Date.now()}`, estado: "pendiente", creada: new Date().toISOString(), ...a };
+    const rec = { id: `as_${Date.now()}`, estado: "pendiente", creada: new Date().toISOString(), origen: "core", ...a };
     if (i >= 0) this.data.asignaciones[i] = { ...this.data.asignaciones[i], ...a };
     else this.data.asignaciones.push(rec);
     this.save(); emit("asignaciones");
