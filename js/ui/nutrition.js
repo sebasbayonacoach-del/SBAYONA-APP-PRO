@@ -6,6 +6,7 @@
 import { S } from "../state.js";
 import { MEALS } from "../data.js";
 import { adherenciaPlan, RECETAS } from "../nutricion.js";
+import { pedirImagen, ilustracion, imagenDisponible } from "../recipeImage.js";
 import { esc, fmtDec, fmtInt, t } from "../i18n.js";
 import {
   UI, $, el, elT, showModal, hideModal, toast, BUILDERS,
@@ -67,16 +68,20 @@ BUILDERS.nutrition = (body) => {
   body.appendChild(adhCard);
 
   // ---------- RECETAS ----------
-  body.appendChild(el("div", "sec-label", "RECETAS · COMIDA REAL"));
+  body.appendChild(el("div", "sec-label", t("nut.recetasLabel")));
   const recBox = el("div", "card");
-  recBox.innerHTML = `<div class="mc-sub">Sencillas, reales y con macros claros. Cocinar también forma parte del juego.</div>`;
-  RECETAS.forEach((r) => {
-    const b = el("button", "btn btn-block", `${r.nombre} · ${r.kcal} kcal`);
-    b.style.marginTop = "8px";
-    b.addEventListener("click", () => recetaModal(r));
-    recBox.appendChild(b);
-  });
+  recBox.appendChild(elT("p", "sub", t("nut.recetasNote")));
+
+  const grid = el("div", "nut-recetas");
+  RECETAS.forEach((r) => grid.appendChild(tarjetaReceta(r)));
+  recBox.appendChild(grid);
   body.appendChild(recBox);
+
+  // una sola comprobación para toda la pantalla: la píldora va al pie
+  imagenDisponible().then((ok) => {
+    const nota = recBox.querySelector(".nut-foto-nota");
+    if (nota) nota.textContent = ok ? t("nut.fotoListo") : t("nut.fotosSinClave");
+  });
 
   body.appendChild(el("div", "sec-label", "REGISTRAR COMIDA"));
   const bAdd = el("button", "btn btn-block", "＋ AÑADIR ALIMENTO (cantidad, unidad y hora)");
@@ -117,6 +122,55 @@ BUILDERS.nutrition = (body) => {
   }
   body.appendChild(list);
 };
+
+/**
+ * Tarjeta de receta con foto.
+ *
+ * La foto NO se pide sola: sale una ilustración estable y el usuario
+ * decide si quiere la imagen generada. Pide una imagen cuesta dinero
+ * y ancho de banda, y la app no gasta el uno ni el otro sin permiso.
+ */
+function tarjetaReceta(r) {
+  const card = el("article", "nut-receta");
+
+  const foto = el("div", "nut-receta-foto");
+  foto.style.background = ilustracion(r);
+  const img = el("img", "nut-receta-img");
+  img.alt = "";
+  img.loading = "lazy";
+  img.decoding = "async";
+  foto.appendChild(img);
+
+  const getBtn = el("button", "nut-foto-btn", t("nut.fotoPedir"));
+  getBtn.type = "button";
+  getBtn.setAttribute("aria-label", `${t("nut.fotoPedir")}: ${r.nombre}`);
+  getBtn.onclick = async (ev) => {
+    ev.stopPropagation();
+    getBtn.disabled = true;
+    getBtn.textContent = t("nut.fotoGenerando");
+    const src = await pedirImagen(r);
+    if (src) {
+      img.src = src;
+      foto.classList.add("tiene-foto");
+      getBtn.remove();
+    } else {
+      getBtn.disabled = false;
+      getBtn.textContent = t("nut.fotoReintentar");
+    }
+  };
+  foto.appendChild(getBtn);
+
+  const cuerpo = el("div", "nut-receta-body");
+  cuerpo.appendChild(elT("h4", "", r.nombre));
+  const meta = elT("p", "nut-receta-meta", `${r.tipo} · ${r.kcal} kcal · P${r.p} · C${r.c} · F${r.f}`);
+  cuerpo.appendChild(meta);
+  cuerpo.appendChild(elT("p", "nut-receta-ingr", r.ingredientes.join(" · ")));
+  const btn = el("button", "btn btn-block", t("nut.verReceta"));
+  btn.onclick = () => recetaModal(r);
+  cuerpo.appendChild(btn);
+  card.append(foto, cuerpo);
+  return card;
+}
 
 function drinkAndReact(ml) {
   const r = S.drink(ml);

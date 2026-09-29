@@ -305,6 +305,67 @@ let app;
 
 limpiar();
 
+/* ============================================================
+   FASE 3 · fotos de receta (mismo servidor, otro proxy)
+   ============================================================ */
+{
+  const UP_PORT = await freePort();
+  const promptsVistos = [];
+  const imgUp = createServer((req, res) => {
+    let raw = "";
+    req.on("data", (c) => (raw += c));
+    req.on("end", async () => {
+      const p = JSON.parse(raw || "{}");
+      // guardamos lo que LLEGA al modelo: es lo único que no se puede
+      // comprobar desde fuera, porque el proxy no lo reenvía (a propósito)
+      promptsVistos.push(p.prompt || "");
+      res.writeHead(200, { "content-type": "application/json" });
+      res.end(JSON.stringify({ data: [{ b64_json: "iVBORw0KGgoAAAANSUhEUg==" }] }));
+    });
+  });
+  await new Promise((r) => imgUp.listen(UP_PORT, "127.0.0.1", r));
+  const PORT = await freePort();
+  app = startApp(PORT, {
+    BAYONA_IMAGE_UPSTREAM: `http://127.0.0.1:${UP_PORT}/v1/images/generations`,
+    BAYONA_IMAGE_API_KEY: "clave-de-prueba",
+  });
+  await waitReady(PORT, app);
+
+  console.log("\n  — fotos de receta —");
+  const health = await fetch(`http://127.0.0.1:${PORT}/api/meal-image/health`);
+  const hj = await health.json();
+  ok(hj.ok === true, "la salud de imágenes se enrutó y responde (no 404)", JSON.stringify(hj));
+
+  // el servidor monta el prompt: el cliente solo manda el id
+  const r = await fetch(`http://127.0.0.1:${PORT}/api/meal-image?id=r_bowl_pollo`);
+  const j = await r.json();
+  ok(r.status === 200 && j.ok === true, "una receta del catálogo devuelve imagen", JSON.stringify(j));
+  ok(String(j.image || "").startsWith("data:image/"), "la imagen viene como dataURL");
+  ok(!JSON.stringify(j).includes("prompt"), "el proxy NO filtra el prompt al navegador");
+  ok(promptsVistos.length === 1 && /pollo|bowl/i.test(promptsVistos[0]),
+    "el prompt que llega al modelo sale de la receta", JSON.stringify(promptsVistos[0] || ""));
+
+  // y un prompt libre en la URL no cambia nada de lo que se genera
+  await fetch(`http://127.0.0.1:${PORT}/api/meal-image?id=r_bowl_pollo&prompt=cachorro%20en%20un%20coche`);
+  ok(promptsVistos.length === 2 && !/cachorro|coche/i.test(promptsVistos[1]),
+    "un prompt libre en la URL se ignora por completo",
+    JSON.stringify(promptsVistos[1] || ""));
+
+  // receta inexistente
+  const mala = await fetch(`http://127.0.0.1:${PORT}/api/meal-image?id=r_no_existe`);
+  ok(mala.status === 404, "una receta inexistente da 404 (no inventa imagen)");
+
+  // el coach sigue montado en el mismo servidor
+  const coach = await fetch(`http://127.0.0.1:${PORT}/api/coach`);
+  ok(coach.status === 200, "el coach sigue montado en el mismo servidor");
+
+  const log = app.logs.join("");
+  ok(!/EADDRINUSE|Unhandled|Error:/.test(log), "el servidor no escribió ningún error", log.slice(0, 200));
+  app.child.kill();
+  arrancados.delete(app.child);
+  imgUp.close();
+}
+
 /* ============================================================ */
 console.log("\n══════════════════════════════════");
 console.log(`  → ${pass} ok · ${fail} fallos`);

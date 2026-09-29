@@ -49,7 +49,8 @@ export function buildCoachContext() {
       disponibilidad: val(p.availability),
       equipamiento: val(p.equipment),
       nivel: S.level()?.lvl ?? null,
-      rango: S.rank()?.name ?? null,
+      // OJO: rank() devuelve el NOMBRE (string), no un objeto.
+      rango: S.rank() || null,
       diasEnLaApp: S.dayNumber(),
     },
     hoy: {

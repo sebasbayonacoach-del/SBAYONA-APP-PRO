@@ -86,6 +86,13 @@ export class World {
 
     this.resize();
     addEventListener("resize", () => this.resize());
+    // El canvas puede cambiar de tamaño sin que cambie la ventana (por
+    // ejemplo, en el tablero de escritorio ocupa una columna). Medimos el
+    // contenedor real, no innerWidth, o el personaje quedaría descentrado.
+    if (typeof ResizeObserver !== "undefined" && this.canvas) {
+      this._ro = new ResizeObserver(() => this.resize());
+      this._ro.observe(this.canvas);
+    }
   }
 
   // ---------------- LUZ · CINE (blanco) / NOCHE (negro) ----------------
@@ -498,11 +505,16 @@ export class World {
   }
 
   resize() {
-    const w = innerWidth, h = innerHeight;
-    if (this.renderer) this.renderer.setSize(w, h, false);
+    // El tamaño del ESCENA es el de su caja, no el de la ventana: en el
+    // tablero de escritorio el canvas vive en una columna central.
+    // Si la caja no existe (canvas oculto), caemos a la ventana.
+    const box = this.canvas?.getBoundingClientRect?.();
+    const w = Math.round(box?.width) > 0 ? Math.round(box.width) : innerWidth;
+    const h = Math.round(box?.height) > 0 ? Math.round(box.height) : innerHeight;
+    if (this.renderer) this.renderer.setSize(w, h, true);
     if (this.fallback2d) this.fallback2d.resize();
     this.camera.aspect = w / h;
-    // mobile: frame the avatar bigger
+    // columna estrecha: encuadramos más cerca para que el personaje llene
     this.camera.fov = w < 700 ? 40 : 34;
     this.camera.updateProjectionMatrix();
   }

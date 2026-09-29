@@ -116,6 +116,41 @@ const es = {
   "coach.sug.why": "¿Por qué esta semana hay menos volumen?",
   "coach.toolShortSession": "Abrir sesión de {m} min",
   "coach.toolViewMission": "Ver tu misión recortada",
+
+  // ---------- DASHBOARD DE ESCRITORIO ----------
+  "dash.ariaLabel": "Resumen en vivo alrededor de tu personaje",
+  "dash.prepLabel": "PREPARACIÓN",
+  "dash.ready": "LISTO PARA ENTRENAR",
+  "dash.prepNoData": "Registra sueño o energía para poder calcularlo. Sin datos no hay estimación.",
+  "dash.prepEstimated": "Estimada con {n} registro(s). Cuantos más, más fiable.",
+  "dash.levelLabel": "PROGRESO",
+  "dash.sessionLabel": "TU SESIÓN DE HOY",
+  "dash.recoveryDay": "DÍA DE RECUPERACIÓN",
+  "dash.restSub": "La disciplina también es parar.",
+  "dash.planned": "PROGRAMADA",
+  "dash.resumed": "SESIÓN A MEDIAS",
+  "dash.start": "EMPEZAR ENTRENAMIENTO",
+  "dash.continue": "CONTINUAR SESIÓN",
+  "dash.toProgress": "VER MI PROGRESO",
+  "dash.macrosLabel": "NUTRICIÓN HOY",
+  "dash.kcal": "Energía",
+  "dash.protein": "Proteína",
+  "dash.waterLabel": "HIDRATACIÓN",
+  "dash.streakLabel": "CONSTANCIA",
+  "dash.coachTitle": "CORE · TU COACH",
+  "dash.askCoach": "PREGUNTAR",
+  "dash.coachTip": "Pregúntale por tu plan, tu técnica o por qué cambia de volumen.",
+  "dash.coachNoData": "Aún no has registrado cómo estás. Dímelo y te ayudo con lo que tengas.",
+
+  // ---------- RECETAS CON FOTO ----------
+  "nut.recetasLabel": "RECETAS · COMIDA REAL",
+  "nut.recetasNote": "Sencillas, reales y con macros claros. La foto de cada una la genera la IA: tú decides cuándo pedirla y se guarda en tu dispositivo.",
+  "nut.fotoPedir": "◈ VER LA FOTO",
+  "nut.fotoGenerando": "GENERANDO…",
+  "nut.fotoReintentar": "REINTENTAR",
+  "nut.fotoListo": "Las fotos se generan bajo demanda y se guardan en tu dispositivo para que no se vuelvan a pedir.",
+  "nut.fotosSinClave": "Ahora mismo se ven las ilustraciones. Con el servicio de imágenes conectado, cada receta tendrá su foto real.",
+  "nut.verReceta": "VER LA RECETA",
 };
 
 const CATS = { "es-ES": es };
