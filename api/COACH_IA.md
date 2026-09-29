@@ -78,6 +78,40 @@ corto (`max_tokens: 500`): un coach que se enrolla es un coach que distrae.
 
 ---
 
+## Fotos de receta (IA)
+
+Mismo esquema, otro proxy: `api/image.js`, montado en `/api/meal-image`.
+
+```bash
+# salud
+curl http://localhost:8080/api/meal-image/health
+
+# la foto de una receta concreta
+curl "http://localhost:8080/api/meal-image?id=r_bowl_pollo"
+```
+
+| Variable | Para qué |
+|---|---|
+| `BAYONA_IMAGE_UPSTREAM` | endpoint de imágenes (por defecto, OpenAI) |
+| `BAYONA_IMAGE_API_KEY` | clave específica; si no, usa `OPENAI_API_KEY` |
+| `BAYONA_IMAGE_MODEL` | modelo de imagen (por defecto `gpt-image-1`) |
+| `BAYONA_IMAGE_SIZE` | tamaño pedido (por defecto `1024x1024`) |
+
+**El cliente no puede mandar el prompt.** Pide el id de una receta y el
+servidor lo construye desde el catálogo. Si el navegador pudiera pasar texto
+libre, esto sería un generador de imágenes abierto y pagado por la app, y
+cualquiera podría gastar tu clave con lo que quisiera. Un id desconocido da
+`404`; un `?prompt=` en la URL se ignora.
+
+La imagen se reescala en el dispositivo a una miniatura de 360 px y se guarda
+(LRU de 8 recetas) para no volver a pagarla.
+
+**Coste.** Rate limit de 6 imágenes por minuto y IP. La app **solo** pide la
+foto cuando el usuario pulsa el botón de la receta: ni al abrir la pantalla,
+ni por adelantado, ni al precargar.
+
+---
+
 ## Comprobar que funciona
 
 ```bash
@@ -119,7 +153,8 @@ recomprueba al pulsarlo.
 
 ```
 api/coach.js            proxy: clave, streaming, herramientas, rate limit, CORS
-tools/serve.mjs         servidor estático + monta /api/coach
+api/image.js            proxy de fotos de receta (el prompt lo pone el servidor)
+tools/serve.mjs         servidor estático + monta /api/coach y /api/meal-image
 tools/coach-smoke.mjs   prueba de extremo a extremo (npm run coach:smoke)
 js/coach/ai-core.js     núcleo PURO: seguridad, herramientas, prompt, parser SSE
 js/coach/ai.js          capa de navegador: contexto real, endpoint, repliegue
@@ -152,6 +187,10 @@ Estas están fijadas por pruebas, no por buenas intenciones:
    siempre termina en `[DONE]`; el proxy vuelca las herramientas
    acumuladas *antes* de cerrar. Sin esto el coach contestaba pero nunca
    hacía nada, en silencio.
+8. **Un fallo no deja la app coja.** Sin clave, sin red o con el servicio
+   caído, el coach responde con el motor local y las recetas con su
+   ilustración. Ninguna de las dos features es obligatoria para que la app
+   funcione.
 
 ---
 

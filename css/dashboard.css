@@ -1,0 +1,329 @@
+/* ============================================================
+   BAYONA · DASHBOARD DE ESCRITORIO
+   ------------------------------------------------------------
+   En el shell de escritorio el mundo 3D estaba oculto: la app se
+   leía como un documento largo con una barra lateral. Eso no es una
+   app de gimnasio, es un informe.
+
+   Aquí la app deja de ser un documento y pasa a ser un tablero:
+   el personaje SIEMPRE en el centro, los datos reales flotando a su
+   alrededor, y el contenido a la derecha como una columna de trabajo.
+
+   ┌────────────────────────────────────────────────────────┐
+   │ topbar                                                  │
+   ├──────┬───────────────────────────┬─────────────────────┤
+   │ rail │   ◈  el personaje         │  columna de         │
+   │ 210  │   + tarjetas flotantes    │  contenido          │
+   └──────┴───────────────────────────┴─────────────────────┘
+
+   Todo lo que hay aquí es una REJILLA: lo que se ve en el centro
+   es el mismo canvas 3D de siempre, solo que ahora ocupa su hueco.
+   ============================================================ */
+
+body.fitness-app {
+  --dash-rail: 210px;
+  --dash-panel: clamp(400px, 33vw, 560px);
+  --dash-top: 76px;
+}
+
+/* ---------- el centro pasa a existir ---------- */
+body.fitness-app.dash-pc #scene-wrap {
+  display: block !important;
+  position: fixed;
+  inset: var(--dash-top) var(--dash-panel) 0 var(--dash-rail);
+  width: auto;
+  z-index: 10;
+  background: var(--fit-bg);
+}
+body.fitness-app.dash-pc #scene { width: 100%; height: 100%; display: block; }
+
+/* viñeta suave que separa el mundo del panel sin cortar al personaje */
+body.fitness-app.dash-pc #scene-wrap::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(to right, var(--fit-bg) 0, transparent 9%, transparent 91%, var(--fit-bg) 100%);
+  opacity: .9;
+}
+
+/* ---------- la columna de contenido se estrecha ---------- */
+body.fitness-app.dash-pc #drawer,
+body.fitness-app.dash-pc #drawer.open,
+body.fitness-app.dash-pc #drawer[data-section] {
+  left: auto;
+  right: 0;
+  top: var(--dash-top);
+  bottom: 0;
+  width: var(--dash-panel);
+  max-width: none;
+  height: auto;
+  background: var(--fit-bg);
+  border-left: 1px solid var(--hair);
+  border-radius: 0;
+  z-index: 30;
+}
+body.fitness-app.dash-pc .drawer-head { padding: 24px 32px 10px; }
+body.fitness-app.dash-pc #drawer-title { font-size: 26px; }
+body.fitness-app.dash-pc #drawer-sub { display: none; }
+body.fitness-app.dash-pc #drawer-body { padding: 10px 32px 44px; max-width: none; }
+
+/* ---------- tarjetas flotantes ---------- */
+#dash-hud {
+  position: fixed;
+  z-index: 25;
+  top: var(--dash-top);
+  bottom: 0;
+  left: var(--dash-rail);
+  right: var(--dash-panel);
+  padding: 20px 22px 20px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: auto 1fr auto;
+  align-items: start;
+  justify-items: start;
+  pointer-events: none;
+  gap: 14px;
+}
+#dash-hud[hidden] { display: none; }
+body:not(.fitness-app) #dash-hud { display: none; }
+
+.dash-card {
+  pointer-events: auto;
+  background: color-mix(in srgb, var(--fit-surface) 92%, transparent);
+  border: 1px solid var(--hair);
+  border-radius: 14px;
+  padding: 13px 15px;
+  backdrop-filter: blur(10px);
+  min-width: 0;
+  max-width: 208px;
+  box-shadow: 0 10px 30px -22px rgba(20, 24, 18, .5);
+  transition: transform .22s cubic-bezier(.16, 1, .3, 1), border-color .22s;
+}
+.dash-card:hover { transform: translateY(-2px); border-color: var(--hair-strong); }
+.dash-card:active { transform: translateY(0); }
+
+.dash-lbl {
+  font: 600 9.5px/1.4 var(--sans);
+  letter-spacing: .13em;
+  color: var(--fit-muted);
+  text-transform: uppercase;
+}
+.dash-val {
+  font: 650 27px/1.05 var(--sans);
+  letter-spacing: -.04em;
+  font-variant-numeric: tabular-nums;
+  margin-top: 7px;
+  color: var(--ink);
+}
+.dash-val small { font: 500 11px/1 var(--sans); letter-spacing: 0; color: var(--fit-muted); margin-left: 3px; }
+.dash-sub { font: 400 11.5px/1.45 var(--sans); color: var(--fit-muted); margin-top: 6px; }
+.dash-note { font: 400 10.5px/1.45 var(--sans); color: var(--fit-muted); margin-top: 5px; }
+
+/* barra de progreso fina */
+.dash-bar { height: 4px; background: var(--hair); border-radius: 3px; overflow: hidden; margin-top: 10px; }
+.dash-bar > i { display: block; height: 100%; background: var(--orange); border-radius: 3px; transition: width .45s var(--ease); }
+
+/* ---------- colocación de cada tarjeta ---------- */
+.dash-slot-tl { grid-column: 1; grid-row: 1; }
+.dash-slot-tr { grid-column: 2; grid-row: 1; justify-self: end; }
+.dash-slot-ml { grid-column: 1; grid-row: 2; align-self: start; }
+.dash-slot-mr { grid-column: 2; grid-row: 2; align-self: start; justify-self: end; }
+.dash-slot-bl { grid-column: 1; grid-row: 3; align-self: end; }
+.dash-slot-br { grid-column: 2; grid-row: 3; align-self: end; justify-self: end; }
+
+/* ---------- tarjetas de receta con foto ---------- */
+.nut-recetas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 16px;
+  margin-top: 14px;
+}
+.nut-receta {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--hair);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--fit-bg);
+}
+.nut-receta-foto {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  background: var(--hair);
+  overflow: hidden;
+}
+.nut-receta-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity .45s var(--ease);
+}
+.nut-receta-foto.tiene-foto .nut-receta-img { opacity: 1; }
+.nut-receta-foto.tiene-foto::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, .28), transparent 55%);
+  pointer-events: none;
+}
+.nut-foto-btn {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  min-height: 38px;
+  padding: 9px 15px;
+  border-radius: 9px;
+  border: 1px solid rgba(255, 255, 255, .55);
+  background: rgba(20, 24, 18, .58);
+  backdrop-filter: blur(6px);
+  color: #fff;
+  font: 600 10.5px/1 var(--sans);
+  letter-spacing: .06em;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .2s, opacity .3s;
+}
+.nut-foto-btn:hover { background: rgba(20, 24, 18, .78); }
+.nut-foto-btn:disabled { opacity: .6; cursor: default; }
+.nut-receta-foto.tiene-foto .nut-foto-btn { display: none; }
+
+.nut-receta-body { display: flex; flex-direction: column; flex: 1; padding: 14px 15px 15px; }
+.nut-receta-body h4 { font: 650 14px/1.3 var(--sans); letter-spacing: -.01em; }
+.nut-receta-meta { margin: 6px 0 0; font: 500 10.5px/1.4 var(--sans); color: var(--orange); letter-spacing: .03em; }
+.nut-receta-ingr {
+  margin: 9px 0 13px;
+  font: 400 11.5px/1.5 var(--sans);
+  color: var(--fit-muted);
+  flex: 1;
+}
+.nut-receta-body .btn { margin-top: auto; min-height: 42px; font-size: 12px; }
+.nut-foto-nota { margin: 12px 0 0; font: 400 11px/1.5 var(--sans); color: var(--fit-muted); }
+
+/* ---------- filas de macros ---------- */
+.dash-macro-row {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+  font: 400 11.5px/1.5 var(--sans); color: var(--fit-muted);
+  padding: 3px 0;
+}
+.dash-macro-row + .dash-macro-row { border-top: 1px solid var(--hair); }
+.dash-macro-row .mono { font-variant-numeric: tabular-nums; color: var(--ink); font-size: 11px; }
+
+/* ---------- anillo de preparación ---------- */
+.dash-ring { display: flex; align-items: center; gap: 13px; }
+.dash-ring svg { width: 52px; height: 52px; flex: 0 0 auto; transform: rotate(-90deg); }
+.dash-ring .track { stroke: var(--hair); }
+.dash-ring .fill { stroke: var(--orange); stroke-linecap: round; transition: stroke-dashoffset .6s var(--ease); }
+.dash-ring .val { font: 650 25px/1 var(--sans); letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+.dash-ring .cap { font: 600 9px/1.3 var(--sans); letter-spacing: .12em; color: var(--fit-muted); margin-top: 4px; }
+
+/* ---------- sesión de hoy: la acción principal ---------- */
+.dash-cta {
+  display: block;
+  width: 100%;
+  margin-top: 11px;
+  min-height: 42px;
+  border-radius: 10px;
+  background: var(--orange);
+  border: 1px solid var(--orange);
+  color: #fff;
+  font: 600 12px/1 var(--sans);
+  cursor: pointer;
+  transition: filter .18s;
+}
+.dash-cta:hover { filter: brightness(1.07); }
+.dash-cta.ghost { background: none; border-color: var(--hair-strong); color: var(--ink); }
+
+/* ---------- puntos de agua ---------- */
+.dash-drops { display: flex; gap: 4px; margin-top: 10px; }
+.dash-drops i {
+  width: 9px; height: 13px; border-radius: 2px 2px 5px 5px;
+  background: var(--hair); display: block;
+  transition: background .3s var(--ease);
+}
+.dash-drops i.on { background: var(--orange); }
+
+/* ---------- píldora de aviso ---------- */
+.dash-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-top: 9px; padding: 4px 8px; border-radius: 6px;
+  background: color-mix(in srgb, var(--orange) 12%, var(--fit-surface));
+  color: var(--orange); font: 600 9.5px/1 var(--sans); letter-spacing: .08em;
+}
+.dash-pill::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.dash-pill.quiet { background: var(--fit-bg); color: var(--fit-muted); }
+
+/* ---------- coach ---------- */
+.dash-coach {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  align-self: end;
+  justify-self: center;
+  display: flex; align-items: center; gap: 12px;
+  max-width: 560px; width: 100%;
+  margin: 0 auto;
+}
+.dash-coach .dash-card { max-width: none; width: 100%; }
+.dash-coach-face {
+  flex: 0 0 auto; width: 34px; height: 34px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--orange); color: #fff; font: 700 15px/1 var(--sans);
+}
+.dash-coach-txt { min-width: 0; }
+.dash-coach-txt strong { display: block; font: 650 13px/1.3 var(--sans); letter-spacing: -.01em; }
+.dash-coach-txt p { margin: 4px 0 0; font: 400 12px/1.5 var(--sans); color: var(--fit-muted); }
+
+/* ---------- cabecera del panel: estado del coach ---------- */
+.dash-engine {
+  display: inline-flex; align-items: center; gap: 7px;
+  font: 600 10px/1 var(--sans); letter-spacing: .06em;
+  color: var(--fit-muted);
+  margin-left: auto;
+}
+.dash-engine::before {
+  content: ""; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--fit-muted);
+}
+.dash-engine.ia::before { background: var(--orange); }
+
+/* ---------- cuando el panel modal se abre, el HUD baja ---------- */
+body.fitness-app.dash-pc.modal-open #dash-hud { opacity: .25; pointer-events: none; }
+#dash-hud { transition: opacity .25s var(--ease); }
+
+/* ---------- sesión de entrenamiento a pantalla completa ---------- */
+body.fitness-app.dash-pc.modo-sesion #drawer { left: var(--dash-rail); right: 0; width: auto; }
+body.fitness-app.dash-pc.modo-sesion #dash-hud { display: none; }
+body.fitness-app.dash-pc.modo-sesion #scene-wrap { display: none !important; }
+
+/* ---------- pantallas medianas ---------- */
+@media (max-width: 1440px) {
+  .dash-card { max-width: 186px; padding: 12px 13px; }
+  .dash-val { font-size: 24px; }
+}
+@media (max-width: 1240px) {
+  :root { --dash-rail: 84px; }
+  body.fitness-app #panel-nav { width: 84px; padding: 28px 10px; align-items: center; }
+  body.fitness-app #panel-nav .rail-btn { flex-direction: column; gap: 6px; min-height: 62px; padding: 10px 4px; font-size: 10px; justify-content: center; }
+  body.fitness-app #drawer,
+  body.fitness-app #drawer.open,
+  body.fitness-app #drawer[data-section] { left: 84px; }
+  body.fitness-app.dash-pc #scene-wrap { left: 84px; }
+  #dash-hud { left: 84px; }
+  .dash-card { max-width: 164px; }
+  .dash-coach { max-width: 460px; }
+}
+@media (max-width: 1100px) {
+  /* por debajo de 1100 el tablero no cabe: la app vuelve a documento */
+  #dash-hud { display: none !important; }
+}
+
+/* ---------- sin movimiento ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .dash-card, .dash-bar > i, .dash-ring .fill { transition: none !important; }
+  .dash-card:hover { transform: none; }
+}

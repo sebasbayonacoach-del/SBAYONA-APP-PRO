@@ -9,6 +9,7 @@ import { World } from "./world.js";
 import { initUI } from "./ui.js";
 import { openSection, enterHome } from "./ui/shared.js";
 import { installFitnessUI } from "./ui/fitness.js";
+import { installDashboard, dashboardActivo } from "./ui/dashboard.js";
 import { ITEMS } from "./data.js";
 import { loadFaceImage } from "./face.js";
 
@@ -65,12 +66,20 @@ function boot() {
   installFitnessUI();
   initUI(world);
   wireEntry(world);
+  // DASHBOARD DE ESCRITORIO · el personaje al centro, con el resumen vivo
+  // alrededor. Se enciende al entrar y se apaga solo por debajo de 1100 px.
+  installDashboard();
 
   // depuración / agentes: manija pública al mundo (escena, no datos personales)
   window.BAYONA = { world };
 
-  // loop
-  const loop = () => { if (!document.hidden && document.body.classList.contains("avatar-view")) world.update(); requestAnimationFrame(loop); };
+  // loop: el mundo se dibuja cuando se ve el personaje — en el vestidor
+  // o en el tablero de escritorio.
+  const loop = () => {
+    const visible = document.body.classList.contains("avatar-view") || dashboardActivo();
+    if (!document.hidden && visible) world.update();
+    requestAnimationFrame(loop);
+  };
   loop();
 
   // estado de día por si la app lleva abierta mucho

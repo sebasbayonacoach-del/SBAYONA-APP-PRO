@@ -19,13 +19,18 @@ import { createReadStream, statSync } from "node:fs";
 import { extname, join, normalize, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import coachHandler from "../api/coach.js";
+import imageHandler from "../api/image.js";
 
 const ROOT = resolve(join(fileURLToPath(import.meta.url), "..", ".."));
 const PORT = Number(process.env.PORT || 8080);
 const HOST = "0.0.0.0";
 
-/** Rutas que no son ficheros estáticos. */
-const API = ["/api/coach", "/api/coach/"];
+/** Rutas que no son ficheros estáticos. Se comparan por prefijo para
+ *  que las comprobaciones de salud (/api/meal-image/health) lleguen también. */
+const API = [
+  { prefijo: "/api/coach", handler: coachHandler },
+  { prefijo: "/api/meal-image", handler: imageHandler },
+];
 const notFound = (res) => {
   res.statusCode = 404;
   res.setHeader("content-type", "text/plain; charset=utf-8");
@@ -55,14 +60,15 @@ const server = createServer((req, res) => {
   const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
   const pathname = url.pathname;
 
-  // ---- el coach vive aquí, no en el disco ----
-  if (API.includes(pathname)) {
-    coachHandler(req, res).catch((e) => {
-      console.error("  ✖ coach:", e?.message || e);
+  // ---- el coach y las imágenes viven aquí, no en el disco ----
+  const ruta = API.find((r) => pathname === r.prefijo || pathname.startsWith(`${r.prefijo}/`));
+  if (ruta) {
+    Promise.resolve(ruta.handler(req, res)).catch((e) => {
+      console.error("  ✖ api:", e?.message || e);
       if (!res.headersSent) {
         res.statusCode = 500;
         res.setHeader("content-type", "application/json; charset=utf-8");
-        res.end(JSON.stringify({ ok: false, error: "error interno del coach" }));
+        res.end(JSON.stringify({ ok: false, error: "error interno de la API" }));
       } else if (!res.writableEnded) {
         res.end();
       }
@@ -93,14 +99,14 @@ const server = createServer((req, res) => {
 });
 
 server.listen(PORT, HOST, () => {
-  // mismo criterio que el proxy: las dos variables valen
-  const conIA = Boolean(process.env.BAYONA_COACH_API_KEY || process.env.OPENAI_API_KEY);
-  const coach = conIA
-    ? "coach con IA en /api/coach"
-    : "coach local en /api/coach (sin clave: usa el motor de reglas)";
+  // mismo criterio que los proxies: las dos variables valen
+  const key = process.env.BAYONA_COACH_API_KEY || process.env.OPENAI_API_KEY;
+  const coach = key ? "coach con IA en /api/coach" : "coach local en /api/coach (sin clave: motor de reglas)";
+  const img = key ? "fotos de receta en /api/meal-image" : "fotos de receta: ilustraciones locales (sin clave)";
   console.log(`\n  ◈ BAYONA — TU VIDA ES EL JUEGO`);
   console.log(`  ► http://localhost:${PORT}`);
-  console.log(`  ◈ ${coach}\n`);
+  console.log(`  ◈ ${coach}`);
+  console.log(`  ◈ ${img}\n`);
 });
 
 server.on("error", (e) => {

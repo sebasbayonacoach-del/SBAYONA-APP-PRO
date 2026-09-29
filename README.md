@@ -8,6 +8,30 @@ tú entrenas → él entrena, tú comes → él come, tú bebes → él bebe.
 El avatar es un **gemelo de comportamiento**, no una mascota.
 **Todo lo visible al usuario está en español (es-ES).**
 
+## ✨ v5 · PIZARRA (dashboard de escritorio + fotos de receta)
+
+En el shell de escritorio el mundo 3D estaba **oculto**: la app se leía como un
+informe largo con barra lateral. Eso no es una app de gimnasio.
+
+- **`css/dashboard.css` + `js/ui/dashboard.js`** — el **tablero**: raíl de
+  navegación, **el personaje en el centro** y los datos reales flotando a su
+  alrededor (preparación, sesión de hoy, nivel, macros, hidratación, constancia
+  y CORE). El contenido vive en una columna a la derecha, como en cualquier app
+  de gimnasio seria. Por debajo de 1100 px el tablero se apaga solo y la app
+  vuelve a documento, que es lo que funciona en móvil.
+- **`js/world.js`** — el mundo se dimensiona **por su contenedor**, no por la
+  ventana. Sin esto, con el personaje en una columna central, quedaba
+  descentrado. Con un `ResizeObserver` para los cambios que no son de ventana.
+- **`api/image.js` + `js/recipeImage.js`** — **fotos de receta por IA**. El
+  cliente pide «la foto de `r_bowl_pollo`» y **el prompt lo construye el
+  servidor** desde el catálogo: si el navegador pudiera mandar texto libre,
+  esto sería un generador de imágenes abierto y pagado por la app.
+- **La cocina no se rompe nunca.** Sin clave o sin red, cada receta muestra una
+  ilustración estable en vez de un hueco. Las fotos se piden **una a una, cuando
+  el usuario las pide** — generarlas cuesta dinero y ancho de banda, y la app
+  no gasta ninguno de los dos sin permiso. La imagen se reescala a miniatura en
+  el dispositivo y se guarda (LRU de 8) para no volver a pedirla.
+
 ## ✨ v4 · CORE (coach conversacional)
 
 CORE deja de ser un formulario con reglas y pasa a ser **una conversación**.
@@ -35,7 +59,7 @@ La pieza entera cabe en un vertical slice, y la puerta se abre sin claves.
   composer pensado para el pulgar.
 - **`tools/serve.mjs`** — arranque sin Python (`npm start`), en Node puro.
 
-**Las seis garantías van con pruebas** (`tests/coach-ai-eval.mjs`, 67 checks):
+**Las seis garantías van con pruebas** (`tests/coach-ai-eval.mjs`, 73 checks):
 
 | Garantía | Cómo se sostiene |
 |---|---|
@@ -106,14 +130,14 @@ Detalle completo y capturas: **`docs-luxe/`**.
 ```bash
 ./run.sh             # → http://localhost:8080   (o: npm start)
 npm test             # → batería multiplataforma (tests/run.mjs) + golden set de biomecánica
-npm run coach:smoke  # → prueba de extremo a extremo del coach contra /api/coach
+npm run coach:smoke  # → prueba de extremo a extremo del coach y las fotos contra /api
 npm run mobile:pack  # → empaquetado web para Capacitor (ver docs/MOBILE_RELEASE.md)
 ```
 
 | Dónde | Qué es |
 |---|---|
 | `index.html` + `css/` + `js/` + `media/` + `vendor/` | La app: mundo 3D + mundos + plan + armario |
-| `js/ui/` | Módulos por mundo (shell, gimnasio, cocina, recuperación, mente, plan, armario, progreso, CORE, más) |
+| `js/ui/` | Módulos por mundo (shell, gimnasio, cocina, recuperación, mente, plan, armario, progreso, CORE, más, **tablero de escritorio**) |
 | `js/vision/` | **GEMELO-1**: cámara → contador de reps → biomecánica (procesado 100% local) |
 | `js/coach/` · `js/health/` | CORE conversacional (IA con repliegue local) · **Mapa de Salud** (PAR-Q+/PHQ-2/GAD-2) |
 | `js/state.js` · `js/rewards.js` · `js/engine.js` | Estado persistente (esquema v3 + migración) · economía (fuente única) · motor de rendimiento |
@@ -123,8 +147,8 @@ npm run mobile:pack  # → empaquetado web para Capacitor (ver docs/MOBILE_RELEA
 | `js/hoy.js` | **Plan del día**: jerarquía CRÍTICO→HOY→RECOMENDADO→OPCIONAL→COMPLETADO + misiones diarias deterministas (panel en `js/ui/hoy.js`) |
 | `js/i18n.js` · `js/consents.js` · `js/phygital.js` | Catálogo/formato es-ES + `esc()` · consentimientos centralizados · códigos físico→digital |
 | `js/data/offlineQueue.js` | Cola offline FIFO idempotente + zona de recuperación (nada se pierde en silencio) |
-| `tests/` + `ml/evals/` | 32 suites ejecutables (visión, coach, salud, HOY, cola, economía, estado, phygital…) + golden set |
-| `api/` | Proxy del coach (`api/coach.js` + **`api/COACH_IA.md`**) · SQL Supabase (tablas + RLS) + contratos REST · **`api/supabase/SETUP.md`** = guía para crear la cuenta y desplegar · **`api/supabase/setup.sql`** = script único e idempotente para el SQL Editor |
+| `tests/` + `ml/evals/` | 33 suites ejecutables (visión, coach, salud, HOY, cola, economía, estado, phygital, tablero, recetas…) + golden set |
+| `api/` | Proxy del coach (`api/coach.js` + **`api/COACH_IA.md`**) · proxy de fotos de receta (`api/image.js`) · SQL Supabase (tablas + RLS) + contratos REST · **`api/supabase/SETUP.md`** = guía para crear la cuenta y desplegar · **`api/supabase/setup.sql`** = script único e idempotente para el SQL Editor |
 | `mobile/` | Contenedor **Capacitor** → Android / iOS (configurado; sin compilar en esta fase) |
 | `sw.js` + `manifest.webmanifest` | PWA: shell offline (network-first para código) + instalable |
 
@@ -148,6 +172,8 @@ Diagnóstico sin service worker: `index.html?nosw=1`.
 | Autoregulación REAL (volumen recortado de verdad, carga sugerida usada en el registro) | ✅ | `tests/state-eval.mjs` + E2E |
 | CORE conversacional (streaming, herramientas que actúan de verdad, 30 escenarios de derivación, repliegue local sin red) | ✅ con y sin IA | `tests/coach-ai-eval.mjs` + `tests/seguridad-30-eval.mjs` |
 | Nutrición (macros, fibra, comidas custom, hidratación rápida/personalizada) | ✅ | E2E navegador |
+| Recetas con foto generada por IA, en caché y con ilustración de repuesto | ✅ con y sin clave | `tests/dashboard-receta-eval.mjs` + `npm run coach:smoke` |
+| Tablero de escritorio con el personaje en el centro | ✅ ≥1100 px | `tests/dashboard-receta-eval.mjs` |
 | Recuperación con desglose «¿POR QUÉ?» y honestidad de datos ausentes | ✅ | E2E navegador |
 | Plan macrociclo: vista SIMPLE / LABORATORIO (hoja profesional, adherencia real) | ✅ | E2E navegador |
 | Armario: rarezas, DIGITAL/FÍSICO, equipamiento persistente, códigos phygital (formato+control+uso único+auditoría) | ✅ (validación local; server-side pendiente de backend) | `tests/phygital-eval.mjs` + E2E |
@@ -180,6 +206,6 @@ Requiere Node.js 22 o posterior para las pruebas (importación JSON).
 - Pausar una sesión devuelve a HOY y recupera la navegación.
 - PWA: recursos del avatar recuperados, caché de recursos versionados y paquete móvil completo.
 
-`npm test` ejecuta las 32 suites. `npm run mobile:pack` genera los recursos para Capacitor; no compila ni firma un APK/IPA. El coach con IA es opcional: sin `OPENAI_API_KEY`, CORE sigue funcionando con su motor local (`api/COACH_IA.md`). Backend de cuentas, credenciales y publicación en tiendas requieren configuración y validación independientes.
+`npm test` ejecuta las 33 suites. `npm run mobile:pack` genera los recursos para Capacitor; no compila ni firma un APK/IPA. El coach con IA es opcional: sin `OPENAI_API_KEY`, CORE sigue funcionando con su motor local (`api/COACH_IA.md`). Backend de cuentas, credenciales y publicación en tiendas requieren configuración y validación independientes.
 
 Criterio para ciclo y entrenamiento: [consenso UEFA, 2025](https://bmjopensem.bmj.com/content/11/3/e002769). La evidencia no respalda prescribir automáticamente la intensidad según una fase estimada del calendario; se priorizan síntomas, autonomía y contexto individual.
