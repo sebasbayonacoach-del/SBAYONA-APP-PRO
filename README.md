@@ -8,6 +8,63 @@ tú entrenas → él entrena, tú comes → él come, tú bebes → él bebe.
 El avatar es un **gemelo de comportamiento**, no una mascota.
 **Todo lo visible al usuario está en español (es-ES).**
 
+## ✨ v6 · RED DE SEGURIDAD DEL PROGRESO (tu partida no se pierde)
+
+«¿Cómo vas a segurar el progreso?» Una partida vive en `localStorage`, y
+`localStorage` se puede vaciar (limpiar datos del navegador, modo privado,
+cuota llena, un guardado a medias). Antes de v6, una sola escritura rota
+significaba empezar de cero: semanas de racha, XP y récords, evaporadas.
+No hay red debajo de eso.
+
+- **`js/backup.js`** — **anillo de 8 instantáneas** (`bayona.backup.v1`).
+  - `guardarSeguro()` en cada guardado; si la cuota está llena, **recorta en
+    este orden**: notas de voz → diario de viaje → historial → log de series.
+    Se sueltan los datos prescindibles **antes** que perder la partida.
+  - `recuperar()` — si la partida principal no parsea, se carga la última
+    instantánea legible en vez de arrancar de cero (emite `storage-recovered`).
+  - `restaurar()` · `previsualizar()` · `diagnostico()` — y
+    `vigilarOtraPestana()`, que detecta que otra pestaña reescribió la partida.
+- **`js/state.js`** — `init()` intenta la recuperación; `save()` escribe
+  seguro y avisa con `storage-trimmed` si tuvo que recortar; `deleteAll()`
+  borra también el anillo y la copia corrupta (si no, «borrar mis datos» sería
+  una mentira).
+- **`js/ui/more.js`** — «TUS DATOS Y RESPALDOS»: diagnóstico de almacenamiento,
+  lista de instantáneas con su fecha y **VOLVER AQUÍ** (con confirmación).
+- **Techos duros.** XP, cartera y minutos se sanean a un máximo
+  (`XP_TECHO`, `CARTERA_TECHO`) y toda entrada numérica se valida con
+  `numero()`/`enRango()`: `NaN`, `Infinity`, negativos y fuera de rango ya no
+  pueden envenenar un contador «para siempre».
+
+## ✨ v5.1 · EL PLAN DE 5.000 PREGUNTAS (ejecutado, en verde)
+
+Un plan de preguntas que nadie ejecuta no es un plan: es un documento. Aquí el
+plan **es código que genera los casos y los ejecuta**.
+
+- **`tests/qa-5000-eval.mjs`** — **34 acciones × 14 entradas hostiles × 8
+  invariantes**, más familias de idempotencia (×100), vandalismo del
+  almacenamiento, cuota llena, viaje en el tiempo, dos pestañas y migraciones
+  de esquema → **17.640 comprobaciones**.
+- **Los 8 invariantes** (lo que, pase lo que pase, es cierto): el XP nunca baja
+  solo · nada es `NaN`/`Infinity`/negativo donde no toca · la misma serie con la
+  misma clave no premia dos veces · los contadores solo suman · el nivel no
+  retrocede sin que bajen los XP · el inventario no concede dos veces el mismo
+  objeto · **el guardado nunca lanza** (o escribe o avisa) · la estructura del
+  estado sigue siendo válida.
+- **Bug real que encontró** (y que ya no existe): el nivel se buscaba restando
+  250 XP en bucle, así que una partida corrupta (`xp: 1e30`, que se puede
+  escribir a mano en el almacenamiento) eran **3·10¹⁴ vueltas**: la app se
+  quedaba en blanco. Ahora el nivel sale de la inversa de la cuadrática
+  (`nivelDeXp`, O(1), 0 ms también con 1e30) y los desbloqueos se recorren
+  **solo sobre los 7 niveles que tienen recompensa**, no sobre todos los
+  enteros del salto. Comprobado: los valores de `lvl`/`cur`/`need` son
+  **idénticos** a los del bucle original en 120.907 XP de prueba.
+- **Segundo bug real**: `addPoints`/`addCredits`/`logSleep`/`logSoreness`/
+  `logEnergy`/`logStress`/`logMind`/`eat`/`drink`/`addSteps` aceptaban
+  cualquier valor. Con un campo de texto vacío, «3 h» o `-99999` el contador
+  quedaba en `NaN` para siempre. Ahora se sanean o se ignoran.
+- **Tercero**: `init()` aceptaba un guardado que *parsea* pero no es una partida
+  (`"texto"`, `0`, `[]`). Ahora se trata como corrupción: copia + instantánea.
+
 ## ✨ v5 · PIZARRA (dashboard de escritorio + fotos de receta)
 
 En el shell de escritorio el mundo 3D estaba **oculto**: la app se leía como un
@@ -130,6 +187,7 @@ Detalle completo y capturas: **`docs-luxe/`**.
 ```bash
 ./run.sh             # → http://localhost:8080   (o: npm start)
 npm test             # → batería multiplataforma (tests/run.mjs) + golden set de biomecánica
+npm run qa:5000      # → el plan de 5.000 preguntas, ejecutado (17.640 comprobaciones)
 npm run coach:smoke  # → prueba de extremo a extremo del coach y las fotos contra /api
 npm run mobile:pack  # → empaquetado web para Capacitor (ver docs/MOBILE_RELEASE.md)
 ```
@@ -141,13 +199,14 @@ npm run mobile:pack  # → empaquetado web para Capacitor (ver docs/MOBILE_RELEA
 | `js/vision/` | **GEMELO-1**: cámara → contador de reps → biomecánica (procesado 100% local) |
 | `js/coach/` · `js/health/` | CORE conversacional (IA con repliegue local) · **Mapa de Salud** (PAR-Q+/PHQ-2/GAD-2) |
 | `js/state.js` · `js/rewards.js` · `js/engine.js` | Estado persistente (esquema v3 + migración) · economía (fuente única) · motor de rendimiento |
+| `js/backup.js` | **Red de seguridad**: anillo de 8 instantáneas, recuperación automática ante corrupción, recorte por cuota y diagnóstico |
 | `js/contexto.js` · `js/ui/trabajo.js` | **Motor de contexto** (momento del día → entorno/saludo) · contexto **TRABAJO** (foco 25/5, pausas activas, postura) |
 | `js/medidas.js` | **Mediciones**: evolución corporal ANTES→AHORA→HACIA DÓNDE (deltas, tendencia, proyección honesta) |
 | `js/coachos.js` · `js/ui/coachos.js` | **COACH OS**: command center del entrenador (fichas vivas, alertas por reglas, CORE Coach, macrociclo) |
 | `js/hoy.js` | **Plan del día**: jerarquía CRÍTICO→HOY→RECOMENDADO→OPCIONAL→COMPLETADO + misiones diarias deterministas (panel en `js/ui/hoy.js`) |
 | `js/i18n.js` · `js/consents.js` · `js/phygital.js` | Catálogo/formato es-ES + `esc()` · consentimientos centralizados · códigos físico→digital |
 | `js/data/offlineQueue.js` | Cola offline FIFO idempotente + zona de recuperación (nada se pierde en silencio) |
-| `tests/` + `ml/evals/` | 33 suites ejecutables (visión, coach, salud, HOY, cola, economía, estado, phygital, tablero, recetas…) + golden set |
+| `tests/` + `ml/evals/` | 34 suites ejecutables (visión, coach, salud, HOY, cola, economía, estado, phygital, tablero, recetas, **plan de 5.000 preguntas**) + golden set |
 | `api/` | Proxy del coach (`api/coach.js` + **`api/COACH_IA.md`**) · proxy de fotos de receta (`api/image.js`) · SQL Supabase (tablas + RLS) + contratos REST · **`api/supabase/SETUP.md`** = guía para crear la cuenta y desplegar · **`api/supabase/setup.sql`** = script único e idempotente para el SQL Editor |
 | `mobile/` | Contenedor **Capacitor** → Android / iOS (configurado; sin compilar en esta fase) |
 | `sw.js` + `manifest.webmanifest` | PWA: shell offline (network-first para código) + instalable |
@@ -175,6 +234,8 @@ Diagnóstico sin service worker: `index.html?nosw=1`.
 | Recetas con foto generada por IA, en caché y con ilustración de repuesto | ✅ con y sin clave | `tests/dashboard-receta-eval.mjs` + `npm run coach:smoke` |
 | Tablero de escritorio con el personaje en el centro | ✅ ≥1100 px | `tests/dashboard-receta-eval.mjs` |
 | Recuperación con desglose «¿POR QUÉ?» y honestidad de datos ausentes | ✅ | E2E navegador |
+| Red de seguridad del progreso (8 instantáneas, recuperación, cuota llena, borrado real) | ✅ | `tests/qa-5000-eval.mjs` |
+| Plan de 5.000 preguntas ejecutado: 17.640 comprobaciones, 0 fallos | ✅ | `npm run qa:5000` |
 | Plan macrociclo: vista SIMPLE / LABORATORIO (hoja profesional, adherencia real) | ✅ | E2E navegador |
 | Armario: rarezas, DIGITAL/FÍSICO, equipamiento persistente, códigos phygital (formato+control+uso único+auditoría) | ✅ (validación local; server-side pendiente de backend) | `tests/phygital-eval.mjs` + E2E |
 | Progreso: analítica real, fotos privadas (solo dispositivo), comparador ANTES/AHORA | ✅ | E2E navegador |
@@ -206,6 +267,6 @@ Requiere Node.js 22 o posterior para las pruebas (importación JSON).
 - Pausar una sesión devuelve a HOY y recupera la navegación.
 - PWA: recursos del avatar recuperados, caché de recursos versionados y paquete móvil completo.
 
-`npm test` ejecuta las 33 suites. `npm run mobile:pack` genera los recursos para Capacitor; no compila ni firma un APK/IPA. El coach con IA es opcional: sin `OPENAI_API_KEY`, CORE sigue funcionando con su motor local (`api/COACH_IA.md`). Backend de cuentas, credenciales y publicación en tiendas requieren configuración y validación independientes.
+`npm test` ejecuta las 34 suites; `npm run qa:5000` ejecuta el plan de 5.000 preguntas. `npm run mobile:pack` genera los recursos para Capacitor; no compila ni firma un APK/IPA. El coach con IA es opcional: sin `OPENAI_API_KEY`, CORE sigue funcionando con su motor local (`api/COACH_IA.md`). Backend de cuentas, credenciales y publicación en tiendas requieren configuración y validación independientes.
 
 Criterio para ciclo y entrenamiento: [consenso UEFA, 2025](https://bmjopensem.bmj.com/content/11/3/e002769). La evidencia no respalda prescribir automáticamente la intensidad según una fase estimada del calendario; se priorizan síntomas, autonomía y contexto individual.

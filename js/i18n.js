@@ -151,6 +151,26 @@ const es = {
   "nut.fotoListo": "Las fotos se generan bajo demanda y se guardan en tu dispositivo para que no se vuelvan a pedir.",
   "nut.fotosSinClave": "Ahora mismo se ven las ilustraciones. Con el servicio de imágenes conectado, cada receta tendrá su foto real.",
   "nut.verReceta": "VER LA RECETA",
+
+  // ---------- RED DE SEGURIDAD DEL PROGRESO ----------
+  "data.safetyLabel": "TUS DATOS Y RESPALDOS",
+  "data.safetyTitle": "TU PROGRESO ESTÁ CUBIERTO",
+  "data.safetyNote": "Cada vez que guardas, BAYONA deja una copia del estado. Si algo se corrompe, se recupera solo; y si quieres, puedes volver tú a un punto anterior.",
+  "data.safetyState": "Partida principal",
+  "data.safetyOk": "CORRECTA",
+  "data.safetyBad": "NO SE PUEDE LEER",
+  "data.safetyShots": "Copias de seguridad",
+  "data.safetySize": "Tamaño",
+  "data.safetyBroken": "La partida principal no se puede leer. Puedes recuperar la última copia válida desde aquí.",
+  "data.safetyShotN": "{xp} XP · {w} entrenamientos · {sets} series",
+  "data.safetyRestore": "VOLVER AQUÍ",
+  "data.safetyRestoreTag": "REPARAR",
+  "data.safetyRestoreTitle": "¿VOLVER A ESTE PUNTO?",
+  "data.safetyRestoreText": "Se sustituirá tu partida por la de esa copia. Lo que hayas registrado después se perderá, así que exporta antes si te importa.",
+  "data.safetyCancel": "CANCELAR",
+  "data.safetyConfirm": "VOLVER AQUÍ",
+  "data.safetyRestored": "PROGRESO RESTAURADO",
+  "data.safetyRestoredNote": "Volvemos a ese punto. Ya puedes continuar.",
 };
 
 const CATS = { "es-ES": es };

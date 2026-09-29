@@ -14,9 +14,75 @@ import {
   stepsReward, mindReward, mobilityReward, healthMapReward, missionReward,
   focusReward, activePauseReward,
 } from "./rewards.js";
+import { respaldar, guardarSeguro, recuperar } from "./backup.js";
 
 const KEY = "bayona.save.v2";
 export const SCHEMA = 3;
+
+/**
+ * Recompensa por nivel. Vive fuera del objeto S y en orden: se recorre
+ * al subir de nivel, y recorrer 3.000.000 de enteros para encontrar 7
+ * recompensas cuelga el navegador.
+ */
+const RECOMPENSA_NIVEL = {
+  2:  { credits: 80,  item: "ember_tee" },
+  3:  { credits: 60,  item: "sprint_shorts" },
+  5:  { credits: 120, item: "pulse_cans" },
+  7:  { credits: 100, item: "focus_straps" },
+  10: { credits: 200, item: "apex_jacket" },
+  14: { credits: 150, item: "ghost_kicks" },
+  20: { credits: 300, item: "titan_hoodie" },
+};
+const NIVEL_RECOMPENSA = Object.keys(RECOMPENSA_NIVEL).map(Number).sort((a, b) => a - b);
+
+/**
+ * Curva de niveles. need(n) = 250 + (n-1)·180, y el total para llegar
+ * al nivel L es 90·L² + 160·L.
+ *
+ * Antes de esto el nivel se buscaba restando 250 en bucle: con una
+ * partida corrupta (xp = 1e30) eran 3·10¹⁴ vueltas y el navegador se
+ * colgaba en blanco. Ahora se resuelve con la inversa de la cuadrática
+ * y se corrige a lo sumo un par de pasos por error de coma flotante.
+ */
+const CURVA_A = 90;   // 180/2
+const CURVA_B = 160;  // 250 - 90
+/** Techo de seguridad: 1e9 XP ≈ nivel 3333. Nadie llega, pero un dato
+ *  corrupto no puede colgarnos la app ni al calcularlo ni al guardarlo. */
+const XP_TECHO = 1e9;
+const SANA = (n, techo = XP_TECHO) =>
+  (typeof n === "number" && Number.isFinite(n) && n > 0 ? Math.min(n, techo) : 0);
+/**
+ * Acepta un número real (o cadena numérica) y RECHAZA NaN, Infinity,
+ * booleanos y null/undefined: si no es un número usable devuelve null.
+ * Sin esto, un 0 pillado en un campo de texto envenenaba el contador
+ * para siempre («NaN min de mente»).
+ */
+const numero = (n) => {
+  if (n === null || n === undefined || n === "" || typeof n === "boolean") return null;
+  const v = typeof n === "number" ? n : Number(n);
+  return Number.isFinite(v) ? v : null;
+};
+/** Igual, pero recortado a un rango. null si no hay número usable. */
+const enRango = (n, min, max) => {
+  const v = numero(n);
+  return v === null ? null : Math.min(max, Math.max(min, v));
+};
+/** Techo de la cartera: ni NaN ni «un millón de créditos» por error. */
+const CARTERA_TECHO = 1e6;
+
+const xpTotalHasta = (l) => CURVA_A * l * l + CURVA_B * l;
+const nivelDeXp = (xp) => {
+  if (!(xp > 0)) return 1;
+  // Se limita al techo: sin esto, un Infinity (JSON.parse("1e400") lo
+  // produce) hacía que lvl-- no progresara nunca y colgara en bucle.
+  const x = Math.min(xp, XP_TECHO);
+  const n = Math.floor((-CURVA_B + Math.sqrt(CURVA_B * CURVA_B + 4 * CURVA_A * x)) / (2 * CURVA_A));
+  let lvl = Math.max(1, Math.min(n + 1, Math.ceil(Math.sqrt(XP_TECHO / CURVA_A)) + 2));
+  // corrección: la raíz puede perderse un nivel por redondeo
+  while (lvl > 1 && xpTotalHasta(lvl - 1) > x) lvl--;
+  while (xpTotalHasta(lvl) <= x) lvl++;
+  return lvl;
+};
 
 const listeners = {};
 export function on(evt, fn) { (listeners[evt] = listeners[evt] || []).push(fn); }
@@ -70,18 +136,35 @@ export const S = {
   storageFailed: false,
 
   init() {
+    let raw = null;
+    let motivo = null;
     try {
-      const raw = localStorage.getItem(KEY);
-      this.data = raw ? JSON.parse(raw) : null;
+      raw = localStorage.getItem(KEY);
+      const parsed = raw ? JSON.parse(raw) : null;
+      // Un save puede PARSEAR sin ser una partida: "texto", 0, [], 7.
+      // Eso no son datos de juego: se trata como corrupción (se conserva
+      // copia y se busca una instantánea) en vez de propagarlo a la UI.
+      this.data = parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : null;
+      if (raw && !this.data) motivo = "forma";
     } catch (e) {
       this.data = null;
+      motivo = "parseo";
+    }
+    if (motivo) {
       // corrupción: conserva copia para recuperación, no pierda en silencio
-      try {
-        const bad = localStorage.getItem(KEY);
-        if (bad) localStorage.setItem("bayona.save.corrupt", bad);
-      } catch { /* sin storage */ }
+      try { if (raw) localStorage.setItem("bayona.save.corrupt", raw); } catch { /* sin storage */ }
       this.storageFailed = true;
       emit("storage-error", { where: "load", recoverable: true });
+    }
+    // RED DE SEGURIDAD · si la partida principal no se puede leer,
+    // se busca la última instantánea válida antes de empezar de cero.
+    if (!this.data) {
+      const r = recuperar();
+      if (r) {
+        this.data = r.data;
+        this.recoveredFrom = r.de;
+        emit("storage-recovered", { de: r.de });
+      }
     }
     if (!this.data) this.reset(true);
     this.migrate();
@@ -168,17 +251,21 @@ export const S = {
     if (!silent) this.save();
   },
 
-  /** Guarda. Devuelve false y avisa si el almacenamiento falla (nunca en silencio). */
+  /** Guarda. Devuelve false y avisa si el almacenamiento falla (nunca en silencio).
+   *  Si localStorage está lleno, suelta lo prescindible ANTES de rendirse:
+   *  perder un mes de entrenamiento por una nota de voz sería absurdo. */
   save() {
-    try {
-      localStorage.setItem(KEY, JSON.stringify(this.data));
+    const r = guardarSeguro(this.data, undefined, KEY);
+    if (r.ok) {
       if (this.storageFailed) { this.storageFailed = false; }
+      if (r.soltado.length) emit("storage-trimmed", { soltado: r.soltado });
+      // red de seguridad: una foto más del estado, solo si ha cambiado
+      respaldar(this.data);
       return true;
-    } catch (e) {
-      this.storageFailed = true;
-      emit("storage-error", { where: "save", recoverable: true });
-      return false;
     }
+    this.storageFailed = true;
+    emit("storage-error", { where: "save", recoverable: true, motivo: r.error, soltado: r.soltado });
+    return false;
   },
 
   // day rollover + racha (sin castigo: freeze / recuperación)
@@ -214,9 +301,12 @@ export const S = {
 
   // ---------- ECONOMÍA ----------
   level() {
-    let lvl = 1, need = 250, rem = this.data.xp;
-    while (rem >= need) { rem -= need; lvl++; need = 250 + (lvl - 1) * 180; }
-    return { lvl, cur: rem, need };
+    // SANA en vez de una comprobación suelta: además de NaN y negativos,
+    // recorta una partida corrupta al techo para que cur y need sean
+    // coherentes con el nivel devuelto.
+    const xp = SANA(this.data.xp);
+    const lvl = nivelDeXp(xp);
+    return { lvl, cur: xp - xpTotalHasta(lvl - 1), need: 250 + (lvl - 1) * 180 };
   },
   rank() {
     const lvl = this.level().lvl;
@@ -225,37 +315,48 @@ export const S = {
     return r;
   },
   addXP(amount, skill, skillGain = 1) {
-    if (!amount) return false;
+    // Techo de seguridad: ni NaN, ni negativos, ni 1e30 entran en la partida.
+    const xp = SANA(Number(amount));
+    if (!xp) return false;
     const before = this.level().lvl;
-    this.data.xp += amount;
-    this.data.today.xpGained += amount;
+    this.data.xp = Math.min(this.data.xp + xp, XP_TECHO);
+    this.data.today.xpGained += xp;
     if (skill && this.data.skills[skill] !== undefined) {
-      this.data.skills[skill] += Math.max(skillGain || 1, Math.round(amount / 80));
+      this.data.skills[skill] += Math.max(skillGain || 1, Math.round(xp / 80));
     }
     const after = this.level().lvl;
     this.save();
-    emit("xp", { amount, skill });
+    emit("xp", { amount: xp, skill });
     if (after > before) {
-      // desbloqueos intermedios: NUNCA se pierden al subir varios niveles seguidos
-      for (let l = before + 1; l <= after; l++) this.unlockForLevel(l);
+      // Desbloqueos intermedios: NUNCA se pierden al subir varios niveles
+      // seguidos. OJO: se recorren SOLO los niveles que tienen recompensa,
+      // no todos los enteros entre before y after. Un salto enorme (una
+      // partida corrupta, un error de cálculo) convertía esto en un bucle
+      // de millones de vueltas que colgaba el navegador.
+      for (const l of NIVEL_RECOMPENSA) {
+        if (l > before && l <= after) this.unlockForLevel(l);
+      }
       emit("levelup", { lvl: after });
     }
     return after > before;
   },
-  addPoints(n) { this.data.points += n; this.save(); emit("wallet"); },
-  addCredits(n) { this.data.credits += n; this.save(); emit("wallet"); },
+  addPoints(n) {
+    const v = enRango(n, 0, CARTERA_TECHO);
+    if (!v) return false;
+    this.data.points = Math.min(this.data.points + v, CARTERA_TECHO);
+    this.save(); emit("wallet");
+    return true;
+  },
+  addCredits(n) {
+    const v = enRango(n, 0, CARTERA_TECHO);
+    if (!v) return false;
+    this.data.credits = Math.min(this.data.credits + v, CARTERA_TECHO);
+    this.save(); emit("wallet");
+    return true;
+  },
 
   unlockForLevel(lvl) {
-    const rewards = {
-      2:  { credits: 80,  item: "ember_tee" },
-      3:  { credits: 60,  item: "sprint_shorts" },
-      5:  { credits: 120, item: "pulse_cans" },
-      7:  { credits: 100, item: "focus_straps" },
-      10: { credits: 200, item: "apex_jacket" },
-      14: { credits: 150, item: "ghost_kicks" },
-      20: { credits: 300, item: "titan_hoodie" },
-    };
-    const r = rewards[lvl];
+    const r = RECOMPENSA_NIVEL[lvl];
     if (r) {
       if (r.credits) this.addCredits(r.credits);
       if (r.item && !this.data.inventory.owned.includes(r.item)) {
@@ -268,8 +369,10 @@ export const S = {
 
   // ---------- HÁBITOS (todo es registro REAL del usuario) ----------
   drink(ml) {
-    const r = waterReward(ml);
-    this.data.today.water = Math.min(6000, this.data.today.water + ml);
+    const v = enRango(ml, 1, 2000);
+    if (v === null) return null;
+    const r = waterReward(v);
+    this.data.today.water = Math.min(6000, this.data.today.water + v);
     this.addXP(r.xp, r.skill, r.skillGain);
     this.save(); emit("today");
     return { total: this.data.today.water, ...r };
@@ -277,31 +380,55 @@ export const S = {
   /** comida registrada: objeto completo (o id de MEALS). Los presets valen 1 vez/día. */
   eat(meal) {
     const m = typeof meal === "string" ? MEALS.find((x) => x.id === meal) : meal;
-    if (!m) return null;
+    if (!m || typeof m !== "object") return null;
     const t = this.data.today;
-    if (m.id && !m.custom && t.meals.some((x) => x.id === m.id)) return null; // sin doble premio
-    t.meals.push({ id: m.id || `custom_${Date.now()}`, name: m.name, kcal: m.kcal, p: m.p, c: m.c, f: m.f, at: new Date().toISOString() });
-    t.kcal += m.kcal; t.p += m.p; t.c += m.c; t.f += m.f; t.fib += m.fib || 0;
+    const id = typeof m.id === "string" ? m.id : null;
+    if (id && !m.custom && t.meals.some((x) => x.id === id)) return null; // sin doble premio
+    // Macronutrientes saneados: un campo con «mucho» o -3 no puede
+    // dejar los totales del día en NaN (el invariante I2 del plan de QA).
+    const kcal = enRango(m.kcal, 0, 5000) ?? 0;
+    const p = enRango(m.p, 0, 1000) ?? 0;
+    const c = enRango(m.c, 0, 1500) ?? 0;
+    const f = enRango(m.f, 0, 1000) ?? 0;
+    const fib = enRango(m.fib, 0, 200) ?? 0;
+    const name = typeof m.name === "string" && m.name.trim() ? m.name.slice(0, 120) : "Comida";
+    t.meals.push({ id: id || `custom_${Date.now()}`, name, kcal, p, c, f, at: new Date().toISOString() });
+    t.kcal += kcal; t.p += p; t.c += c; t.f += f; t.fib += fib;
     const r = mealReward();
     this.addXP(r.xp, r.skill, r.skillGain);
     this.save(); emit("today");
     return r;
   },
   addSteps(n) {
-    const r = stepsReward(n);
-    this.data.today.steps += n;
-    this.data.stats.km = +(this.data.stats.km + n / 1300).toFixed(1);
+    const v = enRango(n, 0, 100000);
+    if (v === null) return null;
+    const r = stepsReward(v);
+    this.data.today.steps += v;
+    this.data.stats.km = +(this.data.stats.km + v / 1300).toFixed(1);
     this.addXP(r.xp, r.skill, r.skillGain);
     this.save(); emit("today");
     return r;
   },
-  logSleep(h) { this.data.today.sleep = h; this.save(); emit("today"); },
-  logSoreness(v) { this.data.today.soreness = v; this.save(); emit("today"); },
-  logEnergy(v) { this.data.today.energy = v; this.save(); emit("today"); },
-  logStress(v) { this.data.today.stress = v; this.save(); emit("today"); },
+  /* Registros subjetivos: null = SIN registrar (nunca se inventa un dato).
+     Una entrada que no es número se ignora en vez de guardarse como NaN. */
+  logSleep(h) { return this._registro("sleep", h, 0, 24, false); },
+  logSoreness(v) { return this._registro("soreness", v, 0, 10, true); },
+  logEnergy(v) { return this._registro("energy", v, 0, 10, true); },
+  logStress(v) { return this._registro("stress", v, 0, 10, true); },
+  /** Escala 0-10 redondeada; fuera de rango o no numérico → se ignora. */
+  _registro(campo, valor, min, max, entero) {
+    let v = enRango(valor, min, max);
+    if (v === null) return false;
+    if (entero) v = Math.round(v);
+    this.data.today[campo] = v;
+    this.save(); emit("today");
+    return true;
+  },
   logMind(min) {
-    const r = mindReward(min);
-    this.data.today.mind += min;
+    const v = enRango(min, 0, 600);
+    if (v === null || v <= 0) return mindReward(0);
+    const r = mindReward(v);
+    this.data.today.mind = Math.min(1440, this.data.today.mind + v);
     this.addXP(r.xp, r.skill, r.skillGain);
     this.save(); emit("today");
     return r;
@@ -627,7 +754,12 @@ export const S = {
   voiceNotes() { return this.data.voice || []; },
 
   // ---------- CÓDIGOS FÍSICOS → GEMELO DIGITAL (auditoría + uso único) ----------
-  redeemPhygital({ code, itemId, source = "qr" }) {
+  redeemPhygital(args) {
+    // destructurar sin comprobar reventaba con null/undefined (I7: el
+    // guardado y la redemption nunca lanzan por una entrada vacía).
+    if (!args || typeof args !== "object") return null;
+    const { code, itemId, source = "qr" } = args;
+    if (typeof code !== "string" || !code || typeof itemId !== "string" || !itemId) return null;
     const rec = { code, itemId, source, at: new Date().toISOString() };
     this.data.phygital.redeemed.unshift(rec);
     this.data.phygital.audit.unshift({ ...rec, event: "redeem" });
@@ -652,7 +784,11 @@ export const S = {
     return { exportedAt: new Date().toISOString(), schema: SCHEMA, save: this.data, cycle: readCycle() };
   },
   deleteAll() {
+    // «borrar todo» tiene que borrar también las instantáneas, o el
+    // botón de borrar datos sería una mentira.
     try { localStorage.removeItem(KEY); } catch { /* nada */ }
+    try { localStorage.removeItem("bayona.backup.v1"); } catch { /* nada */ }
+    try { localStorage.removeItem("bayona.save.corrupt"); } catch { /* nada */ }
     deleteCycle();
     resetConsents(); // la clave de consents solo la toca consents.js
     this.reset(false);

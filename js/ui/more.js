@@ -6,10 +6,12 @@ import { S } from "../state.js";
 import { consentStatus, revokeConsent, isGranted } from "../consents.js";
 import { pending, dead } from "../data/offlineQueue.js";
 import { esc, fmtDate, fmtInt, t } from "../i18n.js";
+import { elT } from "./shared.js";
 import {
   UI, $, el, showModal, hideModal, toast, BUILDERS, openSection,
 } from "./shared.js";
 import { getAppearance, THEMES } from "./appearance.js";
+import { diagnostico, instantaneas, previsualizar, restaurar } from "../backup.js";
 import { currentSession, isConfigured } from "../sync/supabase.js";
 import { openAccount } from "../sync/account.js";
 import { showDayRecap } from "./cinematics.js";
@@ -163,6 +165,58 @@ BUILDERS.more = (body) => {
     <div class="sub">${esc(t("state.localOnly"))}. Pendientes de sincronizar: <b>${qn}</b> · en recuperación (revisar): <b>${dn}</b>.
     ${dn ? "Nada se descarta en silencio: los registros con fallos se conservan para recuperación." : ""}</div>`;
   body.appendChild(off);
+
+  // ---------- RED DE SEGURIDAD DEL PROGRESO ----------
+  body.appendChild(el("div", "sec-label", t("data.safetyLabel")));
+  const diag = diagnostico();
+  const shots = instantaneas();
+  const safe = el("div", "card");
+  safe.appendChild(elT("h4", "", t("data.safetyTitle")));
+  safe.appendChild(elT("div", "sub", t("data.safetyNote")));
+
+  const facts = el("div", "card");
+  facts.innerHTML = `<div class="kv"><span class="k">${esc(t("data.safetyState"))}</span>
+      <span class="v">${diag.partidaLegible ? esc(t("data.safetyOk")) : esc(t("data.safetyBad"))}</span></div>
+    <div class="kv"><span class="k">${esc(t("data.safetyShots"))}</span>
+      <span class="v">${diag.instantaneas} / ${diag.maxima}</span></div>
+    <div class="kv"><span class="k">${esc(t("data.safetySize"))}</span>
+      <span class="v">${(diag.bytesPartida / 1024).toFixed(1)} KB</span></div>`;
+  safe.appendChild(facts);
+
+  if (!diag.partidaLegible) {
+    const warn = el("div", "media-caption", t("data.safetyBroken"));
+    safe.appendChild(warn);
+  }
+
+  if (shots.length) {
+    const lista = el("div", "data-shots");
+    shots.slice(0, 5).forEach((s, i) => {
+      const v = previsualizar(i) || {};
+      const fila = el("div", "data-shot");
+      fila.innerHTML = `<div><strong>${esc(new Date(s.at).toLocaleString("es-ES"))}</strong>
+        <small>${esc(t("data.safetyShotN", { xp: fmtInt(v.xp || 0), w: fmtInt(v.entrainamientos || 0), sets: fmtInt(v.series || 0) }))}</small></div>`;
+      const b = el("button", "btn-mini", esc(t("data.safetyRestore")));
+      b.onclick = () => {
+        showModal(`
+          <div class="cine-tag">${esc(t("data.safetyRestoreTag"))}</div>
+          <div class="cine-title" style="font-size:20px">${esc(t("data.safetyRestoreTitle"))}</div>
+          <div class="sub">${esc(t("data.safetyRestoreText"))}</div>
+          <div style="display:flex;gap:8px">
+            <button class="btn grow" id="rs-no">${esc(t("data.safetyCancel"))}</button>
+            <button class="btn btn-primary grow" id="rs-yes">${esc(t("data.safetyConfirm"))}</button>
+          </div>`, () => {
+          $("#rs-no").onclick = hideModal;
+          $("#rs-yes").onclick = () => {
+            if (restaurar(i)) { hideModal(); toast(t("data.safetyRestored"), t("data.safetyRestoredNote")); location.reload(); }
+          };
+        });
+      };
+      fila.appendChild(b);
+      lista.appendChild(fila);
+    });
+    safe.appendChild(lista);
+  }
+  body.appendChild(safe);
 
   const exp = el("button", "btn btn-block", "EXPORTAR MIS DATOS (JSON)");
   exp.onclick = exportData;
