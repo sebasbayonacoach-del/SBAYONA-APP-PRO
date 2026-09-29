@@ -1,127 +1,336 @@
 // ============================================================
-// BAYONA — CORE: asistente LOCAL (reglas, sin nube). Transparente y seguro.
-// 1) Screening determinista de seguridad (coachStub) ANTES que cualquier respuesta.
-// 2) Nunca inventa datos: solo usa tus registros reales.
-// 3) Adaptaciones reales (sesión corta, volumen autoregulado) o honestidad.
+// BAYONA — CORE: coach conversacional
+// ------------------------------------------------------------
+// La conversación es el producto. Este panel la monta entera:
+//
+//   · indicador HONESTO del motor (IA en streaming o reglas locales)
+//   · burbujas con streaming token a token y cursor de escritura
+//   · tarjetas de herramienta: cuando el coach hace algo, se ve
+//   · banner de derivación: si el guion de seguridad salta, salta
+//     entero y con su recurso, nunca escondido
+//   · historial persistente, para que la conversación no se pierda
+//   · móvil primero: textarea que crece, Enter envía, Shift+Enter
+//     salta de línea, ycomposer pegado al pulgar
+//
+// La lógica (puerta de seguridad, contexto, herramientas) NO vive
+// aquí: está en js/coach/ai.js y su núcleo puro en ai-core.js.
 // ============================================================
 import { S } from "../state.js";
-import { coreReply } from "../data.js";
-import { screenMessage } from "../coach/coachStub.js";
-import { shortSession, todaysSession } from "../engine.js";
-import { esc, t } from "../i18n.js";
-import {
-  UI, $, el, elT, BUILDERS, openSection,
-} from "./shared.js";
+import { UI, $, el, elT, BUILDERS, openSection } from "./shared.js";
+import { t } from "../i18n.js";
+import { askCore, buildCoachContext, probeCloud } from "../coach/ai.js";
 
-const QUICK = [
-  "Hoy tengo solo 30 minutos",
-  "Estoy cansado",
-  "¿Por qué esta semana hay menos volumen?",
-  "¿Qué como hoy?",
-];
+const STORE = "bayona.coach.chat.v1";
+const MAX_TURNS = 40;
 
+/* ---------- estado del panel (sobrevive a navegación y recarga) ---------- */
+const chat = {
+  turns: load(),
+  cloud: false,
+  probed: false,
+  busy: false,
+};
+function load() {
+  try {
+    const v = JSON.parse(localStorage.getItem(STORE) || "[]");
+    return Array.isArray(v) ? v.slice(-MAX_TURNS) : [];
+  } catch { return []; }
+}
+function persist() {
+  try { localStorage.setItem(STORE, JSON.stringify(chat.turns.slice(-MAX_TURNS))); }
+  catch { /* sin storage: la conversación sigue en memoria */ }
+}
+
+/* ---------- Personality ---------- */
+const PERSONALIDADES = ["COMANDANTE", "MENTOR", "CIENTÍFICO", "COMPAÑERO", "MINIMALISTA"];
+
+/* ---------- Propuestas contextuales (salen de TUS datos, no de una lista fija) ---------- */
+function sugerencias() {
+  const ctx = buildCoachContext();
+  if (!ctx) return [];
+  const out = [];
+  if (ctx.registros.sueno === null) out.push(t("coach.sug.noSleep"));
+  if (ctx.estado.preparacion != null && ctx.estado.preparacion < 55) out.push(t("coach.sug.tired"));
+  if (ctx.hoy.proteina < 90) out.push(t("coach.sug.eat"));
+  out.push(t("coach.sug.minutes", { m: 10 + (chat.turns.length % 4) * 5 }));
+  out.push(ctx.hoy.entrenado ? t("coach.sug.already") : t("coach.sug.why"));
+  return out.slice(0, 4);
+}
+
+/* ============================================================
+   BUILDER
+   ============================================================ */
 BUILDERS.core = (body) => {
   body = body || $("#drawer-body");
   body.textContent = "";
-  const orbBtn = el("button", "core-orb-btn");
-  orbBtn.innerHTML = `<span class="core-dot"></span><div class="grow" style="text-align:left"><h4>CORE</h4><div class="sub">Asistente local · entrenamiento · recuperación · nutrición</div></div><span class="pill blue">LOCAL</span>`;
-  body.appendChild(orbBtn);
-  body.appendChild(el("div", "media-caption",
-    "CORE funciona con reglas en tu dispositivo: sin conexión a servicios externos. No diagnostica; ante señales de alarma deriva a un profesional."));
+  body.classList.add("coach-body");
 
-  body.appendChild(el("div", "sec-label", "PERSONALIDAD"));
-  const pers = el("div", "quickq");
-  ["COMANDANTE", "MENTOR", "CIENTÍFICO", "COMPAÑERO", "MINIMALISTA"].forEach((p) => {
+  /* ---------- cabecera: quién responde ahora ---------- */
+  const head = el("div", "coach-head");
+  const orb = el("button", "coach-orb");
+  const dot = el("span", "coach-dot");
+  const who = el("div", "grow");
+  const name = elT("h4", "", "CORE");
+  const state = elT("div", "sub coach-state", t("coach.probing"));
+  who.append(name, state);
+  const engine = el("span", "pill blue coach-engine", t("coach.engineLocal"));
+  orb.append(dot, who, engine);
+  orb.title = t("coach.orbTitle");
+  orb.setAttribute("aria-label", t("coach.orbTitle"));
+  orb.onclick = async () => {
+    orb.classList.add("busy");
+    chat.cloud = await probeCloud();
+    chat.probed = true;
+    paintEngine();
+    orb.classList.remove("busy");
+  };
+  head.appendChild(orb);
+  body.appendChild(head);
+
+  const aviso = el("div", "coach-note", t("coach.note"));
+  body.appendChild(aviso);
+
+  /* ---------- personalidad ---------- */
+  body.appendChild(el("div", "sec-label", t("coach.personality")));
+  const pers = el("div", "quickq coach-pers");
+  const paintPers = () => {
+    [...pers.children].forEach((b) => {
+      const on = b.textContent === S.data.profile.coach;
+      b.classList.toggle("on", on);
+      b.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+  };
+  PERSONALIDADES.forEach((p) => {
     const b = el("button", "", p);
-    if (S.data.profile.coach === p) { b.style.color = "var(--orange)"; b.style.borderColor = "var(--orange)"; }
-    b.addEventListener("click", () => { S.data.profile.coach = p; S.save(); BUILDERS.core(); });
+    b.onclick = () => { S.data.profile.coach = p; S.save(); paintPers(); };
     pers.appendChild(b);
   });
   body.appendChild(pers);
+  paintPers();
 
-  body.appendChild(el("div", "sec-label", "CONVERSACIÓN"));
-  const log = el("div", "chatlog");
-  log.appendChild(elT("div", "msg core",
-    "Estoy contigo en el mundo BAYONA. Pregúntame por tu entrenamiento, tu recuperación o por qué tu plan cambia cada semana."));
+  /* ---------- conversación ---------- */
+  body.appendChild(el("div", "sec-label", t("coach.conversation")));
+  const log = el("div", "chatlog coach-log");
+  log.setAttribute("role", "log");
+  log.setAttribute("aria-live", "polite");
   body.appendChild(log);
 
-  const quick = el("div", "quickq");
-  QUICK.forEach((q) => {
-    const b = el("button", "", q);
-    b.addEventListener("click", () => send(q));
-    quick.appendChild(b);
-  });
+  const quick = el("div", "quickq coach-quick");
   body.appendChild(quick);
 
-  const row = el("div", "chatrow");
-  const input = el("input");
-  input.placeholder = "Escribe a CORE…";
-  input.setAttribute("aria-label", "Mensaje para CORE");
-  const sendB = el("button", "btn btn-primary", "➤");
+  /* ---------- composer ---------- */
+  const row = el("div", "chatrow coach-row");
+  const input = el("textarea", "coach-input");
+  input.rows = 1;
+  input.placeholder = t("coach.placeholder");
+  input.setAttribute("aria-label", t("coach.inputLabel"));
+  input.enterkeyhint = "send";
+  const sendB = el("button", "btn btn-primary coach-send", "➤");
+  sendB.setAttribute("aria-label", t("coach.send"));
   row.append(input, sendB);
   body.appendChild(row);
 
-  function bubble(kind, text) {
-    log.appendChild(elT("div", `msg ${kind}`, text)); // textContent: nunca HTML con texto de usuario
-    log.scrollTop = log.scrollHeight;
+  /* ---------- pintado ---------- */
+  function paintEngine() {
+    const enNube = chat.cloud && navigator.onLine !== false;
+    engine.textContent = enNube ? t("coach.engineCloud") : t("coach.engineLocal");
+    engine.className = `pill ${enNube ? "gold" : "blue"} coach-engine`;
+    state.textContent = enNube
+      ? t("coach.stateCloud", { name: S.data.profile.name || t("coach.tu") })
+      : chat.probed ? t("coach.stateLocalProbed") : t("coach.stateLocal");
+    orb.classList.toggle("live", enNube);
   }
 
-  function actionBtn(label, fn) {
-    const wrap = el("div", "msg core");
-    const b = el("button", "btn btn-primary", label);
-    b.style.marginTop = "6px";
-    b.onclick = fn;
-    wrap.appendChild(b);
+  function paintQuick() {
+    quick.textContent = "";
+    sugerencias().forEach((q) => {
+      const b = el("button", "", q);
+      b.onclick = () => send(q);
+      quick.appendChild(b);
+    });
+  }
+
+  /** burbuja simple. El texto NUNCA entra como HTML. */
+  function bubble(kind, text, extraCls = "") {
+    const wrap = el("div", `coach-msg ${kind} ${extraCls}`.trim());
+    wrap.appendChild(el("div", "coach-av", kind === "me" ? t("coach.youShort") : "◈"));
+    const bub = el("div", "coach-bub");
+    const txt = elT("span", "coach-text", text);
+    bub.appendChild(txt);
+    wrap.appendChild(bub);
     log.appendChild(wrap);
-    log.scrollTop = log.scrollHeight;
+    scroll();
+    return { wrap, bub, txt };
   }
 
-  function send(text) {
-    if (!text || !text.trim()) return;
-    bubble("me", text.trim());
-    input.value = "";
+  /** tarjeta de herramienta: se ve lo que el coach ha hecho de verdad */
+  function toolCard(tool) {
+    const card = el("div", "coach-tool");
+    card.appendChild(el("div", "coach-tool-l", t("coach.tool")));
+    card.appendChild(elT("div", "coach-tool-t", tool.label));
+    if (tool.args?.razon) card.appendChild(elT("div", "coach-tool-r", tool.args.razon));
+    if (tool.args?.zona) card.appendChild(elT("div", "coach-tool-r", `${tool.args.zona}${tool.args.intensidad ? ` · ${tool.args.intensidad}/3` : ""}`));
+    if (tool.args?.tema) card.appendChild(elT("div", "coach-tool-r", tool.args.tema));
 
-    // 1) SEGURIDAD PRIMERO (mismo filtro que evalúan las pruebas)
-    const screen = screenMessage(text);
-    if (screen.risk !== "none") {
-      bubble("core alert", screen.reply);
-      if (screen.risk === "red") {
-        bubble("core", "He detenido aquí cualquier sugerencia de entrenamiento. Busca ayuda humana hoy mismo.");
-      } else {
-        bubble("core", "Puedo adaptar tu sesión para proteger la zona cuando me digas qué molesta.");
-      }
-      return;
+    // acción real, solo cuando el coach propone algo aplicable
+    if (tool.name === "open_short_session" && tool.args?.workout) {
+      const b = el("button", "btn btn-primary", t("coach.applySession"));
+      b.onclick = () => UI.actions.startWorkout?.(tool.args.workout);
+      card.appendChild(b);
+    }
+    if (tool.name === "view_adjusted_session") {
+      const b = el("button", "btn", t("coach.viewMission"));
+      b.onclick = () => UI.actions.openTraining?.(S.todayWorkout()?.id);
+      card.appendChild(b);
+    }
+    if (tool.name === "get_plan_day") {
+      const b = el("button", "btn", t("coach.openPlan"));
+      b.onclick = () => openSection("plan");
+      card.appendChild(b);
+    }
+    if (tool.name === "log_symptom" && tool.args?.zona) {
+      const b = el("button", "btn", t("coach.saveSymptom"));
+      b.onclick = () => {
+        S.data.healthFlags = {
+          at: new Date().toISOString().slice(0, 10),
+          redFlags: S.data.healthFlags?.redFlags || [],
+          pain: [...new Set([...(S.data.healthFlags?.pain || []), tool.args.zona])],
+        };
+        S.save();
+        b.textContent = t("coach.saved");
+        b.disabled = true;
+      };
+      card.appendChild(b);
+    }
+    if (tool.name === "escalate_referral") {
+      const b = el("button", "btn btn-danger", t("coach.findHelp"));
+      b.onclick = () => openSection("more");
+      card.appendChild(b);
+    }
+    if (tool.name === "nutrition_suggest") {
+      const b = el("button", "btn", t("coach.openKitchen"));
+      b.onclick = () => openSection("nutrition");
+      card.appendChild(b);
     }
 
-    // 2) adaptaciones REALES (no solo texto)
-    const mins = parseInt((text.match(/(\d{1,3})\s*(min|minuto|minutos)/i) || [])[1], 10);
-    const ctx = {
-      readiness: S.readiness(), streak: S.data.streak, water: S.data.today.water,
-      sleep: S.data.today.sleep, soreness: S.data.today.soreness, energy: S.data.today.energy,
-      todayWorkout: S.todayWorkout()?.name || null, trained: S.data.today.trained,
-      level: S.level().lvl, mins: Number.isFinite(mins) ? mins : null,
-      phase: S.phase().name, week: S.data.plan.week,
-      kcal: S.data.today.kcal, p: S.data.today.p, kcalGoal: 2400, pGoal: 150,
-    };
-    UI.W?.setCoreMood("alert");
-    setTimeout(() => {
-      bubble("core", coreReply(text, ctx));
-      UI.W?.setCoreMood("calm");
-      if (Number.isFinite(mins) && mins >= 10 && mins <= 45) {
-        const s = shortSession(mins);
-        actionBtn(`APLICAR: ${s.name}`, () => UI.actions.startWorkout?.(s));
-      }
-      if (/cansad|fatig|sin energ|agotad/i.test(text)) {
-        const auto = todaysSession();
-        if (auto?.applied) actionBtn("VER MI MISIÓN RECORREGADA", () => UI.actions.openTraining?.(auto.workout.id));
-      }
-    }, 550);
+    log.appendChild(card);
+    scroll();
+    return card;
   }
-  sendB.addEventListener("click", () => send(input.value));
-  input.addEventListener("keydown", (e) => e.key === "Enter" && send(input.value));
+
+  function scroll() {
+    log.scrollTop = log.scrollHeight;
+  }
+
+  function busy(on) {
+    chat.busy = on;
+    body.classList.toggle("is-busy", on);
+    sendB.disabled = on;
+    input.disabled = on;
+    orb.classList.toggle("thinking", on);
+  }
+
+  /* ---------- primera carga ---------- */
+  if (!chat.turns.length) {
+    const ctx = buildCoachContext();
+    const perdido = ctx?.registros?.sueno == null;
+    bubble("core", perdido
+      ? t("coach.hello", { name: S.data.profile.name || t("coach.tu") }) + " " + t("coach.helloNoSleep")
+      : t("coach.hello", { name: S.data.profile.name || t("coach.tu") }));
+  } else {
+    chat.turns.forEach((m) => bubble(m.role === "user" ? "me" : "core", m.text, m.kind || ""));
+  }
+  paintQuick();
+  paintEngine();
+
+  /* primer sondeo: una sola vez, sin bloquear la conversación */
+  if (!chat.probed) {
+    probeCloud().then((ok) => { chat.cloud = ok; chat.probed = true; paintEngine(); });
+  }
+
+  /* ============================================================
+     ENVÍO
+     ============================================================ */
+  async function send(text) {
+    const msg = (text ?? input.value).trim();
+    if (!msg || chat.busy) return;
+
+    chat.turns.push({ role: "user", text: msg });
+    bubble("me", msg);
+    input.value = "";
+    autoGrow();
+    paintQuick();
+    busy(true);
+    UI.W?.setCoreMood("alert");
+
+    const out = bubble("core", "", "streaming");
+    const caret = el("i", "coach-caret");
+    out.bub.appendChild(caret);
+    let acc = "";
+
+    const onDelta = (d) => {
+      acc += d;
+      // el texto va SIEMPRE por textContent: nada de HTML con lo que dice el modelo
+      out.txt.textContent = acc;
+      scroll();
+    };
+    const onTool = (tool) => { if (tool) toolCard(tool); };
+
+    try {
+      const history = chat.turns
+        .filter((m) => m.role === "user" || m.role === "assistant")
+        .map((m) => ({ role: m.role === "user" ? "user" : "assistant", content: m.text }));
+      history.pop(); // el que acabamos de añadir, va aparte
+
+      const res = await askCore(msg, {
+        history,
+        cloud: chat.cloud,
+        onDelta,
+        onTool,
+        onStatus: ({ mode }) => { if (mode === "cloud") paintEngine(); },
+      });
+
+      caret.remove();
+      if (!acc) out.txt.textContent = t("coach.empty");
+
+      chat.turns.push({
+        role: "assistant",
+        text: acc,
+        kind: res.mode === "refer" ? "risk" : res.mode === "cloud" ? "cloud" : "local",
+      });
+      if (res.mode === "refer") out.wrap.classList.add("risk");
+      if (res.mode === "local" && res.reason === "fallo-red") {
+        out.wrap.classList.add("degraded");
+        bubble("core", t("coach.degraded"), "sys");
+      }
+      persist();
+      paintEngine();
+    } catch (e) {
+      caret.remove();
+      out.wrap.classList.add("risk");
+      out.txt.textContent = t("coach.error");
+    } finally {
+      busy(false);
+      UI.W?.setCoreMood("calm");
+      paintQuick();
+      input.focus({ preventScroll: true });
+    }
+  }
+
+  /* ---------- eventos del composer ---------- */
+  function autoGrow() {
+    input.style.height = "auto";
+    input.style.height = `${Math.min(input.scrollHeight, 132)}px`;
+  }
+  input.addEventListener("input", autoGrow);
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
+  });
+  sendB.addEventListener("click", () => send());
 
   // puente para otros contextos (p. ej. «PREGUNTA AL COACH» dentro de la sesión)
   UI.actions.askCoach = send;
+  UI.actions.coachCloud = () => chat.cloud;
 };
 
 /** Abre CORE y envía una pregunta contextual (entrenamiento, trabajo, noche…). */

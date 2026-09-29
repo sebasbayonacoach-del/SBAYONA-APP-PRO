@@ -5,8 +5,9 @@
   "description": "BAYONA \u2014 Avatar-Centered Fitness Life RPG",
   "scripts": {
     "setup": "node setup-recursos.mjs",
-    "start": "python3 -m http.server 8080",
+    "start": "node tools/serve.mjs",
     "test": "node tests/run.mjs",
+    "coach:smoke": "node tools/coach-smoke.mjs",
     "mobile:pack": "node mobile/pack-web.mjs"
   },
   "engines": {

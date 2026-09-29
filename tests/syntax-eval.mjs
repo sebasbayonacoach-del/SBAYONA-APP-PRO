@@ -2,7 +2,7 @@
 // tests/syntax-eval.mjs — red de seguridad: TODO el JS de la app debe parsear.
 // Un error de sintaxis = pantalla rota. Este test caza cualquier módulo mal escrito
 // SIN ejecutarlo (node --check): 100% seguro, sin dependencias de navegador.
-// Cubre js/**, tools/*.mjs y tests/*.mjs. Falla si algún fichero no parsea.
+// Cubre js/**, api/*.js, tools/*.mjs y tests/*.mjs. Falla si algún fichero no parsea.
 import { readdirSync, statSync, existsSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -25,6 +25,7 @@ function walk(dir, exts) {
 
 const targets = [
   ...walk(join(root, 'js'), ['.js']),
+  ...walk(join(root, 'api'), ['.js']),
   ...walk(join(root, 'tools'), ['.mjs', '.js']),
   ...walk(join(root, 'tests'), ['.mjs', '.js']),
 ];
