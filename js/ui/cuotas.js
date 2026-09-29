@@ -10,6 +10,7 @@ import { dia, deudaDe, PERIODO_LABEL } from "../gym/model.js";
 import { BUILDERS, $, el, elT, openSection, showModal, hideModal, toast } from "./shared.js";
 import { esc, fmtInt, t, tE } from "../i18n.js";
 import { cobrarDesde, planDesde } from "./centro.js";
+import { esLinkPago, nombrePasarela } from "../gym/pagos.js";
 
 const eur = (n) => `${fmtInt(Math.round((n + Number.EPSILON) * 100) / 100)} €`;
 
@@ -32,6 +33,41 @@ function modalPlanNuevo(alTerminar) {
       if (!r.ok) return toast(t("state.error"), r.error, "danger");
       hideModal();
       toast(t("gym.planCreado"), r.plan.nombre);
+      alTerminar && alTerminar();
+    };
+  });
+}
+
+/* ---------- enlace de cobro de un plan ---------- */
+function modalEnlace(planId, alTerminar) {
+  const plan = G.plan(planId);
+  const v = plan.linkPago ? esLinkPago(plan.linkPago) : { ok: false };
+  showModal(`
+    <div class="cine-tag">${esc(t("gym.link"))}</div>
+    <div class="cine-title" style="font-size:18px">${esc(t("gym.link.titulo"))}</div>
+    <div class="sub">${esc(t("gym.link.sub"))}</div>
+    <div class="gym-form">
+      <label><span>${esc(t("gym.link.url"))}</span>
+        <input id="pl-u" type="url" inputmode="url" maxlength="2000" placeholder="https://…" value="${plan.linkPago ? esc(plan.linkPago) : ""}" /></label>
+    </div>
+    <div class="gym-panel"><div class="gym-porque">${esc(t("gym.link.nota"))}</div></div>
+    <div class="gym-acciones">
+      <button class="btn btn-primary" id="pl-ok">${esc(t("gym.link.guardar"))}</button>
+      ${plan.linkPago ? `<button class="btn" id="pl-q">${esc(t("gym.link.quitar"))}</button>` : ""}
+      <button class="btn" id="pl-x">${esc(t("act.cancel"))}</button>
+    </div>`, () => {
+    $("#pl-x").onclick = hideModal;
+    $("#pl-q")?.addEventListener("click", () => {
+      G.enlazarPago(planId, null);
+      hideModal();
+      toast(t("gym.link.quitado"), "");
+      alTerminar && alTerminar();
+    });
+    $("#pl-ok").onclick = () => {
+      const r = G.enlazarPago(planId, $("#pl-u").value);
+      if (!r.ok) return toast(t("state.error"), tE(r.error), "danger");
+      hideModal();
+      toast(t("gym.link.guardado"), r.pasarela || "");
       alTerminar && alTerminar();
     };
   });
@@ -68,8 +104,19 @@ BUILDERS.cuotas = (body) => {
   } else {
     for (const p of planes) {
       const fila = el("div", "gym-fila");
-      fila.append(elT("span", "gym-fila-k", p.nombre), elT("span", "gym-fila-v", `${eur(p.precio)} / ${p.periodo}`));
+      fila.append(
+        elT("span", "gym-fila-k", p.nombre),
+        elT("span", "gym-fila-v", `${eur(p.precio)} / ${G.periodoDe(p)}`),
+      );
       cajaPlanes.appendChild(fila);
+      const conLink = esLinkPago(p.linkPago).ok;
+      const linea = elT("div", "gym-porque", conLink
+        ? t("gym.link.activo", { pasarela: nombrePasarela(p.linkPago) })
+        : t("gym.link.inactivo"));
+      cajaPlanes.appendChild(linea);
+      const b = el("button", "btn btn-mini", conLink ? t("gym.link.cambiar") : t("gym.link.enlazar"));
+      b.onclick = () => modalEnlace(p.id, () => BUILDERS.cuotas(document.getElementById("drawer-body")));
+      cajaPlanes.appendChild(b);
     }
   }
   const nuevoPlan = el("button", "btn btn-block", t("gym.nuevoPlan"));
@@ -102,7 +149,7 @@ BUILDERS.cuotas = (body) => {
     p.appendChild(elT("div", "gym-porque", detalle));
     const acciones = el("div", "gym-fila");
     if (plan) {
-      const cobrar = el("button", "btn btn-mini", t("gym.registrarCobro"));
+      const cobrar = el("button", "btn btn-mini", G.puedeCobrarEnLinea(s.id) ? t("gym.cobro.registrar") : t("gym.registrarCobro"));
       cobrar.onclick = () => cobrarDesde(s.id, () => BUILDERS.cuotas(document.getElementById("drawer-body")));
       acciones.appendChild(cobrar);
     } else {

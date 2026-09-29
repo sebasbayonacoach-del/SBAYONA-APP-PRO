@@ -79,12 +79,46 @@ texto y lo copias**: no finge que ha avisado a nadie.
 | Cuota llena → se sueltan accesos, no socios | Perder la ficha de un cliente |
 | El CSV escapa `;` y comillas | Una columna partida al abrirlo en Excel |
 
-**Lo que NO hace, y dice que no hace**: no cobra. Sin pasarela conectada los
-cobros se registran a mano y la ficha lo indica; los cobros automáticos y el
-hardware de torniquete quedan fuera hasta que haya pasarela y lector. No
-predice bajas con una caja negra: el riesgo sale de reglas explicables sobre
-registros reales, y cada punto dice qué señal lo ha subido. Sin
-`OPENAI_API_KEY`, todo el centro funciona igual: no depende de la nube.
+**Lo que NO hace, y dice que no hace**: no confirma pagos sola. No predice
+bajas con una caja negra: el riesgo sale de reglas explicables sobre registros
+reales, y cada punto dice qué señal lo ha subido. Sin `OPENAI_API_KEY`, todo
+el centro funciona igual: no depende de la nube.
+
+### 💳 Cobro por enlace de pasarela
+
+Una PWA estática no tiene servidor, y **una pasarela confirma un cobro con un
+webhook**: algo tiene que recibir esa petición. Sin servidor, la confirmación
+automática no es posible. Decirlo de otra forma sería inventar.
+
+Lo que sí se puede, y es lo que hace el software de verdad:
+
+1. El gimnasio pega, **en su plan**, el enlace de pago que ya tiene creado en
+   su pasarela (Mollie, Stripe Payment Links, SumUp…). Ese enlace es público
+   por diseño — es la página de cobro, no una clave — así que puede vivir en el
+   cliente sin riesgo.
+2. La app **abre ese enlace**: el socio paga en la página de su banco, con
+   SEPA, Bizum o tarjeta.
+3. Quien atiende **registra la referencia** que le ha dado la pasarela. La app
+   guarda de dónde vino cada euro (`pago.pasarela`, `pago.referencia`).
+
+El enlace se valida antes de guardarse: `javascript:`, `data:`, `vbscript:`,
+`file:` y las URLs sin host se rechazan. Un QR o un correo malicioso no puede
+dejar un `javascript:` esperando a que alguien pulse «Cobrar». **Ningún cobro
+se marca nunca como automático** — sin webhook, la app no miente.
+
+**`tests/arranque-eval.mjs` (23 comprobaciones)** existe porque en CI no hay
+navegador: enlaza todo el grafo de módulos que carga `index.html` y comprueba
+que no hay rutas rotas, exports perdidos, precache incompleto ni secciones sin
+pantalla. Lo que **no** comprueba —y lo dice— es que la app se pinte bien.
+
+Esa prueba ya ha encontrado dos fallos reales que llevaban meses en producción:
+
+- **`js/ui.js` importaba `../gym/store.js`** en vez de `./gym/store.js`: un 404
+  en cada carga de la app.
+- **El precache del service worker pedía 3 ficheros que no existen** y usaba
+  `cache.addAll()`, que es todo o nada: la instalación fallaba y **la PWA se
+  quedaba sin offline sin decir nada**. Ahora cachea de uno en uno y el test
+  vigila que el precache esté entero.
 
 ## ✨ v7 · PRO (lenguaje de software, no de cartel)
 
