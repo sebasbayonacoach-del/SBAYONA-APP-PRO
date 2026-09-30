@@ -226,12 +226,47 @@ body.fitness-app #panel-nav .rail-btn { position: relative; }
 /* ============================================================
    6 · COLUMNA DE CONTENIDO
    ============================================================ */
-body.fitness-app #drawer,
-body.fitness-app #drawer.open,
-body.fitness-app #drawer[data-section] {
-  top: var(--pro-top);
-  left: var(--pro-rail);
-  background: var(--fit-bg);
+/* Geometría del panel SOLO en escritorio: sin media query, `left: 176px`
+   se aplicaba también en móvil y clavaba el panel de 390px de ancho en
+   x=176 → 176px fuera de pantalla (123 elementos recortados). En ≤900px
+   manda aurum.css: hoja inferior a pantalla completa. */
+@media (min-width: 901px) {
+  body.fitness-app #drawer,
+  body.fitness-app #drawer.open,
+  body.fitness-app #drawer[data-section] {
+    top: var(--pro-top);
+    left: var(--pro-rail);
+    background: var(--fit-bg);
+  }
+}
+
+/* MÓVIL · geometría explícita. fitness.css declara el panel lateral
+   (top:76/left:210, SIN media query) y dashboard.css añade left:84px en
+   @media (max-width: 1240px) — ambas con espec 3,5,0 pisan la hoja inferior
+   de aurum.css @max-900 (espec 1,0,0): en un teléfono de 390px el panel
+   quedaba en x=84 con ancho 390 → 84px fuera de pantalla (64 elementos
+   recortados) y el transform:none mataba el deslizamiento. Con espec 3,6,0
+   y por ser la última hoja, PRO restaura el contrato de v9: hoja inferior
+   a pantalla completa que sube y baja. */
+@media (max-width: 900px) {
+  body.fitness-app #drawer,
+  body.fitness-app #drawer.open,
+  body.fitness-app #drawer[data-section] {
+    top: auto;
+    left: 8px;
+    right: 8px;
+    bottom: calc(8px + env(safe-area-inset-bottom));
+    width: auto;
+    height: min(52vh, 460px);
+    max-height: none;
+    border-radius: 18px 18px 0 0;
+  }
+  body.fitness-app #drawer:not(.open) {
+    transform: translateY(calc(100% + 24px));
+  }
+  body.fitness-app #drawer.open {
+    transform: translateY(0);
+  }
 }
 body.fitness-app .drawer-head {
   padding: 14px 20px 10px;
