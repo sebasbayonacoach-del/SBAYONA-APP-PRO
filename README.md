@@ -8,6 +8,39 @@ tú entrenas → él entrena, tú comes → él come, tú bebes → él bebe.
 El avatar es un **gemelo de comportamiento**, no una mascota.
 **Todo lo visible al usuario está en español (es-ES).**
 
+## ✨ v10 · LUXE (landing pública nivel motionsites.ai)
+
+La app era software denso y correcto; le faltaba **puerta de venta**. v10 añade
+una landing pública cinematográfica —dark `#080a0c` + glass + grain + aurora—
+**sin tocar ni un píxel del panel PRO** que ya funciona:
+
+- **`css/luxe.css`** — tokens dark premium (`--luxe-*`), nav sticky glass con
+  `backdrop-filter`, hero 48–64px con `letter-spacing: -.04em`, bento grid de
+  12 columnas, planes y FAQ. Se carga ENTRE `aurum.css` y `pro.css`: **PRO
+  sigue siendo la última hoja y manda dentro de `#drawer`** (probado:
+  `tests/pro-ui-eval.mjs` sigue en verde).
+- **`js/ui/landing.js`** — el contenido es **puro y catalogado**: todo el
+  texto vive en `js/i18n.js` (`luxe.*`, 41 claves), el HTML se genera con
+  `esc()` y el reveal usa `IntersectionObserver` con fallback. Sin datos,
+  sin inventar nada — igual que el resto de la app.
+- **`js/ui/landing-boot.js`** — decide: usuario nuevo → landing visible y
+  `#entry` apagada (`body.luxe-activo`); usuario recurrente → sin landing,
+  arranque v9 intacto. Al pulsar ENTRAR retira la capa y cede el control.
+- **SEO/OG completos** en `index.html`: `description`, `og:title/description/
+  image/locale`, `twitter:card` — la app ya tiene preview al compartir.
+- **PWA y empaquetado**: `manifest` con fondo luxe `#080a0c`, `robots.txt`,
+  `sitemap.xml`, y `sw.js` **v21** precacheando `luxe.css`, `landing.js` y
+  `landing-boot.js` (de uno en uno, como siempre).
+- **`tests/luxe-eval.mjs` (82 comprobaciones)** — SEO presente, alcance de
+  la capa (NO pisa `#drawer-body`, `.btn` ni `.card`), pureza de `landing.js`
+  (sin `localStorage`), las 41 claves en el catálogo, decisiones del boot,
+  precache v21 y archivos de marketing (`robots`, `sitemap`, manifest).
+
+**Lo que NO hace, y lo dice**: la landing no recoge emails ni falsifica
+métricas — las cifras del hero (`100% local · 0 datos vendidos · 38 suites`)
+son reales y verificables. El CTA entra al onboarding real; no hay demo
+falsa.
+
 ## ✨ v9 · TECLADO (paleta de comandos ⌘K, atajos directos y foco que no se escapa)
 
 Lo que separa un juguete de un software no es el color: es que **se pueda
