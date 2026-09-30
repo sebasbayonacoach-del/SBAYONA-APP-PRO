@@ -55,6 +55,9 @@ ok(!/\.btn\s*\{/.test(luxe), "luxe NO redefine .btn global (usa .luxe-btn-*)");
 ok(!/\.card\s*\{/.test(luxe), "luxe NO redefine .card global (usa .luxe-bento-card)");
 ok(luxe.includes("prefers-reduced-motion"), "respeta prefers-reduced-motion");
 ok(luxe.includes("backdrop-filter"), "glass con backdrop-filter");
+ok(/#luxe-landing\s*\{[^}]*overflow-y:\s*auto/.test(luxe), "landing con scrollport propio (el shell deja body overflow hidden: sin esto no se puede bajar del hero en móvil)");
+ok(/height:\s*100vh;\s*height:\s*100dvh;/.test(luxe), "altura dinámica 100dvh (barra del navegador en iOS/Android)");
+ok(/body\.luxe-activo\s+#hud\s*\{[^}]*display:\s*none/.test(luxe), "HUD apagado mientras la landing manda (#hud z-10 flotaba encima de la venta z-5)");
 
 /* ---------- 3 · landing.js: puro, esc, sin DOM duro ---------- */
 const landingPath = join(root, "js", "ui", "landing.js");

@@ -130,8 +130,15 @@ body.entered #luxe-nav {
   z-index: 5;
   background: var(--luxe-bg);
   color: var(--luxe-ink);
-  min-height: 100vh;
+  /* scrollport PROPIO: el shell deja html/body con overflow hidden (el
+     mundo 3D y el panel viven de eso). Si la landing crece en el documento
+     queda RECORTADA y en móvil parece rota entera. 100dvh respeta la barra
+     de iOS; los navegadores sin dvh se quedan con 100vh. */
+  height: 100vh;
+  height: 100dvh;
+  overflow-y: auto;
   overflow-x: hidden;
+  scroll-behavior: smooth;
 }
 body.entered #luxe-landing { display: none !important; }
 
@@ -139,6 +146,11 @@ body.entered #luxe-landing { display: none !important; }
    apagada: si no, taparía la landing entera. Al pulsar ENTRAR,
    landing-boot retira la clase y la puerta vuelve a su flujo v9. */
 body.luxe-activo #entry { display: none; }
+
+/* el HUD entero (#hud, fixed z-10 > landing z-5) flotaba ENCIMA de la
+   venta: chips de la barra, pista de movimiento y joystick sobre el hero.
+   Mientras la landing manda, el HUD se apaga; al ENTRAR vuelve. */
+body.luxe-activo #hud { display: none; }
 
 /* grain sutil sobre toda la landing */
 #luxe-landing::before {
@@ -445,4 +457,5 @@ body.luxe-activo #entry { display: none; }
 @media (prefers-reduced-motion: reduce) {
   .luxe-reveal { opacity: 1 !important; transform: none !important; filter: none !important; }
   #luxe-landing::before { display: none; }
+  #luxe-landing { scroll-behavior: auto; }
 }
