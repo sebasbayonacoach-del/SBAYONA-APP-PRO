@@ -4,10 +4,18 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#f6f6f7" />
+<meta name="description" content="BAYONA — Videojuego fitness 3D. Tu avatar es tu gemelo de comportamiento: tú entrenas, él entrena. Todo en tu dispositivo, en español." />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="BAYONA — Más fuerte. Más tú." />
+<meta property="og:description" content="Videojuego fitness 3D donde cuidar a tu personaje es cuidarte a ti. Plan real, cámara que cuenta reps y progreso honesto — 100% local." />
+<meta property="og:image" content="./og-bayona.jpg" />
+<meta property="og:locale" content="es_ES" />
+<meta name="twitter:card" content="summary_large_image" />
 <title>BAYONA — Entrena a tu ritmo</title>
 <link rel="stylesheet" href="fonts/fonts.css" />
 <link rel="stylesheet" href="css/style.css?v=8" />
 <link rel="stylesheet" href="css/aurum.css?v=3" />
+<link rel="stylesheet" href="css/luxe.css?v=1" />
 <link rel="stylesheet" href="css/motion.css?v=3" />
 <link rel="stylesheet" href="css/personal.css?v=1" />
 <link rel="stylesheet" href="css/fitness.css?v=10" />
@@ -51,6 +59,12 @@
   <div id="frame-top" aria-hidden="true"></div>
   <div id="frame-bot" aria-hidden="true"></div>
   <div id="aurora" aria-hidden="true"></div>
+
+  <!-- ============ LUXE · LANDING PÚBLICA (v10) ============
+       Nivel motionsites.ai: nav glass + hero + bento + planes + FAQ.
+       Solo existe ANTES de ENTRAR; al entrar, display:none (luxe.css).
+       El JS (js/ui/landing.js) la pinta desde el catálogo i18n. -->
+  <section id="luxe-landing" aria-label="Presentación de BAYONA"></section>
 
   <!-- ============ INGRESO · una pantalla, una acción ============
        Aquí NO hay selector de tema ni CTA demarketing: una frase y un
@@ -123,6 +137,8 @@
   <div id="toasts" role="status" aria-live="polite"></div>
 
   <script type="module" src="js/main.js"></script>
+  <!-- LUXE · landing pública (solo se monta si el usuario NO ha entrado) -->
+  <script type="module" src="js/ui/landing-boot.js"></script>
   <!-- ATELIER · personalización de la interfaz + motor de movimiento -->
   <script type="module" src="js/ui/motion.js"></script>
   <!-- MOVIMIENTO LIBRE · clic / WASD / joystick / cámara -->
