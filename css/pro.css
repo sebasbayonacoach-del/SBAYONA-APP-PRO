@@ -267,6 +267,21 @@ body.fitness-app #panel-nav .rail-btn { position: relative; }
   body.fitness-app #drawer.open {
     transform: translateY(0);
   }
+  /* El raíl de navegación: pro.css lo clava a top:52px y 176px de ancho
+     SIN media query — sobre la geometría móvil de fitness.css @max-760
+     (barra de 72px a lo ancho) queda a medias: fijo, flotante y con los
+     6 botones amontonados en 176px («Hoytrerrogenes…»). En móvil el raíl
+     vuelve a ser la tira horizontal DENTRO de la hoja (contrato v9). */
+  body.fitness-app #panel-nav {
+    position: static;
+    top: auto;
+    left: auto;
+    bottom: auto;
+    width: auto;
+    height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--fit-line);
+  }
 }
 body.fitness-app .drawer-head {
   padding: 14px 20px 10px;
