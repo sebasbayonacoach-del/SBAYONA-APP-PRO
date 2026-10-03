@@ -6,7 +6,7 @@
 //   · la landing (js/ui/landing.js) es PURA: contenido desde el
 //     catálogo, HTML generado con esc() y reveal sin dependencias
 //   · luxe.css existe y NO pisa el lenguaje PRO dentro del panel
-//   · sw.js v21 precachea los ficheros nuevos
+//   · sw.js v22 precachea los ficheros nuevos
 //   · todo texto de la landing vive en i18n (nada a mano)
 // ============================================================
 import { readFileSync, existsSync } from "node:fs";
@@ -103,11 +103,11 @@ ok(boot.includes("bayona.save.v2"), "lee la partida para saber si onboarded");
 ok(boot.includes("l.remove()"), "usuario recurrente: sin landing (v9 intacta)");
 ok(!boot.includes("S.init"), "no inicializa el estado (eso es main.js)");
 
-/* ---------- 6 · sw.js: precache v21 ---------- */
+/* ---------- 6 · sw.js: precache v22 ---------- */
 const sw = readFileSync(join(root, "sw.js"), "utf8");
 console.log("\n— sw.js · precache —");
 
-ok(sw.includes("bayona-shell-v21"), "CACHE v21");
+ok(sw.includes("bayona-shell-v22"), "CACHE v21");
 ok(sw.includes('"./css/luxe.css"'), "luxe.css en SHELL");
 ok(sw.includes('"./js/ui/landing.js"'), "landing.js en SHELL");
 ok(sw.includes('"./js/ui/landing-boot.js"'), "landing-boot.js en SHELL");

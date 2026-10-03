@@ -309,7 +309,7 @@ assert(!/>[^<>]*\S[^<>]*<\//.test(index.match(/<button id="cmd-chip"[\s\S]*?<\/b
   "y no lleva texto escrito a mano: el atajo correcto lo pone la capa según el sistema");
 assert(/from "\.\/ui\/command\.js"/.test(ui) && /installPaleta\(\)/.test(ui), "la app instala la paleta al arrancar");
 assert(sw.includes("./js/comandos.js") && sw.includes("./js/ui/command.js"), "el service worker precachea los dos (funciona sin red)");
-assert(sw.includes("bayona-shell-v21"), "y la versión del precache ha subido (si no, el shell viejo gana)");
+assert(sw.includes("bayona-shell-v22"), "y la versión del precache ha subido (si no, el shell viejo gana)");
 const hojas = [...index.matchAll(/<link[^>]+href="(css\/[^"]+)"/g)].map((m) => m[1].split("?")[0]);
 assert(hojas[hojas.length - 1] === "css/pro.css", "pro.css sigue siendo la última hoja");
 for (const sel of [".cmd-chip", "#cmd-layer", "#cmd-box", ".cmd-fila", ".cmd-fila-g", ".cmd-pie", "kbd", ".cmd-vacio", ".cmd-atajos"]) {
