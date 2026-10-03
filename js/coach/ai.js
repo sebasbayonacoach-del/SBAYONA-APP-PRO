@@ -124,10 +124,15 @@ export function minutesIn(text) {
    ENDPOINT
    ============================================================ */
 
+/** Base de la API para contenedores nativos (APK/IPA), donde no hay servidor local. */
+export function apiBase() {
+  return (typeof window !== "undefined" && window.BAYONA_API_BASE) || "";
+}
+
 /** Dónde vive el proxy. Configurable por ventana para despliegues propios. */
 export function coachEndpoint() {
   if (typeof window !== "undefined" && window.BAYONA_COACH_ENDPOINT) return window.BAYONA_COACH_ENDPOINT;
-  return "/api/coach";
+  return apiBase() + "/api/coach";
 }
 
 /**

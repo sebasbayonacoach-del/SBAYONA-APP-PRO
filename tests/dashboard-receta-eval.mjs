@@ -305,7 +305,8 @@ console.log("\n— contrato con el catálogo, los estilos y el shell —");
   assert(/prefijo:\s*"\/api\/meal-image"/.test(serve), "el proxy de imágenes está montado");
 
   // el cliente pregunta en la ruta que el servidor entiende
-  assert(/fetch\("\/api\/meal-image\/health"/.test(leer("js/recipeImage.js")),
+  // (apiBase() permite apuntar al despliegue público desde el APK)
+  assert(/fetch\(apiBase\(\) \+ "\/api\/meal-image\/health"/.test(leer("js/recipeImage.js")),
     "el cliente consulta la salud en /api/meal-image/health");
   assert(/\/api\/meal-image\/health/.test(leer("api/image.js")),
     "el proxy entiende esa misma ruta");

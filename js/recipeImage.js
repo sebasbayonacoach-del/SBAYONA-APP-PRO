@@ -82,13 +82,17 @@ function aMiniatura(src) {
 }
 
 /* ---------- salud del servicio ---------- */
+// En el contenedor nativo (APK/IPA) no hay servidor local: BAYONA_API_BASE
+// apunta las llamadas al despliegue público. Sin ella, degrada sin lanzar.
+const apiBase = () => (typeof window !== "undefined" && window.BAYONA_API_BASE) || "";
+
 let salud = null;
 export async function imagenDisponible(timeoutMs = 2500) {
   if (salud !== null) return salud;
   const ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
   const t = ctrl ? setTimeout(() => ctrl.abort(), timeoutMs) : null;
   try {
-    const r = await fetch("/api/meal-image/health", { signal: ctrl?.signal });
+    const r = await fetch(apiBase() + "/api/meal-image/health", { signal: ctrl?.signal });
     salud = Boolean(r.ok && (await r.json())?.ok);
   } catch { salud = false; }
   finally { if (t) clearTimeout(t); }
@@ -114,7 +118,7 @@ export async function pedirImagen(receta) {
   const tarea = (async () => {
     if (navigator.onLine === false) return null;
     try {
-      const r = await fetch(`/api/meal-image?id=${encodeURIComponent(id)}`);
+      const r = await fetch(`${apiBase()}/api/meal-image?id=${encodeURIComponent(id)}`);
       const j = await r.json().catch(() => null);
       if (!r.ok || !j?.ok || !j.image) return null;
       const mini = await aMiniatura(j.image);
