@@ -4,7 +4,6 @@ const config: CapacitorConfig = {
   appId: 'app.bayona.fit',
   appName: 'BAYONA',
   webDir: 'web-build',
-  bundledWebRuntime: false,
   server: { androidScheme: 'https' },
   android: {
     allowMixedContent: false,
@@ -16,7 +15,7 @@ const config: CapacitorConfig = {
     //   repeticiones y conducir tu personaje. El vídeo nunca sale de tu móvil."
   },
   plugins: {
-    SplashScreen: { launchShowDuration: 800, backgroundColor: '#f7f4ef' },
+    SplashScreen: { launchShowDuration: 800, backgroundColor: '#000000' },
   },
 };
 

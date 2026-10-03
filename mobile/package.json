@@ -1,0 +1,14 @@
+{
+  "name": "bayona-mobile",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Contenedor móvil (Capacitor) de BAYONA — Android/iOS",
+  "dependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/cli": "^8.5.2",
+    "@capacitor/core": "^8.5.2"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2"
+  }
+}
