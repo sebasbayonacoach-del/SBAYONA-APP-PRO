@@ -272,3 +272,6 @@ if (fail) {
   process.exit(1);
 }
 console.log("\n  (esto NO sustituye a mirar la app en un navegador)");
+// Las importaciones exploratorias pueden dejar temporizadores activos.
+// Tras emitir el resultado, el proceso de prueba debe terminar explícitamente.
+process.exit(0);
