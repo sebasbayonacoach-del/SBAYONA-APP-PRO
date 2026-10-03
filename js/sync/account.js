@@ -15,6 +15,7 @@ import { esc, fmtDate } from "../i18n.js";
 import { UI, el, elT, toast, BUILDERS, TITLES, openSection } from "../ui/shared.js";
 import { consentStatus, isGranted } from "../consents.js";
 import { payloadMedidas, payloadAsignaciones, payloadAvatar } from "./mirror.js";
+import * as outbox from "./outbox.js";
 import {
   isConfigured, currentSession, currentUser, onAuth,
   signInWithPassword, signUpWithPassword, signInWithMagicLink,
@@ -24,7 +25,7 @@ import {
 
 TITLES.account = ["CUENTA", "BAYONA EN LA NUBE · TUS DATOS, TUS REGLAS"];
 
-const STATE = { busy: false, last: null, error: null, pending: 0 };
+const STATE = { busy: false, last: null, error: null };
 
 /* ============================================================
    SINCRONIZACIÓN — espejo idempotente local → remoto
@@ -139,11 +140,11 @@ export async function syncNow(opts = {}) {
     try { await pushMedidas(); await pushAsignaciones(); await pushAvatar(); }
     catch { /* tablas nuevas pendientes de migración: no rompe el espejo principal */ }
     STATE.last = new Date().toISOString();
-    STATE.pending = 0;
+    outbox.limpiar();
     if (!opts.silent) toast("SINCRONIZADO", "Tus datos están en la nube.");
   } catch (e) {
     STATE.error = e.message || String(e);
-    STATE.pending = 1;
+    outbox.registrarFallo(STATE.error);
     if (!opts.silent) toast("SIN PA CONEXIÓN", `No se pudo sincronizar: ${STATE.error}`, "danger");
   } finally {
     STATE.busy = false;
@@ -214,7 +215,7 @@ BUILDERS.account = (body) => {
         ? "Tu progreso se guarda aquí mismo. Inicia sesión para tener copia en la nube y poder cambiar de dispositivo."
         : "Falta la clave de Supabase en <b>js/sync/config.js</b>. La app funciona igualmente, 100 % local."}</div>
     <div class="kv"><span class="k">ÚLTIMA SINCRONIZACIÓN</span><span class="v">${STATE.last ? esc(fmtDate(STATE.last)) : "—"}</span></div>
-    <div class="kv"><span class="k">EN COLA</span><span class="v">${STATE.pending ? "PENDIENTE" : "TODO ENVIADO"}</span></div>
+    <div class="kv"><span class="k">EN COLA</span><span class="v">${outbox.estaPendiente() ? "PENDIENTE" : "TODO ENVIADO"}</span></div>
     ${STATE.error ? `<div class="kv"><span class="k">AVISO</span><span class="v" style="color:var(--danger)">${esc(STATE.error)}</span></div>` : ""}`;
   body.appendChild(st);
 
@@ -298,9 +299,49 @@ BUILDERS.account = (body) => {
 /* ---------- ganchos ---------- */
 export function openAccount() { openSection("account"); }
 
-// sincronizado suave al terminar un entreno o al recuperar red
-on("session", () => { if (currentSession()) syncNow({ silent: true }); });
-addEventListener("online", () => { if (currentSession()) syncNow({ silent: true }); });
+/* ---------- reintentos y sincronización suave ----------
+   El outbox (js/sync/outbox.js) recuerda que HAY algo por subir aunque
+   se recargue la pestaña. Aquí se le da músculo: reintentos con backoff
+   y espejo automático cuando cambian los datos sincronizados. */
+let reintentoTimer = null;
+let suaveTimer = null;
+
+function reintentar() {
+  if (reintentoTimer || typeof window === "undefined") return;
+  reintentoTimer = setTimeout(async () => {
+    reintentoTimer = null;
+    if (!currentSession() || !outbox.estaPendiente()) return;
+    const ok = await syncNow({ silent: true });
+    if (!ok) reintentar();
+  }, outbox.backoffMs());
+}
+
+/** cambios locales → marca la cola y sincroniza sin tocar la UI (debounce 8 s) */
+function sincroSuave() {
+  outbox.marcarPendiente("cambios locales");
+  if (typeof window === "undefined") return;
+  clearTimeout(suaveTimer);
+  suaveTimer = setTimeout(async () => {
+    if (!currentSession()) return; // sin sesión: la cola espera, no molesta
+    const ok = await syncNow({ silent: true });
+    if (!ok) reintentar();
+  }, 8000);
+}
+
+// sincronizado suave al terminar un entreno o al cambiar medidas/asignaciones
+on("session", sincroSuave);
+on("medidas", sincroSuave);
+on("asignaciones", sincroSuave);
+
+// al volver la red: intento inmediato y, si falla, programa el siguiente
+addEventListener("online", async () => {
+  if (!currentSession() || !outbox.estaPendiente()) return;
+  const ok = await syncNow({ silent: true });
+  if (!ok) reintentar();
+});
+
+// al arrancar: si quedó algo pendiente de una sesión anterior, reintentar
+if (typeof window !== "undefined" && outbox.estaPendiente() && currentSession()) reintentar();
 
 // si el email trae token en el hash, completar sesión al arrancar
 if (completeAuthFromHash()) {

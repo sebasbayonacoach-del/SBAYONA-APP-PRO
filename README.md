@@ -467,9 +467,9 @@ Diagnóstico sin service worker: `index.html?nosw=1`.
 | PWA offline (shell) + instalable | ✅ probado sin red | E2E navegador offline |
 | Idioma: experiencia completa en español + formateo es-ES (fechas, decimales 72,5, 24 h) | ✅ | checklist + revisión visual |
 | Economía sin dobles XP (previsto = recibido = guardado) | ✅ | `tests/rewards-eval.mjs`, `tests/state-eval.mjs` |
-| Backend real (auth, API, sync) | 🚧 contratos + SQL listos; **sin servidor conectado** | `api/` |
+| Backend real (auth, API, sync) | 🚧 cliente completo + espejo idempotente + cola offline (`js/sync/`); falta la anon key del proyecto y aplicar `api/supabase/migrations/` | `js/sync/`, `api/supabase/` |
 | Comunidad / Tienda / Membresías de pago | 🚧 fuera de este slice (deshabilitadas o informativas, sin falsa experiencia) | — |
-| APK / iOS | 🚧 solo configuración (Capacitor); sin compilar ni firmar | `mobile/` |
+| APK / iOS | ✅ Android: APK v1.0 compilado y firmado (`mobile/android/`, gradle sin Android Studio); iOS 🚧 requiere Mac/Xcode | `mobile/` |
 
 ## Filosofía
 
