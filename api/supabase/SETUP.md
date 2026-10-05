@@ -10,7 +10,7 @@
 
 | Pieza | Valor |
 |---|---|
-| Base de datos PostgreSQL 15 | 12 tablas con RLS (aislamiento por usuario) |
+| Base de datos PostgreSQL 15 | 18 tablas con RLS (aislamiento por usuario + Coach ↔ cliente) |
 | Auth | Magic link (email) + Google |
 | API instantánea | REST + Realtime por tabla |
 | Credenciales | `Project URL` + `anon key` (las que me pasas) |
@@ -69,9 +69,11 @@
 5. Debe salir: **`Success. No rows returned`**.
 
    Al final del mismo script hay una consulta de verificación; si la seleccionas
-   y la ejecutas sola, debe devolverte **12 filas**:
+   y la ejecutas sola, debe devolverte **18 filas**:
    `profiles, consents, avatars, exercises, plans, workout_sessions, sets_log,
-   health_samples, readiness_daily, scans, red_flags, xp_ledger`.
+   health_samples, readiness_daily, scans, red_flags, xp_ledger, body_medidas,
+   entrenamientos_asignados, coach_clients, coach_invites, coach_routines,
+   coach_assignments`.
 
 > El script es **idempotente**: `create table if not exists` + `drop policy if
 > exists`. Puedes re-ejecutarlo sin miedo si algo falla a medias.
@@ -138,7 +140,7 @@ on conflict (id) do nothing;
 - [ ] `Project URL` copiada
 - [ ] `anon` `public` key copiada (**no** la `service_role`)
 - [ ] `setup.sql` ejecutado → `Success`
-- [ ] 12 tablas en Table Editor con RLS en verde
+- [ ] 18 tablas en Table Editor con RLS en verde
 - [ ] Auth → Email activo, Site URL = `http://localhost:8080`
 - [ ] `rls_basic.sql` → todo `OK`
 - [ ] (opcional) Google OAuth configurado
