@@ -329,11 +329,15 @@ function boot(retries = 20) {
     return;
   }
   if (S.data.profile?.onboarded) return;
+  // El onboarding pertenece al mundo AFILIADO. El coach entra directamente
+  // a su Studio y nunca se ve obligado a crear un perfil deportivo personal.
+  if (document.body.dataset.entryRole === "coach") return;
   // el onboarding espera a que se cruce el ingreso cinematográfico
   if (!document.body.classList.contains("entered")) {
     window.addEventListener("bayona:entered", () => boot(retries), { once: true });
     return;
   }
+  if (document.body.dataset.entryRole === "coach") return;
   document.head.appendChild(el(`<style>${css}</style>`));
   const layer = el(`<div id="ob-layer" role="dialog" aria-modal="true" aria-label="Bienvenida a BAYONA"><div id="ob-box"></div></div>`);
   layer.addEventListener("keydown", (event) => {

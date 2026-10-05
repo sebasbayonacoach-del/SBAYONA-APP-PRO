@@ -53,7 +53,7 @@ function ensureContextSwitch() {
   group.setAttribute("role", "group");
   group.setAttribute("aria-label", t("one.context.label"));
 
-  const athlete = makeButton("ATLETA","athlete","M5 19V5m14 14V5M5 12h14");
+  const athlete = makeButton("AFILIADO","athlete","M5 19V5m14 14V5M5 12h14");
   const coach = makeButton("COACH","coach","M4 20V8l8-4 8 4v12M9 20v-7h6v7");
   athlete.addEventListener("click", () => openSection("hoy"));
   coach.addEventListener("click", () => openSection("coachos"));

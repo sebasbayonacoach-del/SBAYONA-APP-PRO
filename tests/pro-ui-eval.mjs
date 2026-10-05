@@ -109,7 +109,7 @@ assert(/text-transform:\s*capitalize/.test(css), "los títulos en mayúsculas pa
 const dt = bloque(css, "body.fitness-app #drawer-title {");
 const tamTitulo = Number((dt.match(/font:[^;]*?(\d+)px/) || [])[1]);
 assert(tamTitulo > 0 && tamTitulo <= 20, `el título del panel es de ${tamTitulo || "?"} px (máx. 20)`, dt);
-assert(!/clamp\(4\dpx|clamp\(5\dpx|clamp\([6-9]\dpx/.test(css), "no quedan titulares de 48 px o más");
+assert(!/body\.fitness-app #drawer-title[^}]*clamp\([4-9]\dpx/s.test(css), "los titulares de panel siguen compactos; el hero de entrada puede ser cinematográfico");
 const entrada = bloque(css, "body.fitness-app #entry .e-title {");
 const topePortada = Number((entrada.match(/font:[^;]*?(\d+)px/) || [])[1]);
 assert(topePortada > 0 && topePortada <= 40, `la portada arranca en ${topePortada || "?"} px (no 100)`, entrada);
@@ -213,13 +213,15 @@ for (const [elemento, propiedad, que] of DEBE_GANAR_PRO) {
 console.log("— la entrada: una acción y ya —");
 const splash = (index.match(/<div id="entry"[\s\S]*?<\/div>\s*<!--/)?.[0]) || index;
 assert(!/e-modes|class="e-mode"/.test(index), "la portada ya no ofrece el selector de luz");
-assert(/id="entry-go"/.test(index), "la portada tiene su única acción: ENTRAR");
-assert((splash.match(/<button/g) || []).length === 1, "la portada tiene UN botón, no una fila de opciones");
+assert(/id="entry-go"/.test(index) && /id="entry-coach"/.test(index), "la portada separa acceso AFILIADO y COACH");
+assert((index.match(/data-entry-role=/g) || []).length === 2, "la portada tiene exactamente dos accesos de rol: afiliado y coach");
 assert(/js\/ui\/appearance\.js/.test(leer("js/main.js")) === false,
   "main.js ya no arrastra el interruptor de la portada (vive en Apariencia y el HUD)");
 const apariencia = leer("js/ui/appearance.js");
-assert(/CINE . BLANCO|"cine"/.test(apariencia) && /noche/.test(apariencia),
-  "el cambio de luz sigue disponible donde se decide: Apariencia");
+assert(/mode:\s*"noche"/.test(apariencia) && /NOCHE · NEGRO/.test(apariencia),
+  "BAYONA ONE fija NOCHE · NEGRO como firma visual única");
+assert(!/CINE · BLANCO/.test(apariencia),
+  "Apariencia ya no ofrece el modo blanco en BAYONA ONE");
 
 /* ============================================================
    9 · NO ROMPE LA CAPA ANTERIOR

@@ -11,7 +11,9 @@ import { openSection, enterHome } from "./ui/shared.js";
 import { installFitnessUI } from "./ui/fitness.js";
 import { installDashboard, dashboardActivo } from "./ui/dashboard.js";
 import { installOneShell } from "./ui/one.js";
+import { installAffiliateV12 } from "./ui/affiliate-v12.js";
 import { ITEMS } from "./data.js";
+import { t } from "./i18n.js";
 import { loadFaceImage } from "./face.js";
 
 function boot() {
@@ -19,7 +21,7 @@ function boot() {
 
   const canvas = document.getElementById("scene");
   const world = new World(canvas);
-  world.setMood(document.documentElement.dataset.mode || "cine");
+  world.setMood("noche");
   window.dispatchEvent(new CustomEvent("bayona:world-ready", { detail: world }));
 
   // reduced motion desde ajustes o sistema
@@ -67,6 +69,7 @@ function boot() {
   installFitnessUI();
   initUI(world);
   installOneShell();
+  installAffiliateV12();
   wireEntry(world);
   // DASHBOARD DE ESCRITORIO · el personaje al centro, con el resumen vivo
   // alrededor. Se enciende al entrar y se apaga solo por debajo de 1100 px.
@@ -101,37 +104,62 @@ function boot() {
 // ============================================================
 function wireEntry(world) {
   const entry = document.getElementById("entry");
-  const go = document.getElementById("entry-go");
+  const affiliate = document.getElementById("entry-go");
+  const coach = document.getElementById("entry-coach");
   const modeName = document.getElementById("mode-name");
-  if (!entry || !go) return;
+  if (!entry || !affiliate || !coach) return;
+
+  const roleKey = "bayona.entry.role.v1";
+  const lastRole = localStorage.getItem(roleKey) || "affiliate";
+  entry.dataset.lastRole = lastRole;
+  entry.querySelectorAll("[data-entry-role]").forEach((b) => {
+    b.setAttribute("aria-pressed", String(b.dataset.entryRole === lastRole));
+  });
 
   if (S.data.profile.onboarded) {
-    entry.querySelector(".e-kicker").textContent = `TU DÍA ${S.dayNumber()} · A TU RITMO`;
-    entry.querySelector(".e-title").textContent = `Hola, ${S.data.profile.name || "atleta"}`;
-    entry.querySelector(".e-sub").textContent = `${S.data.profile.goal} · ${S.data.profile.availability || "Tu propio ritmo"}. Tu progreso te espera.`;
-    go.textContent = S.getActiveSession() ? "VOLVER A MI SESIÓN" : "CONTINUAR MI DÍA";
+    const name = S.data.profile.name || "atleta";
+    entry.querySelector(".e-sub").textContent = t("one.entry.welcome", { name });
+    affiliate.querySelector(".e-role-copy strong").textContent =
+      S.getActiveSession() ? "Volver a mi sesión" : "Entrar a mi experiencia";
   }
-  // El selector de luz se fue de aquí (vive en APARIENCIA y en el HUD):
-  // la puerta solo sincroniza el color de la barra del navegador.
+
   const syncChrome = (m) => {
     if (modeName) modeName.textContent = m === "noche" ? "NOCHE" : "CINE";
-    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", m === "noche" ? "#0e1013" : "#f6f6f7");
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", "#050505");
   };
-  syncChrome(document.documentElement.dataset.mode || "cine");
+  syncChrome("noche");
 
-  const enter = () => {
+  const enter = (role = "affiliate") => {
     if (document.body.classList.contains("entered")) return;
+    const safeRole = role === "coach" ? "coach" : "affiliate";
+    localStorage.setItem(roleKey, safeRole);
+    document.body.dataset.entryRole = safeRole;
+    document.body.classList.toggle("entry-coach", safeRole === "coach");
+    document.body.classList.toggle("entry-affiliate", safeRole === "affiliate");
     document.body.classList.add("entered");
     entry.classList.add("gone");
-    window.dispatchEvent(new CustomEvent("bayona:entered"));
-    // coreografía: el panel lateral entra después del mundo
-    setTimeout(() => S.data.profile.onboarded ? openSection(S.getActiveSession() ? "training" : "hoy") : enterHome(false), 380);
+    window.dispatchEvent(new CustomEvent("bayona:entered", { detail:{ role:safeRole } }));
+
+    setTimeout(() => {
+      if (safeRole === "coach") {
+        openSection("coachos");
+        return;
+      }
+      if (S.data.profile.onboarded) {
+        openSection(S.getActiveSession() ? "training" : "hoy");
+      } else {
+        enterHome(false);
+      }
+    }, 380);
   };
-  go.addEventListener("click", enter);
-  if (S.data.profile.onboarded) enter();
+
+  affiliate.addEventListener("click", () => enter("affiliate"));
+  coach.addEventListener("click", () => enter("coach"));
   addEventListener("keydown", (e) => {
     if (document.body.classList.contains("entered")) return;
-    if ((e.key === "Enter" || e.key === " ") && !e.target.closest("button, input, select, textarea")) enter();
+    if ((e.key === "Enter" || e.key === " ") && !e.target.closest("button, input, select, textarea")) {
+      enter(lastRole);
+    }
   });
 }
 

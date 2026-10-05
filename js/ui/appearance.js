@@ -20,7 +20,7 @@ export const THEMES = [
 
 const DEFAULTS = {
   theme: "naranja",
-  mode: "cine",         // CINE = blanco + naranja · NOCHE = negro + naranja
+  mode: "noche",        // BAYONA ONE = negro + naranja
   font: "claude",       // firma tipográfica CLAUDE (Styrene B / Tiempos Text)
   density: "comoda",
   radius: "suave",
@@ -40,8 +40,9 @@ function load() {
   } catch (e) { /* almacenamiento no disponible */ }
   ap.theme = "naranja"; // paleta estricta: nunca se desvía
   ap.font = "claude";
-  // legado: marfil → cine · noche → noche
-  if (ap.mode === "marfil") ap.mode = "cine";
+  // BAYONA ONE v12: firma visual única. Cualquier preferencia antigua
+  // se migra a negro + naranja para que escena y software compartan identidad.
+  ap.mode = "noche";
   return ap;
 }
 
@@ -78,14 +79,14 @@ export function applyAppearance() {
 }
 
 /** interruptor rápido CINE / NOCHE (HUD y portada) */
-export function setMode(mode) {
-  setAppearance({ mode: mode === "noche" ? "noche" : "cine" }, true);
+export function setMode() {
+  setAppearance({ mode: "noche" }, true);
 }
 
 export function getAppearance() { return { ...AP }; }
 
 export function setAppearance(patch, silent) {
-  AP = { ...AP, ...patch };
+  AP = { ...AP, ...patch, mode: "noche", theme: "naranja" };
   save();
   applyAppearance();
   if (!silent) {
@@ -187,9 +188,9 @@ BUILDERS.appearance = (body) => {
   });
   body.appendChild(sw);
 
-  // ---------- LUZ (CINE = blanco · NOCHE = negro) ----------
-  options(body, "LUZ", "mode", [["cine", "CINE · BLANCO"], ["noche", "NOCHE · NEGRO"]],
-    "Luz actualizada.");
+  // ---------- FIRMA VISUAL FIJA ----------
+  options(body, "LUZ", "mode", [["noche", "NOCHE · NEGRO"]],
+    "BAYONA ONE mantiene negro + naranja en toda la experiencia.");
 
   // ---------- CRISTAL ----------
   options(body, "CRISTAL", "glass", [["on", "CRISTAL"], ["off", "PLANO"]],

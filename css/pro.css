@@ -2964,3 +2964,752 @@ body.fitness-app #toasts .toast::before {
     stroke: #ff6a00;
   }
 }
+
+
+/* ============================================================
+   27 · BAYONA ONE v12 — ROLE GATE + AFFILIATE CINEMATIC HOME
+   ============================================================ */
+
+/* ---------- puerta por rol ---------- */
+body.fitness-app #entry {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: stretch;
+  padding: clamp(28px,5vw,72px);
+}
+body.fitness-app #entry .e-kicker,
+body.fitness-app #entry .e-title,
+body.fitness-app #entry .e-sub,
+body.fitness-app #entry .e-role-grid,
+body.fitness-app #entry .e-entry-foot {
+  width: min(100%, 940px);
+  margin-left: auto;
+  margin-right: auto;
+}
+body.fitness-app #entry .e-title {
+  max-width: none;
+  margin-top: 12px;
+  color: #f6f4ef;
+  font-size: clamp(44px,6vw,78px);
+  line-height: .93;
+  letter-spacing: -.055em;
+}
+body.fitness-app #entry .e-title em {
+  color: #ff6a00;
+  font-style: normal;
+}
+body.fitness-app #entry .e-sub {
+  max-width: 720px;
+  margin-top: 16px;
+  color: #979da1;
+  font-size: 14px;
+  line-height: 1.6;
+}
+body.fitness-app .e-role-grid {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 12px;
+  margin-top: 28px;
+}
+body.fitness-app .e-role-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 128px minmax(0,1fr) 28px;
+  gap: 16px;
+  align-items: center;
+  min-height: 150px;
+  padding: 12px;
+  overflow: hidden;
+  border: 1px solid #292c2f;
+  border-radius: 14px;
+  background: #0b0c0d;
+  color: #f4f4f1;
+  text-align: left;
+  cursor: pointer;
+  transition: transform .22s ease,border-color .22s ease,background .22s ease;
+}
+body.fitness-app .e-role-card:hover,
+body.fitness-app .e-role-card[aria-pressed="true"] {
+  transform: translateY(-2px);
+  border-color: #8f4318;
+  background: #101214;
+}
+body.fitness-app .e-role-card > b {
+  justify-self: end;
+  color: #ff6a00;
+  font-size: 22px;
+}
+body.fitness-app .e-role-media,
+body.fitness-app .e-role-dashboard {
+  position: relative;
+  display: block;
+  width: 128px;
+  height: 124px;
+  overflow: hidden;
+  border-radius: 9px;
+  background: #050505;
+}
+body.fitness-app .e-role-media video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(.75) contrast(1.08);
+}
+body.fitness-app .e-role-media i {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg,transparent 30%,rgba(255,106,0,.16));
+}
+body.fitness-app .e-role-copy {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+body.fitness-app .e-role-copy small {
+  color: #ff7a1a;
+  font: 750 8px/1 var(--sans);
+  letter-spacing: .15em;
+}
+body.fitness-app .e-role-copy strong {
+  color: #f5f3ef;
+  font: 620 20px/1.05 var(--serif);
+  letter-spacing: -.03em;
+}
+body.fitness-app .e-role-copy span {
+  color: #838a8f;
+  font-size: 10px;
+  line-height: 1.45;
+}
+body.fitness-app .e-role-dashboard {
+  display: grid;
+  grid-template-columns: 1.4fr .6fr;
+  grid-template-rows: 1fr 1fr 1fr;
+  gap: 5px;
+  padding: 9px;
+  box-sizing: border-box;
+  border: 1px solid #22262a;
+  background:
+    radial-gradient(circle at 80% 15%,rgba(255,106,0,.16),transparent 34%),
+    #070809;
+}
+body.fitness-app .e-role-dashboard i {
+  display: block;
+  border: 1px solid #2d3236;
+  border-radius: 4px;
+  background: #111417;
+}
+body.fitness-app .e-role-dashboard i:first-child {
+  grid-row: 1 / 4;
+  background:
+    linear-gradient(to top,rgba(255,106,0,.2),transparent 55%),
+    #0d1012;
+}
+body.fitness-app .e-role-dashboard i:nth-child(2) {
+  border-color: #6d3516;
+  background: #1a0d05;
+}
+body.fitness-app .e-entry-foot {
+  margin-top: 14px;
+  color: #5f666a;
+  font: 700 8px/1.4 var(--sans);
+  letter-spacing: .12em;
+}
+
+/* ---------- dos menús reales ---------- */
+body.fitness-app.one-athlete-mode #panel-nav .one-role-coach-nav,
+body.fitness-app.one-athlete-mode #panel-nav > [data-go="centro"]:not(.one-role-coach-nav) {
+  display: none !important;
+}
+body.fitness-app.one-coach-mode #panel-nav .rail-btn:not(.one-role-coach-nav) {
+  display: none !important;
+}
+body.fitness-app.one-coach-mode #panel-nav .one-role-coach-nav {
+  display: flex !important;
+}
+body.fitness-app #panel-nav .one-role-coach-nav {
+  color: #858c90;
+}
+body.fitness-app #panel-nav .one-role-coach-nav.active {
+  color: #ff8a3a;
+}
+body.fitness-app #panel-nav .one-role-coach-nav.active svg {
+  stroke: #ff6a00;
+}
+
+/* ---------- home afiliado ---------- */
+body.fitness-app #drawer-body.affiliate-home-v12 {
+  grid-auto-rows: max-content;
+  align-content: start;
+  gap: 16px;
+}
+body.fitness-app .affiliate-intro-v12 {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 4px 0 6px;
+}
+body.fitness-app .affiliate-intro-v12 > span {
+  color: #ff7a1a;
+  font: 720 8px/1.4 var(--sans);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+body.fitness-app .affiliate-intro-v12 h3 {
+  margin: 0;
+  max-width: 13ch;
+  color: #f4f4f1;
+  font: 620 clamp(25px,3vw,38px)/.98 var(--serif);
+  letter-spacing: -.045em;
+  text-align: right;
+}
+body.fitness-app .affiliate-week-v12 {
+  display: grid;
+  grid-template-columns: repeat(7,minmax(0,1fr));
+  gap: 6px;
+}
+body.fitness-app .affiliate-day-v12 {
+  display: grid;
+  place-items: center;
+  gap: 5px;
+  min-height: 58px;
+  border: 1px solid #24272a;
+  border-radius: 7px;
+  background: #090a0b;
+}
+body.fitness-app .affiliate-day-v12 span {
+  color: #656c70;
+  font: 700 7px/1 var(--sans);
+}
+body.fitness-app .affiliate-day-v12 b {
+  color: #b8bdc0;
+  font: 650 11px/1 var(--mono);
+}
+body.fitness-app .affiliate-day-v12 i {
+  color: #4f565a;
+  font-style: normal;
+}
+body.fitness-app .affiliate-day-v12.current {
+  border-color: #884116;
+  background: #180c05;
+}
+body.fitness-app .affiliate-day-v12.current b,
+body.fitness-app .affiliate-day-v12.current i {
+  color: #ff8a3a;
+}
+body.fitness-app .affiliate-day-v12.done i {
+  color: #5ac98a;
+}
+
+/* hero sesión en video */
+body.fitness-app .affiliate-session-v12 {
+  position: relative;
+  min-height: 350px;
+  overflow: hidden;
+  border: 1px solid #2c211b;
+  border-radius: 14px;
+  background: #070809;
+}
+body.fitness-app .affiliate-session-visual-v12 {
+  position: absolute;
+  inset: 0;
+}
+body.fitness-app .affiliate-hero-video-v12 {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(.72) contrast(1.06) brightness(.72);
+}
+body.fitness-app .affiliate-hero-fallback-v12 {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  color: #ff6a00;
+  font-size: 64px;
+  background: radial-gradient(circle at 70% 40%,rgba(255,106,0,.15),transparent 34%),#08090a;
+}
+body.fitness-app .affiliate-session-visual-v12::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg,rgba(0,0,0,.88) 0%,rgba(0,0,0,.58) 45%,rgba(0,0,0,.12) 100%),
+    linear-gradient(0deg,rgba(0,0,0,.7),transparent 55%);
+}
+body.fitness-app .affiliate-session-overlay-v12 {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: end;
+  min-height: 350px;
+  padding: 28px;
+  box-sizing: border-box;
+}
+body.fitness-app .affiliate-session-kicker-v12 {
+  color: #ff7a1a;
+  font: 760 8px/1 var(--sans);
+  letter-spacing: .16em;
+}
+body.fitness-app .affiliate-session-overlay-v12 h2 {
+  max-width: 12ch;
+  margin: 8px 0 12px;
+  color: #fff;
+  font: 620 clamp(30px,4vw,50px)/.93 var(--serif);
+  letter-spacing: -.055em;
+  text-transform: none;
+}
+body.fitness-app .affiliate-session-meta-v12 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+body.fitness-app .affiliate-session-meta-v12 span {
+  padding: 6px 8px;
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 999px;
+  color: #c8cdcf;
+  background: rgba(0,0,0,.26);
+  font: 700 7.5px/1 var(--sans);
+  letter-spacing: .07em;
+}
+body.fitness-app .affiliate-session-cta-v12 {
+  min-height: 38px;
+  margin-top: 18px;
+  padding: 0 15px;
+  border: 1px solid #ff6a00;
+  border-radius: 5px;
+  background: #ff6a00;
+  color: #090909;
+  font: 760 9px/1 var(--sans);
+  letter-spacing: .08em;
+  cursor: pointer;
+}
+
+/* guía + stats */
+body.fitness-app .affiliate-guide-grid-v12 {
+  display: grid;
+  grid-template-columns: 1.25fr .75fr;
+  gap: 10px;
+}
+body.fitness-app .affiliate-guide-v12,
+body.fitness-app .affiliate-stats-v12,
+body.fitness-app .affiliate-checkin-v12 {
+  border: 1px solid #25282b;
+  border-radius: 10px;
+  background: #0d0e10;
+}
+body.fitness-app .affiliate-guide-v12 {
+  padding: 17px;
+}
+body.fitness-app .affiliate-guide-head-v12 {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+body.fitness-app .affiliate-guide-avatar-v12 {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  flex: 0 0 46px;
+  border: 1px solid #773813;
+  border-radius: 50%;
+  color: #ff8a3a;
+  background: #180c05;
+}
+body.fitness-app .affiliate-guide-avatar-v12 i {
+  position: absolute;
+  inset: -4px;
+  border: 1px solid rgba(255,106,0,.18);
+  border-radius: 50%;
+  animation: oneGuidePulse 2.8s ease-in-out infinite;
+}
+@keyframes oneGuidePulse {
+  50% { transform: scale(1.08); opacity: .45; }
+}
+body.fitness-app .affiliate-guide-head-v12 small {
+  display: block;
+  color: #ff7a1a;
+  font: 700 7.5px/1 var(--sans);
+  letter-spacing: .12em;
+}
+body.fitness-app .affiliate-guide-head-v12 strong {
+  display: block;
+  margin-top: 5px;
+  color: #f1f0ec;
+  font-size: 12px;
+}
+body.fitness-app .affiliate-guide-v12 p {
+  margin: 14px 0;
+  max-width: 52ch;
+  color: #9ba1a5;
+  font-size: 11px;
+  line-height: 1.55;
+}
+body.fitness-app .affiliate-guide-actions-v12 {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+body.fitness-app .affiliate-mini-action-v12 {
+  min-height: 30px;
+  padding: 0 9px;
+  border: 1px solid #313539;
+  border-radius: 5px;
+  background: #111315;
+  color: #d9ddda;
+  font: 700 8px/1 var(--sans);
+  cursor: pointer;
+}
+body.fitness-app .affiliate-mini-action-v12:hover {
+  border-color: #ff6a00;
+  color: #ff9a56;
+}
+body.fitness-app .affiliate-stats-v12 {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  overflow: hidden;
+}
+body.fitness-app .affiliate-stats-v12 > div {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  min-width: 0;
+  padding: 14px 7px;
+  border-right: 1px solid #25282b;
+}
+body.fitness-app .affiliate-stats-v12 > div:last-child {
+  border-right: 0;
+}
+body.fitness-app .affiliate-stats-v12 strong {
+  color: #f3f1ed;
+  font: 660 22px/1 var(--sans);
+  letter-spacing: -.045em;
+}
+body.fitness-app .affiliate-stats-v12 span {
+  margin-top: 6px;
+  color: #737b80;
+  font-size: 7.5px;
+  text-transform: uppercase;
+}
+
+/* galería visual ejercicios */
+body.fitness-app .affiliate-section-head-v12 {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 4px;
+}
+body.fitness-app .affiliate-section-head-v12 small {
+  display: block;
+  color: #ff7a1a;
+  font: 740 7.5px/1 var(--sans);
+  letter-spacing: .13em;
+}
+body.fitness-app .affiliate-section-head-v12 strong {
+  display: block;
+  margin-top: 5px;
+  color: #f3f1ed;
+  font: 620 17px/1.1 var(--serif);
+}
+body.fitness-app .affiliate-section-head-v12 button {
+  border: 0;
+  background: none;
+  color: #8f969a;
+  font: 700 8px/1 var(--sans);
+  cursor: pointer;
+}
+body.fitness-app .affiliate-media-grid-v12 {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 9px;
+}
+body.fitness-app .affiliate-ex-card-v12 {
+  display: grid;
+  grid-template-columns: 116px minmax(0,1fr);
+  gap: 12px;
+  min-width: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid #25282b;
+  border-radius: 10px;
+  background: #0d0e10;
+  color: #f4f4f1;
+  text-align: left;
+  cursor: pointer;
+}
+body.fitness-app .affiliate-ex-card-v12:hover {
+  border-color: #6f3516;
+  background: #111315;
+}
+body.fitness-app .affiliate-ex-media-v12 {
+  position: relative;
+  display: block;
+  height: 132px;
+  overflow: hidden;
+  background: #070809;
+}
+body.fitness-app .affiliate-ex-media-v12 img,
+body.fitness-app .affiliate-ex-media-v12 video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+body.fitness-app .affiliate-ex-media-v12 i {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg,transparent,rgba(0,0,0,.32));
+}
+body.fitness-app .affiliate-ex-media-v12 > b {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  color: #090909;
+  background: #ff6a00;
+  font-size: 9px;
+}
+body.fitness-app .affiliate-ex-media-v12.missing {
+  display: grid;
+  place-items: center;
+  color: #ff6a00;
+}
+body.fitness-app .affiliate-ex-copy-v12 {
+  display: grid;
+  align-content: center;
+  gap: 4px;
+  padding: 10px 10px 10px 0;
+}
+body.fitness-app .affiliate-ex-copy-v12 small {
+  color: #ff7a1a;
+  font: 700 7px/1 var(--sans);
+  letter-spacing: .1em;
+}
+body.fitness-app .affiliate-ex-copy-v12 strong {
+  overflow: hidden;
+  color: #f2f0ec;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+body.fitness-app .affiliate-ex-copy-v12 span {
+  color: #7d8589;
+  font-size: 9px;
+}
+body.fitness-app .affiliate-ex-copy-v12 em {
+  margin-top: 5px;
+  color: #afb4b5;
+  font: 700 7.5px/1 var(--sans);
+  font-style: normal;
+  letter-spacing: .08em;
+}
+
+/* check-in + nutrición */
+body.fitness-app .affiliate-lower-grid-v12 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+}
+body.fitness-app .affiliate-checkin-v12 {
+  display: grid;
+  align-content: center;
+  gap: 7px;
+  padding: 17px;
+}
+body.fitness-app .affiliate-checkin-v12 > small,
+body.fitness-app .affiliate-nutrition-v12 small {
+  color: #ff7a1a;
+  font: 700 7.5px/1 var(--sans);
+  letter-spacing: .12em;
+}
+body.fitness-app .affiliate-checkin-v12 > strong,
+body.fitness-app .affiliate-nutrition-v12 strong {
+  color: #f2f0ec;
+  font: 620 17px/1.1 var(--serif);
+}
+body.fitness-app .affiliate-checkin-v12 > span {
+  max-width: 42ch;
+  color: #7f878b;
+  font-size: 9.5px;
+  line-height: 1.45;
+}
+body.fitness-app .affiliate-nutrition-v12 {
+  position: relative;
+  min-height: 158px;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid #25282b;
+  border-radius: 10px;
+  background: #08090a;
+  text-align: left;
+  cursor: pointer;
+}
+body.fitness-app .affiliate-nutrition-v12 img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(.36) saturate(.7);
+}
+body.fitness-app .affiliate-nutrition-v12 > i {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg,rgba(0,0,0,.88),rgba(0,0,0,.2));
+}
+body.fitness-app .affiliate-nutrition-v12 > span {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 6px;
+  max-width: 72%;
+  padding: 18px;
+}
+body.fitness-app .affiliate-nutrition-v12 em {
+  margin-top: 8px;
+  color: #c4c9c7;
+  font: 700 8px/1 var(--sans);
+  font-style: normal;
+}
+
+/* ---------- responsive v12 ---------- */
+@media (max-width: 760px) {
+  body.fitness-app #entry {
+    justify-content: flex-start;
+    overflow-y: auto;
+    padding: 72px 16px 24px;
+  }
+  body.fitness-app #entry .e-title {
+    font-size: clamp(40px,13vw,58px);
+  }
+  body.fitness-app #entry .e-sub {
+    font-size: 12px;
+  }
+  body.fitness-app .e-role-grid {
+    grid-template-columns: 1fr;
+  }
+  body.fitness-app .e-role-card {
+    grid-template-columns: 92px minmax(0,1fr) 22px;
+    min-height: 118px;
+  }
+  body.fitness-app .e-role-media,
+  body.fitness-app .e-role-dashboard {
+    width: 92px;
+    height: 94px;
+  }
+  body.fitness-app .e-role-copy strong {
+    font-size: 17px;
+  }
+
+  body.fitness-app.one-coach-mode #panel-nav {
+    grid-template-columns: repeat(4,minmax(0,1fr));
+  }
+  body.fitness-app .affiliate-intro-v12 {
+    align-items: start;
+  }
+  body.fitness-app .affiliate-intro-v12 h3 {
+    max-width: 9ch;
+    font-size: 25px;
+  }
+  body.fitness-app .affiliate-session-v12,
+  body.fitness-app .affiliate-session-overlay-v12 {
+    min-height: 300px;
+  }
+  body.fitness-app .affiliate-session-overlay-v12 {
+    padding: 20px;
+  }
+  body.fitness-app .affiliate-session-overlay-v12 h2 {
+    font-size: 34px;
+  }
+  body.fitness-app .affiliate-guide-grid-v12,
+  body.fitness-app .affiliate-lower-grid-v12 {
+    grid-template-columns: 1fr;
+  }
+  body.fitness-app .affiliate-media-grid-v12 {
+    grid-template-columns: 1fr;
+  }
+  body.fitness-app .affiliate-ex-card-v12 {
+    grid-template-columns: 112px minmax(0,1fr);
+  }
+  body.fitness-app .affiliate-stats-v12 {
+    min-height: 82px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.fitness-app .e-role-media video,
+  body.fitness-app .affiliate-hero-video-v12,
+  body.fitness-app .affiliate-ex-media-v12 video {
+    display: none;
+  }
+  body.fitness-app .affiliate-guide-avatar-v12 i {
+    animation: none;
+  }
+}
+
+
+/* ============================================================
+   28 · BAYONA ONE v12 — BLACK WORLD + CLEAN AFFILIATE CANVAS
+   ============================================================ */
+body.fitness-app #mode-chip {
+  display: none !important;
+}
+
+/* El personaje queda como presencia visual, no rodeado por el dashboard legado. */
+body.fitness-app.one-athlete-mode #dash-hud {
+  display: none !important;
+}
+body.fitness-app.one-athlete-mode.dash-pc #scene-wrap {
+  background: #050505 !important;
+}
+
+/* La interfaz cliente manda en móvil: nada de media hoja + vacío encima. */
+@media (max-width: 900px) {
+  body.fitness-app.one-athlete-mode #scene-wrap {
+    display: none !important;
+  }
+  body.fitness-app.one-athlete-mode #drawer,
+  body.fitness-app.one-athlete-mode #drawer.open,
+  body.fitness-app.one-athlete-mode #drawer[data-section] {
+    top: var(--pro-top);
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: auto;
+    max-height: none;
+    border-radius: 0;
+    transform: none !important;
+    background: #050505;
+  }
+  body.fitness-app.one-athlete-mode .drawer-head {
+    min-height: 54px;
+    padding: 14px 18px 8px;
+  }
+  body.fitness-app.one-athlete-mode #panel-nav {
+    flex: 0 0 auto;
+    width: 100%;
+    border-radius: 0;
+  }
+  body.fitness-app.one-athlete-mode #drawer-body {
+    min-height: 0;
+    padding-bottom: calc(92px + env(safe-area-inset-bottom));
+  }
+}
+
+/* Más presencia del mundo/avatar sin competir con el contenido en escritorio. */
+@media (min-width: 1101px) {
+  body.fitness-app.one-athlete-mode.dash-pc #scene-wrap {
+    filter: saturate(.82) contrast(1.06);
+  }
+}

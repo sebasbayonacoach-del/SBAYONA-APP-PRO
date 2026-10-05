@@ -20,7 +20,7 @@ const index = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 // ── G2 · portada → primera acción real en ≤ 3 toques ─────────────────────
 {
   // grafo de acciones: portada →(1) ENTRAR → paso 0 →(1) EMPEZAR YA → acción real
-  assert(index.includes('id="entry-go"'), "la portada tiene su único toque de entrada (entry-go)");
+  assert(index.includes('id="entry-go"') && index.includes('id="entry-coach"'), "la portada ofrece acceso por rol: afiliado o coach");
   assert(html[0].includes('id="ob-fast"'), "el camino rápido está en el PRIMER paso (sin pasos previos)");
   assert(G2_TOQUES_RAPIDO === 2 && G2_TOQUES_RAPIDO <= 3, `G2: camino rápido = ${G2_TOQUES_RAPIDO} toques (≤ 3)`);
   assert(!/id="ob-name"[^>]*required/.test(html[0]) && !html[0].includes("required"),

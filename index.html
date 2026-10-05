@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<meta name="theme-color" content="#f6f6f7" />
+<meta name="theme-color" content="#050505" />
 <meta name="description" content="BAYONA — Videojuego fitness 3D. Tu avatar es tu gemelo de comportamiento: tú entrenas, él entrena. Todo en tu dispositivo, en español." />
 <meta property="og:type" content="website" />
 <meta property="og:title" content="BAYONA — Más fuerte. Más tú." />
@@ -33,7 +33,7 @@
     var d = document.documentElement;
     var legacy = { marfil: 'cine', noche: 'noche' };
     d.dataset.theme = 'naranja';
-    d.dataset.mode = legacy[ap.mode] || 'cine';
+    d.dataset.mode = 'noche';
     d.dataset.font = 'claude';
     d.dataset.density = ap.density || 'comoda';
     d.dataset.radius = ap.radius || 'suave';
@@ -41,7 +41,7 @@
     d.dataset.glow = ap.glow || 'bajo';
     d.dataset.scale = ap.scale || '100';
     d.dataset.motion = ap.motion || 'pleno';
-    d.style.colorScheme = d.dataset.mode === 'noche' ? 'dark' : 'light';
+    d.style.colorScheme = 'dark';
   } catch (e) {}
 </script>
 <script type="importmap">
@@ -66,22 +66,42 @@
        El JS (js/ui/landing.js) la pinta desde el catálogo i18n. -->
   <section id="luxe-landing" aria-label="Presentación de BAYONA"></section>
 
-  <!-- ============ INGRESO · una pantalla, una acción ============
-       Aquí NO hay selector de tema ni CTA demarketing: una frase y un
-       botón. El cambio de luz (CINE/NOCHE) vive en APARIENCIA y en el
-       HUD, que es donde se decide, no en la puerta. -->
-  <div id="entry" role="dialog" aria-label="Entrar en BAYONA">
+  <!-- ============ INGRESO · dos experiencias, un solo sistema ============ -->
+  <div id="entry" role="dialog" aria-label="Elegir acceso a BAYONA">
     <div class="e-corner">
       <span class="brand-mark">◈</span>
       <span class="brand-name">BAYONA</span>
     </div>
-    <div class="e-kicker">TU ENTRENAMIENTO. TU RITMO.</div>
-    <h1 class="e-title">Más fuerte.<br />Más tú.</h1>
-    <div class="e-sub">Un plan que encaja contigo. Cada ejercicio, cada serie y cada pequeño avance, en un solo lugar.</div>
-    <div class="e-actions">
-      <button class="e-enter" id="entry-go">ENTRAR</button>
+    <div class="e-kicker">BAYONA ONE · ELIGE TU EXPERIENCIA</div>
+    <h1 class="e-title">Un sistema.<br /><em>Dos mundos.</em></h1>
+    <div class="e-sub">Entrena con una experiencia visual o dirige clientes desde tu centro de mando profesional.</div>
+    <div class="e-role-grid" role="group" aria-label="Tipo de acceso">
+      <button class="e-role-card affiliate" id="entry-go" data-entry-role="affiliate">
+        <span class="e-role-media" aria-hidden="true">
+          <video src="media/squat.mp4" poster="media/squat.jpg" autoplay muted loop playsinline preload="metadata"></video>
+          <i></i>
+        </span>
+        <span class="e-role-copy">
+          <small>SOY AFILIADO</small>
+          <strong>Entrar a mi experiencia</strong>
+          <span>Sesión · videos · progreso · nutrición · guía</span>
+        </span>
+        <b>→</b>
+      </button>
+      <button class="e-role-card coach" id="entry-coach" data-entry-role="coach">
+        <span class="e-role-dashboard" aria-hidden="true">
+          <i></i><i></i><i></i><i></i><i></i>
+        </span>
+        <span class="e-role-copy">
+          <small>SOY COACH</small>
+          <strong>Abrir Coach Studio</strong>
+          <span>Clientes · planificación · agenda · informes</span>
+        </span>
+        <b>→</b>
+      </button>
     </div>
-  </div>
+    <div class="e-entry-foot">MISMA CUENTA · EXPERIENCIAS SEPARADAS · CAMBIA CUANDO QUIERAS</div>
+  </div
 
   <!-- ============ HUD LAYER · mínimo ============ -->
   <div id="hud">
