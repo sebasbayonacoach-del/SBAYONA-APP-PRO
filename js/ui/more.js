@@ -77,11 +77,11 @@ BUILDERS.more = (body) => {
   const ses = currentSession();
   const cCard = el("div", "card shine");
   cCard.innerHTML = `
-    <div class="card-row"><h4>${ses ? "BAYONA EN LA NUBE" : "GUARDADO LOCAL"}</h4>
-      <span class="pill ${ses ? "green" : "gold"}">${ses ? "SINCRONIZADO" : isConfigured() ? "SIN SESIÓN" : "100 % LOCAL"}</span></div>
+    <div class="card-row"><h4>${ses ? "CUENTA BAYONA ACTIVA" : "GUARDADO LOCAL"}</h4>
+      <span class="pill ${ses ? "green" : "gold"}">${ses ? "SESIÓN ACTIVA" : isConfigured() ? "SIN SESIÓN" : "100 % LOCAL"}</span></div>
     <div class="sub">${ses
-      ? "Cuenta activa. Tus datos son solo tuyos: cada fila está protegida por RLS y nunca se suben vídeos ni fotos."
-      : "Todo tu progreso vive en este dispositivo. Con una cuenta ganas copia en la nube y cambio de dispositivo sin perder nada."}</div>`;
+      ? "Tu cuenta está conectada. La copia en la nube se valida desde Mi cuenta cuando una sincronización termina sin errores."
+      : "Todo tu progreso vive en este dispositivo. Con una cuenta puedes activar copia en la nube y cambio de dispositivo."}</div>`;
   const bC = el("button", "btn btn-primary btn-block", ses ? "GESTIONAR CUENTA Y SINCRONIZAR" : "CREAR CUENTA / ENTRAR");
   bC.style.marginTop = "12px";
   bC.addEventListener("click", openAccount);
