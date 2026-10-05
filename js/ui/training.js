@@ -49,6 +49,7 @@ BUILDERS.training = (body) => {
   }
   const rhythm = rhythmTrainingCard();
   if (rhythm) body.appendChild(rhythm);
+  body.appendChild(proplayerGateway());
   const goal = S.data.profile.goal;
   body.appendChild(el("div", "sec-label", t("training.personalPlan", { goal: esc(goal) })));
   const w = S.todayWorkout();
@@ -74,6 +75,27 @@ BUILDERS.training = (body) => {
   };
   search.addEventListener("input", renderResults);body.append(label, search, results);renderResults();
 };
+
+function proplayerGateway() {
+  const card = el("section", "proplayer-gateway");
+  const copy = el("div", "proplayer-gateway-copy");
+  copy.append(
+    elT("span", "proplayer-kicker", "BAYONA / PROPLAYER"),
+    elT("h3", "", "Biblioteca técnica · 3.141 ejercicios"),
+    elT("p", "", "Fuerza, movilidad y cardio. 2.255 fichas reproducibles usando 1.607 MP4 únicos, sin cargar la biblioteca completa en memoria.")
+  );
+  const stats = el("div", "proplayer-gateway-stats");
+  [["3.141","EJERCICIOS"],["2.255","CON VÍDEO"],["1.607","MP4 ÚNICOS"]].forEach(([value,label]) => {
+    const item = el("span");
+    item.append(elT("strong", "", value), elT("small", "", label));
+    stats.append(item);
+  });
+  const open = elT("button", "btn btn-primary", "ABRIR PROPLAYER");
+  open.type = "button";
+  open.addEventListener("click", () => openSection("library"));
+  card.append(copy, stats, open);
+  return card;
+}
 
 function resumeCard(act) {
   const c = el("div", "card");
@@ -275,6 +297,13 @@ function renderSession() {
   const prog = el("div", "card");
   prog.innerHTML = `<div class="card-row"><span class="pill gold">${esc(session.logged)} / ${esc(session.plannedSets)} SERIES REGISTRADAS</span><span class="pill">EJERCICIO ${Math.min(session.exIdx+1,session.exercises.length)} DE ${session.exercises.length}</span></div><div class="fit-session-progress" role="progressbar" aria-label="Series registradas" aria-valuemin="0" aria-valuemax="${session.plannedSets}" aria-valuenow="${session.logged}"><i style="width:${session.logged/Math.max(1,session.plannedSets)*100}%"></i></div>`;
   body.appendChild(prog);
+
+  const libraryQuick = el("div", "fit-session-library");
+  const libraryButton = elT("button", "btn", "BIBLIOTECA 3.141");
+  libraryButton.type = "button";
+  libraryButton.addEventListener("click", () => openSection("library"));
+  libraryQuick.append(elT("span", "", "¿Necesitas consultar otra técnica?"), libraryButton);
+  body.appendChild(libraryQuick);
 
   if (exIdx >= session.exercises.length) return finishWorkout();
 

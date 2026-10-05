@@ -14,6 +14,7 @@ import {
 const COACH_SECTIONS = new Set([
   "coachos","centro","socios","cuotas","agenda","acceso","portal","informes"
 ]);
+const NEUTRAL_SECTIONS = new Set(["library"]);
 
 const icon = (path) =>
   '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" ' +
@@ -85,7 +86,8 @@ function ensureCoachRailButton() {
 
 function sync(section) {
   section = section || document.getElementById("drawer")?.dataset.section || "hoy";
-  const coachMode = COACH_SECTIONS.has(section);
+  const previousContext = document.body.dataset.oneContext;
+  const coachMode = NEUTRAL_SECTIONS.has(section) ? previousContext === "coach" : COACH_SECTIONS.has(section);
   const drawerBody = document.getElementById("drawer-body");
   if (section !== "coachos") drawerBody?.classList.remove("one-coach-body");
   document.body.classList.toggle("one-coach-mode", coachMode);
@@ -168,6 +170,7 @@ function renderCoachHero(body, clients) {
   const actions = n("div", "one-actions");
   actions.append(
     btn("PLANIFICAR","one-action primary",() => renderCoachClient(body, clients[0])),
+    commandAction("BIBLIOTECA 3.141","library"),
     commandAction("CENTRO","centro"),
     commandAction("AGENDA","agenda"),
     commandAction("INFORMES","informes")

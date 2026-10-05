@@ -13,3 +13,6 @@ dist/
 
 # Generated mobile bundle
 mobile/web-build/
+
+# Biblioteca Trainingym privada/local (medios y catálogo no redistribuibles)
+private-trainingym/

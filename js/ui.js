@@ -19,6 +19,7 @@ import { showDayRecap, showLevelUp, showPR } from "./ui/cinematics.js";
 import "./ui/hoy.js";
 import "./ui/trabajo.js";
 import "./ui/training.js";
+import "./ui/proplayer-library.js";
 import "./ui/nutrition.js";
 import "./ui/recovery.js";
 import "./ui/mind.js";

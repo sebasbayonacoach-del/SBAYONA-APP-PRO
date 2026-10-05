@@ -4,7 +4,7 @@
 // Con esto la app abre sin red y el registro de series funciona offline
 // (los datos viven en el dispositivo y se sincronizan después).
 // ============================================================
-const CACHE = "bayona-shell-v22";
+const CACHE = "bayona-shell-v23";
 const SHELL = [
   "./css/pro.css",
   "./css/luxe.css",
@@ -28,7 +28,7 @@ const SHELL = [
   "./js/main.js", "./js/move.js", "./js/state.js", "./js/data.js", "./js/engine.js", "./js/rewards.js",
   "./js/i18n.js", "./js/consents.js", "./js/phygital.js", "./js/media.js", "./js/bridge.js",
   "./js/onboarding.js", "./js/face.js", "./js/avatar3d.js", "./js/ui.js", "./js/avatar.js", "./js/world.js", "./js/fallback2d.js",
-  "./js/ui/shared.js", "./js/ui/one.js", "./js/ui/affiliate-v12.js", "./js/ui/cinematics.js", "./js/ui/training.js", "./js/ui/nutrition.js",
+  "./js/ui/shared.js", "./js/ui/one.js", "./js/ui/affiliate-v12.js", "./js/ui/cinematics.js", "./js/ui/training.js", "./js/ui/proplayer-library.js", "./js/ui/nutrition.js",
   "./js/ui/recovery.js", "./js/ui/mind.js", "./js/ui/plan.js", "./js/ui/armory.js",
   "./js/ui/progress.js", "./js/ui/core.js", "./js/ui/more.js",
   "./js/ui/hoy.js", "./js/ui/trabajo.js", "./js/ui/coachos.js", "./js/ui/appearance.js", "./js/ui/motion.js",
@@ -70,6 +70,11 @@ self.addEventListener("fetch", (e) => {
   const req = e.request;
   if (req.method !== "GET" || new URL(req.url).origin !== location.origin) return;
   const path = new URL(req.url).pathname;
+  // Biblioteca privada: nunca duplicar MP4 ni catálogo local dentro del Cache Storage.
+  if (path.includes("/private-trainingym/")) {
+    e.respondWith(fetch(req));
+    return;
+  }
   const isCode = /\.(js|css|html|webmanifest|json)$/.test(path) || req.mode === "navigate";
   if (isCode) {
     // NETWORK-FIRST para código: una app que evoluciona nunca debe servir JS/CSS viejos

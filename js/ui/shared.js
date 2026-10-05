@@ -43,6 +43,7 @@ export const PLACES = {
   home:      { env: "home",     action: "idle",     cam: [0, 1.15, 3.3],   tgt: [0, 0.95, 0] },
   hoy:       { env: "home",     action: "idle",     cam: [0, 1.15, 3.3],   tgt: [0, 0.95, 0] },
   training:  { env: "gym",      action: "idle",     cam: [1.2, 1.35, 3.6], tgt: [0, 0.95, 0] },
+  library:   { env: "gym",      action: "idle",     cam: [1.2, 1.35, 3.6], tgt: [0, 0.95, 0] },
   nutrition: { env: "kitchen",  action: "sit",      cam: [0.6, 1.25, 3.1], tgt: [0.2, 0.9, 0] },
   work:      { env: "work",     action: "sit",      cam: [0.9, 1.3, 3.1],  tgt: [0.1, 0.85, 0] },
   trabajo:   { env: "work",     action: "sit",      cam: [0.9, 1.3, 3.1],  tgt: [0.1, 0.85, 0] },
@@ -134,7 +135,11 @@ export function openSection(name) {
   const build = BUILDERS[name] || BUILDERS.home;
   if (build) build(body);
   body.scrollTop = 0;
-  const group = ["nutrition","recovery","mind","rhythm","daily"].includes(name) ? "wellbeing" : ["appearance","account","more","armory","core","trabajo","coachos"].includes(name) ? "profile" : name === "plan" ? "training" : name;
+  const group = name === "library"
+    ? (document.body.dataset.oneContext === "coach" ? "profile" : "training")
+    : ["nutrition","recovery","mind","rhythm","daily"].includes(name) ? "wellbeing"
+    : ["appearance","account","more","armory","core","trabajo","coachos"].includes(name) ? "profile"
+    : name === "plan" ? "training" : name;
   document.querySelectorAll("#panel-nav [data-go]").forEach(node => {
     const active = node.dataset.go === group; node.classList.toggle("active", active);
     if (active) node.setAttribute("aria-current", "page"); else node.removeAttribute("aria-current");
@@ -150,6 +155,7 @@ export const TITLES = {
   home:      ["INICIO", "TU MUNDO"],
   hoy:       ["Hoy", "ENTRENA A TU RITMO"],
   training:  ["Entrenar", "TU PLAN · TU SIGUIENTE SERIE"],
+  library:   ["PROPLAYER", "3.141 EJERCICIOS · BIBLIOTECA TÉCNICA"],
   nutrition: ["NUTRICIÓN", "COCINA · ENERGÍA"],
   trabajo:   ["TRABAJO", "FOCO Y POSTURA"],
   recovery:  ["RECUPERACIÓN", "LABORATORIO"],
