@@ -91,8 +91,32 @@ export async function signInWithPassword(email, password) {
 }
 
 /** alta con email + contraseña (crea el usuario en auth.users) */
-export async function signUpWithPassword(email, password) {
-  const d = await call("/auth/v1/signup", { method: "POST", body: { email, password } });
+function normalizeBayonaRole(role) {
+  return role === "coach" ? "coach" : "athlete";
+}
+
+/** rol de producto persistido en Auth; si la cuenta es antigua usa el último mundo elegido. */
+export function accountRole() {
+  const u = currentUser();
+  const remote = u?.user_metadata?.bayona_role || u?.user_metadata?.role;
+  if (remote === "coach" || remote === "athlete") return remote;
+  try {
+    return localStorage.getItem("bayona.entry.role.v1") === "coach" ? "coach" : "athlete";
+  } catch {
+    return "athlete";
+  }
+}
+
+/** alta con email + contraseña + rol BAYONA para mantener separadas las experiencias */
+export async function signUpWithPassword(email, password, role = accountRole()) {
+  const d = await call("/auth/v1/signup", {
+    method: "POST",
+    body: {
+      email,
+      password,
+      data: { bayona_role: normalizeBayonaRole(role) },
+    },
+  });
   if (d?.access_token) saveSession(toSession(d));
   return d;
 }

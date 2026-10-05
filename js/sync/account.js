@@ -17,7 +17,7 @@ import { consentStatus, isGranted } from "../consents.js";
 import { payloadMedidas, payloadAsignaciones, payloadAvatar } from "./mirror.js";
 import * as outbox from "./outbox.js";
 import {
-  isConfigured, currentSession, currentUser, onAuth,
+  isConfigured, currentSession, currentUser, accountRole, onAuth,
   signInWithPassword, signUpWithPassword, signInWithMagicLink,
   signOut, ensureFreshSession, refreshUser, completeAuthFromHash,
   select, insert, upsert, remove,
@@ -36,12 +36,22 @@ async function pushProfile() {
   const d = S.data;
   const u = currentUser();
   if (!u) throw new Error("sin sesión");
-  await upsert("profiles", [{
+  const profileRow = {
     id: u.id,
     display_name: d.profile.name || null,
     height_cm: d.profile.heightCm || null,
     goals: [d.profile.goal].filter(Boolean),
-  }]);
+  };
+  try {
+    await upsert("profiles", [{ ...profileRow, role: accountRole() }]);
+  } catch (e) {
+    // Compatibilidad con instalaciones que aún no aplicaron 0005_launch_coaching.sql.
+    if (e?.status === 400 && /role|column|schema cache/i.test(e.message || "")) {
+      await upsert("profiles", [profileRow]);
+    } else {
+      throw e;
+    }
+  }
   const rows = Object.entries(consentStatus()).map(([domain, v]) => ({
     user_id: u.id,
     domain,
@@ -213,7 +223,8 @@ BUILDERS.account = (body) => {
       ? `Conectado como <b>${esc(usr?.email || usr?.id || "usuario")}</b>. Tus datos viajan cifrados (TLS) y cada fila solo es tuya (RLS).`
       : cfg
         ? "Tu progreso se guarda aquí mismo. Inicia sesión para tener copia en la nube y poder cambiar de dispositivo."
-        : "Falta la clave de Supabase en <b>js/sync/config.js</b>. La app funciona igualmente, 100 % local."}</div>
+        : "La conexión de nube no está disponible en este entorno. La app continúa funcionando de forma local y offline."}</div>
+    ${ses ? `<div class="kv"><span class="k">ROL DE CUENTA</span><span class="v">${accountRole() === "coach" ? "COACH" : "CLIENTE"}</span></div>` : ""}
     <div class="kv"><span class="k">ÚLTIMA SINCRONIZACIÓN</span><span class="v">${STATE.last ? esc(fmtDate(STATE.last)) : "—"}</span></div>
     <div class="kv"><span class="k">EN COLA</span><span class="v">${outbox.estaPendiente() ? "PENDIENTE" : "TODO ENVIADO"}</span></div>
     ${STATE.error ? `<div class="kv"><span class="k">AVISO</span><span class="v" style="color:var(--danger)">${esc(STATE.error)}</span></div>` : ""}`;
