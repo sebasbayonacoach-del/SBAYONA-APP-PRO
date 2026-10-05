@@ -18,6 +18,7 @@ import { payloadMedidas, payloadAsignaciones, payloadAvatar } from "./mirror.js"
 import * as outbox from "./outbox.js";
 import {
   createInvite, acceptInvite, linkedClients, linkedCoaches, hydrateAssignmentsToLocal,
+  completeCloudAssignment, flushCloudCompletions,
 } from "./coaching.js";
 import {
   isConfigured, currentSession, currentUser, accountRole, onAuth,
@@ -427,10 +428,18 @@ function sincroSuave() {
 on("session", sincroSuave);
 on("medidas", sincroSuave);
 on("asignaciones", sincroSuave);
+on("cloud-assignment-complete", async (assignment) => {
+  if (!assignment?.cloudAssignmentId || !currentSession()) return;
+  try { await completeCloudAssignment(assignment.cloudAssignmentId); }
+  catch { /* coaching.js deja la finalización en cola para reintentar */ }
+});
 
 // al volver la red: intento inmediato y, si falla, programa el siguiente
 addEventListener("online", async () => {
-  if (!currentSession() || !outbox.estaPendiente()) return;
+  if (!currentSession()) return;
+  await flushCloudCompletions().catch(() => 0);
+  await hydrateAssignmentsToLocal(S).catch(() => 0);
+  if (!outbox.estaPendiente()) return;
   const ok = await syncNow({ silent: true });
   if (!ok) reintentar();
 });
@@ -447,6 +456,9 @@ if (completeAuthFromHash()) {
 } else if (currentSession()) {
   ensureFreshSession()
     .then(() => refreshUser())
-    .then(() => hydrateAssignmentsToLocal(S))
+    .then(async () => {
+      await flushCloudCompletions().catch(() => 0);
+      return hydrateAssignmentsToLocal(S);
+    })
     .catch(() => 0);
 }
