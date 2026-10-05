@@ -211,10 +211,10 @@ export function shortSession(min = 20) {
 }
 
 // registra la sesión en histórico (para tendencias)
-export function archiveSet(exKey, kg, reps, rir) {
+export function archiveSet(exKey, kg, reps, rir, muscleOverride = null) {
   const t = S.data.today;
   t.muscleSets = t.muscleSets || {};
-  const m = EXERCISES[exKey]?.muscle || "FULL";
+  const m = muscleOverride || EXERCISES[exKey]?.muscle || "FULL";
   t.muscleSets[m] = (t.muscleSets[m] || 0) + 1;
   t.prPoints = t.prPoints || [];
   const e1 = epley1RM(kg, reps);

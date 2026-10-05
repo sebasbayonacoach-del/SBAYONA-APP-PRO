@@ -370,7 +370,7 @@ function renderPlanCard(c, body) {
     const pending = S.asignacionesDe("local").filter((a) => a.estado === "pendiente");
     pending.forEach((a) => {
       const row = n("div", "one-assignment");
-      row.append(n("span", "", a.dia), n("strong", "", WORKOUTS[a.workoutId]?.name || a.workoutId));
+      row.append(n("span", "", a.dia), n("strong", "", S.customRoutine(a.customRoutineId)?.name || WORKOUTS[a.workoutId]?.name || a.workoutId));
       if (a.nota) row.append(n("small", "", a.nota));
       box.append(row);
     });

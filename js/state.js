@@ -183,6 +183,7 @@ export const S = {
     d.history = Array.isArray(d.history) ? d.history : [];
     d.medidas = Array.isArray(d.medidas) ? d.medidas : [];
     d.asignaciones = Array.isArray(d.asignaciones) ? d.asignaciones : [];
+    d.customRoutines = Array.isArray(d.customRoutines) ? d.customRoutines : [];
     d.diary = Array.isArray(d.diary) ? d.diary : [];
     d.photos = Array.isArray(d.photos) ? d.photos : [];
     d.phygital = d.phygital || { redeemed: [], audit: [] };
@@ -243,6 +244,7 @@ export const S = {
       voice: [],
       medidas: [],
       asignaciones: [],
+      customRoutines: [],
       phygital: { redeemed: [], audit: [] },
       consents: null,
       healthFlags: null,
@@ -576,6 +578,57 @@ export const S = {
     return cerrada;
   },
 
+  // ---------- RUTINAS PERSONALIZADAS PROPLAYER ----------
+  saveCustomRoutine(routine = {}) {
+    this.data.customRoutines = Array.isArray(this.data.customRoutines) ? this.data.customRoutines : [];
+    const rawExercises = Array.isArray(routine.exercises) ? routine.exercises : [];
+    if (!rawExercises.length || rawExercises.length > 12) return null;
+    const exercises = rawExercises.map((e, idx) => ({
+      ex: String(e.ex || ("pp_" + (idx + 1))),
+      sourceId: e.sourceId == null ? null : String(e.sourceId),
+      pos: Number.isFinite(Number(e.pos)) ? Number(e.pos) : null,
+      name: String(e.name || "EJERCICIO").slice(0, 140),
+      muscle: String(e.muscle || "FULL").slice(0, 80),
+      type: String(e.type || "Fuerza").slice(0, 40),
+      sets: Math.max(1, Math.min(8, Math.round(Number(e.sets) || 3))),
+      reps: Math.max(1, Math.min(600, Math.round(Number(e.reps) || 10))),
+      kg: Math.max(0, Math.min(1000, Number(e.kg) || 0)),
+      rir: Math.max(0, Math.min(4, Math.round(Number(e.rir) || 0))),
+      rest: Math.max(0, Math.min(600, Math.round(Number(e.rest) || 90))),
+      timed: !!e.timed,
+      videoFile: e.videoFile ? String(e.videoFile).slice(0, 255) : null,
+      videoUrl: e.videoUrl ? String(e.videoUrl).slice(0, 1200) : null,
+    }));
+    const now = new Date().toISOString();
+    const id = String(routine.id || ("pp_routine_" + Date.now()));
+    const rec = {
+      id,
+      name: String(routine.name || "RUTINA PROPLAYER").trim().slice(0, 80) || "RUTINA PROPLAYER",
+      tag: "PROPLAYER · PERSONALIZADA",
+      min: Math.max(5, Math.min(180, Math.round(Number(routine.min) || Math.max(15, exercises.length * 6)))),
+      desc: String(routine.desc || "Rutina creada por el Coach desde la biblioteca PROPLAYER.").slice(0, 220),
+      exercises,
+      source: "proplayer",
+      createdAt: routine.createdAt || now,
+      updatedAt: now,
+    };
+    const i = this.data.customRoutines.findIndex((x) => x.id === id);
+    if (i >= 0) this.data.customRoutines[i] = rec;
+    else this.data.customRoutines.unshift(rec);
+    this.data.customRoutines = this.data.customRoutines.slice(0, 100);
+    this.save(); emit("custom-routines", rec);
+    return rec;
+  },
+  customRoutine(id) { return (this.data.customRoutines || []).find((x) => x.id === id) || null; },
+  customRoutinesList() { return [...(this.data.customRoutines || [])]; },
+  deleteCustomRoutine(id) {
+    const before = (this.data.customRoutines || []).length;
+    this.data.customRoutines = (this.data.customRoutines || []).filter((x) => x.id !== id);
+    if (this.data.customRoutines.length === before) return false;
+    this.save(); emit("custom-routines", { id, deleted: true });
+    return true;
+  },
+
   // ---------- SESIÓN ACTIVA (persistente: sobrevive recargas) ----------
   setActiveSession(sess) { this.data.activeSession = sess; this.save(); emit("session", sess); },
   getActiveSession() { return this.data.activeSession; },
@@ -647,7 +700,7 @@ export const S = {
     const t = this.data.today;
     t.startedWorkout = true;
     this.data.activeSession = null;
-    this.logJourney("workout", `Sesión ${WORKOUTS[workoutId]?.name || workoutId} abandonada · ${loggedSets} series conservadas`, 0);
+    this.logJourney("workout", `Sesión ${WORKOUTS[workoutId]?.name || this.customRoutine(workoutId)?.name || workoutId} abandonada · ${loggedSets} series conservadas`, 0);
     this.save();
     emit("today");
   },
@@ -697,6 +750,12 @@ export const S = {
     return base.map((id, day) => { const custom = this.data.plan.custom?.[day]; return custom === "-" ? null : custom || id; });
   },
   todayWorkout() {
+    const assigned = (this.data.asignaciones || []).find((a) =>
+      a.clienteId === "local" && a.estado === "pendiente" && a.customRoutineId && a.dia <= todayKey());
+    if (assigned) {
+      const custom = this.customRoutine(assigned.customRoutineId);
+      if (custom) return custom;
+    }
     const dow = (new Date().getDay() + 6) % 7;
     const id = this.weekPlan()[dow];
     const workout = id ? WORKOUTS[id] : null;

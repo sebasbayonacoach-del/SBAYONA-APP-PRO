@@ -27,8 +27,34 @@ const AVATAR_ACTION = {
 const timedOf = (e) => !!(e.timed || e.ex === "plank" || e.ex === "mobility" || e.ex === "breathing");
 const schemeText = (e) => {
   const load = e.kg ? `${fmtDec(e.kg)} kg` : "PESO CORPORAL";
-  return `${e.sets} × ${timedOf(e) ? `${e.reps} s` : `${e.reps} reps`} · ${load} · RIR ${e.rir}`;
+  const rest = Number.isFinite(Number(e.rest)) ? ` · ${Math.max(0, Math.round(Number(e.rest)))} s descanso` : "";
+  return `${e.sets} × ${timedOf(e) ? `${e.reps} s` : `${e.reps} reps`} · ${load} · RIR ${e.rir}${rest}`;
 };
+
+function exerciseDef(e) {
+  return EXERCISES[e.ex] || {
+    name: e.name || "EJERCICIO PROPLAYER",
+    muscle: e.muscle || "FULL",
+    demo: "idle",
+    timed: !!e.timed,
+  };
+}
+
+function sessionVideoFor(e) {
+  if (e.videoUrl) return e.videoUrl;
+  const local = ["localhost", "127.0.0.1", "::1"].includes(globalThis.location?.hostname || "");
+  if (local && e.videoFile) return "./private-trainingym/media/" + encodeURIComponent(e.videoFile);
+  return videoFor(e.ex);
+}
+
+function sessionPosterFor(e) {
+  return EXERCISES[e.ex] ? posterFor(e.ex) : "";
+}
+
+function sessionTip(e) {
+  if (EXERCISES[e.ex]) return tipFor(e.ex);
+  return "Ejercicio PROPLAYER seleccionado por el Coach. Sigue la demostración y los parámetros de la rutina asignada.";
+}
 
 // ============================================================
 // CATÁLOGO DEL DÍA
@@ -132,6 +158,23 @@ function openExerciseDetail(exKey) {
     <div class="cine-sub" style="text-align:left">${esc(tipFor(exKey))}</div>
     <div class="reward-line"><span>MÚSCULO</span><b>${esc(E.muscle)}</b></div>
     <div class="reward-line"><span>XP POR SERIE</span><b>~+${setReward({ reps: 8, exercise: exKey }).xp} XP (8 reps)</b></div>
+    <button class="btn btn-primary btn-block btn-big" id="m-ok" style="margin-top:16px">ENTENDIDO</button>
+  `, () => { $("#m-ok").onclick = hideModal; });
+}
+
+function openSessionExerciseDetail(e) {
+  if (EXERCISES[e.ex]) return openExerciseDetail(e.ex);
+  const E = exerciseDef(e);
+  const vid = sessionVideoFor(e);
+  const media = vid
+    ? `<div class="media-hero" style="margin-top:14px"><span class="badge demo">PROPLAYER</span><video src="${vid}" autoplay loop muted playsinline></video></div><div class="media-caption">Demostración PROPLAYER · propiedad BAYONA</div>`
+    : `<div class="media-hero missing" style="margin-top:14px"><span class="badge demo">SIN VÍDEO</span><div class="media-missing">La ficha no tiene MP4 asociado.</div></div>`;
+  showModal(`
+    <div class="cine-tag">PROPLAYER · ${esc(E.muscle)}</div>
+    <div class="cine-title" style="font-size:22px">${esc(E.name)}</div>
+    ${media}
+    <div class="cine-sub" style="text-align:left">${esc(sessionTip(e))}</div>
+    <div class="reward-line"><span>PAUTA</span><b>${esc(schemeText(e))}</b></div>
     <button class="btn btn-primary btn-block btn-big" id="m-ok" style="margin-top:16px">ENTENDIDO</button>
   `, () => { $("#m-ok").onclick = hideModal; });
 }
@@ -308,7 +351,7 @@ function renderSession() {
   if (exIdx >= session.exercises.length) return finishWorkout();
 
   const s = session.exercises[exIdx];
-  const E = EXERCISES[s.ex];
+  const E = exerciseDef(s);
   // ORDEN DE SESIÓN: primero lo accionable (el formulario se ve sin scroll en móvil)
   const hero = el("div", "set-hero");
   hero.innerHTML = `
@@ -321,12 +364,12 @@ function renderSession() {
   body.appendChild(setForm(s, setIdx, sug));
   const technique = el("details", "fit-technique");
   technique.append(el("summary", "", "Técnica e instrucciones"));
-  const vid = videoFor(s.ex);
+  const vid = sessionVideoFor(s);
   if (vid) {
-    technique.append(el("div", "media-hero", `<video src="${vid}" controls muted playsinline preload="none" poster="${posterFor(s.ex) || ""}"></video>`));
-    technique.append(el("div", "media-caption", "Demostración pregrabada"));
+    technique.append(el("div", "media-hero", `<video src="${vid}" controls muted playsinline preload="none" poster="${sessionPosterFor(s)}"></video>`));
+    technique.append(el("div", "media-caption", s.videoFile ? "Demostración PROPLAYER" : "Demostración pregrabada"));
   }
-  technique.append(el("p", "media-caption", esc(tipFor(s.ex))));
+  technique.append(el("p", "media-caption", esc(sessionTip(s))));
   body.append(technique);
 
   // ---- MOTOR DE RENDIMIENTO: la carga sugerida SE USA en el registro ----
@@ -355,26 +398,28 @@ function renderSession() {
   body.appendChild(el("div", "media-caption", "CORE es tu coach local (sin nube, no clínico). Al preguntar, la sesión se pausa y puedes reanudarla sin perder nada."));
   body.appendChild(el("div", "sec-label", `PLAN DE HOY · ${session.exercises.length} EJERCICIOS`));
   session.exercises.forEach((sx, i) => {
-    const E2 = EXERCISES[sx.ex];
+    const E2 = exerciseDef(sx);
     const row = el("button", "ex-media-row");
     let dots = "";
     for (let k = 0; k < sx.sets; k++) dots += `<span class="set-dot ${i < exIdx || (i === exIdx && k < setIdx) ? "done" : ""}"></span>`;
-    const thumb = posterFor(sx.ex) ? `<img src="${posterFor(sx.ex)}" alt="${esc(E2.name)}" loading="lazy" />` : `<div class="no-thumb">—</div>`;
+    const thumbUrl = sessionPosterFor(sx);
+    const thumb = thumbUrl ? `<img src="${thumbUrl}" alt="${esc(E2.name)}" loading="lazy" />` : `<div class="no-thumb">${sx.videoFile ? "▶" : "—"}</div>`;
     row.innerHTML = `
       <div class="ex-thumb">${thumb}</div>
       <div>
         <div class="ex-name">${String(i + 1).padStart(2, "0")} · ${esc(E2.name)}</div>
         <div class="ex-scheme">${esc(schemeText(sx))}</div>
-        <div class="ex-tip">${esc(tipFor(sx.ex))}</div>
+        <div class="ex-tip">${esc(sessionTip(sx))}</div>
         <div style="display:flex;gap:4px;margin-top:8px">${dots}</div>
       </div>`;
-    row.addEventListener("click", () => openExerciseDetail(sx.ex));
+    row.addEventListener("click", () => openSessionExerciseDetail(sx));
     body.appendChild(row);
   });
 
   const rowBtns = el("div", "card-row");
-  const bRest = el("button", "btn grow", "DESCANSO 90 s");
-  bRest.addEventListener("click", () => startRest(90));
+  const manualRest = Math.max(0, Math.round(Number(s.rest ?? 90)));
+  const bRest = el("button", "btn grow", "DESCANSO " + manualRest + " s");
+  bRest.addEventListener("click", () => manualRest > 0 ? startRest(manualRest) : toast("SIN DESCANSO PROGRAMADO", "Este ejercicio tiene 0 s de descanso."));
   const bSkip = el("button", "btn grow", "SALTAR EJERCICIO");
   bSkip.addEventListener("click", () => {
     S.logJourney("training", `Ejercicio ${E.name} saltado (queda constancia)`, 0);
@@ -449,7 +494,9 @@ function logCurrentSet({ kg, reps, rir }) {
     formScore: null,
   });
   if (!res) return toast("SERIE YA REGISTRADA", "Esa serie ya estaba guardada (sin XP duplicado).");
-  archiveSet(s.ex, kg, reps, rir);
+  const E = exerciseDef(s);
+  const restSec = Math.max(0, Math.round(Number(s.rest ?? 90)));
+  archiveSet(s.ex, kg, reps, rir, E.muscle);
   session.setsDone.push({ idKey, exKey: s.ex, exIdx: session.exIdx, setIdx: session.setIdx, kg, reps, rir, seconds: timed ? reps : 0, xp: res.xp, pr: res.pr, skill: res.skill, ts: Date.now() });
   session.logged++;
   session.xpAcc = (session.xpAcc || 0) + res.xp;
@@ -460,7 +507,7 @@ function logCurrentSet({ kg, reps, rir }) {
   else session.setIdx++;
   persist();
   renderSession();
-  if (UI.session) startRest(90);
+  if (UI.session && restSec > 0) startRest(restSec);
 }
 
 function undoLastSet() {
@@ -489,7 +536,7 @@ function startRest(sec) {
   wrap.innerHTML = `<div class="breath-circle big" id="rest-circle">${left} s</div><div class="mono" style="color:var(--mute);font-size:11px">RECUPERA EL ALIENTO. LA SIGUIENTE SERIE TE ESPERA.</div>`;
   body.appendChild(wrap);
   const next = UI.session.exercises[UI.session.exIdx];
-  if (next) body.append(el("p", "fit-rest-next", `Después: ${esc(EXERCISES[next.ex].name)} · serie ${UI.session.setIdx + 1}/${next.sets}`));
+  if (next) body.append(el("p", "fit-rest-next", `Después: ${esc(exerciseDef(next).name)} · serie ${UI.session.setIdx + 1}/${next.sets}`));
   UI.W?.avatar.setAction("idle");
   const row = el("div", "card-row");
   const bPause = el("button", "btn grow", "PAUSA");

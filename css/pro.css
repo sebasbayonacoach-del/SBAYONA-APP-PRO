@@ -4155,3 +4155,95 @@ body.fitness-app #modal-box:has(.proplayer-video-modal){
   word-break:normal;
   line-height:1.15;
 }
+
+
+/* PROPLAYER · constructor de rutinas Coach */
+.proplayer-card.selected-for-routine{
+  outline:1px solid var(--orange);
+  box-shadow:0 0 0 1px color-mix(in srgb,var(--orange) 38%,transparent),0 16px 44px rgba(0,0,0,.24);
+}
+.proplayer-add-routine{
+  min-height:32px;
+  border:1px solid color-mix(in srgb,var(--orange) 52%,var(--line));
+  background:color-mix(in srgb,var(--orange) 10%,transparent);
+  color:var(--text);
+  padding:6px 10px;
+  border-radius:999px;
+  font:700 10px/1 var(--mono,monospace);
+  letter-spacing:.08em;
+  cursor:pointer;
+}
+.proplayer-build-btn:disabled{opacity:.45;cursor:not-allowed}
+body.fitness-app #modal-box:has(.proplayer-routine-modal){
+  width:min(1080px,96vw);
+  max-width:min(1080px,96vw);
+  max-height:92dvh;
+  overflow:auto;
+}
+.proplayer-routine-modal h3{margin:6px 0 8px;font-size:clamp(24px,4vw,44px)}
+.proplayer-routine-copy{max-width:760px;color:var(--mute);line-height:1.55}
+.proplayer-routine-meta{
+  display:grid;
+  grid-template-columns:minmax(0,2fr) minmax(120px,.6fr) minmax(180px,1fr);
+  gap:10px;
+  margin:18px 0;
+}
+.proplayer-routine-meta label,.proplayer-routine-fields label{
+  display:grid;
+  gap:6px;
+  color:var(--mute);
+  font:700 9px/1.2 var(--mono,monospace);
+  letter-spacing:.08em;
+}
+.proplayer-routine-meta input,.proplayer-routine-meta select,
+.proplayer-routine-fields input,.proplayer-routine-fields select{
+  width:100%;
+  min-height:40px;
+  border:1px solid var(--line);
+  background:var(--panel);
+  color:var(--text);
+  border-radius:10px;
+  padding:8px 10px;
+}
+.proplayer-routine-list{display:grid;gap:10px}
+.proplayer-routine-row{
+  border:1px solid var(--line);
+  background:color-mix(in srgb,var(--panel) 88%,transparent);
+  border-radius:14px;
+  padding:12px;
+}
+.proplayer-routine-row-head{
+  display:grid;
+  grid-template-columns:34px minmax(0,1fr) auto;
+  align-items:center;
+  gap:10px;
+  margin-bottom:10px;
+}
+.proplayer-routine-row-head span{color:var(--orange);font:700 11px/1 var(--mono,monospace)}
+.proplayer-routine-row-head strong{overflow-wrap:anywhere}
+.proplayer-routine-row-head small{color:var(--mute)}
+.proplayer-routine-fields{
+  display:grid;
+  grid-template-columns:repeat(6,minmax(100px,1fr));
+  gap:8px;
+}
+.ppr-time-label{align-content:end}
+.ppr-time-label input{width:auto;min-height:auto}
+.proplayer-routine-actions{
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+  position:sticky;
+  bottom:0;
+  margin-top:16px;
+  padding:12px 0 2px;
+  background:linear-gradient(to top,var(--bg) 72%,transparent);
+}
+@media(max-width:760px){
+  .proplayer-routine-meta{grid-template-columns:1fr 1fr}
+  .proplayer-routine-meta label:first-child{grid-column:1/-1}
+  .proplayer-routine-fields{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .proplayer-routine-row-head{grid-template-columns:28px minmax(0,1fr)}
+  .proplayer-routine-row-head small{grid-column:2}
+  .proplayer-card-bottom{flex-wrap:wrap}
+}

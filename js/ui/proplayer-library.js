@@ -1,10 +1,12 @@
-// BAYONA / PROPLAYER — biblioteca privada de ejercicios Trainingym.
-// El catálogo y los MP4 permanecen fuera de Git. Este módulo solo consume
-// el puente local private-trainingym/ cuando existe en el dispositivo.
-import { BUILDERS, $, el, elT, openSection, showModal, hideModal } from "./shared.js";
+// BAYONA / PROPLAYER — biblioteca técnica propiedad de BAYONA.
+// El catálogo se integra como dominio de entrenamiento; los MP4 se cargan bajo demanda.
+import { S } from "../state.js";
+import { esc } from "../i18n.js";
+import { BUILDERS, $, el, elT, openSection, showModal, hideModal, toast } from "./shared.js";
 
-const CATALOG_URL = "./private-trainingym/catalog.json";
+const CATALOG_URL = "./trainingym/catalog.json";
 const MEDIA_BASE = "./private-trainingym/media/";
+const LOCAL_MEDIA = ["localhost", "127.0.0.1", "::1"].includes(globalThis.location?.hostname || "");
 const PAGE_SIZE = 30;
 
 let catalogCache = null;
@@ -31,7 +33,7 @@ async function loadCatalog(force = false) {
   if (!catalogPromise) {
     catalogPromise = fetch(CATALOG_URL, { cache: "no-store" })
       .then((response) => {
-        if (!response.ok) throw new Error("Biblioteca privada no vinculada (" + response.status + ")");
+        if (!response.ok) throw new Error("Catálogo PROPLAYER no disponible (" + response.status + ")");
         return response.json();
       })
       .then((data) => {
@@ -91,8 +93,84 @@ function backTarget() {
   return document.body.dataset.oneContext === "coach" ? "coachos" : "training";
 }
 
-function mediaUrl(file) {
-  return MEDIA_BASE + encodeURIComponent(file);
+function canPlay(record) {
+  return !!record?.video_url || (LOCAL_MEDIA && !!record?.video_disponible_local && !!record?.video_archivo_local);
+}
+
+function mediaUrl(record) {
+  if (record?.video_url) return record.video_url;
+  return MEDIA_BASE + encodeURIComponent(record?.video_archivo_local || "");
+}
+
+function routineKey(record) {
+  return "pp_" + String(record.pos || record.source_id || record.nombre).replace(/[^a-zA-Z0-9_-]+/g, "_");
+}
+
+function dateKey(offset = 0) {
+  const d = new Date();
+  d.setDate(d.getDate() + offset);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return y + "-" + m + "-" + day;
+}
+
+function openRoutineBuilder(records, onSaved) {
+  if (!records.length) return toast("SELECCIONA EJERCICIOS", "Añade al menos un ejercicio desde PROPLAYER.");
+  const rows = records.slice(0, 12);
+  const dayOptions = [[0, "HOY"], [1, "MAÑANA"], [2, "PASADO MAÑANA"]]
+    .map(([offset, label]) => "<option value=\"" + dateKey(offset) + "\">" + label + " · " + dateKey(offset) + "</option>").join("");
+  const exerciseRows = rows.map((record, i) => {
+    const timed = record.tipo === "Movilidad";
+    const defaultReps = timed ? 45 : 10;
+    return "<article class=\"proplayer-routine-row\" data-routine-row=\"" + i + "\">" +
+      "<div class=\"proplayer-routine-row-head\"><span>" + String(i + 1).padStart(2, "0") + "</span><strong>" + esc(record.nombre) + "</strong><small>" + esc(record.grupo_muscular || "SIN ASIGNAR") + "</small></div>" +
+      "<div class=\"proplayer-routine-fields\">" +
+      "<label>SERIES<input class=\"ppr-sets\" type=\"number\" min=\"1\" max=\"8\" value=\"3\"></label>" +
+      "<label>REPS / SEG<input class=\"ppr-reps\" type=\"number\" min=\"1\" max=\"600\" value=\"" + defaultReps + "\"></label>" +
+      "<label>RIR<select class=\"ppr-rir\"><option>0</option><option>1</option><option selected>2</option><option>3</option><option>4</option></select></label>" +
+      "<label>DESCANSO<input class=\"ppr-rest\" type=\"number\" min=\"0\" max=\"600\" value=\"90\"></label>" +
+      "<label>CARGA KG<input class=\"ppr-kg\" type=\"number\" min=\"0\" max=\"1000\" step=\"0.5\" value=\"0\"></label>" +
+      "<label class=\"ppr-time-label\"><input class=\"ppr-timed\" type=\"checkbox\" " + (timed ? "checked" : "") + "> MEDIR POR TIEMPO</label>" +
+      "</div></article>";
+  }).join("");
+  const html = "<div class=\"proplayer-routine-modal\" data-proplayer-routine>" +
+    "<div class=\"proplayer-kicker\">COACH STUDIO / PROPLAYER</div>" +
+    "<h3>CONSTRUIR RUTINA</h3>" +
+    "<p class=\"proplayer-routine-copy\">Define series, repeticiones o tiempo, RIR, descanso y carga. Se guarda como rutina BAYONA y se asigna directamente al cliente local.</p>" +
+    "<div class=\"proplayer-routine-meta\">" +
+    "<label>NOMBRE<input id=\"ppr-name\" maxlength=\"80\" value=\"RUTINA PROPLAYER\"></label>" +
+    "<label>DURACIÓN<input id=\"ppr-min\" type=\"number\" min=\"5\" max=\"180\" value=\"" + Math.max(15, rows.length * 6) + "\"></label>" +
+    "<label>DÍA<select id=\"ppr-day\">" + dayOptions + "</select></label>" +
+    "</div><div class=\"proplayer-routine-list\">" + exerciseRows + "</div>" +
+    "<div class=\"proplayer-routine-actions\"><button class=\"btn secondary\" id=\"ppr-cancel\">CANCELAR</button><button class=\"btn btn-primary\" id=\"ppr-save\">GUARDAR Y ASIGNAR</button></div></div>";
+  showModal(html, () => {
+    $("#ppr-cancel").onclick = hideModal;
+    $("#ppr-save").onclick = () => {
+      const nodes = [...document.querySelectorAll("[data-routine-row]")];
+      const exercises = nodes.map((node, i) => {
+        const record = rows[i];
+        return {
+          ex: routineKey(record), sourceId: record.source_id, pos: record.pos,
+          name: record.nombre, muscle: record.grupo_muscular || "FULL", type: record.tipo || "Fuerza",
+          sets: Number(node.querySelector(".ppr-sets").value), reps: Number(node.querySelector(".ppr-reps").value),
+          rir: Number(node.querySelector(".ppr-rir").value), rest: Number(node.querySelector(".ppr-rest").value),
+          kg: Number(node.querySelector(".ppr-kg").value), timed: node.querySelector(".ppr-timed").checked,
+          videoFile: record.video_archivo_local || null,
+          videoUrl: record.video_url || null,
+        };
+      });
+      const bad = exercises.some((e) => !Number.isFinite(e.sets) || e.sets < 1 || e.sets > 8 || !Number.isFinite(e.reps) || e.reps < 1 || e.reps > 600 || !Number.isFinite(e.rir) || e.rir < 0 || e.rir > 4 || !Number.isFinite(e.rest) || e.rest < 0 || e.rest > 600 || !Number.isFinite(e.kg) || e.kg < 0 || e.kg > 1000);
+      if (bad) return toast("REVISA LA RUTINA", "Hay valores fuera de rango.", "danger");
+      const routine = S.saveCustomRoutine({ name: $("#ppr-name").value, min: Number($("#ppr-min").value), exercises });
+      if (!routine) return toast("NO GUARDADA", "La rutina necesita entre 1 y 12 ejercicios.", "danger");
+      const dia = $("#ppr-day").value;
+      S.addAsignacion({ clienteId: "local", workoutId: routine.id, customRoutineId: routine.id, dia, nota: "Rutina creada desde PROPLAYER.", origen: "proplayer", autor: "Coach Studio" });
+      hideModal();
+      toast("RUTINA ASIGNADA", routine.name + " · " + dia + " · " + routine.exercises.length + " ejercicios.");
+      onSaved?.(routine);
+    };
+  });
 }
 
 function playVideo(record) {
@@ -120,10 +198,10 @@ function playVideo(record) {
     video.controls = true;
     video.playsInline = true;
     video.preload = "metadata";
-    video.src = mediaUrl(record.video_archivo_local);
+    video.src = mediaUrl(record);
     video.setAttribute("aria-label", "Demostración de " + record.nombre);
 
-    const state = elT("p", "proplayer-video-state", "MP4 local verificado · no se publica con el repositorio.");
+    const state = elT("p", "proplayer-video-state", "MP4 verificado · propiedad BAYONA · carga bajo demanda.");
     video.addEventListener("error", () => {
       state.textContent = "No se pudo abrir este MP4 desde la biblioteca local.";
       state.classList.add("danger");
@@ -160,6 +238,9 @@ function exportSelection(rows) {
 
 function renderLibrary(body, data) {
   const root = el("div", "proplayer-library");
+  const isCoach = document.body.dataset.oneContext === "coach";
+  const selected = new Map();
+  let buildButton = null;
 
   const hero = el("section", "proplayer-hero");
   const heroCopy = el("div", "proplayer-hero-copy");
@@ -169,7 +250,7 @@ function renderLibrary(body, data) {
     elT(
       "p",
       "proplayer-lead",
-      "Catálogo técnico integrado en BAYONA: fuerza, movilidad y cardio con filtros cruzados. Los medios permanecen privados y se cargan solo cuando los solicitas."
+      "Catálogo técnico integrado en BAYONA: fuerza, movilidad y cardio con filtros cruzados. Como Coach puedes seleccionar ejercicios, parametrizarlos y asignar una rutina completa."
     )
   );
 
@@ -185,6 +266,16 @@ function renderLibrary(body, data) {
       .catch((error) => renderLoadError(body, error));
   });
   heroActions.append(back, refresh);
+  if (isCoach) {
+    buildButton = elT("button", "btn btn-primary proplayer-build-btn", "CREAR RUTINA · 0");
+    buildButton.type = "button";
+    buildButton.disabled = true;
+    buildButton.addEventListener("click", () => openRoutineBuilder([...selected.values()], () => {
+      selected.clear();
+      draw();
+    }));
+    heroActions.append(buildButton);
+  }
   heroCopy.append(heroActions);
   hero.append(heroCopy);
   root.append(hero);
@@ -255,7 +346,7 @@ function renderLibrary(body, data) {
   const resultsArea = el("section", "proplayer-results");
   const controls = el("div", "proplayer-controls");
   const count = elT("div", "proplayer-count", "");
-  const stateText = elT("div", "proplayer-state", "Catálogo local validado");
+  const stateText = elT("div", "proplayer-state", "Catálogo PROPLAYER validado");
   controls.append(count, stateText);
   const cards = el("div", "proplayer-cards");
   const pager = el("div", "proplayer-pager");
@@ -267,7 +358,7 @@ function renderLibrary(body, data) {
   const disclaimer = elT(
     "div",
     "proplayer-disclaimer",
-    "Uso privado: BAYONA reproduce los medios verificados desde este PC. No se incluyen en Git ni se publican hasta confirmar derechos de redistribución."
+    "Biblioteca confirmada por su propietario para uso en BAYONA. Los vídeos se mantienen separados del código y se cargan bajo demanda para no inflar la aplicación."
   );
   resultsArea.append(controls, cards, pager, disclaimer);
   workspace.append(filters, resultsArea);
@@ -315,10 +406,16 @@ function renderLibrary(body, data) {
     prev.disabled = view.page <= 1;
     next.disabled = view.page >= pages;
 
+    if (buildButton) {
+      buildButton.textContent = "CREAR RUTINA · " + selected.size;
+      buildButton.disabled = selected.size === 0;
+      stateText.textContent = selected.size ? selected.size + " ejercicio(s) seleccionados para rutina" : "Catálogo validado · selecciona hasta 12 ejercicios";
+    }
     cards.replaceChildren();
     const pageRows = view.rows.slice((view.page - 1) * PAGE_SIZE, view.page * PAGE_SIZE);
     for (const record of pageRows) {
-      const card = el("article", "proplayer-card");
+      const key = routineKey(record);
+      const card = el("article", "proplayer-card" + (selected.has(key) ? " selected-for-routine" : ""));
       const art = el("div", "proplayer-art");
       art.append(
         elT("span", "", "#" + String(record.pos).padStart(4, "0") + (record.source_id ? " · ID " + record.source_id : " · SIN ID")),
@@ -341,11 +438,25 @@ function renderLibrary(body, data) {
             ? "Incidencia"
             : "Sin MP4";
       foot.append(elT("span", "", mediaState));
-      const play = elT("button", "", record.video_disponible_local ? "REPRODUCIR" : "NO DISPONIBLE");
+      const playableHere = canPlay(record);
+      const play = elT("button", "", playableHere ? "REPRODUCIR" : record.video_disponible_local ? "VÍDEO EN CDN" : "NO DISPONIBLE");
       play.type = "button";
-      play.disabled = !record.video_disponible_local;
+      play.disabled = !playableHere;
       if (!play.disabled) play.addEventListener("click", () => playVideo(record));
       foot.append(play);
+      if (isCoach) {
+        const add = elT("button", "proplayer-add-routine", selected.has(key) ? "QUITAR" : "AÑADIR");
+        add.type = "button";
+        add.addEventListener("click", () => {
+          if (selected.has(key)) selected.delete(key);
+          else {
+            if (selected.size >= 12) return toast("MÁXIMO 12", "Una rutina PROPLAYER admite hasta 12 ejercicios.", "danger");
+            selected.set(key, record);
+          }
+          draw();
+        });
+        foot.append(add);
+      }
       card.append(art, titleNode, chips, foot);
       cards.append(card);
     }
@@ -386,11 +497,11 @@ function renderLoadError(body, error) {
   const box = el("section", "proplayer-load-error");
   box.append(
     elT("div", "proplayer-kicker", "BAYONA / PROPLAYER"),
-    elT("h3", "", "La biblioteca privada no está conectada en este dispositivo."),
+    elT("h3", "", "El catálogo PROPLAYER no está disponible en este dispositivo."),
     elT(
       "p",
       "",
-      "El módulo está instalado, pero el catálogo local de Trainingym no está disponible. Los medios no se descargan desde Internet ni se sustituyen por otros ejercicios."
+      "El módulo está instalado, pero no se pudo cargar el catálogo PROPLAYER. BAYONA no inventa ejercicios sustitutos."
     ),
     elT("code", "", error?.message || "Catálogo no disponible")
   );
