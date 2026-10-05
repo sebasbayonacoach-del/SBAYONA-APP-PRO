@@ -680,7 +680,8 @@ export const S = {
     if (t.workoutDone === workoutId) return null; // sin dobles recompensas
     t.trained = true;
     t.workoutDone = workoutId;
-    this.cerrarAsignacion(workoutId); // el loop cierra: lo asignado, cumplido
+    const closedAssignment = this.cerrarAsignacion(workoutId); // el loop cierra: lo asignado, cumplido
+    if (closedAssignment?.cloudAssignmentId) emit("cloud-assignment-complete", closedAssignment);
     this.data.stats.workouts++;
     const mins = minutes ?? WORKOUTS[workoutId]?.min ?? 30;
     this.data.stats.sessionsMin += mins;
