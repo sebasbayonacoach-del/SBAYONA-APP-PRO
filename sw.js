@@ -70,8 +70,8 @@ self.addEventListener("fetch", (e) => {
   const req = e.request;
   if (req.method !== "GET" || new URL(req.url).origin !== location.origin) return;
   const path = new URL(req.url).pathname;
-  // Biblioteca privada: nunca duplicar MP4 ni catálogo local dentro del Cache Storage.
-  if (path.includes("/private-trainingym/")) {
+  // Configuración dinámica y biblioteca privada: nunca servir una versión obsoleta.
+  if (path.includes("/api/runtime-config.js") || path.includes("/private-trainingym/")) {
     e.respondWith(fetch(req));
     return;
   }
