@@ -10,6 +10,7 @@ import { initUI } from "./ui.js";
 import { openSection, enterHome } from "./ui/shared.js";
 import { installFitnessUI } from "./ui/fitness.js";
 import { installDashboard, dashboardActivo } from "./ui/dashboard.js";
+import { installOneShell } from "./ui/one.js";
 import { ITEMS } from "./data.js";
 import { loadFaceImage } from "./face.js";
 
@@ -65,6 +66,7 @@ function boot() {
 
   installFitnessUI();
   initUI(world);
+  installOneShell();
   wireEntry(world);
   // DASHBOARD DE ESCRITORIO · el personaje al centro, con el resumen vivo
   // alrededor. Se enciende al entrar y se apaga solo por debajo de 1100 px.

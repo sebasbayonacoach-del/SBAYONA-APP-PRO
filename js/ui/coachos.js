@@ -11,7 +11,7 @@ import { S, on, todayKey } from "../state.js";
 import {
   CLIENTES_DEMO, fichaLocal, alertasDe, resumenCartera, coreCoach, planificacion, validaAsignacion,
 } from "../coachos.js";
-import { WORKOUTS } from "../data.js";
+import { WORKOUTS, MACRO } from "../data.js";
 import { esc, fmtInt, fmtDec } from "../i18n.js";
 import {
   UI, $, el, elT, BUILDERS, showModal, hideModal, toast,

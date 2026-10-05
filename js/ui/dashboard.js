@@ -141,8 +141,8 @@ function construir() {
 /* ============================================================
    PINTADO — solo datos reales
    ============================================================ */
-function pintar(t) {
-  if (!t.prep) return;
+function pintar(refs) {
+  if (!refs.prep) return;
   const d = S.data;
   if (!d) return;
   const today = d.today || {};
@@ -150,45 +150,45 @@ function pintar(t) {
   /* --- preparación --- */
   const det = S.readinessDetail();
   const rd = det.score;
-  t.prep.textContent = "";
+  refs.prep.textContent = "";
   if (rd == null) {
-    t.prep.append(elT("div", "dash-val", t("state.notLogged")));
-    t.prep.append(elT("div", "dash-note", t("dash.prepNoData")));
+    refs.prep.append(elT("div", "dash-val", t("state.notLogged")));
+    refs.prep.append(elT("div", "dash-note", t("dash.prepNoData")));
   } else {
-    t.prep.appendChild(anillo(rd, `${rd}<small>%</small>`, t("dash.ready")));
+    refs.prep.appendChild(anillo(rd, `${rd}<small>%</small>`, t("dash.ready")));
     // si el número se apoya en pocos registros, se dice: no aparenta
     // una precisión que no tenemos.
-    if (det.estimated) t.prep.append(elT("div", "dash-note", t("dash.prepEstimated", { n: det.known })));
-    else if (det.parts?.[0]?.note) t.prep.append(elT("div", "dash-note", det.parts[0].note));
+    if (det.estimated) refs.prep.append(elT("div", "dash-note", t("dash.prepEstimated", { n: det.known })));
+    else if (det.parts?.[0]?.note) refs.prep.append(elT("div", "dash-note", det.parts[0].note));
   }
 
   /* --- nivel --- */
   const L = S.level();
-  t.lvl.textContent = "";
-  t.lvl.appendChild(elT("div", "dash-val", `NIVEL ${L.lvl}`));
-  t.lvl.append(elT("div", "dash-sub", S.rank()));
+  refs.lvl.textContent = "";
+  refs.lvl.appendChild(elT("div", "dash-val", `NIVEL ${L.lvl}`));
+  refs.lvl.append(elT("div", "dash-sub", S.rank()));
   const bar = el("div", "dash-bar");
   const fill = el("i");
   fill.style.width = `${Math.min(100, Math.round((L.cur / L.need) * 100))}%`;
   bar.appendChild(fill);
-  t.lvl.appendChild(bar);
-  t.lvl.append(elT("div", "dash-note", `${fmtInt(L.cur)} / ${fmtInt(L.need)} XP`));
+  refs.lvl.appendChild(bar);
+  refs.lvl.append(elT("div", "dash-note", `${fmtInt(L.cur)} / ${fmtInt(L.need)} XP`));
 
   /* --- sesión de hoy --- */
   const w = S.todayWorkout();
   const activa = S.getActiveSession();
   const pendiente = activa && !["completada", "abandonada"].includes(activa.status);
-  t.ses.textContent = "";
-  t.ses.append(elT("div", "dash-val", String(w ? w.name : t("dash.recoveryDay")), ""));
-  t.ses.querySelector(".dash-val").style.fontSize = "15px";
-  t.ses.append(elT("div", "dash-sub", w ? `${w.min} min · ${w.exercises.length} ejercicios` : t("dash.restSub")));
+  refs.ses.textContent = "";
+  refs.ses.append(elT("div", "dash-val", String(w ? w.name : t("dash.recoveryDay")), ""));
+  refs.ses.querySelector(".dash-val").style.fontSize = "15px";
+  refs.ses.append(elT("div", "dash-sub", w ? `${w.min} min · ${w.exercises.length} ejercicios` : t("dash.restSub")));
   if (w) {
     const pill = el("span", `dash-pill${pendiente ? "" : " quiet"}`, pendiente ? t("dash.resumed") : t("dash.planned"));
-    t.ses.append(pill);
+    refs.ses.append(pill);
   }
-  t.cta.textContent = pendiente ? t("dash.continue") : today.trained ? t("dash.toProgress") : t("dash.start");
-  t.cta.className = `dash-cta${today.trained && !pendiente ? " ghost" : ""}`;
-  t.cta.onclick = () => {
+  refs.cta.textContent = pendiente ? t("dash.continue") : today.trained ? t("dash.toProgress") : t("dash.start");
+  refs.cta.className = `dash-cta${today.trained && !pendiente ? " ghost" : ""}`;
+  refs.cta.onclick = () => {
     if (pendiente) UI.actions.resumeSession?.();
     else if (today.trained) openSection("progress");
     else if (w) UI.actions.openTraining?.(w.id);
@@ -196,34 +196,34 @@ function pintar(t) {
   };
 
   /* --- macros --- */
-  t.nut.textContent = "";
-  t.nut.appendChild(linea(t("dash.kcal"), `${fmtInt(today.kcal)} / ${fmtInt(GOALS.kcal)}`));
-  t.nut.appendChild(linea(t("dash.protein"), `${fmtInt(today.p)} / ${fmtInt(GOALS.p)} g`));
+  refs.nut.textContent = "";
+  refs.nut.appendChild(linea(t("dash.kcal"), `${fmtInt(today.kcal)} / ${fmtInt(GOALS.kcal)}`));
+  refs.nut.appendChild(linea(t("dash.protein"), `${fmtInt(today.p)} / ${fmtInt(GOALS.p)} g`));
   const barN = el("div", "dash-bar");
   const fillN = el("i");
   fillN.style.width = `${Math.min(100, Math.round((today.kcal / GOALS.kcal) * 100))}%`;
   barN.appendChild(fillN);
-  t.nut.appendChild(barN);
+  refs.nut.appendChild(barN);
 
   /* --- hidratación --- */
   const pctAgua = S.hydrationPct();
-  t.agua.textContent = "";
-  t.agua.append(elT("div", "dash-val", `${fmtInt(today.water)}<small>ml</small>`));
+  refs.agua.textContent = "";
+  refs.agua.append(el("div", "dash-val", `${fmtInt(today.water)}<small>ml</small>`));
   const drops = el("div", "dash-drops");
   const llenos = Math.round((pctAgua / 100) * 10);
   for (let i = 0; i < 10; i++) drops.appendChild(el("i", i < llenos ? "on" : ""));
-  t.agua.appendChild(drops);
-  t.agua.append(elT("div", "dash-note", `${pctAgua}% de ${fmtInt(GOALS.water)} ml`));
+  refs.agua.appendChild(drops);
+  refs.agua.append(elT("div", "dash-note", `${pctAgua}% de ${fmtInt(GOALS.water)} ml`));
 
   /* --- racha --- */
-  t.racha.textContent = "";
-  t.racha.append(elT("div", "dash-val", `${d.streak || 0}<small>días</small>`));
+  refs.racha.textContent = "";
+  refs.racha.append(el("div", "dash-val", `${d.streak || 0}<small>días</small>`));
   const st = d.stats || {};
-  t.racha.append(elT("div", "dash-note", `${fmtInt(st.workouts || 0)} entrenamientos · ${fmtInt(st.prs || 0)} récords`));
+  refs.racha.append(elT("div", "dash-note", `${fmtInt(st.workouts || 0)} entrenamientos · ${fmtInt(st.prs || 0)} récords`));
 
   /* --- CORE --- */
   const sinDatos = today.sleep == null && today.energy == null;
-  t.coach.textContent = sinDatos ? t("dash.coachNoData") : t("dash.coachTip");
+  refs.coach.textContent = sinDatos ? t("dash.coachNoData") : t("dash.coachTip");
 }
 
 /* ============================================================

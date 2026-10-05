@@ -211,7 +211,11 @@ function completar(perfil) {
   });
   // la primera acción realizable: entrenamiento de hoy (o flujo de recuperación)
   import("./ui/shared.js").then(({ UI }) => {
+    const startSection = document.getElementById("drawer")?.dataset.section || "hoy";
     setTimeout(() => {
+      const currentSection = document.getElementById("drawer")?.dataset.section || startSection;
+      // No secuestrar una navegación voluntaria realizada durante la transición.
+      if (currentSection !== startSection && currentSection !== "hoy") return;
       const w = S.todayWorkout();
       UI.actions.openTraining?.(w ? w.id : "mobility_flow");
     }, 600);

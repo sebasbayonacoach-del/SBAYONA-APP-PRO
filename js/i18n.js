@@ -8,6 +8,11 @@
 export const locale = "es-ES";
 
 const es = {
+  "one.week.planLabel": "Plan del {day}",
+  "one.context.switch": "Cambiar a modo {mode}",
+  "one.context.label": "Cambiar entre modo atleta y modo coach",
+  "one.foot.coach": "COACH OS · DATOS LOCALES · DECISIÓN HUMANA",
+  "one.foot.athlete": "TU CUERPO · TU PLAN · TU PROGRESO",
   "measure.title": "MEDICIONES · OPCIONAL",
   "measure.note": "Registra solo lo que hayas medido hoy. La grasa corporal es una estimación. Deja vacíos los campos que no quieras registrar; actualizar el mismo día no duplica datos.",
   "measure.save": "GUARDAR MEDICIÓN DE HOY",
