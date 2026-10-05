@@ -105,6 +105,8 @@ function playVideo(record) {
     close.addEventListener("click", hideModal);
 
     const kicker = elT("div", "proplayer-kicker", "BAYONA / PROPLAYER · DEMOSTRACIÓN");
+    const modalHead = el("div", "proplayer-video-head");
+    modalHead.append(kicker, close);
     const title = elT("h3", "proplayer-video-title", record.nombre);
     const meta = el("div", "proplayer-video-meta");
     meta.append(
@@ -127,9 +129,7 @@ function playVideo(record) {
       state.classList.add("danger");
     });
 
-    const actions = el("div", "proplayer-video-actions");
-    actions.append(close);
-    host.append(kicker, title, meta, video, state, actions);
+    host.append(modalHead, title, meta, video, state);
     video.focus({ preventScroll: true });
   });
 }

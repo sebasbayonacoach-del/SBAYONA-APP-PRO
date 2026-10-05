@@ -4132,3 +4132,26 @@ body.fitness-app.one-athlete-mode.dash-pc #scene-wrap {
   color:#e6b98f;
   font-size:8px;
 }
+
+/* PROPLAYER video modal: allow long Spanish exercise names and keep close visible. */
+body.fitness-app #modal-box:has(.proplayer-video-modal){
+  width:min(900px,94vw);
+  max-width:min(900px,94vw);
+}
+.proplayer-video-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  margin-bottom:6px;
+}
+.proplayer-video-head .btn{
+  flex:0 0 auto;
+  min-height:32px;
+  padding:6px 10px;
+}
+.proplayer-video-title{
+  overflow-wrap:anywhere;
+  word-break:normal;
+  line-height:1.15;
+}

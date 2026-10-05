@@ -171,7 +171,7 @@ function homeV12(body){
 
   const mediaHead=el("div","affiliate-section-head-v12");
   mediaHead.innerHTML='<span><small>'+esc(t("affiliate.media.kicker"))+'</small><strong>'+esc(t("affiliate.media.title"))+'</strong></span><button type="button">'+esc(t("affiliate.media.all"))+'</button>';
-  mediaHead.querySelector("button").onclick=()=>openSection("training");
+  mediaHead.querySelector("button").onclick=()=>openSection("library");
   const grid=el("div","affiliate-media-grid-v12");
   exercises.slice(0,4).forEach((x,i)=>grid.append(exerciseCard(x,i)));
   body.append(mediaHead,grid);
