@@ -17,6 +17,9 @@ import { consentStatus, isGranted } from "../consents.js";
 import { payloadMedidas, payloadAsignaciones, payloadAvatar } from "./mirror.js";
 import * as outbox from "./outbox.js";
 import {
+  createInvite, acceptInvite, linkedClients, linkedCoaches, hydrateAssignmentsToLocal,
+} from "./coaching.js";
+import {
   isConfigured, currentSession, currentUser, accountRole, onAuth,
   signInWithPassword, signUpWithPassword, signInWithMagicLink,
   signOut, ensureFreshSession, refreshUser, completeAuthFromHash,
@@ -203,6 +206,82 @@ function field(label, type, id, ph) {
   return wrap;
 }
 
+function renderCoachingCloud(body) {
+  if (!currentSession()) return;
+  body.appendChild(el("div", "sec-label", accountRole() === "coach" ? "CLIENTES EN LA NUBE" : "MI COACH"));
+  const card = el("div", "card");
+  const title = el("h4", "", accountRole() === "coach" ? "VÍNCULOS COACH" : "CONECTAR CON MI COACH");
+  const sub = el("div", "sub", accountRole() === "coach"
+    ? "Crea un código temporal para vincular un cliente real. Solo los clientes vinculados pueden recibir tus rutinas."
+    : "Introduce el código que te envía tu Coach. El vínculo es explícito y revocable.");
+  const status = el("div", "media-caption", "Comprobando vínculos…");
+  card.append(title, sub);
+
+  if (accountRole() === "coach") {
+    const invite = el("button", "btn btn-primary btn-block", "CREAR CÓDIGO DE INVITACIÓN");
+    invite.style.marginTop = "12px";
+    invite.onclick = async () => {
+      invite.disabled = true;
+      status.textContent = "Creando invitación…";
+      try {
+        await syncNow({ silent: true });
+        const code = await createInvite(72);
+        status.innerHTML = code
+          ? `Código válido 72 h: <b class="mono">${esc(String(code))}</b>`
+          : "No se pudo generar el código.";
+        if (code) toast("INVITACIÓN CREADA", "Comparte el código con tu cliente.");
+      } catch (e) {
+        status.textContent = "No se pudo crear la invitación: " + (e.message || e);
+      } finally {
+        invite.disabled = false;
+      }
+    };
+    card.appendChild(invite);
+    linkedClients().then((clients) => {
+      status.textContent = clients.length
+        ? clients.map((c) => c.name).join(" · ")
+        : "Todavía no tienes clientes vinculados.";
+    }).catch((e) => {
+      status.textContent = "El módulo de vínculos aún no está disponible: " + (e.message || e);
+    });
+  } else {
+    const input = el("input");
+    input.type = "text";
+    input.maxLength = 16;
+    input.placeholder = "CÓDIGO DEL COACH";
+    input.autocomplete = "off";
+    input.style.marginTop = "12px";
+    const accept = el("button", "btn btn-primary btn-block", "VINCULAR MI CUENTA");
+    accept.style.marginTop = "8px";
+    accept.onclick = async () => {
+      accept.disabled = true;
+      status.textContent = "Vinculando…";
+      try {
+        const result = await acceptInvite(input.value);
+        await hydrateAssignmentsToLocal(S).catch(() => 0);
+        const coachName = result?.[0]?.coach_name || "tu Coach";
+        status.textContent = "Vinculado con " + coachName + ".";
+        toast("COACH VINCULADO", "Tu cuenta ya puede recibir rutinas.");
+      } catch (e) {
+        status.textContent = "No se pudo vincular: " + (e.message || e);
+      } finally {
+        accept.disabled = false;
+      }
+    };
+    card.append(input, accept);
+    linkedCoaches().then((coaches) => {
+      status.textContent = coaches.length
+        ? "Vinculado con: " + coaches.map((c) => c.name).join(" · ")
+        : "No hay ningún Coach vinculado todavía.";
+    }).catch((e) => {
+      status.textContent = "El módulo de vínculos aún no está disponible: " + (e.message || e);
+    });
+  }
+
+  card.appendChild(status);
+  body.appendChild(card);
+}
+
 BUILDERS.account = (body) => {
   body = body || document.getElementById("drawer-body");
   body.textContent = "";
@@ -262,6 +341,8 @@ BUILDERS.account = (body) => {
       msg.textContent = "Entrando…";
       try {
         await signInWithPassword(email(), pass());
+        await refreshUser();
+        await hydrateAssignmentsToLocal(S).catch(() => 0);
         toast("SESIÓN INICIADA", "Ya estás en la nube.");
         buildIfOpen();
       } catch (e) { msg.textContent = "No se pudo entrar: " + e.message; }
@@ -292,6 +373,9 @@ BUILDERS.account = (body) => {
   bPull.onclick = pullBackup;
   dat.append(bSync, bPull);
   body.appendChild(dat);
+
+  // ---------- COACHING CLOUD ----------
+  if (ses) renderCoachingCloud(body);
 
   // ---------- SESIÓN ----------
   if (ses) {
@@ -357,5 +441,12 @@ if (typeof window !== "undefined" && outbox.estaPendiente() && currentSession())
 // si el email trae token en el hash, completar sesión al arrancar
 if (completeAuthFromHash()) {
   toast("SESIÓN INICIADA", "Bienvenido de vuelta.");
-  refreshUser();
+  refreshUser()
+    .then(() => hydrateAssignmentsToLocal(S))
+    .catch(() => 0);
+} else if (currentSession()) {
+  ensureFreshSession()
+    .then(() => refreshUser())
+    .then(() => hydrateAssignmentsToLocal(S))
+    .catch(() => 0);
 }
