@@ -14,10 +14,52 @@ import {
 import { WORKOUTS, MACRO } from "../data.js";
 import { esc, fmtInt, fmtDec } from "../i18n.js";
 import {
-  UI, $, el, elT, BUILDERS, showModal, hideModal, toast,
+  UI, $, el, elT, BUILDERS, showModal, hideModal, toast, openSection,
 } from "./shared.js";
+import { currentSession, accountRole } from "../sync/supabase.js";
+import { linkedClients } from "../sync/coaching.js";
 
 function cartera() { return [fichaLocal(S), ...CLIENTES_DEMO]; }
+
+function renderCloudClients(body) {
+  body.appendChild(el("div", "sec-label", "CLIENTES VINCULADOS · NUBE"));
+  const card = el("div", "card");
+  const head = el("div", "card-row");
+  head.append(el("h4", "", "COACHING REAL"), el("span", "pill green", "RLS · NUBE"));
+  const status = el("div", "sub", "Comprobando clientes vinculados…");
+  const manage = el("button", "btn btn-block", "GESTIONAR VÍNCULOS");
+  manage.style.marginTop = "10px";
+  manage.onclick = () => openSection("account");
+  card.append(head, status, manage);
+  body.appendChild(card);
+
+  if (!currentSession()) {
+    status.textContent = "Inicia sesión para ver clientes reales y enviar rutinas desde PROPLAYER.";
+    return;
+  }
+  if (accountRole() !== "coach") {
+    status.textContent = "Esta cuenta está en modo cliente. Usa una cuenta Coach para gestionar vínculos.";
+    return;
+  }
+
+  linkedClients().then((clients) => {
+    status.replaceChildren();
+    if (!clients.length) {
+      status.textContent = "Todavía no hay clientes vinculados. Crea una invitación desde Mi cuenta.";
+      return;
+    }
+    const intro = el("div", "mc-sub", clients.length + (clients.length === 1 ? " cliente vinculado" : " clientes vinculados"));
+    status.appendChild(intro);
+    for (const client of clients) {
+      const row = el("div", "kv");
+      row.innerHTML = `<span class="k">ACTIVO</span><span class="v">${esc(client.name)}</span>`;
+      status.appendChild(row);
+    }
+    status.appendChild(el("div", "media-caption", "Selecciona un cliente vinculado al construir una rutina PROPLAYER para enviársela directamente."));
+  }).catch((e) => {
+    status.textContent = "No se pudieron cargar los vínculos: " + (e.message || e);
+  });
+}
 
 BUILDERS.coachos = (body) => renderCartera(body);
 
@@ -41,7 +83,8 @@ function renderCartera(body) {
     </div>`;
   body.appendChild(head);
   body.appendChild(el("div", "media-caption",
-    "Tu ficha usa datos REALES de este dispositivo. La cartera es DEMOSTRACIÓN (sin backend todavía) y va marcada como tal."));
+    "Tu ficha usa datos reales de este dispositivo. Los clientes vinculados en la nube son reales; la cartera de ejemplo sigue marcada como DEMO."));
+  renderCloudClients(body);
 
   // ---------- CORE COACH ----------
   body.appendChild(el("div", "sec-label", "CORE COACH · PRIORIDADES DE HOY"));
