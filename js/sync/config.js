@@ -17,8 +17,10 @@
 // ============================================================
 
 const INLINE = {
-  url: "https://bppjzewgqdrghexazgcj.supabase.co",
-  anonKey: "PEGA_AQUI_TU_ANON_KEY",
+  // Backend BAYONA compartido con la web: una cuenta, una identidad.
+  url: "https://otkhozruunouimjgvvun.supabase.co",
+  // Clave public/publishable de Supabase: está diseñada para vivir en el cliente.
+  anonKey: "sb_publishable_ZaBblymo5dRZZJNNOAUXeA_T2-7S1to",
 };
 
 /** resuelve la configuración: inline → window → localStorage */
