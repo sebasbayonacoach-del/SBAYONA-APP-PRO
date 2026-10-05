@@ -296,11 +296,11 @@ BUILDERS.account = (body) => {
   const st = el("div", "card shine");
   st.innerHTML = `
     <div class="card-row">
-      <h4>${ses ? "EN LA NUBE" : "SOLO EN ESTE DISPOSITIVO"}</h4>
-      <span class="pill ${ses ? "green" : "gold"}">${ses ? "CUENTA ACTIVA" : cfg ? "SIN SESIÓN" : "SIN CONFIGURAR"}</span>
+      <h4>${ses ? (STATE.last ? "DATOS SINCRONIZADOS" : "CUENTA ACTIVA") : "SOLO EN ESTE DISPOSITIVO"}</h4>
+      <span class="pill ${ses ? "green" : "gold"}">${ses ? (STATE.last ? "NUBE OK" : "SESIÓN ACTIVA") : cfg ? "SIN SESIÓN" : "SIN CONFIGURAR"}</span>
     </div>
     <div class="sub">${ses
-      ? `Conectado como <b>${esc(usr?.email || usr?.id || "usuario")}</b>. Tus datos viajan cifrados (TLS) y cada fila solo es tuya (RLS).`
+      ? `Conectado como <b>${esc(usr?.email || usr?.id || "usuario")}</b>. La sesión está activa; la app confirma la copia en nube únicamente después de una sincronización correcta.`
       : cfg
         ? "Tu progreso se guarda aquí mismo. Inicia sesión para tener copia en la nube y poder cambiar de dispositivo."
         : "La conexión de nube no está disponible en este entorno. La app continúa funcionando de forma local y offline."}</div>
