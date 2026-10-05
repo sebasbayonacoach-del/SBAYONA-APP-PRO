@@ -19,3 +19,6 @@ private-trainingym/
 
 # Vercel local project metadata
 .vercel/
+
+# Generated CDN upload manifest
+trainingym/blob-manifest.json
