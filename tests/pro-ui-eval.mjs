@@ -5,7 +5,7 @@
 // «Esta versión está muy fea» es una opinión subjetiva: si no se
 // convierte en reglas comprobables, vuelve a fea dos sprints después.
 // Estas aserciones fallan si alguien reintroduce un botón gigante, un
-// naranja, una sombra difusa o un título de 40 px.
+// un color ajeno a la marca, una sombra difusa o un título de 40 px.
 //
 // Y la otra mitad del encargo: que la IA pueda ASIGNAR una rutina y
 // que el atleta la vea con autor, fecha y nota.
@@ -64,16 +64,21 @@ const sw = leer("sw.js");
 assert(sw.includes("./css/pro.css"), "el service worker precachea pro.css (funciona sin red)");
 
 /* ============================================================
-   2 · NEUTRO: el naranja no puede volver
+   2 · FIRMA DE MARCA: negro + naranja BAYONA
    ============================================================ */
-console.log("— neutral, sin naranja —");
-const tokens = bloque(css, "body.fitness-app {");
-assert(/--fit-accent:\s*#15171c/i.test(tokens), "el acento es el tinta, no el naranja");
-assert(/--fit-bg:\s*#f6f6f7/i.test(tokens), "papel claro y neutro");
-assert(/--fit-line:\s*#e3e5e9/i.test(tokens), "filetes de 1 px en gris frío");
-assert(!/#ff6a00|#c74d00|#f38744/i.test(css),
-  "la capa PRO no contiene ningún naranja (ni en tokens, ni en estados)");
-assert(/--fit-accent:\s*#eef0f3/i.test(css), "el modo noche también es neutro");
+console.log("— firma negra + naranja —");
+assert(css.includes("BLACK / ORANGE SIGNATURE"),
+  "la capa PRO declara explícitamente la firma BAYONA BLACK / ORANGE");
+assert(/--fit-bg:\s*#050505/i.test(css),
+  "el fondo final de BAYONA ONE es negro profundo");
+assert(/--fit-surface:\s*#0d0e10/i.test(css),
+  "las superficies finales son grafito oscuro");
+assert(/--fit-accent:\s*#ff6a00/i.test(css),
+  "el acento final es naranja BAYONA");
+assert(/--orange:\s*#ff6a00/i.test(css),
+  "el alias naranja de la app apunta al naranja BAYONA");
+assert(/color-scheme:\s*dark/i.test(css),
+  "la interfaz final declara esquema oscuro");
 
 /* ============================================================
    3 · DENSE: el botón no vuelve a ser un ladrillo

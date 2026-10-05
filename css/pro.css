@@ -2464,3 +2464,503 @@ body.fitness-app.one-athlete-mode #drawer[data-section="plan"] #drawer-body > .s
   background: #20262a;
   color: #edeae4;
 }
+
+
+/* ============================================================
+   26 · BAYONA ONE v11 — BLACK / ORANGE SIGNATURE
+   Dirección final: negro + grafito + blanco + naranja BAYONA.
+   Una sola identidad para onboarding, atleta y coach.
+   ============================================================ */
+body.fitness-app,
+html[data-mode="noche"] body.fitness-app {
+  --fit-bg: #050505;
+  --fit-surface: #0d0e10;
+  --fit-ink: #f4f4f1;
+  --fit-muted: #91969a;
+  --fit-line: #24272a;
+  --fit-dark: #000000;
+  --fit-accent: #ff6a00;
+
+  --paper: #050505;
+  --paper-2: #0d0e10;
+  --panel: #0d0e10;
+  --ink: #f4f4f1;
+  --ink-soft: #91969a;
+  --mute: #91969a;
+  --hair: #24272a;
+  --hair-strong: #3a3e42;
+  --orange: #ff6a00;
+  --acc-2: #ff6a00;
+  --acc-ink: #090909;
+
+  --one-copper: #ff6a00;
+  --one-copper-soft: #ffb074;
+  --one-coach-bg: #050505;
+  --one-coach-surface: #0d0e10;
+  --one-coach-surface-2: #141619;
+  --one-coach-line: #25282b;
+  --one-coach-ink: #f4f4f1;
+  --one-coach-muted: #91969a;
+
+  --danger: #ff5c52;
+  --ok: #5ac98a;
+  --warn: #ffad42;
+
+  color-scheme: dark;
+  background: #050505;
+  color: #f4f4f1;
+}
+
+/* selección, foco y scrollbar */
+body.fitness-app ::selection {
+  background: #ff6a00;
+  color: #090909;
+}
+body.fitness-app :focus-visible {
+  outline-color: #ff6a00;
+}
+body.fitness-app * {
+  scrollbar-color: #3a3e42 #090a0b;
+}
+body.fitness-app a,
+body.fitness-app button {
+  -webkit-tap-highlight-color: rgba(255,106,0,.14);
+}
+
+/* shell global */
+body.fitness-app #topbar,
+body.fitness-app #panel-nav,
+body.fitness-app #drawer,
+body.fitness-app #panel-foot,
+body.fitness-app .drawer-head {
+  background: #050505;
+  border-color: #24272a;
+  color: #f4f4f1;
+}
+body.fitness-app #drawer-title,
+body.fitness-app .brand,
+body.fitness-app .brand-name,
+body.fitness-app .rail-btn.active {
+  color: #f4f4f1;
+}
+body.fitness-app .rail-btn,
+body.fitness-app #foot-hint {
+  color: #848a8f;
+}
+body.fitness-app .rail-btn:hover,
+body.fitness-app .rail-btn.active {
+  background: #101214;
+}
+body.fitness-app #panel-nav .rail-btn.active::before,
+body.fitness-app .one-coach-launch::after {
+  background: #ff6a00;
+  color: #ff6a00;
+}
+body.fitness-app .one-edition {
+  color: #ff8a3a;
+  border-color: #603018;
+  background: #1a0d05;
+}
+body.fitness-app .one-context-switch {
+  border-color: #292d30;
+  background: #090a0b;
+}
+body.fitness-app .one-context-btn {
+  color: #8c9296;
+}
+body.fitness-app .one-context-btn.active {
+  background: #17191c;
+  color: #ff8a3a;
+}
+body.fitness-app .one-context-btn.active svg {
+  stroke: #ff6a00;
+}
+
+/* entrada */
+body.fitness-app #entry {
+  background:
+    radial-gradient(circle at 78% 44%, rgba(255,106,0,.08), transparent 27%),
+    linear-gradient(135deg, #050505 0%, #070707 54%, #0d0906 100%);
+  color: #f7f5f1;
+}
+body.fitness-app #entry .e-kicker {
+  color: #ff7a1a;
+}
+body.fitness-app #entry .e-title {
+  color: #f7f5f1;
+}
+body.fitness-app #entry .e-title em {
+  color: #ff6a00;
+}
+body.fitness-app #entry .e-sub {
+  color: #9a9fa3;
+}
+body.fitness-app #entry .e-enter {
+  border-color: #ff6a00;
+  background: #ff6a00;
+  color: #090909;
+}
+body.fitness-app #entry .e-enter:hover {
+  background: #ff7d24;
+  border-color: #ff7d24;
+}
+body.fitness-app #entry .e-mode {
+  border-color: #2d3033;
+  background: #0c0d0e;
+  color: #8f9498;
+}
+body.fitness-app #entry .e-mode.on {
+  border-color: #ff6a00;
+  background: #1b0d04;
+  color: #ff8a3a;
+}
+
+/* onboarding */
+body.fitness-app #ob-layer {
+  background: rgba(0,0,0,.84);
+}
+body.fitness-app #ob-box {
+  border-color: #292c2f;
+  background: #0b0c0d;
+  color: #f4f4f1;
+}
+body.fitness-app #ob-box h2,
+body.fitness-app #ob-box h3,
+body.fitness-app #ob-box strong {
+  color: #f4f4f1;
+}
+body.fitness-app #ob-box .ob-sub,
+body.fitness-app #ob-box .ob-check,
+body.fitness-app #ob-box p {
+  color: #92979b;
+}
+body.fitness-app #ob-box input,
+body.fitness-app #ob-box select,
+body.fitness-app #ob-box textarea {
+  border-color: #303438;
+  background: #08090a;
+  color: #f4f4f1;
+}
+body.fitness-app #ob-box button.big,
+body.fitness-app #ob-box .btn-primary {
+  border-color: #ff6a00;
+  background: #ff6a00;
+  color: #090909;
+}
+
+/* universo atleta */
+body.fitness-app.one-athlete-mode #drawer,
+body.fitness-app.one-athlete-mode .drawer-head,
+body.fitness-app.one-athlete-mode #drawer[data-section="nutrition"],
+body.fitness-app.one-athlete-mode #drawer[data-section="progress"],
+body.fitness-app.one-athlete-mode #drawer[data-section="plan"],
+body.fitness-app.one-athlete-mode #drawer[data-section="wellbeing"],
+body.fitness-app.one-athlete-mode #drawer[data-section="profile"] {
+  background: #050505;
+}
+body.fitness-app.one-athlete-mode #drawer[data-section="nutrition"] .drawer-head,
+body.fitness-app.one-athlete-mode #drawer[data-section="progress"] .drawer-head,
+body.fitness-app.one-athlete-mode #drawer[data-section="plan"] .drawer-head,
+body.fitness-app.one-athlete-mode #drawer[data-section="wellbeing"] .drawer-head,
+body.fitness-app.one-athlete-mode #drawer[data-section="profile"] .drawer-head {
+  background: #050505;
+}
+
+body.fitness-app .fit-welcome h3,
+body.fitness-app .fit-page-intro h3,
+body.fitness-app .fit-session-card h3,
+body.fitness-app .card h4,
+body.fitness-app .stat-cell .v {
+  color: #f4f4f1 !important;
+}
+body.fitness-app .fit-welcome p,
+body.fitness-app .fit-eyebrow,
+body.fitness-app .sec-label,
+body.fitness-app .one-kicker {
+  color: #ff7a1a !important;
+}
+body.fitness-app .fit-welcome > div > span,
+body.fitness-app .fit-page-intro p,
+body.fitness-app .sub,
+body.fitness-app .mc-sub {
+  color: #8f969a !important;
+}
+
+/* tarjetas y superficies */
+body.fitness-app .card,
+body.fitness-app .stat-cell,
+body.fitness-app .fit-checkin,
+body.fitness-app .fit-route,
+body.fitness-app .fit-technique,
+body.fitness-app .personal-form,
+body.fitness-app .one-core-board,
+body.fitness-app .one-roster,
+body.fitness-app .one-macro-preview,
+body.fitness-app .one-profile-panel,
+body.fitness-app .one-week-editor {
+  border-color: #25282b !important;
+  background: #0d0e10 !important;
+  color: #f4f4f1;
+}
+body.fitness-app .fit-route:hover,
+body.fitness-app .card:hover {
+  border-color: #6d3516 !important;
+  background: #111315 !important;
+}
+
+/* sesión principal */
+body.fitness-app.one-athlete-mode .fit-session-card {
+  border-color: #322014;
+  background:
+    linear-gradient(120deg, rgba(255,106,0,.08), transparent 36%),
+    #0a0b0c;
+}
+body.fitness-app.one-athlete-mode .fit-session-card::before {
+  background: #ff6a00;
+}
+body.fitness-app.one-athlete-mode .fit-session-card .btn-primary,
+body.fitness-app .btn-primary,
+body.fitness-app .one-action.primary {
+  border-color: #ff6a00 !important;
+  background: #ff6a00 !important;
+  color: #090909 !important;
+}
+body.fitness-app .btn-primary:hover,
+body.fitness-app .one-action.primary:hover {
+  border-color: #ff7d24 !important;
+  background: #ff7d24 !important;
+}
+body.fitness-app .btn,
+body.fitness-app .one-action {
+  border-color: #303438;
+  background: #111315;
+  color: #dadeda;
+}
+body.fitness-app .btn:hover,
+body.fitness-app .one-action:hover {
+  border-color: #914516;
+  color: #ff9a56;
+}
+
+/* controles */
+body.fitness-app input,
+body.fitness-app select,
+body.fitness-app textarea,
+body.fitness-app .one-day-editor select {
+  border-color: #303438 !important;
+  background: #08090a !important;
+  color: #f2f2ef !important;
+}
+body.fitness-app input::placeholder,
+body.fitness-app textarea::placeholder {
+  color: #666c70;
+}
+body.fitness-app option {
+  background: #0a0b0c;
+  color: #f2f2ef;
+}
+
+/* nutrición */
+body.fitness-app.one-athlete-mode #drawer[data-section="nutrition"] #drawer-body > .card.shine:first-child,
+body.fitness-app.one-athlete-mode #drawer[data-section="plan"] #drawer-body > .sec-label:first-child + .card,
+body.fitness-app.one-athlete-mode #drawer[data-section="plan"] #drawer-body > .card:first-of-type {
+  border-color: #332015 !important;
+  background:
+    linear-gradient(125deg, rgba(255,106,0,.08), transparent 42%),
+    #090a0b !important;
+  color: #f4f4f1;
+}
+body.fitness-app.one-athlete-mode #drawer[data-section="nutrition"] .nut-receta {
+  border-color: #25282b;
+  background: #0d0e10;
+}
+body.fitness-app.one-athlete-mode #drawer[data-section="nutrition"] .nut-receta-body h4 {
+  color: #f2f2ef;
+}
+body.fitness-app.one-athlete-mode #drawer[data-section="nutrition"] .nut-receta-meta {
+  color: #ff7a1a;
+}
+body.fitness-app.one-athlete-mode #drawer[data-section="nutrition"] .nut-receta-ingr {
+  color: #8f969a;
+}
+body.fitness-app.one-athlete-mode #drawer[data-section="nutrition"] .macro,
+body.fitness-app.one-athlete-mode #drawer[data-section="progress"] .macro {
+  border-color: #24272a;
+}
+body.fitness-app.one-athlete-mode #drawer[data-section="nutrition"] .mbar,
+body.fitness-app.one-athlete-mode #drawer[data-section="progress"] .mbar {
+  background: #25282b;
+}
+body.fitness-app.one-athlete-mode #drawer[data-section="nutrition"] .mbar i {
+  background: #ff6a00 !important;
+}
+
+/* progreso */
+body.fitness-app.one-athlete-mode #drawer[data-section="progress"] .stat-grid {
+  border-color: #25282b;
+  background: #25282b;
+}
+body.fitness-app.one-athlete-mode #drawer[data-section="progress"] .stat-cell {
+  background: #0d0e10;
+}
+body.fitness-app.one-athlete-mode #drawer[data-section="progress"] .stat-cell .k {
+  color: #80868a;
+}
+body.fitness-app.one-athlete-mode #drawer[data-section="progress"] .tl {
+  border-color: #3a3e42;
+}
+body.fitness-app.one-athlete-mode #drawer[data-section="progress"] .tl-item::before {
+  border-color: #ff6a00;
+  background: #050505;
+}
+body.fitness-app.one-athlete-mode #drawer[data-section="progress"] .tl-day {
+  color: #ff7a1a;
+}
+body.fitness-app.one-athlete-mode #drawer[data-section="progress"] .tl-txt {
+  color: #c3c7c4;
+}
+
+/* plan y tablas */
+body.fitness-app.one-athlete-mode #drawer[data-section="plan"] .tablewrap {
+  border-color: #282b2e;
+  background: #090a0b;
+}
+body.fitness-app.one-athlete-mode #drawer[data-section="plan"] table.lab th {
+  border-color: #303438;
+  background: #111315;
+  color: #8f969a;
+}
+body.fitness-app.one-athlete-mode #drawer[data-section="plan"] table.lab td {
+  border-color: #202326;
+  color: #cdd1ce;
+}
+body.fitness-app.one-athlete-mode #drawer[data-section="plan"] table.lab tr.current td {
+  background: #1b0d05;
+  color: #ff9a56;
+}
+body.fitness-app.one-athlete-mode #drawer[data-section="plan"] .spark i {
+  background: #ff6a00 !important;
+}
+
+/* bienestar y perfil */
+body.fitness-app.one-athlete-mode #drawer[data-section="wellbeing"] .fit-page-intro,
+body.fitness-app.one-athlete-mode #drawer[data-section="profile"] .fit-settings {
+  border-color: #25282b;
+}
+body.fitness-app.one-athlete-mode #drawer[data-section="wellbeing"] .fit-route,
+body.fitness-app.one-athlete-mode #drawer[data-section="profile"] .fit-route {
+  border-color: #25282b;
+  background: #0d0e10;
+}
+body.fitness-app.one-athlete-mode #drawer[data-section="profile"] .fit-settings .fit-route {
+  border-color: #25282b;
+  background: transparent;
+}
+
+/* coach */
+body.fitness-app.one-coach-mode,
+body.fitness-app.one-coach-mode #topbar,
+body.fitness-app.one-coach-mode #panel-nav,
+body.fitness-app.one-coach-mode #drawer,
+body.fitness-app.one-coach-mode #scene-wrap {
+  background: #050505 !important;
+}
+body.fitness-app .one-coach-hero {
+  border-color: #2b2019;
+  background:
+    radial-gradient(circle at 85% 30%, rgba(255,106,0,.09), transparent 35%),
+    #0b0c0d;
+}
+body.fitness-app .one-coach-hero-copy h3,
+body.fitness-app .one-coach-pulse > strong,
+body.fitness-app .one-section-head h4,
+body.fitness-app .one-profile-copy h3 {
+  color: #f4f4f1;
+}
+body.fitness-app .one-coach-pulse {
+  border-color: #2b2019;
+}
+body.fitness-app .one-metrics,
+body.fitness-app .one-profile-kpis,
+body.fitness-app .one-macro-now {
+  border-color: #25282b;
+  background: #25282b;
+}
+body.fitness-app .one-metric,
+body.fitness-app .one-data-tile {
+  background: #0d0e10;
+}
+body.fitness-app .one-metric-value,
+body.fitness-app .one-data-tile strong {
+  color: #f4f4f1;
+}
+body.fitness-app .one-progress {
+  background: #24272a;
+}
+body.fitness-app .one-progress i {
+  background: #ff6a00;
+}
+body.fitness-app .one-client-row:hover {
+  background: #131517;
+}
+body.fitness-app .one-client-time,
+body.fitness-app .one-priority-index {
+  color: #ff7a1a;
+}
+body.fitness-app .one-row-open:hover {
+  border-color: #ff6a00;
+  color: #ff9a56;
+}
+body.fitness-app .one-phase {
+  border-color: #282b2e;
+  background: #090a0b;
+}
+body.fitness-app .one-phase.actual {
+  border-color: #8b4217;
+  background: #1a0d05;
+}
+body.fitness-app .one-phase.actual span,
+body.fitness-app .one-phase.actual strong {
+  color: #ff9a56;
+}
+body.fitness-app .one-profile-monogram {
+  border-color: #8b4217;
+  background: #1a0d05;
+  color: #ff9a56;
+}
+body.fitness-app .one-tag.copper {
+  border-color: #743813;
+  background: #1a0d05;
+  color: #ff9a56;
+}
+
+/* toasts y overlays */
+body.fitness-app #toasts .toast,
+body.fitness-app .modal-card,
+body.fitness-app .cine-modal {
+  border-color: #2d3033 !important;
+  background: #0c0d0e !important;
+  color: #f4f4f1 !important;
+}
+body.fitness-app #toasts .toast::before {
+  background: #ff6a00;
+}
+
+/* mobile bottom nav stays black */
+@media (max-width: 900px) {
+  body.fitness-app #panel-nav,
+  body.fitness-app.one-coach-mode #panel-nav {
+    border-color: #25282b;
+    background: #050505 !important;
+  }
+  body.fitness-app #panel-nav .rail-btn {
+    color: #7f8589;
+  }
+  body.fitness-app #panel-nav .rail-btn.active {
+    color: #ff8a3a;
+    background: #101214;
+  }
+  body.fitness-app #panel-nav .rail-btn.active svg {
+    stroke: #ff6a00;
+  }
+}
