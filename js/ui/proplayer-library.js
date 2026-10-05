@@ -6,6 +6,7 @@ import { BUILDERS, $, el, elT, openSection, showModal, hideModal, toast } from "
 
 const CATALOG_URL = "./trainingym/catalog.json";
 const MEDIA_BASE = "./private-trainingym/media/";
+const CDN_MEDIA_BASE = "https://acajakbiebfp9udy.public.blob.vercel-storage.com/proplayer/";
 const LOCAL_MEDIA = ["localhost", "127.0.0.1", "::1"].includes(globalThis.location?.hostname || "");
 const PAGE_SIZE = 30;
 
@@ -94,12 +95,13 @@ function backTarget() {
 }
 
 function canPlay(record) {
-  return !!record?.video_url || (LOCAL_MEDIA && !!record?.video_disponible_local && !!record?.video_archivo_local);
+  return !!record?.video_url || (!!record?.video_disponible_local && !!record?.video_archivo_local);
 }
 
 function mediaUrl(record) {
   if (record?.video_url) return record.video_url;
-  return MEDIA_BASE + encodeURIComponent(record?.video_archivo_local || "");
+  const name = encodeURIComponent(record?.video_archivo_local || "");
+  return LOCAL_MEDIA ? MEDIA_BASE + name : CDN_MEDIA_BASE + name;
 }
 
 function routineKey(record) {
@@ -157,7 +159,7 @@ function openRoutineBuilder(records, onSaved) {
           rir: Number(node.querySelector(".ppr-rir").value), rest: Number(node.querySelector(".ppr-rest").value),
           kg: Number(node.querySelector(".ppr-kg").value), timed: node.querySelector(".ppr-timed").checked,
           videoFile: record.video_archivo_local || null,
-          videoUrl: record.video_url || null,
+          videoUrl: canPlay(record) ? mediaUrl(record) : null,
         };
       });
       const bad = exercises.some((e) => !Number.isFinite(e.sets) || e.sets < 1 || e.sets > 8 || !Number.isFinite(e.reps) || e.reps < 1 || e.reps > 600 || !Number.isFinite(e.rir) || e.rir < 0 || e.rir > 4 || !Number.isFinite(e.rest) || e.rest < 0 || e.rest > 600 || !Number.isFinite(e.kg) || e.kg < 0 || e.kg > 1000);
