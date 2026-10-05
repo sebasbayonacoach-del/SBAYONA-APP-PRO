@@ -16,6 +16,26 @@ function asArray(value) {
   return Array.isArray(value) ? value : value == null ? [] : [value];
 }
 
+const COMPLETE_QUEUE_KEY = "bayona.coaching.complete.v1";
+
+function readCompleteQueue() {
+  try { return JSON.parse(localStorage.getItem(COMPLETE_QUEUE_KEY) || "[]").filter(Boolean); }
+  catch { return []; }
+}
+
+function writeCompleteQueue(ids) {
+  try {
+    const unique = [...new Set((ids || []).filter(Boolean))].slice(-100);
+    if (unique.length) localStorage.setItem(COMPLETE_QUEUE_KEY, JSON.stringify(unique));
+    else localStorage.removeItem(COMPLETE_QUEUE_KEY);
+  } catch { /* la cola es auxiliar; nunca rompe Training */ }
+}
+
+function queueCompletion(id) {
+  if (!id) return;
+  writeCompleteQueue(readCompleteQueue().concat(id));
+}
+
 function inFilter(values = []) {
   const safe = values.filter(Boolean).map((v) => String(v).replace(/[(),]/g, ""));
   return safe.length ? `in.(${safe.join(",")})` : null;
@@ -129,8 +149,34 @@ export async function pendingAssignmentsForMe() {
 export async function completeCloudAssignment(assignmentId) {
   mustUser();
   if (!assignmentId) return false;
-  const result = await rpc("complete_coach_assignment", { p_assignment: assignmentId });
-  return result === true || asArray(result)[0] === true;
+  try {
+    const result = await rpc("complete_coach_assignment", { p_assignment: assignmentId });
+    const ok = result === true || asArray(result)[0] === true;
+    if (ok) writeCompleteQueue(readCompleteQueue().filter((id) => id !== assignmentId));
+    return ok;
+  } catch (e) {
+    queueCompletion(assignmentId);
+    throw e;
+  }
+}
+
+export async function flushCloudCompletions() {
+  if (!currentSession()) return 0;
+  const pending = readCompleteQueue();
+  if (!pending.length) return 0;
+  let done = 0;
+  const keep = [];
+  for (const id of pending) {
+    try {
+      const result = await rpc("complete_coach_assignment", { p_assignment: id });
+      if (result === true || asArray(result)[0] === true) done += 1;
+      else keep.push(id);
+    } catch {
+      keep.push(id);
+    }
+  }
+  writeCompleteQueue(keep);
+  return done;
 }
 
 /**
@@ -142,6 +188,7 @@ export async function hydrateAssignmentsToLocal(S) {
   const cloud = await pendingAssignmentsForMe();
   let count = 0;
   for (const item of cloud) {
+    if ((S.data.asignaciones || []).some((x) => x.cloudAssignmentId === item.id && x.estado === "completada")) continue;
     const r = item.routine;
     if (!r || !Array.isArray(r.exercises) || !r.exercises.length) continue;
     const localId = "cloud_" + r.id;
