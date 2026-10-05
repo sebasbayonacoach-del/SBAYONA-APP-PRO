@@ -1,6 +1,6 @@
 export default async function handler(req, res) {
-  const url = process.env.SUPABASE_URL || "";
-  const key = process.env.SUPABASE_ANON_KEY || "";
+  const url = process.env.SUPABASE_URL || "https://otkhozruunouimjgvvun.supabase.co";
+  const key = process.env.SUPABASE_ANON_KEY || "sb_publishable_ZaBblymo5dRZZJNNOAUXeA_T2-7S1to";
   res.setHeader("Cache-Control", "no-store");
   if (!url || !key) return res.status(200).json({ ok: false, configured: false });
   try {
