@@ -1,0 +1,14 @@
+# Never upload local/private assets or secrets
+private-trainingym/
+.env
+.env.*
+
+# Local/generated dependencies and scratch
+node_modules/
+mobile/node_modules/
+mobile/web-build/
+vendor/
+.openclaw/
+*.log
+.git/
+.vercel/
