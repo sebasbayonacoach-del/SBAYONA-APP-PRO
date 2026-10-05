@@ -406,6 +406,9 @@ create trigger plans_touch
 --   5) lectura de progreso del cliente SOLO por Coach vinculado
 -- =====================================================================
 
+alter table profiles add column if not exists display_name text;
+alter table profiles add column if not exists height_cm numeric(5,1);
+alter table profiles add column if not exists goals jsonb default '[]'::jsonb;
 alter table profiles add column if not exists role text not null default 'athlete';
 alter table profiles add column if not exists updated_at timestamptz not null default now();
 
