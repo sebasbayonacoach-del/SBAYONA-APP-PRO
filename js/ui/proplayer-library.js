@@ -3,6 +3,7 @@
 import { S } from "../state.js";
 import { esc } from "../i18n.js";
 import { BUILDERS, $, el, elT, openSection, showModal, hideModal, toast } from "./shared.js";
+import { linkedClients, saveCloudRoutine, assignCloudRoutine } from "../sync/coaching.js";
 
 const CATALOG_URL = "./trainingym/catalog.json";
 const MEDIA_BASE = "./private-trainingym/media/";
@@ -117,9 +118,14 @@ function dateKey(offset = 0) {
   return y + "-" + m + "-" + day;
 }
 
-function openRoutineBuilder(records, onSaved) {
+async function openRoutineBuilder(records, onSaved) {
   if (!records.length) return toast("SELECCIONA EJERCICIOS", "Añade al menos un ejercicio desde PROPLAYER.");
   const rows = records.slice(0, 12);
+  const cloudClients = await linkedClients().catch(() => []);
+  const clientOptions = [
+    ...cloudClients.map((c) => "<option value=\"" + esc(c.client_id) + "\">" + esc(c.name) + " · NUBE</option>"),
+    "<option value=\"local\">" + (cloudClients.length ? "MI PERFIL LOCAL · PRUEBA" : "CLIENTE LOCAL · ESTE DISPOSITIVO") + "</option>",
+  ].join("");
   const dayOptions = [[0, "HOY"], [1, "MAÑANA"], [2, "PASADO MAÑANA"]]
     .map(([offset, label]) => "<option value=\"" + dateKey(offset) + "\">" + label + " · " + dateKey(offset) + "</option>").join("");
   const exerciseRows = rows.map((record, i) => {
@@ -142,13 +148,14 @@ function openRoutineBuilder(records, onSaved) {
     "<p class=\"proplayer-routine-copy\">Define series, repeticiones o tiempo, RIR, descanso y carga. Se guarda como rutina BAYONA y se asigna directamente al cliente local.</p>" +
     "<div class=\"proplayer-routine-meta\">" +
     "<label>NOMBRE<input id=\"ppr-name\" maxlength=\"80\" value=\"RUTINA PROPLAYER\"></label>" +
+    "<label>CLIENTE<select id=\"ppr-client\">" + clientOptions + "</select></label>" +
     "<label>DURACIÓN<input id=\"ppr-min\" type=\"number\" min=\"5\" max=\"180\" value=\"" + Math.max(15, rows.length * 6) + "\"></label>" +
     "<label>DÍA<select id=\"ppr-day\">" + dayOptions + "</select></label>" +
     "</div><div class=\"proplayer-routine-list\">" + exerciseRows + "</div>" +
     "<div class=\"proplayer-routine-actions\"><button class=\"btn secondary\" id=\"ppr-cancel\">CANCELAR</button><button class=\"btn btn-primary\" id=\"ppr-save\">GUARDAR Y ASIGNAR</button></div></div>";
   showModal(html, () => {
     $("#ppr-cancel").onclick = hideModal;
-    $("#ppr-save").onclick = () => {
+    $("#ppr-save").onclick = async () => {
       const nodes = [...document.querySelectorAll("[data-routine-row]")];
       const exercises = nodes.map((node, i) => {
         const record = rows[i];
@@ -167,10 +174,40 @@ function openRoutineBuilder(records, onSaved) {
       const routine = S.saveCustomRoutine({ name: $("#ppr-name").value, min: Number($("#ppr-min").value), exercises });
       if (!routine) return toast("NO GUARDADA", "La rutina necesita entre 1 y 12 ejercicios.", "danger");
       const dia = $("#ppr-day").value;
-      S.addAsignacion({ clienteId: "local", workoutId: routine.id, customRoutineId: routine.id, dia, nota: "Rutina creada desde PROPLAYER.", origen: "proplayer", autor: "Coach Studio" });
-      hideModal();
-      toast("RUTINA ASIGNADA", routine.name + " · " + dia + " · " + routine.exercises.length + " ejercicios.");
-      onSaved?.(routine);
+      const clientId = $("#ppr-client")?.value || "local";
+      if (clientId === "local") {
+        S.addAsignacion({ clienteId: "local", workoutId: routine.id, customRoutineId: routine.id, dia, nota: "Rutina creada desde PROPLAYER.", origen: "proplayer", autor: "Coach Studio" });
+        hideModal();
+        toast("RUTINA ASIGNADA", routine.name + " · " + dia + " · " + routine.exercises.length + " ejercicios.");
+        onSaved?.(routine);
+        return;
+      }
+
+      const saveBtn = $("#ppr-save");
+      saveBtn.disabled = true;
+      saveBtn.textContent = "ENVIANDO…";
+      try {
+        const cloudRoutine = await saveCloudRoutine({
+          clientId,
+          name: routine.name,
+          min: routine.min,
+          exercises: routine.exercises,
+        });
+        if (!cloudRoutine?.id) throw new Error("No se pudo crear la rutina en la nube.");
+        await assignCloudRoutine({
+          clientId,
+          routineId: cloudRoutine.id,
+          scheduledFor: dia,
+          note: "Rutina creada desde PROPLAYER.",
+        });
+        hideModal();
+        toast("RUTINA ENVIADA", routine.name + " · " + dia + " · cliente vinculado.");
+        onSaved?.(routine);
+      } catch (e) {
+        saveBtn.disabled = false;
+        saveBtn.textContent = "GUARDAR Y ASIGNAR";
+        toast("NO ENVIADA", e.message || "No se pudo asignar la rutina en la nube.", "danger");
+      }
     };
   });
 }
