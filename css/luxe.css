@@ -145,12 +145,12 @@ body.entered #luxe-landing { display: none !important; }
 /* mientras la landing manda, la puerta #entry (fixed z-110) queda
    apagada: si no, taparía la landing entera. Al pulsar ENTRAR,
    landing-boot retira la clase y la puerta vuelve a su flujo v9. */
-body.luxe-activo #entry { display: none; }
+body.luxe-activo #entry { display: none !important; }
 
 /* el HUD entero (#hud, fixed z-10 > landing z-5) flotaba ENCIMA de la
    venta: chips de la barra, pista de movimiento y joystick sobre el hero.
    Mientras la landing manda, el HUD se apaga; al ENTRAR vuelve. */
-body.luxe-activo #hud { display: none; }
+body.luxe-activo #hud { display: none !important; }
 
 /* grain sutil sobre toda la landing */
 #luxe-landing::before {
