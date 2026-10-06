@@ -16,6 +16,7 @@ const ok = (cond, label) => {
 const html = readFileSync(join(root, "index.html"), "utf8");
 const sw = readFileSync(join(root, "sw.js"), "utf8");
 const more = readFileSync(join(root, "js/ui/more.js"), "utf8");
+const appLoader = readFileSync(join(root, "js/app-loader.js"), "utf8");
 const i18n = readFileSync(join(root, "js/i18n.js"), "utf8");
 const robots = readFileSync(join(root, "robots.txt"), "utf8");
 const sitemap = readFileSync(join(root, "sitemap.xml"), "utf8");
@@ -47,7 +48,7 @@ ok(manifest.shortcuts?.some((x) => x.url === "./?go=training"), "shortcut de ent
 ok(manifest.shortcuts?.some((x) => x.url === "./?go=coachos"), "shortcut de Coach Studio");
 
 const shellVersion = Number((sw.match(/bayona-shell-v(\d+)/) || [])[1]);
-ok(shellVersion >= 29, `service worker actualizado (v${shellVersion || "?"})`);
+ok(shellVersion >= 30, `service worker actualizado (v${shellVersion || "?"})`);
 ok(sw.includes('"./js/pwa.js"'), "helper PWA precacheado");
 ok(sw.includes('path.startsWith("/api/")'), "API dinámica fuera del caché del shell");
 ok(more.includes('from "../pwa.js"'), "MÁS integra instalación PWA");
@@ -70,8 +71,18 @@ const catalogHeaders = vercel.headers?.find((x) => x.source === "/trainingym/cat
 ok(catalogHeaders.some((h) => h.key === "Cache-Control" && String(h.value).includes("s-maxage=3600")), "catálogo usa caché CDN corta");
 ok(!vercelIgnore.includes("trainingym/catalog.json"), "catálogo público no queda excluido");
 
+console.log("\n— arranque ligero —");
+ok(html.includes('src="js/ui/landing-boot.js"'), "landing-boot es el único bootstrap visible de la app");
+ok(!html.includes('src="js/main.js"'), "main 3D no se descarga antes de entrar");
+ok(!html.includes('src="js/move.js"'), "movimiento se difiere hasta entrar");
+ok(!html.includes('src="js/health/healthUI.js"'), "Health Map se difiere hasta entrar");
+ok(html.includes('<video data-src="media/squat.mp4"') && !html.includes('<video src="media/squat.mp4"'), "vídeo de acceso se difiere hasta entrar");
+ok(appLoader.includes('import("/api/runtime-config.js")'), "runtime cloud se carga bajo demanda");
+ok(appLoader.includes('import("./main.js")'), "app-loader trae el núcleo bajo demanda");
+ok(appLoader.indexOf('import("/api/runtime-config.js")') < appLoader.indexOf('import("./main.js")'), "runtime cloud se resuelve antes del núcleo");
+ok(sw.includes('"./js/app-loader.js"'), "app-loader disponible offline");
+
 console.log("\n— arranque seguro —");
-ok(html.indexOf("/api/runtime-config.js") < html.indexOf("js/main.js"), "runtime cloud carga antes de main");
 ok(!html.includes("</div\n\n  <!-- ============ HUD"), "HTML de ingreso cierra correctamente");
 
 const pwa = await import("../js/pwa.js");
