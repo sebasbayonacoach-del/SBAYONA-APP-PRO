@@ -4,7 +4,7 @@
 // Con esto la app abre sin red y el registro de series funciona offline
 // (los datos viven en el dispositivo y se sincronizan después).
 // ============================================================
-const CACHE = "bayona-shell-v27";
+const CACHE = "bayona-shell-v28";
 const SHELL = [
   "./css/pro.css",
   "./css/luxe.css",
@@ -39,7 +39,7 @@ const SHELL = [
   "./js/vision/boot.js", "./js/vision/pose.js", "./js/vision/repCounter.js", "./js/vision/angles.js",
   "./js/vision/formScore.js", "./js/vision/retarget.js",
   "./vendor/three.module.js",
-  "./icon-192.png", "./icon-512.png",
+  "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png",
 ];
 
 self.addEventListener("install", (e) => {
@@ -70,8 +70,10 @@ self.addEventListener("fetch", (e) => {
   const req = e.request;
   if (req.method !== "GET" || new URL(req.url).origin !== location.origin) return;
   const path = new URL(req.url).pathname;
-  // Configuración dinámica y biblioteca privada: nunca servir una versión obsoleta.
-  if (path.includes("/api/runtime-config.js") || path.includes("/private-trainingym/")) {
+  // API dinámica y biblioteca privada: nunca cachear respuestas como si fueran shell.
+  // Especialmente importante para /api/cloud-status.js: offline debe fallar como API,
+  // no devolver index.html ni una respuesta obsoleta.
+  if (path.startsWith("/api/") || path.includes("/private-trainingym/")) {
     e.respondWith(fetch(req));
     return;
   }
