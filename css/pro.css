@@ -2591,6 +2591,25 @@ body.fitness-app #entry .e-title {
 }
 body.fitness-app #entry .e-title em {
   color: #ff6a00;
+  text-decoration: none;
+}
+body.fitness-app #entry .e-kicker {
+  animation: bayonaGateRise .34s var(--ease) both .02s;
+}
+body.fitness-app #entry .e-title {
+  animation: bayonaGateRise .38s var(--ease) both .05s;
+}
+body.fitness-app #entry .e-sub {
+  animation: bayonaGateRise .38s var(--ease) both .08s;
+}
+body.fitness-app #entry .e-system-pills,
+body.fitness-app #entry .e-entry-proof,
+body.fitness-app #entry .e-role-panel {
+  animation: bayonaGateRise .42s var(--ease) both .1s;
+}
+@keyframes bayonaGateRise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
 }
 body.fitness-app #entry .e-sub {
   color: #9a9fa3;
