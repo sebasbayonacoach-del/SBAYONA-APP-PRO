@@ -131,8 +131,14 @@ async function openRoutineBuilder(records, onSaved) {
   const exerciseRows = rows.map((record, i) => {
     const timed = record.tipo === "Movilidad";
     const defaultReps = timed ? 45 : 10;
-    return "<article class=\"proplayer-routine-row\" data-routine-row=\"" + i + "\">" +
-      "<div class=\"proplayer-routine-row-head\"><span>" + String(i + 1).padStart(2, "0") + "</span><strong>" + esc(record.nombre) + "</strong><small>" + esc(record.grupo_muscular || "SIN ASIGNAR") + "</small></div>" +
+    return "<article class=\"proplayer-routine-row\" data-routine-row=\"" + i + "\" data-record-index=\"" + i + "\">" +
+      "<div class=\"proplayer-routine-row-head\"><span class=\"ppr-row-num\">" + String(i + 1).padStart(2, "0") + "</span><strong>" + esc(record.nombre) + "</strong><small>" + esc(record.grupo_muscular || "SIN ASIGNAR") + "</small>" +
+      "<div class=\"ppr-row-controls\" aria-label=\"Orden del ejercicio\">" +
+      "<button type=\"button\" data-ppr-action=\"up\" aria-label=\"Subir ejercicio\">↑</button>" +
+      "<button type=\"button\" data-ppr-action=\"down\" aria-label=\"Bajar ejercicio\">↓</button>" +
+      "<button type=\"button\" data-ppr-action=\"duplicate\" aria-label=\"Duplicar ejercicio\">⧉</button>" +
+      "<button type=\"button\" data-ppr-action=\"remove\" aria-label=\"Eliminar ejercicio\">×</button>" +
+      "</div></div>" +
       "<div class=\"proplayer-routine-fields\">" +
       "<label>SERIES<input class=\"ppr-sets\" type=\"number\" min=\"1\" max=\"8\" value=\"3\"></label>" +
       "<label>REPS / SEG<input class=\"ppr-reps\" type=\"number\" min=\"1\" max=\"600\" value=\"" + defaultReps + "\"></label>" +
@@ -145,7 +151,7 @@ async function openRoutineBuilder(records, onSaved) {
   const html = "<div class=\"proplayer-routine-modal\" data-proplayer-routine>" +
     "<div class=\"proplayer-kicker\">COACH STUDIO / PROPLAYER</div>" +
     "<h3>CONSTRUIR RUTINA</h3>" +
-    "<p class=\"proplayer-routine-copy\">Define series, repeticiones o tiempo, RIR, descanso y carga. Se guarda como rutina BAYONA y se asigna directamente al cliente local.</p>" +
+    "<p class=\"proplayer-routine-copy\">Define la sesión, reordena ejercicios, duplica bloques cuando lo necesites y ajusta series, repeticiones o tiempo, RIR, descanso y carga. Puedes asignarla al dispositivo o a un cliente BAYONA vinculado.</p>" +
     "<div class=\"proplayer-routine-meta\">" +
     "<label>NOMBRE<input id=\"ppr-name\" maxlength=\"80\" value=\"RUTINA PROPLAYER\"></label>" +
     "<label>CLIENTE<select id=\"ppr-client\">" + clientOptions + "</select></label>" +
@@ -155,10 +161,49 @@ async function openRoutineBuilder(records, onSaved) {
     "<div class=\"proplayer-routine-actions\"><button class=\"btn secondary\" id=\"ppr-cancel\">CANCELAR</button><button class=\"btn btn-primary\" id=\"ppr-save\">GUARDAR Y ASIGNAR</button></div></div>";
   showModal(html, () => {
     $("#ppr-cancel").onclick = hideModal;
+    const list = document.querySelector(".proplayer-routine-list");
+    const renumberRows = () => {
+      const nodes = [...list.querySelectorAll("[data-routine-row]")];
+      nodes.forEach((node, i) => {
+        node.dataset.routineRow = String(i);
+        const num = node.querySelector(".ppr-row-num");
+        if (num) num.textContent = String(i + 1).padStart(2, "0");
+        const up = node.querySelector('[data-ppr-action="up"]');
+        const down = node.querySelector('[data-ppr-action="down"]');
+        if (up) up.disabled = i === 0;
+        if (down) down.disabled = i === nodes.length - 1;
+      });
+    };
+    list.addEventListener("click", (event) => {
+      const btn = event.target.closest("[data-ppr-action]");
+      if (!btn) return;
+      const row = btn.closest("[data-routine-row]");
+      if (!row) return;
+      const action = btn.dataset.pprAction;
+      if (action === "up") {
+        const prev = row.previousElementSibling;
+        if (prev) list.insertBefore(row, prev);
+      } else if (action === "down") {
+        const next = row.nextElementSibling;
+        if (next) list.insertBefore(next, row);
+      } else if (action === "duplicate") {
+        const count = list.querySelectorAll("[data-routine-row]").length;
+        if (count >= 12) return toast("MÁXIMO 12", "Una rutina PROPLAYER admite hasta 12 ejercicios.", "danger");
+        const clone = row.cloneNode(true);
+        row.after(clone);
+      } else if (action === "remove") {
+        const count = list.querySelectorAll("[data-routine-row]").length;
+        if (count <= 1) return toast("MÍNIMO 1", "La rutina debe conservar al menos un ejercicio.", "danger");
+        row.remove();
+      }
+      renumberRows();
+    });
+    renumberRows();
+
     $("#ppr-save").onclick = async () => {
       const nodes = [...document.querySelectorAll("[data-routine-row]")];
-      const exercises = nodes.map((node, i) => {
-        const record = rows[i];
+      const exercises = nodes.map((node) => {
+        const record = rows[Number(node.dataset.recordIndex)];
         return {
           ex: routineKey(record), sourceId: record.source_id, pos: record.pos,
           name: record.nombre, muscle: record.grupo_muscular || "FULL", type: record.tipo || "Fuerza",

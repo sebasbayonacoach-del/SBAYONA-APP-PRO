@@ -4247,3 +4247,43 @@ body.fitness-app #modal-box:has(.proplayer-routine-modal){
   .proplayer-routine-row-head small{grid-column:2}
   .proplayer-card-bottom{flex-wrap:wrap}
 }
+
+/* Routine Studio 2.0 · orden / duplicado / eliminación */
+.ppr-row-controls{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:5px;
+}
+.ppr-row-controls button{
+  display:grid;
+  place-items:center;
+  width:30px;
+  height:30px;
+  border:1px solid var(--line);
+  border-radius:9px;
+  background:color-mix(in srgb,var(--panel) 92%,transparent);
+  color:var(--text);
+  font:700 13px/1 var(--mono,monospace);
+  cursor:pointer;
+}
+.ppr-row-controls button:hover{
+  border-color:color-mix(in srgb,var(--orange) 64%,var(--line));
+  color:var(--orange);
+}
+.ppr-row-controls button:disabled{
+  opacity:.28;
+  cursor:not-allowed;
+}
+@media(max-width:760px){
+  .proplayer-routine-row-head{
+    grid-template-columns:28px minmax(0,1fr) auto;
+  }
+  .proplayer-routine-row-head small{grid-column:2}
+  .ppr-row-controls{
+    grid-column:3;
+    grid-row:1/3;
+    display:grid;
+    grid-template-columns:repeat(2,30px);
+  }
+}
