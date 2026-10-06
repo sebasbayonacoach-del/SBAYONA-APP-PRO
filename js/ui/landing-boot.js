@@ -52,13 +52,21 @@ function showLoadError() {
   msg.textContent = t("luxe.load.error");
 }
 
-async function enterApp(plan = null, role = "affiliate") {
+async function enterApp(plan = null, role = null) {
   setLoading(true);
   try {
     await loadApp();
     removeLanding();
 
-    const safeRole = role === "coach" ? "coach" : "affiliate";
+    // Un CTA genérico abre el portal de acceso para que el usuario elija
+    // su espacio. Los planes sí conservan una intención clara.
+    const inferredRole = role || (plan === "centro" ? "coach" : (plan === "atleta" || plan === "pro" ? "affiliate" : null));
+    if (!inferredRole) {
+      document.getElementById("entry")?.focus?.({ preventScroll: true });
+      return;
+    }
+
+    const safeRole = inferredRole === "coach" ? "coach" : "affiliate";
     const target = document.getElementById(safeRole === "coach" ? "entry-coach" : "entry-go");
     if (target) {
       target.click();
@@ -108,7 +116,7 @@ function boot() {
   montarLanding({
     t,
     esc,
-    onEntrar: (plan) => enterApp(plan, "affiliate"),
+    onEntrar: (plan) => enterApp(plan),
   });
 }
 
