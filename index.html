@@ -78,40 +78,80 @@
   <section id="luxe-landing" aria-label="Presentación de BAYONA"></section>
 
   <!-- ============ INGRESO · dos experiencias, un solo sistema ============ -->
-  <div id="entry" role="dialog" aria-label="Elegir acceso a BAYONA">
-    <div class="e-corner">
-      <span class="brand-mark">◈</span>
-      <span class="brand-name">BAYONA</span>
+  <div id="entry" role="dialog" aria-label="Elegir espacio de trabajo en BAYONA">
+    <div class="e-app-shell">
+      <div class="e-appbar">
+        <div class="e-corner">
+          <span class="brand-mark">◈</span>
+          <span class="brand-name">BAYONA</span>
+        </div>
+        <div class="e-app-status"><i></i><span>TRAINING OS</span><b>ONLINE</b></div>
+      </div>
+
+      <div class="e-entry-layout">
+        <section class="e-entry-intro" aria-labelledby="entry-title">
+          <div class="e-kicker">APP ENTRENADOR + ATLETA · UN SOLO SISTEMA</div>
+          <h1 class="e-title" id="entry-title">Tu entrenamiento.<br /><em>Tu centro de mando.</em></h1>
+          <div class="e-sub">Elige tu espacio. El atleta entra directo a su sesión; el coach gestiona clientes, rutinas, agenda y seguimiento profesional.</div>
+          <div class="e-system-pills" aria-label="Funciones principales">
+            <span>PROPLAYER</span><span>RUTINAS</span><span>PROGRESO</span><span>CLIENTES</span>
+          </div>
+          <div class="e-entry-proof">
+            <span><b>01</b> MISMA CUENTA</span>
+            <span><b>02</b> DOS EXPERIENCIAS</span>
+            <span><b>03</b> CAMBIO INSTANTÁNEO</span>
+          </div>
+        </section>
+
+        <section class="e-role-panel" aria-label="Selecciona cómo entrar">
+          <div class="e-role-panel-head">
+            <div><small>ACCESO</small><strong>¿Dónde quieres entrar?</strong></div>
+            <span>ELIGE UN PERFIL</span>
+          </div>
+
+          <div class="e-role-grid" role="group" aria-label="Tipo de acceso">
+            <button class="e-role-card affiliate" id="entry-go" data-entry-role="affiliate">
+              <span class="e-role-topline"><small>01 · ATLETA</small><em>APP PERSONAL</em></span>
+              <span class="e-role-body">
+                <span class="e-role-media" aria-hidden="true">
+                  <video data-src="media/squat.mp4" data-poster="media/squat.jpg" muted loop playsinline preload="none"></video>
+                  <i></i>
+                </span>
+                <span class="e-role-copy">
+                  <strong>Entrar a mi entrenamiento</strong>
+                  <span>Hoy · rutina · videos · progreso · nutrición</span>
+                  <span class="e-role-tags"><i>SESIÓN</i><i>HÁBITOS</i><i>EVOLUCIÓN</i></span>
+                </span>
+                <b aria-hidden="true">→</b>
+              </span>
+            </button>
+
+            <button class="e-role-card coach" id="entry-coach" data-entry-role="coach">
+              <span class="e-role-topline"><small>02 · COACH</small><em>STUDIO PRO</em></span>
+              <span class="e-role-body">
+                <span class="e-role-dashboard" aria-hidden="true">
+                  <i></i><i></i><i></i><i></i><i></i>
+                </span>
+                <span class="e-role-copy">
+                  <strong>Abrir Coach Studio</strong>
+                  <span>Clientes · planificación · agenda · informes</span>
+                  <span class="e-role-tags"><i>CRM</i><i>PROGRAMACIÓN</i><i>CONTROL</i></span>
+                </span>
+                <b aria-hidden="true">→</b>
+              </span>
+            </button>
+          </div>
+
+          <div class="e-role-note"><span>◉</span> Tu último acceso queda preparado para entrar más rápido.</div>
+        </section>
+      </div>
+
+      <div class="e-entry-foot">
+        <span>BAYONA ONE</span>
+        <span>ENTRENAMIENTO · COACHING · GESTIÓN</span>
+        <span>ESPAÑOL · PWA</span>
+      </div>
     </div>
-    <div class="e-kicker">BAYONA ONE · ELIGE TU EXPERIENCIA</div>
-    <h1 class="e-title">Un sistema.<br /><em>Dos mundos.</em></h1>
-    <div class="e-sub">Entrena con una experiencia visual o dirige clientes desde tu centro de mando profesional.</div>
-    <div class="e-role-grid" role="group" aria-label="Tipo de acceso">
-      <button class="e-role-card affiliate" id="entry-go" data-entry-role="affiliate">
-        <span class="e-role-media" aria-hidden="true">
-          <video data-src="media/squat.mp4" data-poster="media/squat.jpg" muted loop playsinline preload="none"></video>
-          <i></i>
-        </span>
-        <span class="e-role-copy">
-          <small>SOY AFILIADO</small>
-          <strong>Entrar a mi experiencia</strong>
-          <span>Sesión · videos · progreso · nutrición · guía</span>
-        </span>
-        <b>→</b>
-      </button>
-      <button class="e-role-card coach" id="entry-coach" data-entry-role="coach">
-        <span class="e-role-dashboard" aria-hidden="true">
-          <i></i><i></i><i></i><i></i><i></i>
-        </span>
-        <span class="e-role-copy">
-          <small>SOY COACH</small>
-          <strong>Abrir Coach Studio</strong>
-          <span>Clientes · planificación · agenda · informes</span>
-        </span>
-        <b>→</b>
-      </button>
-    </div>
-    <div class="e-entry-foot">MISMA CUENTA · EXPERIENCIAS SEPARADAS · CAMBIA CUANDO QUIERAS</div>
   </div>
 
   <!-- ============ HUD LAYER · mínimo ============ -->
