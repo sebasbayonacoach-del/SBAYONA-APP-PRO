@@ -109,6 +109,20 @@ function wireEntry(world) {
   const modeName = document.getElementById("mode-name");
   if (!entry || !affiliate || !coach) return;
 
+  // El vídeo de la tarjeta no forma parte del coste de la landing pública.
+  // Solo se activa cuando el producto completo ya fue solicitado.
+  const previewVideo = affiliate.querySelector("video[data-src]");
+  if (previewVideo) {
+    const poster = previewVideo.dataset.poster;
+    if (poster) previewVideo.poster = poster;
+    const saveData = Boolean(navigator.connection?.saveData);
+    if (!saveData) {
+      previewVideo.src = previewVideo.dataset.src || "";
+      previewVideo.load();
+      previewVideo.play().catch(() => { /* autoplay puede estar bloqueado */ });
+    }
+  }
+
   const roleKey = "bayona.entry.role.v1";
   const lastRole = localStorage.getItem(roleKey) || "affiliate";
   entry.dataset.lastRole = lastRole;
@@ -167,4 +181,8 @@ function toastUi(kind, text, cls) {
   import("./ui/shared.js").then(({ toast }) => toast(kind, text, cls));
 }
 
-addEventListener("DOMContentLoaded", boot);
+if (document.readyState === "loading") {
+  addEventListener("DOMContentLoaded", boot, { once: true });
+} else {
+  boot();
+}
