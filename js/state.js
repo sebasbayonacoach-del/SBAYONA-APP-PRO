@@ -124,7 +124,7 @@ function freshToday() {
 
 function freshProfile() {
   return {
-    name: "", goal: "FUERZA", skin: 0, coach: "MENTOR", created: Date.now(),
+    name: "", goal: "BIENESTAR Y ADHERENCIA", skin: 0, coach: "MENTOR", created: Date.now(),
     onboarded: false, experience: null, availability: null, equipment: null,
     heightCm: null, weightKg: null, age: null, face: null, skinHex: null,
     avatar3d: null, // descriptor { provider, avatarId, urlType, cacheKey, httpUrl, at }
@@ -177,6 +177,13 @@ export const S = {
     const d = this.data;
     d.schema = d.schema || 2;
     d.profile = { ...freshProfile(), ...(d.profile || {}) };
+    const legacyGoal = {
+      FUERZA: "FUERZA Y POTENCIA",
+      HIPERTROFIA: "HIPERTROFIA MUSCULAR",
+      RESISTENCIA: "RESISTENCIA Y CONDICIÓN FÍSICA",
+      SALUD: "BIENESTAR Y ADHERENCIA",
+    }[d.profile.goal];
+    if (legacyGoal) d.profile.goal = legacyGoal;
     d.settings = { sound: true, motion: true, haptics: true, quality: "AUTO", ...(d.settings || {}) };
     d.today = { ...freshToday(), ...(d.today || {}) };
     d.voice = Array.isArray(d.voice) ? d.voice : [];

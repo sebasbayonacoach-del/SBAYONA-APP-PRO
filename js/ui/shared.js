@@ -75,8 +75,8 @@ export function travel(placeKey, after) {
 
 export function enterHome(first) {
   openSection("hoy");
-  if (UI.W) UI.W.avatar.setAction(S.data.today.trained ? "wave" : "idle");
-  if (!first) setTimeout(() => UI.W?.avatar.setAction("idle"), 1800);
+  // En casa el personaje está presente, pero no salta ni saluda solo.
+  if (UI.W) UI.W.avatar.setAction("idle");
   document.querySelectorAll(".rail-btn").forEach((x) => x.classList.toggle("active", x.dataset.go === "hoy"));
 }
 
@@ -135,11 +135,14 @@ export function openSection(name) {
   const build = BUILDERS[name] || BUILDERS.home;
   if (build) build(body);
   body.scrollTop = 0;
-  const group = name === "library"
-    ? (document.body.dataset.oneContext === "coach" ? "profile" : "training")
-    : ["nutrition","recovery","mind","rhythm","daily"].includes(name) ? "wellbeing"
-    : ["appearance","account","more","armory","core","trabajo","coachos"].includes(name) ? "profile"
-    : name === "plan" ? "training" : name;
+  const coachAccount = document.body.dataset.entryRole === "coach";
+  const group = coachAccount && ["coachos","library","agenda","account"].includes(name)
+    ? name
+    : name === "library"
+      ? "training"
+      : ["nutrition","recovery","mind","rhythm","daily"].includes(name) ? "wellbeing"
+      : ["appearance","account","more","armory","core","trabajo","coachos"].includes(name) ? "profile"
+      : name === "plan" ? "training" : name;
   document.querySelectorAll("#panel-nav [data-go]").forEach(node => {
     const active = node.dataset.go === group; node.classList.toggle("active", active);
     if (active) node.setAttribute("aria-current", "page"); else node.removeAttribute("aria-current");

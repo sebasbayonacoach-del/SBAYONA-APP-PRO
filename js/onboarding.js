@@ -1,26 +1,54 @@
 // ============================================================
-// BAYONA — ONBOARDING ÚNICO: crea tu personaje y tu perfil BAYONA
-// Un solo proceso de bienvenida (antes había dos). Conserva lo escrito al
-// retroceder, permite omitir lo opcional y termina en una acción real.
+// BAYONA — ONBOARDING v2 · una pregunta por pantalla
+// ------------------------------------------------------------
+// Menos formulario, más app. La configuración avanzada (foto, medidas,
+// permisos y preferencias) vive después en Perfil, de forma progresiva.
 // ============================================================
 import { S } from "./state.js";
 import { esc } from "./i18n.js";
-import { setConsent, migrateLegacyConsents } from "./consents.js";
+import {
+  GOALS, EXPERIENCE, AVAILABILITY, EQUIPMENT, validateProfile,
+} from "./personalization.js";
 
-migrateLegacyConsents();
+const GOAL_META = [
+  ["COMPOSICIÓN CORPORAL", "◒", "Composición"],
+  ["HIPERTROFIA MUSCULAR", "⬡", "Músculo"],
+  ["FUERZA Y POTENCIA", "⚡", "Fuerza"],
+  ["RESISTENCIA Y CONDICIÓN FÍSICA", "∞", "Resistencia"],
+  ["MOVILIDAD Y FUNCIÓN", "↔", "Moverme mejor"],
+  ["RENDIMIENTO DEPORTIVO", "◆", "Rendimiento"],
+  ["BIENESTAR Y ADHERENCIA", "○", "Sentirme mejor"],
+];
 
-const SKINS = ["#e0e0e0", "#c9c9c9", "#a6a6a6", "#808080", "#5c5c5c", "#3a3a3a"];
-const GOALS = ["FUERZA", "HIPERTROFIA", "RESISTENCIA", "SALUD"];
-const EXP = ["EMPIEZO AHORA", "ALGO DE EXPERIENCIA", "ENTRENO HACE AÑOS"];
-const AVAIL = ["2 DÍAS/SEMANA", "3 DÍAS/SEMANA", "4-5 DÍAS/SEMANA", "CASI A DIARIO"];
-const EQUIP = ["SIN EQUIPAMIENTO", "MANCUERNAS/BANDAS", "GIMNASIO COMPLETO"];
+const AVAIL_META = [
+  ["2 DÍAS/SEMANA", "2", "días"],
+  ["3 DÍAS/SEMANA", "3", "días"],
+  ["4-5 DÍAS/SEMANA", "4–5", "días"],
+  ["CASI A DIARIO", "6+", "días"],
+];
 
+const EQUIP_META = [
+  ["SIN EQUIPAMIENTO", "⌂", "En casa"],
+  ["MANCUERNAS/BANDAS", "◫", "Equipo básico"],
+  ["GIMNASIO COMPLETO", "▦", "Gimnasio"],
+];
+
+const DURATION_META = [
+  ["15", "15", "min"],
+  ["30", "30", "min"],
+  ["45", "45", "min"],
+  ["60", "60", "min"],
+];
+
+const TOTAL = 6;
 const st = {
   step: 0,
-  name: "", goal: "FUERZA", experience: EXP[1], availability: AVAIL[1], equipment: EQUIP[1],
+  name: "",
+  goal: "BIENESTAR Y ADHERENCIA",
+  experience: EXPERIENCE[1],
+  availability: AVAILABILITY[1],
+  equipment: EQUIPMENT[1],
   sessionMinutes: "30",
-  skinIdx: 0, face: null, skinHex: null, avatar3d: null,
-  consentVision: false, consentHealth: false, consentAvatar3d: false,
 };
 
 const el = (html) => {
@@ -29,321 +57,272 @@ const el = (html) => {
   return t.content.firstChild;
 };
 
-function dots() {
-  return `<div id="ob-dots" aria-hidden="true">${[0, 1, 2, 3].map((i) => `<i class="${i === st.step ? "on" : ""}"></i>`).join("")}</div>
-    <span class="sr-only">Paso ${st.step + 1} de 4</span>`;
+function progress() {
+  const pct = Math.round(((st.step + 1) / TOTAL) * 100);
+  return `
+    <div class="ob-top">
+      <span>BAYONA</span>
+      <span>${st.step + 1} / ${TOTAL}</span>
+    </div>
+    <div class="ob-progress" aria-hidden="true"><i style="width:${pct}%"></i></div>
+    <span class="sr-only">Paso ${st.step + 1} de ${TOTAL}</span>`;
 }
-function chipRow(key, values, labelId) {
-  return `<div class="ob-row" role="group" aria-labelledby="${labelId}">${values.map((v) =>
-    `<button data-k="${key}" data-v="${esc(v)}" aria-pressed="${st[key] === v}" class="${st[key] === v ? "on" : ""}">${esc(v)}</button>`).join("")}</div>`;
+
+function optionGrid(key, rows, label) {
+  return `<div class="ob-choice-grid" role="group" aria-label="${esc(label)}">${rows.map(([value, icon, title]) => `
+    <button type="button" class="ob-choice ${st[key] === value ? "on" : ""}" data-k="${key}" data-v="${esc(value)}" aria-pressed="${st[key] === value}">
+      <span class="ob-choice-icon" aria-hidden="true">${icon}</span>
+      <strong>${esc(title)}</strong>
+    </button>`).join("")}</div>`;
+}
+
+function footer({ next = true, done = false, back = true } = {}) {
+  return `<div class="ob-actions">
+    ${back ? '<button class="ob-back" id="ob-back" type="button" aria-label="Volver">←</button>' : '<span></span>'}
+    ${done
+      ? '<button class="ob-primary" id="ob-done" type="button">ENTRAR A BAYONA</button>'
+      : next ? '<button class="ob-primary" id="ob-next" type="button">CONTINUAR</button>' : ''}
+  </div>`;
 }
 
 function view() {
   if (st.step === 0) return `
-    ${dots()}
-    <div class="ob-eyebrow">BIENVENIDA A TU NUEVO RITMO</div>
-    <h2>EMPIEZA CONTIGO</h2>
-    <div class="ob-sub">Tu entrenamiento, tu tiempo y tu forma de avanzar. Vamos a preparar tu punto de partida.</div>
-    <label id="lbl-name" for="ob-name">TU NOMBRE O APODO (opcional)</label>
-    <input id="ob-name" maxlength="18" placeholder="p. ej. Sebas" value="${esc(st.name)}" />
-    <details class="ob-avatar-options"><summary>PERSONALIZAR MI PERSONAJE · OPCIONAL</summary>
-    <label id="lbl-skin">TONO DE PIEL</label>
-    <div class="ob-row" id="ob-skins" role="group" aria-labelledby="lbl-skin">${SKINS.map((s, i) =>
-      `<button data-skin="${i}" aria-label="Tono de piel ${i + 1}" aria-pressed="${i === st.skinIdx}" style="width:38px;height:38px;border-radius:50%;background:${s};border:3px solid ${i === st.skinIdx ? "var(--acc-2)" : "transparent"};box-shadow:${i === st.skinIdx ? "0 0 0 3px var(--acc-soft)" : "none"}"></button>`).join("")}</div>
-    <label id="lbl-face">FOTO (opcional) · será la cara de tu personaje, solo en tu dispositivo</label>
-    <div class="ob-row">
-      <label class="ob-file">SUBIR FOTO<input type="file" id="ob-face" accept="image/*" hidden /></label>
-      <span id="ob-face-ok" style="font-size:12px;align-self:center"></span>
+    ${progress()}
+    <div class="ob-stage">
+      <div class="ob-symbol">◈</div>
+      <div class="ob-kicker">TU APP · TU RITMO</div>
+      <h2>¿Cómo te llamamos?</h2>
+      <p>Solo para que BAYONA se sienta tuya.</p>
+      <label class="sr-only" for="ob-name">Nombre o apodo</label>
+      <input id="ob-name" maxlength="18" autocomplete="given-name" placeholder="Tu nombre o apodo" value="${esc(st.name)}" />
     </div>
-    <label id="lbl-a3d">AVATAR 3D (opcional) · tu cuerpo completo en el juego</label>
-    <div class="ob-row">
-      <button type="button" id="ob-a3d" style="border-color:var(--acc-2);font-weight:800">CREAR MI AVATAR 3D ◈</button>
-      <span id="ob-a3d-ok" style="font-size:12px;align-self:center"></span>
-    </div>
-    <label class="ob-check"><input type="checkbox" id="ob-ca3" ${st.consentAvatar3d ? "checked" : ""} />
-      <span><b>Avatar 3D:</b> tu selfie se procesa en Avaturn para crear el cuerpo 3D. Sin esto juegas con tu foto, y lo creas cuando quieras en APARIENCIA.</span></label>
-    </details>
-    <button class="big" id="ob-next">CONTINUAR →</button>
-    <button class="big ob-fast" id="ob-fast">EMPEZAR YA</button>
-    <div class="ob-fast-note">Con valores por defecto (objetivo FUERZA · 3 días/semana). Los cambias cuando quieras.</div>`;
+    ${footer({ back:false })}`;
 
   if (st.step === 1) return `
-    ${dots()}
-    <h2>TU OBJETIVO</h2>
-    <div class="ob-sub">Lo cambiarás cuando quieras.</div>
-    <label id="lbl-goal">¿QUÉ QUIERES LOGRAR PRIMERO?</label>
-    ${chipRow("goal", GOALS, "lbl-goal")}
-    <label id="lbl-exp">EXPERIENCIA PREVIA</label>
-    ${chipRow("experience", EXP, "lbl-exp")}
-    <button class="big" id="ob-next">CONTINUAR →</button>
-    <button class="big ob-back" id="ob-back">← ATRÁS</button>`;
+    ${progress()}
+    <div class="ob-stage">
+      <div class="ob-kicker">TU OBJETIVO</div>
+      <h2>¿Qué quieres mejorar?</h2>
+      <p>Elige una prioridad. Podrás cambiarla después.</p>
+      ${optionGrid("goal", GOAL_META, "Objetivo principal")}
+    </div>
+    ${footer()}`;
 
   if (st.step === 2) return `
-    ${dots()}
-    <h2>TU DISPONIBILIDAD</h2>
-    <div class="ob-sub">Tu plan se ajusta a tu tiempo y a tu material.</div>
-    <label id="lbl-avail">¿CUÁNTO PUEDES ENTRENAR?</label>
-    ${chipRow("availability", AVAIL, "lbl-avail")}
-    <label id="lbl-equip">¿QUÉ EQUIPAMIENTO TIENES?</label>
-    ${chipRow("equipment", EQUIP, "lbl-equip")}
-    <label id="lbl-duration">MINUTOS POR SESIÓN · ESTIMACIÓN</label>
-    ${chipRow("sessionMinutes", ["15", "30", "45", "60"], "lbl-duration")}
-    <div class="ob-sub">Después podrás activar tu diario de ciclo en MI RITMO. Es opcional y privado en este dispositivo.</div>
-    <button class="big" id="ob-next">CONTINUAR →</button>
-    <button class="big ob-back" id="ob-back">← ATRÁS</button>`;
+    ${progress()}
+    <div class="ob-stage">
+      <div class="ob-kicker">TU SEMANA</div>
+      <h2>¿Cuántos días encajan contigo?</h2>
+      <p>El plan se adapta a tu vida, no al revés.</p>
+      ${optionGrid("availability", AVAIL_META, "Días disponibles")}
+    </div>
+    ${footer()}`;
 
+  if (st.step === 3) return `
+    ${progress()}
+    <div class="ob-stage">
+      <div class="ob-kicker">TU ESPACIO</div>
+      <h2>¿Dónde vas a entrenar?</h2>
+      <p>Esto cambia los ejercicios, no tu objetivo.</p>
+      ${optionGrid("equipment", EQUIP_META, "Equipamiento disponible")}
+    </div>
+    ${footer()}`;
+
+  if (st.step === 4) return `
+    ${progress()}
+    <div class="ob-stage">
+      <div class="ob-kicker">TU TIEMPO</div>
+      <h2>¿Cuánto dura una sesión ideal?</h2>
+      <p>Una estimación. BAYONA ajusta la carga del día.</p>
+      ${optionGrid("sessionMinutes", DURATION_META, "Duración aproximada")}
+    </div>
+    ${footer()}`;
+
+  const goalLabel = GOAL_META.find(([v]) => v === st.goal)?.[2] || st.goal;
+  const equipLabel = EQUIP_META.find(([v]) => v === st.equipment)?.[2] || st.equipment;
   return `
-    ${dots()}
-    <h2>TU PLAN, TU CONTROL</h2>
-    <div class="ob-plan-summary"><b>${esc(st.name || "ATLETA")}</b><span>${esc(st.goal)} · ${esc(st.availability)}</span><span>${esc(st.equipment)} · ~${esc(st.sessionMinutes)} min</span></div>
-    <div class="ob-sub">Solo si TÚ quieres. Lo revocas en MÁS → Privacidad.</div>
-    <label class="ob-check"><input type="checkbox" id="ob-cv" ${st.consentVision ? "checked" : ""} />
-      <span><b>Cámara y movimiento:</b> cuenta tus reps y conduce tu personaje. <b>El vídeo NUNCA sale de tu dispositivo.</b></span></label>
-    <label class="ob-check"><input type="checkbox" id="ob-ch" ${st.consentHealth ? "checked" : ""} />
-      <span><b>Salud y bienestar:</b> Mapa de Salud (screening, nunca diagnóstico) con derivación profesional cuando toca.</span></label>
-    <button class="big" id="ob-done">EMPEZAR MI CAMINO ◈</button>
-    <button class="big ob-back" id="ob-back">← ATRÁS</button>`;
+    ${progress()}
+    <div class="ob-stage ob-finish">
+      <div class="ob-ready-mark">✓</div>
+      <div class="ob-kicker">LISTO</div>
+      <h2>Tu espacio está preparado.</h2>
+      <p>Hoy verás solo lo importante. El resto aparece cuando lo necesites.</p>
+      <div class="ob-summary">
+        <span><small>OBJETIVO</small><b>${esc(goalLabel)}</b></span>
+        <span><small>RITMO</small><b>${esc(st.availability.replace("/SEMANA", ""))}</b></span>
+        <span><small>ESPACIO</small><b>${esc(equipLabel)}</b></span>
+        <span><small>SESIÓN</small><b>${esc(st.sessionMinutes)} min</b></span>
+      </div>
+    </div>
+    ${footer({ done:true })}`;
 }
 
 function render(box) {
-  box.innerHTML = view(); // plantilla con datos YA escapados
+  box.innerHTML = view();
   const q = (s) => box.querySelector(s);
-  box.querySelectorAll("[data-k]").forEach((b) => {
-    b.onclick = () => { st[b.dataset.k] = b.dataset.v; render(box); };
+
+  box.querySelectorAll("[data-k]").forEach((button) => {
+    button.onclick = () => {
+      st[button.dataset.k] = button.dataset.v;
+      render(box);
+    };
   });
-  box.querySelectorAll("[data-skin]").forEach((b) => {
-    b.onclick = () => { st.skinIdx = +b.dataset.skin; render(box); applyAvatar(); };
-  });
-  const fi = q("#ob-face");
-  fi && (fi.onchange = async () => {
-    const f = fi.files && fi.files[0];
-    if (!f) return;
-    try {
-      const { face, skin } = await processFace(f);
-      st.face = face;
-      st.skinHex = skin;
-      q("#ob-face-ok").textContent = "Foto lista ✓";
-      applyAvatar();
-    } catch {
-      q("#ob-face-ok").textContent = "No se pudo procesar la imagen";
-    }
-  });
-  const ca3 = q("#ob-ca3");
-  ca3 && (ca3.onchange = () => { st.consentAvatar3d = ca3.checked; });
-  const a3btn = q("#ob-a3d");
-  const a3ok = () => {
-    const s = q("#ob-a3d-ok");
-    if (s) s.textContent = st.avatar3d ? "Avatar 3D listo ✓" : "";
-  };
-  a3ok();
-  a3btn && (a3btn.onclick = async () => {
-    st.consentAvatar3d = q("#ob-ca3")?.checked || false;
-    if (!st.consentAvatar3d) {
-      a3btn.textContent = "MARCA EL PERMISO AVATAR 3D ↑";
-      setTimeout(() => { a3btn.textContent = "CREAR MI AVATAR 3D ◈"; }, 2200);
-      return;
-    }
-    a3btn.textContent = "ABRIENDO CREADOR…";
-    try {
-      const { openCreatorModal } = await import("./avatar3d.js");
-      setConsent("avatar_3d", true);
-      openCreatorModal({
-        onNeedConsent: () => q("#ob-ca3")?.checked || st.consentAvatar3d,
-        onExport: (desc) => {
-          st.avatar3d = desc;
-          a3ok();
-          applyAvatar3d();
-          import("./ui.js").then(({ toast }) =>
-            toast("AVATAR 3D LISTO", "Tu 3D entra contigo al DÍA 1", "gold"));
-        },
-      });
-    } catch {
-      const s = q("#ob-a3d-ok");
-      if (s) s.textContent = "Sin conexión al creador: sigues con tu foto";
-    }
-    a3btn.textContent = "CREAR MI AVATAR 3D ◈";
-  });
+
+  const name = q("#ob-name");
+  if (name) {
+    name.oninput = () => { st.name = name.value; };
+    name.onkeydown = (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        q("#ob-next")?.click();
+      }
+    };
+  }
+
   q("#ob-next") && (q("#ob-next").onclick = () => {
-    if (st.step === 0) st.name = q("#ob-name").value.trim();
-    st.step++;
+    if (st.step === 0) st.name = q("#ob-name")?.value.trim() || "";
+    st.step = Math.min(TOTAL - 1, st.step + 1);
     render(box);
   });
-  q("#ob-fast") && (q("#ob-fast").onclick = () => completar(perfilRapido()));
-  q("#ob-back") && (q("#ob-back").onclick = () => { st.step--; render(box); }); // lo escrito se conserva
-  const nameInput = q("#ob-name");
-  nameInput && (nameInput.oninput = () => { st.name = nameInput.value; });
-  nameInput && (nameInput.onkeydown = (e) => {
-    if (e.key === "Enter") { e.preventDefault(); q("#ob-next")?.click(); } // teclado: Enter avanza
+
+  q("#ob-back") && (q("#ob-back").onclick = () => {
+    st.step = Math.max(0, st.step - 1);
+    render(box);
   });
-  for (const [id,key] of [["#ob-cv","consentVision"],["#ob-ch","consentHealth"]]) { const input=q(id); if(input) input.onchange=()=>{ st[key]=input.checked; }; }
+
   q("#ob-done") && (q("#ob-done").onclick = () => {
-    st.consentVision = q("#ob-cv").checked;
-    st.consentHealth = q("#ob-ch").checked;
-    if (st.consentVision) setConsent("vision", true);
-    if (st.consentHealth) setConsent("health", true);
-    if (st.consentAvatar3d) setConsent("avatar_3d", true);
-    completar({
-      name: st.name || "ATLETA",
+    const profile = validateProfile({
+      name: st.name || "TÚ",
       goal: st.goal,
       experience: st.experience,
       availability: st.availability,
       equipment: st.equipment,
       sessionMinutes: Number(st.sessionMinutes),
-      skin: st.skinIdx,
-      face: st.face,
-      skinHex: st.skinHex,
-      avatar3d: st.avatar3d || null,
-      consents: { vision: st.consentVision, health: st.consentHealth, avatar_3d: st.consentAvatar3d },
+    });
+    completar({
+      ...profile,
+      skin: 0,
+      face: null,
+      skinHex: null,
+      avatar3d: null,
+      consents: { vision:false, health:false, avatar_3d:false },
     });
   });
-  // foco visible en la acción primaria de cada paso (teclado y lector de pantalla)
-  const primario = q("#ob-next") || q("#ob-done");
-  primario && primario.focus({ preventScroll: true });
+
+  (q("#ob-name") || q(".ob-choice.on") || q("#ob-done") || q("#ob-next"))?.focus?.({ preventScroll:true });
 }
 
-/** Cierra el onboarding y deja al usuario en una acción real (nunca en un vacío). */
 function completar(perfil) {
   S.onboard(perfil);
   S.addXP(25, "discipline");
   document.getElementById("ob-layer")?.remove();
+
   import("./ui.js").then(({ toast }) => {
-    toast("BIENVENIDO AL DÍA 1", `${perfil.name} · tu primera misión te espera · +25 XP`, "gold");
+    toast("TODO LISTO", perfil.name && perfil.name !== "TÚ" ? `Bienvenido, ${perfil.name}.` : "Tu día empieza aquí.", "gold");
   });
-  // la primera acción realizable: entrenamiento de hoy (o flujo de recuperación)
-  import("./ui/shared.js").then(({ UI }) => {
-    const startSection = document.getElementById("drawer")?.dataset.section || "hoy";
-    setTimeout(() => {
-      const currentSection = document.getElementById("drawer")?.dataset.section || startSection;
-      // No secuestrar una navegación voluntaria realizada durante la transición.
-      if (currentSection !== startSection && currentSection !== "hoy") return;
-      const w = S.todayWorkout();
-      UI.actions.openTraining?.(w ? w.id : "mobility_flow");
-    }, 600);
+
+  // Primera llegada: orientación, no una sesión abierta sin contexto.
+  import("./ui/shared.js").then(({ openSection }) => {
+    setTimeout(() => openSection("hoy"), 180);
   });
 }
 
-/** Perfil honesto del camino rápido: valores por defecto y CERO consentimientos. */
+// Conservado para compatibilidad/test; ya no se ofrece como atajo visual.
 export function perfilRapido() {
   return {
-    name: "ATLETA",
-    goal: GOALS[0], experience: EXP[1], availability: AVAIL[1], equipment: EQUIP[1],
+    name: "TÚ",
+    goal: "BIENESTAR Y ADHERENCIA",
+    experience: EXPERIENCE[1],
+    availability: AVAILABILITY[1],
+    equipment: EQUIPMENT[1],
     sessionMinutes: 30,
-    skin: 0, face: null, skinHex: null, avatar3d: null,
-    consents: { vision: false, health: false, avatar_3d: false },
+    skin: 0,
+    face: null,
+    skinHex: null,
+    avatar3d: null,
+    consents: { vision:false, health:false, avatar_3d:false },
   };
 }
-
-/** G2: portada → primera acción real. 1 toque ENTRAR + 1 toque EMPEZAR YA. */
-export const G2_TOQUES_RAPIDO = 2;
-
-function applyAvatar() {
-  import("./ui/shared.js").then(({ UI }) => {
-    const av = UI.W?.avatar;
-    if (!av) return;
-    av.setSkin(st.skinHex || SKINS[st.skinIdx]);
-    if (st.face) av.setFace(st.face);
-  });
-}
-
-/** Vista previa del 3D en cuanto se exporta (si falla, el de la foto sigue). */
-function applyAvatar3d() {
-  import("./ui/shared.js").then(({ UI }) => {
-    if (!UI.W || !st.avatar3d) return;
-    import("./avatar3d.js").then(({ attachAvatar3d }) => attachAvatar3d(UI.W, st.avatar3d).catch(() => {}));
-  });
-}
-
-/** Procesa la foto localmente (redimensionada) para la cara del avatar. */
-async function processFace(file) {
-  const img = await new Promise((res, rej) => {
-    const im = new Image();
-    im.onload = () => res(im);
-    im.onerror = rej;
-    im.src = URL.createObjectURL(file);
-  });
-  const size = 128;
-  const cv = document.createElement("canvas");
-  cv.width = size; cv.height = size;
-  const cx = cv.getContext("2d");
-  const side = Math.min(img.width, img.height);
-  cx.drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, size, size);
-  const face = cv.toDataURL("image/jpeg", 0.82);
-  // tono de piel: promedio del centro
-  const d = cx.getImageData(size / 2 - 8, size / 2 - 8, 16, 16).data;
-  let r = 0, g = 0, b = 0;
-  for (let i = 0; i < d.length; i += 4) { r += d[i]; g += d[i + 1]; b += d[i + 2]; }
-  const n = d.length / 4;
-  // MONO: tono de piel → gris de la misma luminosidad (paleta estricta)
-  const lum = Math.max(40, Math.min(235, Math.round((0.299 * r + 0.587 * g + 0.114 * b) / n)));
-  const skin = `rgb(${lum},${lum},${lum})`;
-  return { face, skin };
-}
+export const G2_TOQUES_RAPIDO = null;
 
 const css = `
-#ob-box .ob-eyebrow{font:600 9px/1.5 var(--mono);letter-spacing:.14em;color:var(--acc-2);margin-bottom:18px}
-#ob-box .ob-avatar-options{border-block:1px solid var(--hair);margin-top:18px;padding:8px 0}
-#ob-box .ob-avatar-options summary{font:600 10px/1.5 var(--sans);letter-spacing:.06em;cursor:pointer;padding:12px 0}
-#ob-box .ob-plan-summary{display:grid;gap:8px;padding:16px;border:1px solid var(--hair);border-radius:12px;margin:18px 0;font:400 12px/1.5 var(--sans)}
-#ob-box .ob-plan-summary b{font-size:16px}
-
-#ob-layer{position:fixed;inset:0;z-index:120;background:color-mix(in srgb, var(--paper) 58%, transparent);
-  -webkit-backdrop-filter:blur(14px) saturate(1.1);backdrop-filter:blur(14px) saturate(1.1);
-  display:flex;align-items:center;justify-content:center;padding:16px;font-family:var(--sans)}
-#ob-box{background:color-mix(in srgb, var(--paper-2) 82%, transparent);border:1px solid var(--hair);
-  border-radius:22px;max-width:400px;width:100%;padding:26px 26px 22px;color:var(--ink);max-height:92vh;overflow:auto;
-  box-shadow:var(--shadow-lift);position:relative;animation:modalIn .7s var(--spring) both;
-  scrollbar-width:thin;scrollbar-color:var(--hair-strong) transparent}
-#ob-box::-webkit-scrollbar{width:4px}
-#ob-box::-webkit-scrollbar-thumb{background:var(--hair-strong);border-radius:4px}
-#ob-box::before{content:"";position:absolute;left:26px;right:26px;top:0;height:2px;background:var(--acc-2);border-radius:2px}
-#ob-box h2{margin:0 0 4px;font:700 19px/1.1 var(--display);letter-spacing:.01em;color:var(--ink)}
-#ob-box .ob-sub{font-family:var(--serif);font-size:13.5px;line-height:1.55;color:var(--ink-soft);margin-bottom:14px}
-#ob-box .ob-row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
-#ob-box button{border:1px solid var(--hair-strong);border-radius:999px;background:transparent;color:var(--ink);
-  font:600 12px/1 var(--sans);letter-spacing:.08em;padding:11px 15px;cursor:pointer;
-  transition:transform .18s var(--spring),border-color .2s,box-shadow .25s}
-#ob-box button:hover{border-color:var(--acc-2);box-shadow:0 0 0 3px var(--acc-soft)}
-#ob-box button:active{transform:scale(.97)}
-#ob-box button.on{background:var(--acc-2);color:var(--acc-ink);border-color:var(--acc-2);font-weight:700}
-#ob-box button.big{width:100%;background:var(--acc-2);color:var(--acc-ink);padding:16px;font-size:13px;font-weight:700;min-height:56px;margin-top:18px;border-color:transparent;letter-spacing:.18em}
-#ob-box button.ob-fast{background:transparent;color:var(--ink-soft);border:1px solid var(--hair-strong);margin-top:10px;letter-spacing:.14em}
-#ob-box .ob-fast-note{font-family:var(--serif);font-size:11.5px;line-height:1.5;color:var(--ink-mute);margin-top:8px;text-align:center}
-#ob-box button:focus-visible,#ob-box input:focus-visible{outline:2px solid var(--acc-deep);outline-offset:2px}
-#ob-box button.ob-back{background:transparent;color:var(--ink-soft);border:1px solid var(--hair-strong)}
-#ob-box input[type=text],#ob-box input:not([type]){width:100%;padding:12px 14px;border:1px solid var(--hair-strong);border-radius:12px;background:var(--panel);color:var(--ink);
-  font:14px var(--sans);margin:6px 0;box-sizing:border-box}
-#ob-box label{font-size:10px;font-weight:700;letter-spacing:.18em;color:var(--ink-mute);display:block;margin:16px 0 6px}
-#ob-box label.ob-file{display:inline-block;background:transparent;border:1px solid var(--hair-strong);border-radius:999px;padding:11px 15px;cursor:pointer;margin:0}
-#ob-box .ob-check{letter-spacing:normal;text-transform:none;font-weight:400;display:flex;gap:12px;align-items:flex-start;margin:14px 0 16px;font-family:var(--serif);font-size:13px;line-height:1.55;padding-bottom:2px}
-#ob-box .ob-check input[type=checkbox]{width:22px;height:22px;accent-color:var(--acc-2);margin:0;flex:0 0 auto;cursor:pointer}
-#ob-dots{display:flex;gap:6px;justify-content:center;margin-bottom:14px}
-#ob-dots i{width:22px;height:3px;border-radius:2px;background:var(--hair-strong);transition:all .3s var(--ease)}
-#ob-dots i.on{background:var(--acc-2);box-shadow:0 0 10px var(--acc-soft)}
+#ob-layer{
+  position:fixed;inset:0;z-index:120;display:grid;place-items:center;padding:18px;
+  background:radial-gradient(circle at 50% 10%,rgba(255,106,0,.08),transparent 28%),#070809;
+  font-family:var(--sans)
+}
+#ob-box{
+  width:min(520px,100%);min-height:min(680px,calc(100dvh - 36px));display:grid;
+  grid-template-rows:auto 1fr auto;padding:22px;border:1px solid #23272a;border-radius:26px;
+  background:linear-gradient(160deg,rgba(255,255,255,.025),transparent 38%),#0b0d0e;
+  color:#f3f1ec;box-shadow:0 32px 90px rgba(0,0,0,.48);overflow:auto
+}
+.ob-top{display:flex;justify-content:space-between;gap:12px;color:#6d7478;font:800 8px/1 var(--sans);letter-spacing:.16em}
+.ob-top span:first-child{color:#d9d7d1}
+.ob-progress{height:2px;margin-top:14px;background:#202427;overflow:hidden;border-radius:999px}
+.ob-progress i{display:block;height:100%;background:#ff6a00;transition:width .28s ease}
+.ob-stage{display:flex;flex-direction:column;justify-content:center;min-height:0;padding:34px 10px}
+.ob-symbol{width:52px;height:52px;display:grid;place-items:center;margin-bottom:28px;border:1px solid #34393c;border-radius:16px;color:#ff7416;background:#111416;font-size:22px}
+.ob-kicker{margin-bottom:10px;color:#ff7a1a;font:800 8px/1.3 var(--sans);letter-spacing:.16em}
+#ob-box h2{max-width:430px;margin:0;color:#f5f3ee;font:650 clamp(34px,8vw,48px)/.98 var(--serif);letter-spacing:-.045em}
+#ob-box p{max-width:410px;margin:14px 0 0;color:#7f888c;font:450 13px/1.55 var(--sans)}
+#ob-name{width:100%;margin-top:30px;padding:18px 4px;border:0;border-bottom:1px solid #34393c;background:transparent;color:#fff;font:600 24px/1 var(--serif);outline:none}
+#ob-name:focus{border-color:#ff6a00}
+#ob-name::placeholder{color:#4f565a}
+.ob-choice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:30px}
+.ob-choice{min-height:96px;padding:14px;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;gap:14px;border:1px solid #24292c;border-radius:16px;background:#0f1112;color:#aeb4b7;text-align:left;cursor:pointer;transition:.18s ease}
+.ob-choice:hover,.ob-choice:focus-visible{border-color:#654023;outline:none;transform:translateY(-1px)}
+.ob-choice.on{border-color:#a64d1b;background:linear-gradient(145deg,rgba(255,106,0,.10),transparent 55%),#111315;color:#fff;box-shadow:inset 2px 0 #ff6a00}
+.ob-choice-icon{color:#ff7416;font:600 21px/1 var(--sans)}
+.ob-choice strong{font:650 13px/1.2 var(--sans)}
+.ob-actions{display:grid;grid-template-columns:48px 1fr;gap:10px;align-items:center;padding-top:16px;border-top:1px solid #1f2325}
+.ob-actions>span{width:48px}
+.ob-back,.ob-primary{min-height:48px;border-radius:12px;cursor:pointer}
+.ob-back{border:1px solid #292e31;background:#0d0f10;color:#8b9397;font-size:17px}
+.ob-primary{border:1px solid #ff6a00;background:#ff6a00;color:#08090a;font:850 9px/1 var(--sans);letter-spacing:.14em}
+.ob-ready-mark{width:58px;height:58px;display:grid;place-items:center;margin-bottom:24px;border-radius:50%;background:#ff6a00;color:#08090a;font-size:24px;font-weight:900}
+.ob-summary{display:grid;grid-template-columns:1fr 1fr;gap:1px;margin-top:28px;border:1px solid #24282a;border-radius:14px;overflow:hidden;background:#24282a}
+.ob-summary span{display:grid;gap:7px;padding:13px;background:#0e1011}
+.ob-summary small{color:#626a6e;font:750 7px/1 var(--sans);letter-spacing:.12em}
+.ob-summary b{color:#e9e7e2;font:650 11px/1.25 var(--sans)}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+@media(max-width:620px){
+  #ob-layer{padding:0;place-items:stretch}
+  #ob-box{width:100%;min-height:100dvh;border:0;border-radius:0;padding:18px 16px 16px}
+  .ob-stage{padding:28px 2px 20px}
+  #ob-box h2{font-size:clamp(34px,11vw,44px)}
+  .ob-choice-grid{margin-top:24px;gap:8px}
+  .ob-choice{min-height:84px;padding:12px}
+  .ob-summary{margin-top:22px}
+}
 `;
 
 function boot(retries = 20) {
   if (document.getElementById("ob-layer")) return;
   if (!S.data) {
-    if (retries > 0) setTimeout(() => boot(retries - 1), 250); // state aún no arranca
+    if (retries > 0) setTimeout(() => boot(retries - 1), 250);
     return;
   }
   if (S.data.profile?.onboarded) return;
-  // El onboarding pertenece al mundo AFILIADO. El coach entra directamente
-  // a su Studio y nunca se ve obligado a crear un perfil deportivo personal.
+
+  // El mundo profesional no comparte onboarding con el usuario final.
   if (document.body.dataset.entryRole === "coach") return;
-  // el onboarding espera a que se cruce el ingreso cinematográfico
+
   if (!document.body.classList.contains("entered")) {
-    window.addEventListener("bayona:entered", () => boot(retries), { once: true });
+    window.addEventListener("bayona:entered", () => boot(retries), { once:true });
     return;
   }
   if (document.body.dataset.entryRole === "coach") return;
-  document.head.appendChild(el(`<style>${css}</style>`));
-  const layer = el(`<div id="ob-layer" role="dialog" aria-modal="true" aria-label="Bienvenida a BAYONA"><div id="ob-box"></div></div>`);
+
+  if (!document.getElementById("ob-v2-style")) {
+    const style = el(`<style id="ob-v2-style">${css}</style>`);
+    document.head.appendChild(style);
+  }
+  const layer = el('<div id="ob-layer" role="dialog" aria-modal="true" aria-label="Configurar BAYONA"><div id="ob-box"></div></div>');
   layer.addEventListener("keydown", (event) => {
     if (event.key !== "Tab") return;
-    const controls = [...layer.querySelectorAll("button,input,select,summary,[tabindex]")].filter(n => !n.disabled && n.tabIndex >= 0 && n.getClientRects().length);
-    const first = controls[0], last = controls[controls.length-1];
+    const controls = [...layer.querySelectorAll("button,input,[tabindex]")].filter((n) => !n.disabled && n.tabIndex >= 0 && n.getClientRects().length);
+    const first = controls[0], last = controls[controls.length - 1];
     if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
     if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
   });

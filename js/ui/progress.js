@@ -35,7 +35,6 @@ BUILDERS.progress = (body) => {
   });
   body.appendChild(grid);
 
-  medidasBlock(body);
   body.appendChild(el("div", "sec-label", "ANALÍTICA DE RENDIMIENTO"));
   body.appendChild(analyticsBlock());
 
@@ -75,7 +74,6 @@ BUILDERS.progress = (body) => {
   });
   body.appendChild(tl);
 
-  photosBlock(body);
 };
 
 // ---------------- ANALÍTICA ----------------

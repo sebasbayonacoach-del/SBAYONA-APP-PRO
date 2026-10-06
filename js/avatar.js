@@ -25,7 +25,7 @@ const POSES = {
     foreArmL: [-0.18, 0, 0], foreArmR: [-0.18, 0, 0],
     thighL: [0, 0, 0.03], thighR: [0, 0, -0.03],
     shinL: [0.04, 0, 0], shinR: [0.04, 0, 0],
-    _root: { y: Math.sin(t * 1.5) * 0.008, rx: 0 },
+    _root: { y: 0, rx: 0 },
   }),
 
   walk: (t) => {

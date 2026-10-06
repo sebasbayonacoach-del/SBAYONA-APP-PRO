@@ -564,7 +564,8 @@ assert(/\.\/ui\/centro\.js/.test(leer("js/ui.js")), "la app importa el centro al
 for (const f of ["ui/acceso.js", "ui/portal.js", "ui/informes.js"]) {
   assert(leer("js/ui.js").includes(`"./${f}"`), `la app importa ${f} al arrancar`);
 }
-assert(/'Centro'/.test(leer("js/ui/fitness.js")), "el centro tiene su sitio en el menú");
+assert(!/'Centro'/.test(leer("js/ui/fitness.js")) && leer("js/ui.js").includes("./ui/centro.js"),
+  "el Centro sigue montado como producto profesional, pero ya no se mezcla en el menú del usuario");
 for (const seccion of ["centro", "socios", "cuotas", "agenda", "acceso", "portal", "informes"]) {
   assert(new RegExp(`${seccion}\\s*:`).test(leer("js/ui/shared.js")), `«${seccion}» tiene título y lugar`);
 }

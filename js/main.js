@@ -11,7 +11,6 @@ import { openSection, enterHome } from "./ui/shared.js";
 import { installFitnessUI } from "./ui/fitness.js";
 import { installDashboard, dashboardActivo } from "./ui/dashboard.js";
 import { installOneShell } from "./ui/one.js";
-import { installAffiliateV12 } from "./ui/affiliate-v12.js";
 import { ITEMS } from "./data.js";
 import { t } from "./i18n.js";
 import { loadFaceImage } from "./face.js";
@@ -69,7 +68,6 @@ function boot() {
   installFitnessUI();
   initUI(world);
   installOneShell();
-  installAffiliateV12();
   wireEntry(world);
   // DASHBOARD DE ESCRITORIO · el personaje al centro, con el resumen vivo
   // alrededor. Se enciende al entrar y se apaga solo por debajo de 1100 px.
@@ -141,8 +139,11 @@ function wireEntry(world) {
   }
 
   if (S.data.profile.onboarded) {
-    const name = S.data.profile.name || "atleta";
-    entry.querySelector(".e-sub").textContent = t("one.entry.welcome", { name });
+    const rawName = String(S.data.profile.name || "").trim();
+    const name = rawName && rawName.toUpperCase() !== "TÚ" ? rawName : "";
+    entry.querySelector(".e-sub").textContent = name
+      ? t("one.entry.welcome", { name })
+      : t("one.entry.welcomeGeneric");
     affiliate.querySelector(".e-role-copy strong").textContent =
       t(S.getActiveSession() ? "one.entry.session" : "one.entry.experience");
   }

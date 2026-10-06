@@ -48,6 +48,10 @@ function makeButton(label, mode, svgPath) {
 }
 
 function ensureContextSwitch() {
+  // v14: los ecosistemas ya no se mezclan. No existe un conmutador de rol
+  // dentro de la sesión; el tipo de cuenta determina la experiencia completa.
+  document.getElementById("one-context-switch")?.remove();
+  return;
   const topbar = document.getElementById("topbar");
   if (!topbar || document.getElementById("one-context-switch")) return;
   const group = document.createElement("div");
@@ -76,20 +80,37 @@ function ensureEditionMark() {
 }
 
 function ensureCoachRailButton() {
+  if (document.body.dataset.entryRole !== "coach") return;
   const nav = document.getElementById("panel-nav");
-  if (!nav || nav.querySelector('[data-go="coachos"]')) return;
-  const b = document.createElement("button");
-  b.className = "rail-btn one-coach-launch";
-  b.dataset.go = "coachos";
-  b.innerHTML = icon("M5 20h14M7 20V9l5-3 5 3v11M9 13h6") + "<span>Coach</span>";
-  b.addEventListener("click", () => openSection("coachos"));
-  nav.append(b);
+  if (!nav || nav.querySelector(".one-role-coach-nav")) return;
+
+  const specs = [
+    ["coachos", "Studio", "M5 20h14M7 20V9l5-3 5 3v11M9 13h6"],
+    ["library", "Rutinas", "M4 5h16v14H4z M8 9h8 M8 13h8"],
+    ["agenda", "Agenda", "M5 4h14v16H5z M8 2v4 M16 2v4 M5 9h14"],
+    ["account", "Cuenta", "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M4 21a8 8 0 0 1 16 0"],
+  ];
+  specs.forEach(([section, label, path]) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "rail-btn one-role-coach-nav";
+    b.dataset.go = section;
+    b.innerHTML = icon(path) + "<span>" + label + "</span>";
+    b.addEventListener("click", () => openSection(section));
+    nav.append(b);
+  });
 }
 
 function sync(section) {
   section = section || document.getElementById("drawer")?.dataset.section || "hoy";
-  const previousContext = document.body.dataset.oneContext;
-  const coachMode = NEUTRAL_SECTIONS.has(section) ? previousContext === "coach" : COACH_SECTIONS.has(section);
+  const entryRole = document.body.dataset.entryRole || "";
+  const coachMode = entryRole === "coach";
+
+  // El usuario final nunca cae accidentalmente en herramientas de entrenador.
+  if (entryRole && !coachMode && COACH_SECTIONS.has(section)) {
+    queueMicrotask(() => openSection("hoy"));
+    return;
+  }
   const drawerBody = document.getElementById("drawer-body");
   if (section !== "coachos") drawerBody?.classList.remove("one-coach-body");
   document.body.classList.toggle("one-coach-mode", coachMode);
@@ -119,17 +140,11 @@ function installObserver() {
 }
 
 function installKeyboard() {
-  addEventListener("keydown", (event) => {
-    if (event.defaultPrevented || !event.altKey) return;
-    const tag = event.target?.tagName;
-    if (["INPUT","TEXTAREA","SELECT"].includes(tag)) return;
-    if (event.key === "1") { event.preventDefault(); openSection("hoy"); }
-    if (event.key === "2") { event.preventDefault(); openSection("coachos"); }
-  });
+  // No hay atajos para saltar de usuario a coach: son productos separados.
 }
 
 function decorateProfile() {
-  const name = S.data?.profile?.name || "Atleta";
+  const name = S.data?.profile?.name || "Tú";
   document.body.dataset.onePerson = String(name).slice(0,18);
 }
 
@@ -746,12 +761,15 @@ function installCoachStudio() {
 }
 
 export function installOneShell() {
-  document.body.dataset.one = "v11";
+  document.body.dataset.one = "v14";
   ensureEditionMark();
   ensureContextSwitch();
-  ensureCoachRailButton();
   installCoachStudio();
   installObserver();
   installKeyboard();
   decorateProfile();
+  window.addEventListener("bayona:entered", () => {
+    ensureCoachRailButton();
+    sync(document.getElementById("drawer")?.dataset.section || "hoy");
+  });
 }

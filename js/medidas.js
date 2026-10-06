@@ -13,12 +13,18 @@
 // ============================================================
 
 export const CAMPOS = [
-  { k: "pesoKg",    label: "PESO",    unidad: "kg", dec: 1, min: 25,  max: 250, estimado: false },
-  { k: "cinturaCm", label: "CINTURA", unidad: "cm", dec: 1, min: 30,  max: 200, estimado: false },
-  { k: "caderaCm",  label: "CADERA",  unidad: "cm", dec: 1, min: 30,  max: 220, estimado: false },
-  { k: "brazoCm",   label: "BRAZO",   unidad: "cm", dec: 1, min: 15,  max: 70,  estimado: false },
-  { k: "musloCm",   label: "MUSLO",   unidad: "cm", dec: 1, min: 25,  max: 110, estimado: false },
-  { k: "grasaPct",  label: "GRASA",   unidad: "%",  dec: 1, min: 3,   max: 75,  estimado: true },
+  { k: "pesoKg",       label: "PESO",        unidad: "kg", dec: 1, min: 25,  max: 250, estimado: false },
+  { k: "cuelloCm",     label: "CUELLO",      unidad: "cm", dec: 1, min: 20,  max: 70,  estimado: false },
+  { k: "hombrosCm",    label: "HOMBROS",     unidad: "cm", dec: 1, min: 50,  max: 200, estimado: false },
+  { k: "pechoCm",      label: "PECHO",       unidad: "cm", dec: 1, min: 40,  max: 200, estimado: false },
+  { k: "cinturaCm",    label: "CINTURA",     unidad: "cm", dec: 1, min: 30,  max: 200, estimado: false },
+  { k: "abdomenCm",    label: "ABDOMEN",     unidad: "cm", dec: 1, min: 30,  max: 220, estimado: false },
+  { k: "caderaCm",     label: "CADERA",      unidad: "cm", dec: 1, min: 30,  max: 220, estimado: false },
+  { k: "brazoCm",      label: "BRAZO",       unidad: "cm", dec: 1, min: 15,  max: 70,  estimado: false },
+  { k: "antebrazoCm",  label: "ANTEBRAZO",   unidad: "cm", dec: 1, min: 10,  max: 60,  estimado: false },
+  { k: "musloCm",      label: "MUSLO",       unidad: "cm", dec: 1, min: 25,  max: 110, estimado: false },
+  { k: "pantorrillaCm",label: "PANTORRILLA", unidad: "cm", dec: 1, min: 15,  max: 80,  estimado: false },
+  { k: "grasaPct",     label: "GRASA",       unidad: "%",  dec: 1, min: 3,   max: 75,  estimado: true },
 ];
 
 export const FRECUENCIA_DIAS = 14;   // cada cuánto conviene medir
