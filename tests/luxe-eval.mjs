@@ -87,7 +87,7 @@ const clavesLuxe = [
   "luxe.plan.periodo", "luxe.plan.atleta.nombre", "luxe.plan.pro.nombre", "luxe.plan.centro.nombre",
   "luxe.faq1.q", "luxe.faq1.a", "luxe.faq2.q", "luxe.faq2.a",
   "luxe.faq3.q", "luxe.faq3.a", "luxe.faq4.q", "luxe.faq4.a",
-  "luxe.footer.marca", "luxe.footer.nota",
+  "luxe.footer.marca", "luxe.footer.nota", "luxe.load.loading", "luxe.load.error",
   "luxe.nav.features", "luxe.nav.planes", "luxe.nav.faq",
 ];
 clavesLuxe.forEach((k) => ok(i18n.includes(`"${k}"`), `clave ${k}`));
@@ -100,7 +100,7 @@ console.log("\n— landing-boot.js · decisiones —");
 
 ok(boot.includes("yaDentro"), "comprueba si el usuario ya entró");
 ok(boot.includes("bayona.save.v2"), "lee la partida para saber si onboarded");
-ok(boot.includes("l.remove()"), "usuario recurrente: sin landing (v9 intacta)");
+ok(boot.includes("removeLanding()") && boot.includes("loadApp()"), "usuario recurrente: sin landing y carga diferida del producto");
 ok(!boot.includes("S.init"), "no inicializa el estado (eso es main.js)");
 
 /* ---------- 6 · sw.js: precache v22 ---------- */
