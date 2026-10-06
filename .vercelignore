@@ -1,14 +1,31 @@
-# Never upload local/private assets or secrets
+# BAYONA · web production allowlist by exclusion
+# Never upload local/private assets or secrets.
 private-trainingym/
 .env
 .env.*
 
-# Local/generated dependencies and scratch
+# Dependencies / build scratch.
 node_modules/
-mobile/node_modules/
-mobile/web-build/
-vendor/
+mobile/
 .openclaw/
 *.log
 .git/
+.github/
 .vercel/
+
+# Internal QA, documentation and development-only material.
+tests/
+tools/
+docs/
+docs-luxe/
+ml/
+README.md
+BAYONA-preview.html
+trainingym/blob-manifest.json
+api/supabase/
+api/*.md
+
+# OS/editor noise.
+.DS_Store
+.vscode/
+.idea/

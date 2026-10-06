@@ -20,6 +20,8 @@ const i18n = readFileSync(join(root, "js/i18n.js"), "utf8");
 const robots = readFileSync(join(root, "robots.txt"), "utf8");
 const sitemap = readFileSync(join(root, "sitemap.xml"), "utf8");
 const manifest = JSON.parse(readFileSync(join(root, "manifest.webmanifest"), "utf8"));
+const vercel = JSON.parse(readFileSync(join(root, "vercel.json"), "utf8"));
+const vercelIgnore = readFileSync(join(root, ".vercelignore"), "utf8");
 const PROD = "https://bayona-app-one.vercel.app/";
 
 console.log("\n🚀 BAYONA · LAUNCH READINESS\n");
@@ -51,6 +53,22 @@ ok(sw.includes('path.startsWith("/api/")'), "API dinámica fuera del caché del 
 ok(more.includes('from "../pwa.js"'), "MÁS integra instalación PWA");
 ok(more.includes('t("pwa.button.install")'), "botón de instalación usa catálogo i18n");
 ok(i18n.includes('"pwa.button.install"'), "textos PWA existen en i18n");
+
+console.log("\n— producción limpia y segura —");
+for (const entry of ["tests/", "docs/", "docs-luxe/", "mobile/", "tools/", "BAYONA-preview.html", "trainingym/blob-manifest.json"]) {
+  ok(vercelIgnore.includes(entry), "Vercel excluye " + entry);
+}
+const globalHeaders = vercel.headers?.find((x) => x.source === "/(.*)")?.headers || [];
+const hasHeader = (key, valuePart = "") => globalHeaders.some((h) =>
+  h.key === key && (!valuePart || String(h.value).includes(valuePart))
+);
+ok(hasHeader("X-Content-Type-Options", "nosniff"), "nosniff en producción");
+ok(hasHeader("Referrer-Policy", "strict-origin-when-cross-origin"), "Referrer-Policy definida");
+ok(hasHeader("X-Frame-Options", "DENY"), "clickjacking bloqueado");
+ok(hasHeader("Permissions-Policy", "camera=(self)"), "cámara limitada al propio origen");
+const catalogHeaders = vercel.headers?.find((x) => x.source === "/trainingym/catalog.json")?.headers || [];
+ok(catalogHeaders.some((h) => h.key === "Cache-Control" && String(h.value).includes("s-maxage=3600")), "catálogo usa caché CDN corta");
+ok(!vercelIgnore.includes("trainingym/catalog.json"), "catálogo público no queda excluido");
 
 console.log("\n— arranque seguro —");
 ok(html.indexOf("/api/runtime-config.js") < html.indexOf("js/main.js"), "runtime cloud carga antes de main");
