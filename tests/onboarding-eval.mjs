@@ -16,11 +16,18 @@ console.log("\n🚪 ONBOARDING · EVAL DE INGRESO (G2) Y ACCESIBILIDAD\n");
 const vista = (paso) => { __obState.step = paso; return __obView(); };
 const html = [0, 1, 2, 3].map(vista);
 const index = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+const mainEntry = readFileSync(new URL("../js/main.js", import.meta.url), "utf8");
+const luxeCss = readFileSync(new URL("../css/luxe.css", import.meta.url), "utf8");
 
 // ── G2 · portada → primera acción real en ≤ 3 toques ─────────────────────
 {
   // grafo de acciones: portada →(1) ENTRAR → paso 0 →(1) EMPEZAR YA → acción real
   assert(index.includes('id="entry-go"') && index.includes('id="entry-coach"'), "la portada ofrece acceso por rol: afiliado o coach");
+  assert(index.includes("APP ENTRENADOR + ATLETA") && index.includes("TRAINING OS"), "el ingreso se presenta como producto entrenador/gym");
+  assert(mainEntry.includes("Boolean(storedRole)") && mainEntry.includes('const storedRole = localStorage.getItem(roleKey)'),
+    "solo un rol realmente usado puede marcarse como ÚLTIMO ACCESO");
+  assert(luxeCss.includes("body.luxe-activo #entry { display: none !important; }"),
+    "la landing pública oculta de verdad la puerta de la app");
   assert(html[0].includes('id="ob-fast"'), "el camino rápido está en el PRIMER paso (sin pasos previos)");
   assert(G2_TOQUES_RAPIDO === 2 && G2_TOQUES_RAPIDO <= 3, `G2: camino rápido = ${G2_TOQUES_RAPIDO} toques (≤ 3)`);
   assert(!/id="ob-name"[^>]*required/.test(html[0]) && !html[0].includes("required"),
