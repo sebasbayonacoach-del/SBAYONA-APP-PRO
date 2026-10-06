@@ -75,16 +75,21 @@ BUILDERS.training = (body) => {
   }
   const rhythm = rhythmTrainingCard();
   if (rhythm) body.appendChild(rhythm);
-  body.appendChild(proplayerGateway());
+
+  // En una app de entrenamiento, HOY manda. La biblioteca técnica queda
+  // disponible después de la acción principal, no compite con ella.
   const goal = S.data.profile.goal;
   body.appendChild(el("div", "sec-label", t("training.personalPlan", { goal: esc(goal) })));
   const w = S.todayWorkout();
   if (!w) {
-    body.appendChild(el("div", "card", `<h4>DÍA DE RECUPERACIÓN</h4><div class="sub">Hoy no hay sesión de fuerza programada. La fase actual prioriza recuperación activa.</div>`));
-    body.appendChild(workoutCard(WORKOUTS.mobility_flow));
+    const recovery = el("div", "card today-recovery-card", `<h4>DÍA DE RECUPERACIÓN</h4><div class="sub">Hoy no hay sesión de fuerza programada. La fase actual prioriza recuperación activa.</div>`);
+    body.appendChild(recovery);
+    body.appendChild(workoutCard(WORKOUTS.mobility_flow, true));
   } else {
-    body.appendChild(workoutCard(w));
+    body.appendChild(workoutCard(w, true));
   }
+
+  body.appendChild(proplayerGateway());
   body.appendChild(el("div", "sec-label", t("training.weekCalendar")));
   body.appendChild(weekCalendar());
   body.appendChild(el("div", "sec-label", t("training.catalog")));
@@ -268,13 +273,14 @@ function showDayDetail(wid, date, cell, grid) {
   });
 }
 
-function workoutCard(w) {
+function workoutCard(w, featured = false) {
   const done = S.data.today.workoutDone === w.id;
   const auto = todaysSession();
   const isToday = auto && auto.workout.id === w.id;
   const prev = previewWorkoutXP(w);
   const bonus = workoutCompleteReward({ minutes: w.min });
   const c = el("div", "card workout-card");
+  if (featured) c.classList.add("today-workout-card");
   c.innerHTML = `
     <div class="card-row">
       <div class="grow">
