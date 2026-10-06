@@ -43,8 +43,10 @@ assert(rotos.length === 0, `los ${refs.length} recursos locales de index.html ex
 const modulos = refs
   .filter((r) => r.split(/[?#]/)[0].endsWith(".js"))
   .map((r) => r.split(/[?#]/)[0]);
-assert(modulos.includes("js/main.js"), "index.html carga el arranque (js/main.js)");
-assert(modulos.length > 0, `index.html carga ${modulos.length} módulo(s)`);
+assert(modulos.includes("js/ui/landing-boot.js"), "index.html carga el bootstrap ligero de la landing");
+const appLoader = leer("js/app-loader.js");
+assert(appLoader.includes('import("./main.js")'), "app-loader carga js/main.js solo al entrar");
+assert(modulos.length > 0, `index.html carga ${modulos.length} módulo(s) inicial(es)`);
 
 /* ============================================================
    2 · TODO IMPORT EXISTE Y APUNTA A ALGO REAL
