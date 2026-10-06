@@ -10,6 +10,8 @@ import {
 import {
   openSection, BUILDERS, showModal, hideModal, toast, $, elT,
 } from "./shared.js";
+import { currentSession, accountRole, probeBackend } from "../sync/supabase.js";
+import { linkedClients } from "../sync/coaching.js";
 
 const COACH_SECTIONS = new Set([
   "coachos","centro","socios","cuotas","agenda","acceso","portal","informes"
@@ -195,6 +197,183 @@ function renderCoachHero(body, clients) {
   body.append(metrics);
 }
 
+function renderCloudCoachState(body) {
+  const box = n("section", "one-cloud-board");
+  const head = n("div", "one-section-head");
+  const title = n("div");
+  title.append(n("span", "one-kicker", "COACHING CLOUD / REAL"));
+  title.append(n("h4", "", "Clientes vinculados"));
+  const stateTag = tag("COMPROBANDO", "copper");
+  head.append(title, stateTag);
+  box.append(head);
+
+  const status = n("p", "one-panel-copy", "Comprobando el servicio BAYONA…");
+  box.append(status);
+
+  const manage = btn("GESTIONAR CUENTA Y VÍNCULOS →", "one-action", () => openSection("account"));
+  box.append(manage);
+  body.append(box);
+
+  const session = currentSession();
+  if (!session) {
+    stateTag.textContent = "LOCAL";
+    stateTag.className = "one-tag";
+    status.textContent = "Coach Studio funciona en este dispositivo. Inicia sesión para vincular clientes reales y enviarles rutinas.";
+    return;
+  }
+
+  if (accountRole() !== "coach") {
+    stateTag.textContent = "CUENTA CLIENTE";
+    stateTag.className = "one-tag warn";
+    status.textContent = "La sesión actual está configurada como cliente. Cambia a una cuenta Coach para administrar vínculos.";
+    return;
+  }
+
+  probeBackend().then(async (health) => {
+    if (!box.isConnected) return;
+    if (!health?.ok) {
+      stateTag.textContent = "NUBE OFFLINE";
+      stateTag.className = "one-tag warn";
+      status.textContent = "El backend no responde ahora. Tus rutinas locales y PROPLAYER siguen disponibles; no se simulan clientes remotos.";
+      return;
+    }
+
+    try {
+      const clients = await linkedClients();
+      if (!box.isConnected) return;
+      stateTag.textContent = clients.length ? String(clients.length) + " ACTIVOS" : "SIN VÍNCULOS";
+      stateTag.className = "one-tag " + (clients.length ? "ok" : "copper");
+      status.replaceChildren();
+
+      if (!clients.length) {
+        status.textContent = "La nube está disponible, pero todavía no hay clientes vinculados. Crea una invitación desde Mi cuenta.";
+        return;
+      }
+
+      const list = n("div", "one-cloud-client-list");
+      clients.forEach((client) => {
+        const row = n("div", "one-cloud-client-row");
+        const copy = n("div");
+        copy.append(n("strong", "", client.name || "Cliente BAYONA"));
+        copy.append(n("small", "", "VÍNCULO ACTIVO · DATOS PROTEGIDOS POR RLS"));
+        row.append(copy, tag("REAL", "ok"));
+        list.append(row);
+      });
+      status.append(list);
+    } catch (e) {
+      stateTag.textContent = "PENDIENTE";
+      stateTag.className = "one-tag warn";
+      status.textContent = "La cuenta responde, pero el módulo Coach ↔ cliente todavía no está disponible en el backend.";
+    }
+  }).catch(() => {
+    if (!box.isConnected) return;
+    stateTag.textContent = "NUBE OFFLINE";
+    stateTag.className = "one-tag warn";
+    status.textContent = "No se pudo comprobar la nube. El modo local sigue disponible.";
+  });
+}
+
+function renderTemplateLibrary(body) {
+  const all = S.customRoutinesList();
+  const routines = all.slice(0, 8);
+  const box = n("section", "one-template-board");
+
+  const head = n("div", "one-section-head");
+  const title = n("div");
+  title.append(n("span", "one-kicker", "ROUTINE STUDIO / PROPLAYER"));
+  title.append(n("h4", "", "Plantillas reutilizables"));
+  head.append(title, tag(String(all.length) + " GUARDADAS", "copper"));
+  box.append(head);
+
+  box.append(n(
+    "p",
+    "one-panel-copy",
+    routines.length
+      ? "Reutiliza tu trabajo: asigna una rutina hoy, duplícala para adaptarla o crea una nueva desde PROPLAYER."
+      : "Aún no tienes plantillas. Construye la primera con la biblioteca PROPLAYER de 3.141 fichas."
+  ));
+
+  const topActions = n("div", "one-template-top-actions");
+  topActions.append(commandAction(routines.length ? "CREAR OTRA EN PROPLAYER" : "CREAR PRIMERA RUTINA", "library", "primary"));
+  box.append(topActions);
+
+  if (!routines.length) {
+    box.append(n("div", "one-empty", "Sin plantillas guardadas todavía."));
+    body.append(box);
+    return;
+  }
+
+  const list = n("div", "one-template-list");
+  routines.forEach((routine) => {
+    const row = n("article", "one-template-row");
+    const main = n("div", "one-template-main");
+    main.append(n("strong", "", routine.name));
+    main.append(n(
+      "small",
+      "",
+      String(routine.exercises?.length || 0) + " ejercicios · " + String(routine.min || "—") + " min"
+    ));
+
+    const actions = n("div", "one-template-actions");
+    const assign = btn("ASIGNAR HOY", "one-action primary", () => {
+      const saved = S.addAsignacion({
+        clienteId: "local",
+        workoutId: routine.id,
+        customRoutineId: routine.id,
+        dia: todayKey(),
+        nota: "Rutina asignada desde Mis plantillas.",
+        origen: "coach-template",
+        autor: "Coach Studio",
+      });
+      if (saved) toast("RUTINA ASIGNADA", routine.name + " · ya aparece en HOY.");
+    });
+
+    const duplicate = btn("DUPLICAR", "one-action", () => {
+      const copy = S.saveCustomRoutine({
+        name: (routine.name + " · COPIA").slice(0, 80),
+        min: routine.min,
+        desc: routine.desc,
+        exercises: routine.exercises,
+      });
+      if (copy) {
+        toast("PLANTILLA DUPLICADA", copy.name);
+        renderCoachStudio(body);
+      }
+    });
+
+    const remove = btn("ELIMINAR", "one-action danger", () => {
+      const modal =
+        '<div class="one-modal-kicker">COACH STUDIO · PLANTILLAS</div>' +
+        '<div class="cine-title">Eliminar ' + esc(routine.name) + '</div>' +
+        '<div class="cine-sub">Se elimina la plantilla guardada de este dispositivo. El historial de sesiones completadas no se borra.</div>' +
+        '<div style="height:12px"></div>' +
+        '<button class="btn btn-danger btn-block" id="one-template-delete">ELIMINAR PLANTILLA</button>' +
+        '<div style="height:8px"></div>' +
+        '<button class="btn btn-block" id="one-template-cancel">CANCELAR</button>';
+      showModal(modal, () => {
+        $("#one-template-cancel").onclick = hideModal;
+        $("#one-template-delete").onclick = () => {
+          hideModal();
+          if (S.deleteCustomRoutine(routine.id)) {
+            toast("PLANTILLA ELIMINADA", routine.name);
+            renderCoachStudio(body);
+          }
+        };
+      });
+    });
+
+    actions.append(assign, duplicate, remove);
+    row.append(main, actions);
+    list.append(row);
+  });
+
+  box.append(list);
+  if (all.length > routines.length) {
+    box.append(n("small", "one-disclaimer", "Mostrando las 8 plantillas más recientes. BAYONA conserva hasta 100 en este dispositivo."));
+  }
+  body.append(box);
+}
+
 function renderCorePriorities(body, clients) {
   const shell = n("section", "one-core-board");
   const head = n("div", "one-section-head");
@@ -311,6 +490,8 @@ function renderCoachStudio(body) {
   body.classList.add("one-coach-body");
   const clients = coachClients();
   renderCoachHero(body, clients);
+  renderCloudCoachState(body);
+  renderTemplateLibrary(body);
   renderCorePriorities(body, clients);
   renderRoster(body, clients);
   renderMacroPreview(body);

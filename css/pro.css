@@ -4287,3 +4287,111 @@ body.fitness-app #modal-box:has(.proplayer-routine-modal){
     grid-template-columns:repeat(2,30px);
   }
 }
+
+/* Coach Studio ONE · nube real + plantillas reutilizables */
+body.fitness-app .one-cloud-board,
+body.fitness-app .one-template-board{
+  border:1px solid #293236;
+  border-radius:10px;
+  background:#101416;
+  padding:18px;
+}
+body.fitness-app .one-cloud-board .one-panel-copy,
+body.fitness-app .one-template-board .one-panel-copy{
+  margin:0 0 14px;
+  color:#899599;
+  font-size:11px;
+  line-height:1.6;
+}
+body.fitness-app .one-cloud-client-list{
+  display:grid;
+  gap:1px;
+  margin-top:12px;
+  border:1px solid #293236;
+  border-radius:8px;
+  overflow:hidden;
+  background:#293236;
+}
+body.fitness-app .one-cloud-client-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  padding:12px;
+  background:#0e1315;
+}
+body.fitness-app .one-cloud-client-row strong{
+  display:block;
+  color:#ece9e4;
+  font-size:11px;
+}
+body.fitness-app .one-cloud-client-row small{
+  display:block;
+  margin-top:4px;
+  color:#6f7e83;
+  font-size:8px;
+  letter-spacing:.08em;
+}
+body.fitness-app .one-template-top-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-bottom:12px;
+}
+body.fitness-app .one-template-list{
+  display:grid;
+  gap:1px;
+  overflow:hidden;
+  border:1px solid #293236;
+  border-radius:9px;
+  background:#293236;
+}
+body.fitness-app .one-template-row{
+  display:grid;
+  grid-template-columns:minmax(180px,1fr) auto;
+  gap:16px;
+  align-items:center;
+  padding:12px 14px;
+  background:#0e1315;
+}
+body.fitness-app .one-template-main{
+  min-width:0;
+}
+body.fitness-app .one-template-main strong{
+  display:block;
+  overflow-wrap:anywhere;
+  color:#ece9e4;
+  font-size:11.5px;
+}
+body.fitness-app .one-template-main small{
+  display:block;
+  margin-top:5px;
+  color:#718087;
+  font-size:9px;
+}
+body.fitness-app .one-template-actions{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+  gap:6px;
+}
+body.fitness-app .one-action.danger{
+  border-color:#5a3434;
+  color:#d9a0a0;
+}
+body.fitness-app .one-action.danger:hover{
+  border-color:#8d4a4a;
+  color:#ffc1c1;
+}
+@media(max-width:760px){
+  body.fitness-app .one-template-row{
+    grid-template-columns:1fr;
+    gap:10px;
+  }
+  body.fitness-app .one-template-actions{
+    justify-content:flex-start;
+  }
+  body.fitness-app .one-template-actions .one-action{
+    flex:1 1 110px;
+  }
+}
