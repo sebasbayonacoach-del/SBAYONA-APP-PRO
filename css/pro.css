@@ -5002,3 +5002,121 @@ body.fitness-app .one-metric.warn .one-metric-value { color: #e3bd88; }
     font-size: 7.5px;
   }
 }
+
+/* ============================================================
+   33 · BAYONA ENTRY v13.1 — QUICK RESUME / APP KEYBOARD
+   ============================================================ */
+body.fitness-app #entry .e-quick-resume[hidden] {
+  display: none !important;
+}
+body.fitness-app #entry .e-quick-resume {
+  width: 100%;
+  min-height: 52px;
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border: 1px solid rgba(255,106,0,.38);
+  border-radius: 12px;
+  background:
+    linear-gradient(90deg, rgba(255,106,0,.10), transparent 58%),
+    #0d0f10;
+  color: #f2f0eb;
+  text-align: left;
+  cursor: pointer;
+}
+body.fitness-app #entry .e-quick-resume:hover,
+body.fitness-app #entry .e-quick-resume:focus-visible {
+  border-color: #ff6a00;
+  background:
+    linear-gradient(90deg, rgba(255,106,0,.16), transparent 64%),
+    #101214;
+  outline: none;
+}
+body.fitness-app #entry .e-quick-resume > span {
+  display: grid;
+  gap: 4px;
+}
+body.fitness-app #entry .e-quick-resume small {
+  color: #787f83;
+  font: 760 7px/1 var(--sans);
+  letter-spacing: .14em;
+}
+body.fitness-app #entry .e-quick-resume strong {
+  color: #ff8a3a;
+  font: 760 10px/1 var(--sans);
+  letter-spacing: .08em;
+}
+body.fitness-app #entry .e-quick-resume kbd,
+body.fitness-app #entry .e-role-topline kbd {
+  min-width: 24px;
+  min-height: 22px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0 6px;
+  border: 1px solid #30363a;
+  border-bottom-color: #1c2022;
+  border-radius: 6px;
+  background: #111416;
+  color: #949ca0;
+  font: 760 8px/1 var(--mono);
+  box-shadow: inset 0 1px rgba(255,255,255,.035);
+}
+body.fitness-app #entry .e-role-topline > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+body.fitness-app #entry .e-role-topline > span > em {
+  color: #737a7e;
+  font: 760 7.5px/1 var(--sans);
+  letter-spacing: .13em;
+  font-style: normal;
+}
+@media (pointer: coarse), (max-width: 620px) {
+  body.fitness-app #entry .e-role-topline kbd {
+    display: none;
+  }
+}
+
+/* Entry v13.2 · proporción desktop + PWA instalada más directa */
+@media (min-width: 901px) {
+  body.fitness-app #entry .e-entry-layout {
+    grid-template-columns: minmax(0,1.04fr) minmax(500px,.96fr);
+  }
+  body.fitness-app #entry .e-entry-intro {
+    padding: clamp(38px,4.2vw,58px);
+  }
+  body.fitness-app #entry .e-title {
+    font-size: clamp(42px,4.8vw,68px);
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+}
+body.fitness-app.pwa-shell-entry #entry .e-app-shell {
+  min-height: min(700px, calc(100dvh - 32px));
+}
+@media (max-width: 620px) {
+  body.fitness-app.pwa-shell-entry #entry .e-entry-intro {
+    padding: 22px 16px 16px;
+  }
+  body.fitness-app.pwa-shell-entry #entry .e-title {
+    max-width: 340px;
+    font-size: clamp(30px,9vw,38px);
+    line-height: .98;
+  }
+  body.fitness-app.pwa-shell-entry #entry .e-sub {
+    display: none;
+  }
+  body.fitness-app.pwa-shell-entry #entry .e-system-pills {
+    margin-top: 14px;
+  }
+  body.fitness-app.pwa-shell-entry #entry .e-entry-proof {
+    display: none;
+  }
+  body.fitness-app.pwa-shell-entry #entry .e-role-panel {
+    padding-top: 18px;
+  }
+}

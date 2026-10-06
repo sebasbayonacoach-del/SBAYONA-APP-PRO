@@ -9,6 +9,10 @@ export const locale = "es-ES";
 
 const es = {
   "one.entry.welcome": "Hola, {name}. Elige cómo quieres entrar hoy. Tu progreso y tu centro de mando siguen separados.",
+  "one.entry.resumeAthlete": "CONTINUAR COMO ATLETA",
+  "one.entry.resumeCoach": "CONTINUAR COMO COACH",
+  "one.entry.session": "Volver a mi sesión",
+  "one.entry.experience": "Entrar a mi experiencia",
   "affiliate.guide.kicker": "TU PERSONAJE · GUÍA",
   "affiliate.guide.title": "BAYONA está contigo",
   "affiliate.exercise.video": "VER VIDEO",

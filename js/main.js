@@ -106,6 +106,8 @@ function wireEntry(world) {
   const entry = document.getElementById("entry");
   const affiliate = document.getElementById("entry-go");
   const coach = document.getElementById("entry-coach");
+  const resume = document.getElementById("entry-resume");
+  const resumeLabel = document.getElementById("entry-resume-label");
   const modeName = document.getElementById("mode-name");
   if (!entry || !affiliate || !coach) return;
 
@@ -131,12 +133,18 @@ function wireEntry(world) {
     // Un usuario nuevo no tiene «último acceso»: no marcamos uno inventado.
     b.setAttribute("aria-pressed", String(Boolean(storedRole) && b.dataset.entryRole === storedRole));
   });
+  if (resume && resumeLabel) {
+    resume.hidden = !storedRole;
+    if (storedRole) {
+      resumeLabel.textContent = t(storedRole === "coach" ? "one.entry.resumeCoach" : "one.entry.resumeAthlete");
+    }
+  }
 
   if (S.data.profile.onboarded) {
     const name = S.data.profile.name || "atleta";
     entry.querySelector(".e-sub").textContent = t("one.entry.welcome", { name });
     affiliate.querySelector(".e-role-copy strong").textContent =
-      S.getActiveSession() ? "Volver a mi sesión" : "Entrar a mi experiencia";
+      t(S.getActiveSession() ? "one.entry.session" : "one.entry.experience");
   }
 
   const syncChrome = (m) => {
@@ -153,6 +161,7 @@ function wireEntry(world) {
     document.body.classList.toggle("entry-coach", safeRole === "coach");
     document.body.classList.toggle("entry-affiliate", safeRole === "affiliate");
     document.body.classList.add("entered");
+    document.body.classList.remove("pwa-shell-entry");
     entry.classList.add("gone");
     window.dispatchEvent(new CustomEvent("bayona:entered", { detail:{ role:safeRole } }));
 
@@ -171,11 +180,13 @@ function wireEntry(world) {
 
   affiliate.addEventListener("click", () => enter("affiliate"));
   coach.addEventListener("click", () => enter("coach"));
+  resume?.addEventListener("click", () => storedRole && enter(lastRole));
   addEventListener("keydown", (e) => {
     if (document.body.classList.contains("entered")) return;
-    if ((e.key === "Enter" || e.key === " ") && !e.target.closest("button, input, select, textarea")) {
-      enter(lastRole);
-    }
+    if (e.target.closest("button, input, select, textarea")) return;
+    if (e.key === "1") return enter("affiliate");
+    if (e.key === "2") return enter("coach");
+    if ((e.key === "Enter" || e.key === " ") && storedRole) enter(lastRole);
   });
 }
 

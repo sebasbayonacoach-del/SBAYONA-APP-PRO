@@ -26,6 +26,11 @@ const luxeCss = readFileSync(new URL("../css/luxe.css", import.meta.url), "utf8"
   assert(index.includes("APP ENTRENADOR + ATLETA") && index.includes("TRAINING OS"), "el ingreso se presenta como producto entrenador/gym");
   assert(mainEntry.includes("Boolean(storedRole)") && mainEntry.includes('const storedRole = localStorage.getItem(roleKey)'),
     "solo un rol realmente usado puede marcarse como ÚLTIMO ACCESO");
+  assert(index.includes('id="entry-resume"') && mainEntry.includes("resume.hidden = !storedRole"),
+    "el acceso rápido solo aparece cuando existe un rol anterior real");
+  assert(mainEntry.includes('if (e.key === "1") return enter("affiliate")') &&
+    mainEntry.includes('if (e.key === "2") return enter("coach")'),
+    "teclado de app: 1 entra como atleta y 2 como coach");
   assert(luxeCss.includes("body.luxe-activo #entry { display: none !important; }"),
     "la landing pública oculta de verdad la puerta de la app");
   assert(html[0].includes('id="ob-fast"'), "el camino rápido está en el PRIMER paso (sin pasos previos)");

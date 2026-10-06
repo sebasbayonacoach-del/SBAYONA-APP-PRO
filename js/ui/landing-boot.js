@@ -92,8 +92,13 @@ function directTarget() {
 
 function boot() {
   const direct = directTarget();
+  const source = new URLSearchParams(globalThis.location?.search || "").get("source");
+  const appShell = source === "pwa";
+  document.body.classList.toggle("pwa-shell-entry", appShell);
 
-  if (yaDentro() || direct) {
+  // La app instalada abre como app: sin marketing, directo al selector
+  // Atleta / Coach. El deep-link sigue pudiendo entrar a una sección concreta.
+  if (yaDentro() || direct || appShell) {
     removeLanding();
     const role = direct === "coachos" || direct === "coach-os"
       ? "coach"

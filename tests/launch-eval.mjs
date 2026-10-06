@@ -17,6 +17,7 @@ const html = readFileSync(join(root, "index.html"), "utf8");
 const sw = readFileSync(join(root, "sw.js"), "utf8");
 const more = readFileSync(join(root, "js/ui/more.js"), "utf8");
 const appLoader = readFileSync(join(root, "js/app-loader.js"), "utf8");
+const landingBoot = readFileSync(join(root, "js/ui/landing-boot.js"), "utf8");
 const i18n = readFileSync(join(root, "js/i18n.js"), "utf8");
 const robots = readFileSync(join(root, "robots.txt"), "utf8");
 const sitemap = readFileSync(join(root, "sitemap.xml"), "utf8");
@@ -41,6 +42,8 @@ ok(!sitemap.includes("<loc>./"), "sitemap no usa URLs relativas");
 console.log("\n— PWA —");
 ok(manifest.display === "standalone", "manifest standalone");
 ok(manifest.start_url === "./?source=pwa", "arranque PWA estable");
+ok(landingBoot.includes('const appShell = source === "pwa"') && landingBoot.includes("yaDentro() || direct || appShell"),
+  "la PWA instalada salta marketing y abre el portal de la app");
 ok(Array.isArray(manifest.icons) && manifest.icons.length >= 3, "manifest tiene iconos");
 ok(manifest.icons.every((x) => existsSync(join(root, String(x.src).replace(/^\.\//, "")))), "todos los iconos del manifest existen");
 ok(manifest.icons.some((x) => String(x.purpose || "").includes("maskable")), "hay icono maskable");
