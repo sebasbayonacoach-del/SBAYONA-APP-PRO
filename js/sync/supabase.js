@@ -182,6 +182,54 @@ export function currentSession() { return session || loadSession(); }
 export function currentUser() { return (session || loadSession())?.user || null; }
 export function isConfigured() { return cfg.ready; }
 
+let backendProbe = { at: 0, result: null, promise: null };
+
+/**
+ * Comprueba que el Auth de Supabase responde sin enviar datos del usuario.
+ * Se cachea 30 s para no convertir la pantalla de cuenta en un health-check loop.
+ */
+export async function probeBackend({ force = false, timeoutMs = 3500 } = {}) {
+  const now = Date.now();
+  if (!force && backendProbe.result && now - backendProbe.at < 30000) return backendProbe.result;
+  if (!force && backendProbe.promise) return backendProbe.promise;
+
+  const run = (async () => {
+    const { url, anonKey, ready } = supabaseConfig();
+    if (!ready) return { ok: false, configured: false, status: null, reason: "not_configured" };
+
+    const ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
+    const timer = ctrl ? setTimeout(() => ctrl.abort(), Math.max(800, Number(timeoutMs) || 3500)) : null;
+    try {
+      const res = await fetch(url + "/auth/v1/settings", {
+        method: "GET",
+        headers: { apikey: anonKey, Accept: "application/json" },
+        cache: "no-store",
+        signal: ctrl?.signal,
+      });
+      return {
+        ok: res.status >= 200 && res.status < 500,
+        configured: true,
+        status: res.status,
+        reason: res.status >= 200 && res.status < 500 ? null : "upstream_" + res.status,
+      };
+    } catch (e) {
+      return {
+        ok: false,
+        configured: true,
+        status: null,
+        reason: e?.name === "AbortError" ? "timeout" : "network",
+      };
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+  })();
+
+  backendProbe.promise = run;
+  const result = await run;
+  backendProbe = { at: Date.now(), result, promise: null };
+  return result;
+}
+
 /* ---------------- REST (RLS manda en servidor) ----------------
    Métodos pequeños y explícitos. `upsert` usa Prefer: resolution=merge-
    duplicates para idempotencia (clave natural = id del usuario). */

@@ -21,7 +21,7 @@ import {
   completeCloudAssignment, flushCloudCompletions,
 } from "./coaching.js";
 import {
-  isConfigured, currentSession, currentUser, accountRole, onAuth,
+  isConfigured, probeBackend, currentSession, currentUser, accountRole, onAuth,
   signInWithPassword, signUpWithPassword, signInWithMagicLink,
   signOut, ensureFreshSession, refreshUser, completeAuthFromHash,
   select, insert, upsert, remove,
@@ -29,7 +29,37 @@ import {
 
 TITLES.account = ["CUENTA", "BAYONA EN LA NUBE · TUS DATOS, TUS REGLAS"];
 
-const STATE = { busy: false, last: null, error: null };
+const STATE = {
+  busy: false,
+  last: null,
+  error: null,
+  cloud: null,
+  cloudAt: 0,
+  cloudProbeBusy: false,
+};
+
+async function refreshCloudHealth({ force = false, rebuild = false } = {}) {
+  if (STATE.cloudProbeBusy) return STATE.cloud;
+  STATE.cloudProbeBusy = true;
+  try {
+    const result = await probeBackend({ force });
+    STATE.cloud = result;
+    STATE.cloudAt = Date.now();
+    return result;
+  } finally {
+    STATE.cloudProbeBusy = false;
+    if (rebuild && open) buildIfOpen();
+  }
+}
+
+async function requireCloud(messageNode = null) {
+  const health = await refreshCloudHealth({ force: true });
+  if (health?.ok) return true;
+  if (messageNode) {
+    messageNode.textContent = "La nube BAYONA no responde ahora. Tus datos locales siguen disponibles; reintenta cuando vuelva el servicio.";
+  }
+  return false;
+}
 
 /* ============================================================
    SINCRONIZACIÓN — espejo idempotente local → remoto
@@ -145,6 +175,8 @@ export async function syncNow(opts = {}) {
   STATE.error = null;
   buildIfOpen();
   try {
+    const health = await refreshCloudHealth();
+    if (!health?.ok) throw new Error("servicio de nube temporalmente no disponible");
     await ensureFreshSession();
     if (!currentSession()) throw new Error("inicia sesión para sincronizar");
     await pushProfile();
@@ -293,21 +325,51 @@ BUILDERS.account = (body) => {
   const cfg = isConfigured();
   const ses = currentSession();
   const usr = currentUser();
+  const cloudStale = !STATE.cloudAt || Date.now() - STATE.cloudAt > 30000;
+  if (cfg && !STATE.cloudProbeBusy && (!STATE.cloud || cloudStale)) {
+    refreshCloudHealth({ rebuild: true }).catch(() => {});
+  }
+  const cloudOk = STATE.cloud?.ok === true;
+  const cloudDown = STATE.cloud?.ok === false;
+  const cloudLabel = cloudOk ? "ONLINE" : cloudDown ? "SIN RESPUESTA" : cfg ? "COMPROBANDO" : "SIN CONFIGURAR";
+
   const st = el("div", "card shine");
-  st.innerHTML = `
-    <div class="card-row">
-      <h4>${ses ? (STATE.last ? "DATOS SINCRONIZADOS" : "CUENTA ACTIVA") : "SOLO EN ESTE DISPOSITIVO"}</h4>
-      <span class="pill ${ses ? "green" : "gold"}">${ses ? (STATE.last ? "NUBE OK" : "SESIÓN ACTIVA") : cfg ? "SIN SESIÓN" : "SIN CONFIGURAR"}</span>
-    </div>
-    <div class="sub">${ses
+  const heading = cloudDown
+    ? (ses ? "SESIÓN LOCAL · NUBE NO DISPONIBLE" : "SOLO EN ESTE DISPOSITIVO")
+    : ses ? (STATE.last ? "DATOS SINCRONIZADOS" : "CUENTA ACTIVA") : "SOLO EN ESTE DISPOSITIVO";
+  const pillText = cloudDown
+    ? "NUBE OFFLINE"
+    : ses ? (STATE.last ? "NUBE OK" : "SESIÓN ACTIVA") : cfg ? (cloudOk ? "NUBE LISTA" : "COMPROBANDO") : "SIN CONFIGURAR";
+  const pillTone = cloudDown ? "gold" : ses || cloudOk ? "green" : "gold";
+  const statusCopy = cloudDown
+    ? "El servicio de nube BAYONA no está respondiendo ahora. La app continúa funcionando con tus datos locales; no se marcará una sincronización como correcta hasta que el servidor vuelva."
+    : ses
       ? `Conectado como <b>${esc(usr?.email || usr?.id || "usuario")}</b>. La sesión está activa; la app confirma la copia en nube únicamente después de una sincronización correcta.`
       : cfg
-        ? "Tu progreso se guarda aquí mismo. Inicia sesión para tener copia en la nube y poder cambiar de dispositivo."
-        : "La conexión de nube no está disponible en este entorno. La app continúa funcionando de forma local y offline."}</div>
+        ? "Tu progreso se guarda aquí mismo. Cuando la nube responda puedes iniciar sesión para tener copia y cambiar de dispositivo."
+        : "La conexión de nube no está configurada. La app continúa funcionando de forma local y offline.";
+
+  st.innerHTML = `
+    <div class="card-row">
+      <h4>${heading}</h4>
+      <span class="pill ${pillTone}">${pillText}</span>
+    </div>
+    <div class="sub">${statusCopy}</div>
+    <div class="kv"><span class="k">SERVICIO NUBE</span><span class="v">${cloudLabel}</span></div>
     ${ses ? `<div class="kv"><span class="k">ROL DE CUENTA</span><span class="v">${accountRole() === "coach" ? "COACH" : "CLIENTE"}</span></div>` : ""}
     <div class="kv"><span class="k">ÚLTIMA SINCRONIZACIÓN</span><span class="v">${STATE.last ? esc(fmtDate(STATE.last)) : "—"}</span></div>
     <div class="kv"><span class="k">EN COLA</span><span class="v">${outbox.estaPendiente() ? "PENDIENTE" : "TODO ENVIADO"}</span></div>
     ${STATE.error ? `<div class="kv"><span class="k">AVISO</span><span class="v" style="color:var(--danger)">${esc(STATE.error)}</span></div>` : ""}`;
+  if (cfg && cloudDown) {
+    const retryCloud = el("button", "btn btn-block", "REINTENTAR NUBE");
+    retryCloud.style.marginTop = "12px";
+    retryCloud.onclick = async () => {
+      retryCloud.disabled = true;
+      retryCloud.textContent = "COMPROBANDO…";
+      await refreshCloudHealth({ force: true, rebuild: true }).catch(() => {});
+    };
+    st.appendChild(retryCloud);
+  }
   body.appendChild(st);
 
   // ---------- ACCESO ----------
@@ -331,6 +393,8 @@ BUILDERS.account = (body) => {
     const pass = () => form.querySelector("#ac-pass").value;
 
     bMagic.onclick = async () => {
+      msg.textContent = "Comprobando nube…";
+      if (!(await requireCloud(msg))) return;
       msg.textContent = "Enviando…";
       try {
         await signInWithMagicLink(email(), location.origin + location.pathname);
@@ -339,6 +403,8 @@ BUILDERS.account = (body) => {
       } catch (e) { msg.textContent = "No se pudo enviar: " + e.message; }
     };
     bIn.onclick = async () => {
+      msg.textContent = "Comprobando nube…";
+      if (!(await requireCloud(msg))) return;
       msg.textContent = "Entrando…";
       try {
         await signInWithPassword(email(), pass());
@@ -349,6 +415,8 @@ BUILDERS.account = (body) => {
       } catch (e) { msg.textContent = "No se pudo entrar: " + e.message; }
     };
     bUp.onclick = async () => {
+      msg.textContent = "Comprobando nube…";
+      if (!(await requireCloud(msg))) return;
       msg.textContent = "Creando cuenta…";
       try {
         await signUpWithPassword(email(), pass());
@@ -366,11 +434,11 @@ BUILDERS.account = (body) => {
   dat.innerHTML = `<h4>SINCRONIZACIÓN</h4><div class="sub">Perfil, consentimientos, preparación diaria, entrenos y series. Espejo idempotente: reenviar nunca duplica nada.</div>`;
   const bSync = el("button", "btn btn-primary btn-block", ses ? "SINCRONIZAR AHORA" : "SINCRONIZAR (requiere sesión)");
   bSync.style.marginTop = "12px";
-  bSync.disabled = !ses || STATE.busy;
+  bSync.disabled = !ses || STATE.busy || cloudDown;
   bSync.onclick = () => syncNow();
   const bPull = el("button", "btn btn-gold btn-block", "DESCARGAR COPIA DE LA NUBE");
   bPull.style.marginTop = "8px";
-  bPull.disabled = !ses;
+  bPull.disabled = !ses || cloudDown;
   bPull.onclick = pullBackup;
   dat.append(bSync, bPull);
   body.appendChild(dat);
