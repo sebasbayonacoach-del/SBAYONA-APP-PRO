@@ -1,22 +1,15 @@
 // ============================================================
-// BAYONA · LUXE — boot de la landing pública
+// BAYONA · LUXE — boot ligero de la landing pública
 // ------------------------------------------------------------
-// Se carga como módulo independiente (antes de que main.js
-// termine de bootear). Decide si la landing se muestra:
-//   · usuario NUEVO (no onboarded) → landing visible, la puerta
-//     #entry se apaga hasta que el usuario pida entrar.
-//   · usuario que YA entró (body.entered) → landing oculta y
-//     nada cambia respecto a v9.
-// Nunca toca datos de juego: solo pinta y delega el clic.
+// La landing se puede pintar sin descargar Three.js ni el producto completo.
+// El núcleo BAYONA se importa únicamente al entrar o para un usuario recurrente.
 // ============================================================
 import { t, esc } from "../i18n.js";
+import { loadApp } from "../app-loader.js";
 import { montarLanding } from "./landing.js";
 
-/** ¿El usuario ya está dentro de la app? (misma señal que usa main.js) */
 function yaDentro() {
   try {
-    const ap = JSON.parse(localStorage.getItem("bayona.appearance.v1") || "{}");
-    // la puerta se salta cuando onboarded=true (main.js: wireEntry auto-enter)
     const save = localStorage.getItem("bayona.save.v2");
     const onboarded = save && JSON.parse(save)?.profile?.onboarded;
     return Boolean(onboarded) || document.body.classList.contains("entered");
@@ -25,40 +18,97 @@ function yaDentro() {
   }
 }
 
-function irALaApp(plan) {
+function removeLanding() {
   document.body.classList.remove("luxe-activo");
-  document.body.classList.add("entered");
-  const landing = document.getElementById("luxe-landing");
-  if (landing) landing.remove();
-  const nav = document.getElementById("luxe-nav");
-  if (nav) nav.remove();
-  // la puerta #entry sigue con su flujo de v9: el botón ENTRAR es el mismo
-  const go = document.getElementById("entry-go");
-  if (go) go.click();
-  else window.dispatchEvent(new CustomEvent("bayona:luxe-entrar", { detail: { plan } }));
+  document.getElementById("luxe-landing")?.remove();
+  document.getElementById("luxe-nav")?.remove();
+}
+
+function setLoading(on) {
+  document.querySelectorAll("#luxe-landing button, #luxe-nav button").forEach((button) => {
+    button.disabled = Boolean(on);
+    if (on) {
+      if (!button.dataset.beforeLoad) button.dataset.beforeLoad = button.textContent || "";
+      button.textContent = t("luxe.load.loading");
+    } else if (button.dataset.beforeLoad) {
+      button.textContent = button.dataset.beforeLoad;
+      delete button.dataset.beforeLoad;
+    }
+  });
+}
+
+function showLoadError() {
+  setLoading(false);
+  const root = document.getElementById("luxe-landing");
+  if (!root) return;
+  let msg = root.querySelector("[data-luxe-load-error]");
+  if (!msg) {
+    msg = document.createElement("div");
+    msg.dataset.luxeLoadError = "1";
+    msg.className = "luxe-load-error";
+    msg.setAttribute("role", "status");
+    root.prepend(msg);
+  }
+  msg.textContent = t("luxe.load.error");
+}
+
+async function enterApp(plan = null, role = "affiliate") {
+  setLoading(true);
+  try {
+    await loadApp();
+    removeLanding();
+
+    const safeRole = role === "coach" ? "coach" : "affiliate";
+    const target = document.getElementById(safeRole === "coach" ? "entry-coach" : "entry-go");
+    if (target) {
+      target.click();
+      return;
+    }
+
+    window.dispatchEvent(new CustomEvent("bayona:luxe-entrar", {
+      detail: { plan, role: safeRole },
+    }));
+  } catch (error) {
+    console.error("BAYONA: no se pudo cargar la app", error);
+    showLoadError();
+  }
+}
+
+function directTarget() {
+  const search = globalThis.location?.search || "";
+  const hash = (globalThis.location?.hash || "").replace(/^#\/?/, "");
+  const go = new URLSearchParams(search).get("go");
+  const target = String(go || hash || "").trim().toLowerCase();
+  return target || null;
 }
 
 function boot() {
-  if (yaDentro()) {
-    // usuario recurrente: sin landing, la app arranca como siempre
-    const l = document.getElementById("luxe-landing");
-    if (l) l.remove();
+  const direct = directTarget();
+
+  if (yaDentro() || direct) {
+    removeLanding();
+    const role = direct === "coachos" || direct === "coach-os"
+      ? "coach"
+      : (localStorage.getItem("bayona.entry.role.v1") || "affiliate");
+    loadApp()
+      .then(() => {
+        if (direct && !document.body.classList.contains("entered")) {
+          document.getElementById(role === "coach" ? "entry-coach" : "entry-go")?.click();
+        }
+      })
+      .catch((error) => {
+        console.error("BAYONA: arranque diferido falló", error);
+      });
     return;
   }
 
-  // usuario nuevo: la landing manda y la puerta se apaga hasta pedir entrar
   document.body.classList.add("luxe-activo");
-  // si el usuario entra por OTRA vía (Enter en la portada de main.js,
-  // enlace ?go=…), la app avisa: retiramos la landing y cedemos el control
-  addEventListener("bayona:entered", () => {
-    document.body.classList.remove("luxe-activo");
-    const l = document.getElementById("luxe-landing");
-    if (l) l.remove();
-  }, { once: true });
+  addEventListener("bayona:entered", removeLanding, { once: true });
+
   montarLanding({
     t,
     esc,
-    onEntrar: (plan) => irALaApp(plan),
+    onEntrar: (plan) => enterApp(plan, "affiliate"),
   });
 }
 
