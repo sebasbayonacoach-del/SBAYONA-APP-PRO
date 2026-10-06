@@ -31,6 +31,18 @@ const es = {
   "one.context.label": "Cambiar entre modo atleta y modo coach",
   "one.foot.coach": "COACH OS · DATOS LOCALES · DECISIÓN HUMANA",
   "one.foot.athlete": "TU CUERPO · TU PLAN · TU PROGRESO",
+  "one.coach.ops.kicker": "OPERACIÓN / HOY",
+  "one.coach.ops.title": "Tu día de coaching",
+  "one.coach.ops.summary": "{sessions} sesiones · {alerts} alertas · {clients} clientes",
+  "one.coach.ops.create": "NUEVA RUTINA",
+  "one.coach.ops.clients": "CARTERA",
+  "one.coach.ops.calendar": "AGENDA",
+  "one.coach.hero.kicker": "BAYONA / COACH STUDIO",
+  "one.coach.hero.title": "Decide. Programa. Acompaña.",
+  "one.coach.hero.copy": "Prioridades, clientes y planificación en una sola superficie. CORE ordena el contexto; tú tomas la decisión.",
+  "one.coach.hero.plan": "PLANIFICAR CLIENTE",
+  "one.coach.hero.library": "NUEVA RUTINA",
+  "one.coach.hero.calendar": "AGENDA HOY",
 
   // nube / cuenta / Coach Studio
   "cloud.unavailable.local": "La nube BAYONA no responde ahora. Tus datos locales siguen disponibles; reintenta cuando vuelva el servicio.",

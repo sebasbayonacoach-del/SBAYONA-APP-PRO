@@ -4883,3 +4883,122 @@ body.fitness-app #entry .e-entry-foot span:first-child {
     display: none;
   }
 }
+
+
+/* ============================================================
+   32 · COACH STUDIO — OPERATING DASHBOARD
+   Primero acción y clientes; configuración y nube quedan después.
+   ============================================================ */
+body.fitness-app .one-coach-ops {
+  min-height: 58px;
+  display: grid;
+  grid-template-columns: auto minmax(180px,1fr) auto;
+  gap: 18px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid #293236;
+  border-radius: 10px;
+  background:
+    linear-gradient(90deg, rgba(213,160,119,.055), transparent 30%),
+    #0c1012;
+}
+body.fitness-app .one-coach-ops-context {
+  min-width: 128px;
+  display: grid;
+  gap: 5px;
+  padding-right: 18px;
+  border-right: 1px solid #273034;
+}
+body.fitness-app .one-coach-ops-context > strong {
+  color: #e9e5df;
+  font: 700 10px/1 var(--mono);
+  letter-spacing: .08em;
+}
+body.fitness-app .one-coach-ops-copy {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+body.fitness-app .one-coach-ops-copy > strong {
+  color: #f2eee8;
+  font: 620 14px/1.15 var(--sans);
+  letter-spacing: -.015em;
+}
+body.fitness-app .one-coach-ops-copy > span {
+  overflow: hidden;
+  color: #77858a;
+  font: 500 9px/1.4 var(--sans);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+body.fitness-app .one-coach-ops-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+body.fitness-app .one-coach-ops .one-action {
+  margin: 0;
+  white-space: nowrap;
+}
+body.fitness-app .one-metric {
+  position: relative;
+}
+body.fitness-app .one-metric.copper::before,
+body.fitness-app .one-metric.warn::before,
+body.fitness-app .one-metric.danger::before,
+body.fitness-app .one-metric.ok::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 2px;
+}
+body.fitness-app .one-metric.copper::before { background: #d5a077; }
+body.fitness-app .one-metric.warn::before { background: #c48a45; }
+body.fitness-app .one-metric.danger::before { background: #c56f68; }
+body.fitness-app .one-metric.ok::before { background: #668b78; }
+body.fitness-app .one-metric.danger .one-metric-value { color: #efb0aa; }
+body.fitness-app .one-metric.warn .one-metric-value { color: #e3bd88; }
+
+@media (max-width: 900px) {
+  body.fitness-app .one-coach-ops {
+    grid-template-columns: auto 1fr;
+  }
+  body.fitness-app .one-coach-ops-actions {
+    grid-column: 1 / -1;
+    justify-content: stretch;
+  }
+  body.fitness-app .one-coach-ops-actions .one-action {
+    flex: 1 1 0;
+  }
+}
+@media (max-width: 620px) {
+  body.fitness-app .one-coach-ops {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 12px;
+  }
+  body.fitness-app .one-coach-ops-context {
+    min-width: 0;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 10px;
+    padding: 0 0 9px;
+    border-right: 0;
+    border-bottom: 1px solid #273034;
+  }
+  body.fitness-app .one-coach-ops-context > strong {
+    justify-self: end;
+  }
+  body.fitness-app .one-coach-ops-copy > span {
+    white-space: normal;
+  }
+  body.fitness-app .one-coach-ops-actions {
+    display: grid;
+    grid-template-columns: 1.35fr .8fr .8fr;
+  }
+  body.fitness-app .one-coach-ops-actions .one-action {
+    min-width: 0;
+    padding-inline: 7px;
+    font-size: 7.5px;
+  }
+}

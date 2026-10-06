@@ -137,8 +137,8 @@ function coachClients() {
   return [fichaLocal(S), ...CLIENTES_DEMO];
 }
 
-function metric(label, value, note) {
-  const card = n("article", "one-metric");
+function metric(label, value, note, tone = "") {
+  const card = n("article", "one-metric" + (tone ? " " + tone : ""));
   card.append(n("span", "one-metric-label", label));
   card.append(n("strong", "one-metric-value", value));
   card.append(n("small", "one-metric-note", note));
@@ -161,21 +161,58 @@ function progress(value, tone) {
   return wrap;
 }
 
+function coachDateLabel() {
+  try {
+    return new Intl.DateTimeFormat("es-ES", {
+      weekday: "short", day: "2-digit", month: "short",
+    }).format(new Date()).replace(".", "").toUpperCase();
+  } catch {
+    return todayKey();
+  }
+}
+
+function renderCoachOps(body, clients) {
+  const kpi = resumenCartera(clients);
+  const bar = n("section", "one-coach-ops");
+
+  const context = n("div", "one-coach-ops-context");
+  context.append(n("span", "one-kicker", t("one.coach.ops.kicker")));
+  context.append(n("strong", "", coachDateLabel()));
+
+  const copy = n("div", "one-coach-ops-copy");
+  copy.append(n("strong", "", t("one.coach.ops.title")));
+  copy.append(n("span", "", t("one.coach.ops.summary", {
+    sessions: kpi.sesionesHoy,
+    alerts: kpi.alertas,
+    clients: kpi.activos,
+  })));
+
+  const actions = n("div", "one-coach-ops-actions");
+  actions.append(
+    commandAction(t("one.coach.ops.create"), "library", "primary"),
+    btn(t("one.coach.ops.clients"), "one-action", () => {
+      body.querySelector(".one-roster")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }),
+    commandAction(t("one.coach.ops.calendar"), "agenda")
+  );
+
+  bar.append(context, copy, actions);
+  body.append(bar);
+}
+
 function renderCoachHero(body, clients) {
   const kpi = resumenCartera(clients);
   const hero = n("section", "one-coach-hero");
 
   const copy = n("div", "one-coach-hero-copy");
-  copy.append(n("span", "one-kicker", "BAYONA / COACH STUDIO 360"));
-  copy.append(n("h3", "", "Dirige la próxima adaptación."));
-  copy.append(n("p", "", "Cartera, alertas y periodización en una sola superficie. CORE prioriza; el entrenador decide."));
+  copy.append(n("span", "one-kicker", t("one.coach.hero.kicker")));
+  copy.append(n("h3", "", t("one.coach.hero.title")));
+  copy.append(n("p", "", t("one.coach.hero.copy")));
   const actions = n("div", "one-actions");
   actions.append(
-    btn("PLANIFICAR","one-action primary",() => renderCoachClient(body, clients[0])),
-    commandAction("BIBLIOTECA 3.141","library"),
-    commandAction("CENTRO","centro"),
-    commandAction("AGENDA","agenda"),
-    commandAction("INFORMES","informes")
+    btn(t("one.coach.hero.plan"), "one-action primary", () => renderCoachClient(body, clients[0])),
+    commandAction(t("one.coach.hero.library"), "library"),
+    commandAction(t("one.coach.hero.calendar"), "agenda")
   );
   copy.append(actions);
 
@@ -190,9 +227,9 @@ function renderCoachHero(body, clients) {
   const metrics = n("div", "one-metrics");
   metrics.append(
     metric("CLIENTES", kpi.activos, "1 local + cartera demo"),
-    metric("SESIONES HOY", kpi.sesionesHoy, "programadas"),
-    metric("ALERTAS", kpi.alertas, kpi.alertas ? "requieren revisión" : "sin incidencias"),
-    metric("ADHERENCIA", kpi.adherenciaMedia + "%", "media de cartera")
+    metric("SESIONES HOY", kpi.sesionesHoy, "programadas", "copper"),
+    metric("ALERTAS", kpi.alertas, kpi.alertas ? "requieren revisión" : "sin incidencias", kpi.alertas ? "danger" : "ok"),
+    metric("ADHERENCIA", kpi.adherenciaMedia + "%", "media de cartera", kpi.adherenciaMedia < 60 ? "warn" : "ok")
   );
   body.append(metrics);
 }
@@ -489,11 +526,15 @@ function renderCoachStudio(body) {
   body.textContent = "";
   body.classList.add("one-coach-body");
   const clients = coachClients();
+
+  // Operación primero: lo que el coach necesita decidir y ejecutar hoy
+  // queda por encima de configuración, nube y material reutilizable.
+  renderCoachOps(body, clients);
   renderCoachHero(body, clients);
-  renderCloudCoachState(body);
-  renderTemplateLibrary(body);
   renderCorePriorities(body, clients);
   renderRoster(body, clients);
+  renderTemplateLibrary(body);
+  renderCloudCoachState(body);
   renderMacroPreview(body);
   body.append(n("p", "one-footnote", "La ficha LOCAL deriva de este dispositivo. Paola, Diego y Carlos son demostración y nunca deben confundirse con clientes reales."));
 }
