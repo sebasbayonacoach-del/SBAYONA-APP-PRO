@@ -11,7 +11,7 @@
 // GDPR: cero vídeo/frames. Salud solo con consentimiento activo.
 // ============================================================
 import { S, on } from "../state.js";
-import { esc, fmtDate } from "../i18n.js";
+import { t, esc, fmtDate } from "../i18n.js";
 import { UI, el, elT, toast, BUILDERS, TITLES, openSection } from "../ui/shared.js";
 import { consentStatus, isGranted } from "../consents.js";
 import { payloadMedidas, payloadAsignaciones, payloadAvatar } from "./mirror.js";
@@ -56,7 +56,7 @@ async function requireCloud(messageNode = null) {
   const health = await refreshCloudHealth({ force: true });
   if (health?.ok) return true;
   if (messageNode) {
-    messageNode.textContent = "La nube BAYONA no responde ahora. Tus datos locales siguen disponibles; reintenta cuando vuelva el servicio.";
+    messageNode.textContent = t("cloud.unavailable.local");
   }
   return false;
 }
@@ -255,16 +255,16 @@ function renderCoachingCloud(body) {
     invite.style.marginTop = "12px";
     invite.onclick = async () => {
       invite.disabled = true;
-      status.textContent = "Creando invitación…";
+      status.textContent = t("cloud.invite.creating");
       try {
         await syncNow({ silent: true });
         const code = await createInvite(72);
         status.innerHTML = code
           ? `Código válido 72 h: <b class="mono">${esc(String(code))}</b>`
-          : "No se pudo generar el código.";
+          : t("cloud.invite.none");
         if (code) toast("INVITACIÓN CREADA", "Comparte el código con tu cliente.");
       } catch (e) {
-        status.textContent = "No se pudo crear la invitación: " + (e.message || e);
+        status.textContent = t("cloud.invite.failed", { error: e.message || e });
       } finally {
         invite.disabled = false;
       }
@@ -273,9 +273,9 @@ function renderCoachingCloud(body) {
     linkedClients().then((clients) => {
       status.textContent = clients.length
         ? clients.map((c) => c.name).join(" · ")
-        : "Todavía no tienes clientes vinculados.";
+        : t("cloud.clients.empty");
     }).catch((e) => {
-      status.textContent = "El módulo de vínculos aún no está disponible: " + (e.message || e);
+      status.textContent = t("cloud.links.unavailable", { error: e.message || e });
     });
   } else {
     const input = el("input");
@@ -288,15 +288,15 @@ function renderCoachingCloud(body) {
     accept.style.marginTop = "8px";
     accept.onclick = async () => {
       accept.disabled = true;
-      status.textContent = "Vinculando…";
+      status.textContent = t("cloud.link.linking");
       try {
         const result = await acceptInvite(input.value);
         await hydrateAssignmentsToLocal(S).catch(() => 0);
         const coachName = result?.[0]?.coach_name || "tu Coach";
-        status.textContent = "Vinculado con " + coachName + ".";
+        status.textContent = t("cloud.link.success", { coach: coachName });
         toast("COACH VINCULADO", "Tu cuenta ya puede recibir rutinas.");
       } catch (e) {
-        status.textContent = "No se pudo vincular: " + (e.message || e);
+        status.textContent = t("cloud.link.failed", { error: e.message || e });
       } finally {
         accept.disabled = false;
       }
@@ -304,10 +304,10 @@ function renderCoachingCloud(body) {
     card.append(input, accept);
     linkedCoaches().then((coaches) => {
       status.textContent = coaches.length
-        ? "Vinculado con: " + coaches.map((c) => c.name).join(" · ")
-        : "No hay ningún Coach vinculado todavía.";
+        ? t("cloud.coaches.linked", { coaches: coaches.map((c) => c.name).join(" · ") })
+        : t("cloud.coaches.empty");
     }).catch((e) => {
-      status.textContent = "El módulo de vínculos aún no está disponible: " + (e.message || e);
+      status.textContent = t("cloud.links.unavailable", { error: e.message || e });
     });
   }
 
@@ -365,7 +365,7 @@ BUILDERS.account = (body) => {
     retryCloud.style.marginTop = "12px";
     retryCloud.onclick = async () => {
       retryCloud.disabled = true;
-      retryCloud.textContent = "COMPROBANDO…";
+      retryCloud.textContent = t("cloud.retrying");
       await refreshCloudHealth({ force: true, rebuild: true }).catch(() => {});
     };
     st.appendChild(retryCloud);
@@ -376,7 +376,7 @@ BUILDERS.account = (body) => {
   if (!ses && cfg) {
     body.appendChild(el("div", "sec-label", "ACCESO"));
     const form = el("div", "card");
-    form.innerHTML = `<h4>ENTRA EN TU CUENTA</h4><div class="sub">Email + contraseña. Recomendado: contraseña de 8+ caracteres y única para BAYONA.</div>`;
+    form.innerHTML = `<h4>${t("cloud.account.title")}</h4><div class="sub">${t("cloud.account.note")}</div>`;
     form.append(field("EMAIL", "email", "ac-email", "tu@email.com"));
     form.append(field("CONTRASEÑA", "password", "ac-pass", "mínimo 8 caracteres"));
     const row = el("div", "opt-row");
@@ -393,37 +393,37 @@ BUILDERS.account = (body) => {
     const pass = () => form.querySelector("#ac-pass").value;
 
     bMagic.onclick = async () => {
-      msg.textContent = "Comprobando nube…";
+      msg.textContent = t("cloud.checking");
       if (!(await requireCloud(msg))) return;
-      msg.textContent = "Enviando…";
+      msg.textContent = t("cloud.sending");
       try {
         await signInWithMagicLink(email(), location.origin + location.pathname);
-        msg.textContent = "Email enviado. Revisa tu bandeja y pulsa el enlace.";
+        msg.textContent = t("cloud.email.sent");
         toast("EMAIL ENVIADO", "Tu enlace de acceso está en camino.");
-      } catch (e) { msg.textContent = "No se pudo enviar: " + e.message; }
+      } catch (e) { msg.textContent = t("cloud.email.failed", { error: e.message }); }
     };
     bIn.onclick = async () => {
-      msg.textContent = "Comprobando nube…";
+      msg.textContent = t("cloud.checking");
       if (!(await requireCloud(msg))) return;
-      msg.textContent = "Entrando…";
+      msg.textContent = t("cloud.login.entering");
       try {
         await signInWithPassword(email(), pass());
         await refreshUser();
         await hydrateAssignmentsToLocal(S).catch(() => 0);
         toast("SESIÓN INICIADA", "Ya estás en la nube.");
         buildIfOpen();
-      } catch (e) { msg.textContent = "No se pudo entrar: " + e.message; }
+      } catch (e) { msg.textContent = t("cloud.login.failed", { error: e.message }); }
     };
     bUp.onclick = async () => {
-      msg.textContent = "Comprobando nube…";
+      msg.textContent = t("cloud.checking");
       if (!(await requireCloud(msg))) return;
-      msg.textContent = "Creando cuenta…";
+      msg.textContent = t("cloud.signup.creating");
       try {
         await signUpWithPassword(email(), pass());
-        msg.textContent = "Cuenta creada. Si tu proyecto exige confirmar email, revisa tu bandeja.";
+        msg.textContent = t("cloud.signup.created");
         toast("CUENTA CREADA", "Bienvenido a BAYONA.");
         buildIfOpen();
-      } catch (e) { msg.textContent = "No se pudo crear: " + e.message; }
+      } catch (e) { msg.textContent = t("cloud.signup.failed", { error: e.message }); }
     };
     body.appendChild(form);
   }
@@ -431,7 +431,7 @@ BUILDERS.account = (body) => {
   // ---------- DATOS ----------
   body.appendChild(el("div", "sec-label", "TUS DATOS"));
   const dat = el("div", "card");
-  dat.innerHTML = `<h4>SINCRONIZACIÓN</h4><div class="sub">Perfil, consentimientos, preparación diaria, entrenos y series. Espejo idempotente: reenviar nunca duplica nada.</div>`;
+  dat.innerHTML = `<h4>${t("cloud.sync.title")}</h4><div class="sub">${t("cloud.sync.note")}</div>`;
   const bSync = el("button", "btn btn-primary btn-block", ses ? "SINCRONIZAR AHORA" : "SINCRONIZAR (requiere sesión)");
   bSync.style.marginTop = "12px";
   bSync.disabled = !ses || STATE.busy || cloudDown;

@@ -218,14 +218,14 @@ function renderCloudCoachState(body) {
   if (!session) {
     stateTag.textContent = "LOCAL";
     stateTag.className = "one-tag";
-    status.textContent = "Coach Studio funciona en este dispositivo. Inicia sesión para vincular clientes reales y enviarles rutinas.";
+    status.textContent = t("one.cloud.local");
     return;
   }
 
   if (accountRole() !== "coach") {
     stateTag.textContent = "CUENTA CLIENTE";
     stateTag.className = "one-tag warn";
-    status.textContent = "La sesión actual está configurada como cliente. Cambia a una cuenta Coach para administrar vínculos.";
+    status.textContent = t("one.cloud.clientRole");
     return;
   }
 
@@ -234,7 +234,7 @@ function renderCloudCoachState(body) {
     if (!health?.ok) {
       stateTag.textContent = "NUBE OFFLINE";
       stateTag.className = "one-tag warn";
-      status.textContent = "El backend no responde ahora. Tus rutinas locales y PROPLAYER siguen disponibles; no se simulan clientes remotos.";
+      status.textContent = t("one.cloud.offline");
       return;
     }
 
@@ -246,7 +246,7 @@ function renderCloudCoachState(body) {
       status.replaceChildren();
 
       if (!clients.length) {
-        status.textContent = "La nube está disponible, pero todavía no hay clientes vinculados. Crea una invitación desde Mi cuenta.";
+        status.textContent = t("one.cloud.noClients");
         return;
       }
 
@@ -263,13 +263,13 @@ function renderCloudCoachState(body) {
     } catch (e) {
       stateTag.textContent = "PENDIENTE";
       stateTag.className = "one-tag warn";
-      status.textContent = "La cuenta responde, pero el módulo Coach ↔ cliente todavía no está disponible en el backend.";
+      status.textContent = t("one.cloud.modulePending");
     }
   }).catch(() => {
     if (!box.isConnected) return;
     stateTag.textContent = "NUBE OFFLINE";
     stateTag.className = "one-tag warn";
-    status.textContent = "No se pudo comprobar la nube. El modo local sigue disponible.";
+    status.textContent = t("one.cloud.checkFailed");
   });
 }
 

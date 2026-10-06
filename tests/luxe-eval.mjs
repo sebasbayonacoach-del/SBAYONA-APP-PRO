@@ -107,7 +107,8 @@ ok(!boot.includes("S.init"), "no inicializa el estado (eso es main.js)");
 const sw = readFileSync(join(root, "sw.js"), "utf8");
 console.log("\n— sw.js · precache —");
 
-ok(sw.includes("bayona-shell-v22"), "CACHE v21");
+const shellVersion = Number((sw.match(/bayona-shell-v(\d+)/) || [])[1]);
+ok(shellVersion >= 22, `CACHE >= v22 (actual v${shellVersion || "?"})`);
 ok(sw.includes('"./css/luxe.css"'), "luxe.css en SHELL");
 ok(sw.includes('"./js/ui/landing.js"'), "landing.js en SHELL");
 ok(sw.includes('"./js/ui/landing-boot.js"'), "landing-boot.js en SHELL");

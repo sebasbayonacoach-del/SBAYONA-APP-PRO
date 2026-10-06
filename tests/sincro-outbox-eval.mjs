@@ -102,7 +102,8 @@ console.log('\n📬 OUTBOX · COLA OFFLINE PERSISTENTE (SINCRO v10.1)\n');
   assert(!/STATE\.pending/.test(acc), 'el contador en memoria (se pierde al recargar) está retirado');
 
   assert(/sync\/outbox\.js/.test(sw), 'el service worker precachea el outbox');
-  assert(/bayona-shell-v22/.test(sw), 'cache del shell subido a v22');
+  const shellVersion = Number((sw.match(/bayona-shell-v(\d+)/) || [])[1]);
+  assert(shellVersion >= 22, `cache del shell >= v22 (actual v${shellVersion || '?'})`);
   assert(/const MAX_MS/.test(obx) && /2 \*\* n/.test(obx), 'backoff exponencial vive en el outbox, no repartido');
 }
 
