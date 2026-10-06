@@ -13,6 +13,7 @@ import {
 import { getAppearance, THEMES } from "./appearance.js";
 import { diagnostico, instantaneas, previsualizar, restaurar } from "../backup.js";
 import { currentSession, isConfigured } from "../sync/supabase.js";
+import { installState, requestInstall, onInstallState } from "../pwa.js";
 import { openAccount } from "../sync/account.js";
 import { showDayRecap } from "./cinematics.js";
 
@@ -87,6 +88,51 @@ BUILDERS.more = (body) => {
   bC.addEventListener("click", openAccount);
   cCard.appendChild(bC);
   body.appendChild(cCard);
+
+  // ---------- INSTALAR APP ----------
+  body.appendChild(el("div", "sec-label", t("pwa.label")));
+  const pwa = installState();
+  const pwaCard = el("div", "card shine");
+  const pwaState = pwa.installed
+    ? t("pwa.state.installed")
+    : pwa.canPrompt ? t("pwa.state.ready") : t("pwa.state.manual");
+  const pwaCopy = pwa.installed
+    ? t("pwa.copy.installed")
+    : pwa.canPrompt ? t("pwa.copy.ready") : pwa.ios ? t("pwa.copy.ios") : t("pwa.copy.manual");
+  pwaCard.innerHTML = `
+    <div class="card-row"><h4>${esc(t("pwa.title"))}</h4><span class="pill ${pwa.installed ? "green" : "gold"}">${esc(pwaState)}</span></div>
+    <div class="sub">${esc(pwaCopy)}</div>`;
+
+  const pwaButton = el(
+    "button",
+    "btn btn-primary btn-block",
+    pwa.installed
+      ? t("pwa.button.installed")
+      : pwa.canPrompt ? t("pwa.button.install") : t("pwa.button.instructions")
+  );
+  pwaButton.style.marginTop = "12px";
+  pwaButton.disabled = pwa.installed;
+  pwaButton.onclick = async () => {
+    const result = await requestInstall();
+    if (result.status === "accepted" || result.status === "installed") {
+      toast(t("pwa.toast.title"), t("pwa.toast.note"));
+      BUILDERS.more();
+      return;
+    }
+    if (result.status === "dismissed") return;
+
+    const instructions = pwa.ios ? t("pwa.modal.ios") : t("pwa.modal.default");
+    showModal(
+      `<div class="cine-tag">${esc(t("pwa.modal.tag"))}</div>
+       <div class="cine-title" style="font-size:20px">${esc(t("pwa.modal.title"))}</div>
+       <div class="sub">${esc(instructions)}</div>
+       <div style="height:12px"></div>
+       <button class="btn btn-primary btn-block" id="pwa-install-close">${esc(t("pwa.modal.close"))}</button>`,
+      () => { $("#pwa-install-close").onclick = hideModal; }
+    );
+  };
+  pwaCard.appendChild(pwaButton);
+  body.appendChild(pwaCard);
 
   // ---------- APARIENCIA ----------
   // ---------- COACH OS (profesional) ----------
@@ -263,3 +309,10 @@ function exportData() {
     toast("ERROR", "No se pudo exportar en este navegador.", "danger");
   }
 }
+
+onInstallState(() => {
+  const drawer = $("#drawer");
+  if (drawer?.dataset.section === "more" && drawer.classList.contains("open")) {
+    BUILDERS.more($("#drawer-body"));
+  }
+});
