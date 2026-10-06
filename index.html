@@ -89,7 +89,7 @@
     <div class="e-role-grid" role="group" aria-label="Tipo de acceso">
       <button class="e-role-card affiliate" id="entry-go" data-entry-role="affiliate">
         <span class="e-role-media" aria-hidden="true">
-          <video src="media/squat.mp4" poster="media/squat.jpg" autoplay muted loop playsinline preload="metadata"></video>
+          <video data-src="media/squat.mp4" data-poster="media/squat.jpg" muted loop playsinline preload="none"></video>
           <i></i>
         </span>
         <span class="e-role-copy">
@@ -167,29 +167,8 @@
   <!-- ============ TOASTS ============ -->
   <div id="toasts" role="status" aria-live="polite"></div>
 
-  <!-- Configuración pública de runtime: Supabase URL + anon key desde Vercel.
-       La anon key está diseñada para el navegador; RLS protege los datos. -->
-  <script type="module" src="/api/runtime-config.js"></script>
-  <script type="module" src="js/main.js"></script>
-  <!-- LUXE · landing pública (solo se monta si el usuario NO ha entrado) -->
+  <!-- LUXE · bootstrap ligero. La landing pública no descarga el mundo 3D.
+       js/app-loader.js trae runtime cloud + producto completo solo al entrar. -->
   <script type="module" src="js/ui/landing-boot.js"></script>
-  <!-- ATELIER · personalización de la interfaz + motor de movimiento -->
-  <script type="module" src="js/ui/motion.js"></script>
-  <!-- MOVIMIENTO LIBRE · clic / WASD / joystick / cámara -->
-  <script type="module" src="js/move.js"></script>
-  <!-- GEMELO-1 · cámara + mocap: CARGA DIFERIDA (MediaPipe solo cuando hace falta) -->
-  <script type="module">
-    const loadVision = () => import("./js/vision/boot.js");
-    if ("requestIdleCallback" in window) requestIdleCallback(loadVision, { timeout: 4000 });
-    else setTimeout(loadVision, 1200);
-  </script>
-  <!-- HEALTH MAP · cuestionario de salud (autocontenido, ver js/health/) -->
-  <script type="module" src="js/health/healthUI.js"></script>
-  <!-- BRIDGE · GEMELO-1 + Health Map → estado/XP/journey del juego -->
-  <script type="module" src="js/bridge.js"></script>
-  <!-- ONBOARDING ÚNICO · primer arranque -->
-  <script type="module" src="js/onboarding.js"></script>
-  <!-- DIARIO DE SESIÓN · recap cinematográfico de las series reales -->
-  <script type="module" src="js/diary/sessionDiary.js"></script>
 </body>
 </html>
