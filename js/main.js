@@ -124,10 +124,12 @@ function wireEntry(world) {
   }
 
   const roleKey = "bayona.entry.role.v1";
-  const lastRole = localStorage.getItem(roleKey) || "affiliate";
+  const storedRole = localStorage.getItem(roleKey);
+  const lastRole = storedRole || "affiliate";
   entry.dataset.lastRole = lastRole;
   entry.querySelectorAll("[data-entry-role]").forEach((b) => {
-    b.setAttribute("aria-pressed", String(b.dataset.entryRole === lastRole));
+    // Un usuario nuevo no tiene «último acceso»: no marcamos uno inventado.
+    b.setAttribute("aria-pressed", String(Boolean(storedRole) && b.dataset.entryRole === storedRole));
   });
 
   if (S.data.profile.onboarded) {
