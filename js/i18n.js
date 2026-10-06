@@ -587,6 +587,8 @@ const es = {
   "luxe.faq.titulo": "Preguntas directas",
   "luxe.footer.marca": "BAYONA · TU VIDA ES EL JUEGO",
   "luxe.footer.nota": "Cuidar a tu personaje es cuidarte a ti. Todo lo que ves está en español y corre en tu dispositivo.",
+  "luxe.load.loading": "CARGANDO BAYONA…",
+  "luxe.load.error": "No se pudo cargar la app completa. Revisa la conexión y vuelve a intentarlo.",
 };
 
 const CATS = { "es-ES": es };
