@@ -4395,3 +4395,469 @@ body.fitness-app .one-action.danger:hover{
     flex:1 1 110px;
   }
 }
+
+
+/* ============================================================
+   31 · BAYONA ENTRY v13 — TRAINER / GYM APP GATE
+   Portal de producto: menos landing, más software de entrenamiento.
+   ============================================================ */
+body.fitness-app #entry {
+  padding: clamp(18px, 3vw, 36px);
+  background:
+    radial-gradient(circle at 18% 18%, rgba(255,106,0,.13), transparent 32%),
+    radial-gradient(circle at 88% 82%, rgba(255,255,255,.035), transparent 30%),
+    #050607;
+}
+body.fitness-app #entry .e-app-shell {
+  width: min(1180px, 100%);
+  min-height: min(760px, calc(100dvh - 48px));
+  margin: auto;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  overflow: hidden;
+  border: 1px solid #23272a;
+  border-radius: 24px;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.025), transparent 42%),
+    #090a0b;
+  box-shadow: 0 32px 90px rgba(0,0,0,.54), inset 0 1px rgba(255,255,255,.035);
+}
+body.fitness-app #entry .e-appbar {
+  min-height: 64px;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  border-bottom: 1px solid #1c1f21;
+  background: rgba(6,7,8,.88);
+}
+body.fitness-app #entry .e-corner {
+  position: static;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+}
+body.fitness-app #entry .e-corner .brand-mark {
+  color: #ff6a00;
+  font-size: 17px;
+}
+body.fitness-app #entry .e-corner .brand-name {
+  color: #f5f4ef;
+  font: 760 12px/1 var(--sans);
+  letter-spacing: .2em;
+}
+body.fitness-app #entry .e-app-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #767d81;
+  font: 700 8px/1 var(--sans);
+  letter-spacing: .12em;
+}
+body.fitness-app #entry .e-app-status i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ff6a00;
+  box-shadow: 0 0 0 4px rgba(255,106,0,.08), 0 0 18px rgba(255,106,0,.34);
+}
+body.fitness-app #entry .e-app-status b {
+  padding: 6px 8px;
+  border: 1px solid #2a2e31;
+  border-radius: 999px;
+  color: #aeb3b6;
+  background: #0d0f10;
+  font: inherit;
+}
+body.fitness-app #entry .e-entry-layout {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0,.88fr) minmax(460px,1.12fr);
+}
+body.fitness-app #entry .e-entry-intro {
+  padding: clamp(42px,6vw,78px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-right: 1px solid #1d2022;
+}
+body.fitness-app #entry .e-kicker,
+body.fitness-app #entry .e-title,
+body.fitness-app #entry .e-sub,
+body.fitness-app #entry .e-role-grid,
+body.fitness-app #entry .e-entry-foot {
+  width: auto;
+  margin-left: 0;
+  margin-right: 0;
+}
+body.fitness-app #entry .e-kicker {
+  color: #ff7a1a;
+  font: 760 9px/1.4 var(--sans);
+  letter-spacing: .16em;
+}
+body.fitness-app #entry .e-title {
+  max-width: 720px;
+  margin: 16px 0 0;
+  color: #f6f5f1;
+  font: 640 clamp(42px,5.3vw,72px)/.95 var(--serif);
+  letter-spacing: -.055em;
+}
+body.fitness-app #entry .e-title em {
+  color: #ff6a00;
+}
+body.fitness-app #entry .e-sub {
+  max-width: 610px;
+  margin-top: 20px;
+  color: #8c9397;
+  font: 400 14px/1.65 var(--sans);
+}
+body.fitness-app #entry .e-system-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 28px;
+}
+body.fitness-app #entry .e-system-pills span {
+  padding: 8px 10px;
+  border: 1px solid #25292c;
+  border-radius: 999px;
+  background: #0c0e0f;
+  color: #9ca2a5;
+  font: 700 8px/1 var(--sans);
+  letter-spacing: .1em;
+}
+body.fitness-app #entry .e-entry-proof {
+  display: grid;
+  gap: 10px;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #1d2022;
+}
+body.fitness-app #entry .e-entry-proof span {
+  color: #666d71;
+  font: 700 8px/1.4 var(--sans);
+  letter-spacing: .11em;
+}
+body.fitness-app #entry .e-entry-proof b {
+  display: inline-block;
+  width: 28px;
+  color: #ff6a00;
+  font-weight: 800;
+}
+body.fitness-app #entry .e-role-panel {
+  min-width: 0;
+  padding: clamp(30px,4vw,48px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background:
+    radial-gradient(circle at 100% 0, rgba(255,106,0,.07), transparent 32%),
+    #08090a;
+}
+body.fitness-app #entry .e-role-panel-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+body.fitness-app #entry .e-role-panel-head div {
+  display: grid;
+  gap: 5px;
+}
+body.fitness-app #entry .e-role-panel-head small,
+body.fitness-app #entry .e-role-panel-head > span {
+  color: #5d6468;
+  font: 750 8px/1 var(--sans);
+  letter-spacing: .14em;
+}
+body.fitness-app #entry .e-role-panel-head strong {
+  color: #e8e7e3;
+  font: 600 20px/1.15 var(--serif);
+  letter-spacing: -.02em;
+}
+body.fitness-app #entry .e-role-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-top: 0;
+}
+body.fitness-app #entry .e-role-card {
+  position: relative;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid #24282b;
+  border-radius: 16px;
+  background: #0c0e0f;
+  text-align: left;
+  color: #f3f2ee;
+  transition: transform .2s ease, border-color .2s ease, background .2s ease, box-shadow .2s ease;
+}
+body.fitness-app #entry .e-role-card:hover {
+  transform: translateY(-2px);
+  border-color: #5d351f;
+  background: #101214;
+  box-shadow: 0 15px 32px rgba(0,0,0,.2);
+}
+body.fitness-app #entry .e-role-card[aria-pressed="true"] {
+  transform: none;
+  border-color: #8f4318;
+  background: #111213;
+  box-shadow: inset 3px 0 #ff6a00;
+}
+body.fitness-app #entry .e-role-card[aria-pressed="true"]::after {
+  content: "ÚLTIMO ACCESO";
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 5px 7px;
+  border: 1px solid rgba(255,106,0,.28);
+  border-radius: 999px;
+  background: rgba(255,106,0,.08);
+  color: #ff8a3a;
+  font: 800 7px/1 var(--sans);
+  letter-spacing: .11em;
+}
+body.fitness-app #entry .e-role-topline {
+  min-height: 36px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid #202427;
+  background: rgba(255,255,255,.012);
+}
+body.fitness-app #entry .e-role-topline small,
+body.fitness-app #entry .e-role-topline em {
+  color: #737a7e;
+  font: 760 7.5px/1 var(--sans);
+  letter-spacing: .13em;
+  font-style: normal;
+}
+body.fitness-app #entry .e-role-topline small {
+  color: #ff7a1a;
+}
+body.fitness-app #entry .e-role-body {
+  min-height: 134px;
+  display: grid;
+  grid-template-columns: 118px minmax(0,1fr) 24px;
+  align-items: center;
+  gap: 15px;
+  padding: 12px;
+}
+body.fitness-app #entry .e-role-card > b {
+  display: none;
+}
+body.fitness-app #entry .e-role-body > b {
+  justify-self: end;
+  color: #ff6a00;
+  font: 500 22px/1 var(--sans);
+}
+body.fitness-app #entry .e-role-media,
+body.fitness-app #entry .e-role-dashboard {
+  width: 118px;
+  height: 108px;
+  border-radius: 10px;
+}
+body.fitness-app #entry .e-role-media {
+  border: 1px solid #222629;
+}
+body.fitness-app #entry .e-role-media video {
+  filter: saturate(.72) contrast(1.08) brightness(.82);
+}
+body.fitness-app #entry .e-role-dashboard {
+  grid-template-columns: 1.25fr .75fr;
+  grid-template-rows: repeat(3,1fr);
+  gap: 5px;
+  padding: 8px;
+  border-color: #292e31;
+  background:
+    linear-gradient(180deg, rgba(255,106,0,.08), transparent 42%),
+    #080a0b;
+}
+body.fitness-app #entry .e-role-dashboard i {
+  position: relative;
+  border-color: #2a2f32;
+  background: linear-gradient(180deg,#15191b,#0f1214);
+}
+body.fitness-app #entry .e-role-dashboard i:first-child::after {
+  content: "";
+  position: absolute;
+  left: 7px;
+  right: 7px;
+  bottom: 8px;
+  height: 34%;
+  border-radius: 3px 3px 1px 1px;
+  background: linear-gradient(90deg,#ff6a00 22%,#713415 22% 43%,#ff6a00 43% 67%,#713415 67%);
+  opacity: .7;
+}
+body.fitness-app #entry .e-role-copy {
+  gap: 7px;
+}
+body.fitness-app #entry .e-role-copy strong {
+  color: #f4f2ed;
+  font: 620 19px/1.08 var(--serif);
+}
+body.fitness-app #entry .e-role-copy > span:not(.e-role-tags) {
+  max-width: 300px;
+  color: #777f83;
+  font: 500 10px/1.5 var(--sans);
+}
+body.fitness-app #entry .e-role-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 3px;
+}
+body.fitness-app #entry .e-role-tags i {
+  padding: 5px 6px;
+  border: 1px solid #24292c;
+  border-radius: 4px;
+  color: #646c70;
+  background: #0a0c0d;
+  font: 760 7px/1 var(--sans);
+  letter-spacing: .08em;
+  font-style: normal;
+}
+body.fitness-app #entry .e-role-note {
+  margin-top: 13px;
+  color: #626a6e;
+  font: 500 9px/1.45 var(--sans);
+}
+body.fitness-app #entry .e-role-note span {
+  color: #ff6a00;
+}
+body.fitness-app #entry .e-entry-foot {
+  min-height: 46px;
+  margin-top: 0;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border-top: 1px solid #1c1f21;
+  color: #51585c;
+  background: #070809;
+  font: 720 7.5px/1 var(--sans);
+  letter-spacing: .11em;
+}
+body.fitness-app #entry .e-entry-foot span:first-child {
+  color: #8a9194;
+}
+
+@media (max-width: 900px) {
+  body.fitness-app #entry .e-entry-layout {
+    grid-template-columns: 1fr;
+  }
+  body.fitness-app #entry .e-entry-intro {
+    padding: 38px 30px 30px;
+    border-right: 0;
+    border-bottom: 1px solid #1d2022;
+  }
+  body.fitness-app #entry .e-title {
+    max-width: 760px;
+    font-size: clamp(40px,8vw,62px);
+  }
+  body.fitness-app #entry .e-entry-proof {
+    grid-template-columns: repeat(3,1fr);
+    gap: 12px;
+  }
+  body.fitness-app #entry .e-role-panel {
+    padding: 28px 30px 34px;
+  }
+}
+
+@media (max-width: 620px) {
+  body.fitness-app #entry {
+    justify-content: flex-start;
+    padding: 0;
+    background: #060708;
+  }
+  body.fitness-app #entry .e-app-shell {
+    min-height: 100dvh;
+    border: 0;
+    border-radius: 0;
+  }
+  body.fitness-app #entry .e-appbar {
+    min-height: 56px;
+    padding: 0 16px;
+  }
+  body.fitness-app #entry .e-app-status span {
+    display: none;
+  }
+  body.fitness-app #entry .e-entry-intro {
+    padding: 28px 16px 22px;
+  }
+  body.fitness-app #entry .e-title {
+    margin-top: 12px;
+    font-size: clamp(36px,11.4vw,50px);
+  }
+  body.fitness-app #entry .e-sub {
+    margin-top: 14px;
+    font-size: 12px;
+  }
+  body.fitness-app #entry .e-system-pills {
+    margin-top: 18px;
+    gap: 5px;
+  }
+  body.fitness-app #entry .e-system-pills span {
+    padding: 7px 8px;
+    font-size: 7px;
+  }
+  body.fitness-app #entry .e-entry-proof {
+    margin-top: 20px;
+    padding-top: 16px;
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+  body.fitness-app #entry .e-role-panel {
+    padding: 22px 12px 26px;
+  }
+  body.fitness-app #entry .e-role-panel-head {
+    padding: 0 4px;
+  }
+  body.fitness-app #entry .e-role-panel-head > span {
+    display: none;
+  }
+  body.fitness-app #entry .e-role-panel-head strong {
+    font-size: 18px;
+  }
+  body.fitness-app #entry .e-role-card[aria-pressed="true"]::after {
+    top: 10px;
+    right: 10px;
+    font-size: 6.5px;
+  }
+  body.fitness-app #entry .e-role-body {
+    min-height: 116px;
+    grid-template-columns: 82px minmax(0,1fr) 18px;
+    gap: 10px;
+    padding: 10px;
+  }
+  body.fitness-app #entry .e-role-media,
+  body.fitness-app #entry .e-role-dashboard {
+    width: 82px;
+    height: 86px;
+  }
+  body.fitness-app #entry .e-role-copy strong {
+    font-size: 16px;
+  }
+  body.fitness-app #entry .e-role-copy > span:not(.e-role-tags) {
+    font-size: 9px;
+  }
+  body.fitness-app #entry .e-role-tags {
+    display: none;
+  }
+  body.fitness-app #entry .e-entry-foot {
+    min-height: 42px;
+    padding: 0 16px;
+  }
+  body.fitness-app #entry .e-entry-foot span:nth-child(2) {
+    display: none;
+  }
+}
