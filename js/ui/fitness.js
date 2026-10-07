@@ -7,6 +7,7 @@ import { renderHoy } from './hoy.js';
 import {
   PLAN_META, planFromProfile, featureForSection, hasFeature, featureTier,
 } from '../entitlements.js';
+import { hubSnapshot, focusPreset } from '../hub.js';
 
 const paths = {
   hoy:'M3 10 12 3l9 7v10H3Z M9 20v-7h6v7',
@@ -102,11 +103,145 @@ function quickRoute(key,title,sub,ico='arrow'){
   return b;
 }
 
+
+const COACH_LABELS={sebastian:'Sebastián',mara:'Mara',minimal:'BAYONA'};
+
+function hubWorldFocus(key){
+  const preset=focusPreset(key);
+  document.body.dataset.hubFocus=key;
+  document.querySelectorAll('[data-hub-space]').forEach((n)=>n.classList.toggle('active',n.dataset.hubSpace===key));
+  if(!UI.W)return;
+  UI.W.setCameraGoal?.(preset.cam,preset.tgt);
+  UI.W.avatar?.setAction?.(preset.action);
+}
+
+function hubIdentity(snapshot,profile){
+  const face=profile.face
+    ? `<img src="${esc(profile.face)}" alt="">`
+    : `<span>${esc((snapshot.name||'B').slice(0,1).toUpperCase())}</span>`;
+  const sec=el('section','fit-hub-identity');
+  sec.innerHTML=`
+    <div class="fit-hub-person">
+      <button type="button" class="fit-hub-avatar" aria-label="Centrar personaje">${face}<i></i></button>
+      <div><small>${esc(snapshot.rank||'BAYONA')}</small><strong>${esc(snapshot.name||'Tu personaje')}</strong><span>${esc(snapshot.goal||'Tu progreso')}</span></div>
+    </div>
+    <div class="fit-hub-economy">
+      <span><small>${esc(t('hub.identity.level'))}</small><b>${snapshot.level}</b></span>
+      <span><small>${esc(t('hub.identity.fitcoins'))}</small><b>✦ ${snapshot.fitCoins}</b></span>
+      <span><small>${esc(t('hub.identity.streak'))}</small><b>${snapshot.streak}</b></span>
+    </div>
+    <div class="fit-hub-xp"><span><small>${esc(t('hub.identity.progress'))}</small><b>${snapshot.xp.current} / ${snapshot.xp.need} XP</b></span><i><em style="width:${snapshot.xp.pct}%"></em></i></div>`;
+  sec.querySelector('.fit-hub-avatar').onclick=()=>hubWorldFocus('hoy');
+  return sec;
+}
+
+function hubReview(snapshot,rerender){
+  const r=snapshot.review;
+  const card=el('section','fit-hub-review');
+  const value=r.status==='unscheduled'
+    ? t('hub.review.unscheduled')
+    : r.status==='today'
+      ? t('hub.review.today')
+      : r.status==='overdue'
+        ? t('hub.review.overdue')
+        : t('hub.review.days',{days:r.days});
+  card.innerHTML=`
+    <span><small>${esc(t('hub.review.label'))}</small><strong>${esc(value)}</strong></span>
+    <button type="button">${esc(r.status==='unscheduled'?t('hub.review.schedule'):t('hub.review.open'))}</button>`;
+  card.querySelector('button').onclick=()=>{
+    if(r.status==='unscheduled'){
+      S.scheduleProgressReview(28);
+      toast('REVISIÓN PROGRAMADA','En 28 días podrás revisar tu progreso con contexto real.');
+      rerender();
+    }else openSection('progress');
+  };
+  return card;
+}
+
+function hubCoach(snapshot){
+  const pulse=snapshot.coachPulse;
+  const card=el('section','fit-hub-coach');
+  const coach=COACH_LABELS[pulse.coach]||'Sebastián';
+  card.innerHTML=`
+    <div class="fit-hub-coach-mark">${esc(coach.slice(0,1))}</div>
+    <div><small>${esc(t('hub.coach.kicker'))}</small><strong>${esc(coach)}</strong><p>${esc(t(pulse.key))}</p></div>
+    <button type="button">${esc(t('hub.coach.open'))}</button>`;
+  card.querySelector('button').onclick=()=>openSection('core');
+  return card;
+}
+
+function hubJourney(snapshot){
+  const labels={
+    checkin:t('hub.journey.checkin'),
+    session:t('hub.journey.session'),
+    close:t('hub.journey.close'),
+    reward:t('hub.journey.reward'),
+  };
+  const states={
+    done:t('hub.journey.done'),
+    current:t('hub.journey.current'),
+    available:t('hub.journey.available'),
+    locked:t('hub.journey.locked'),
+    claimable:t('hub.journey.claimable'),
+  };
+  const wrap=el('section','fit-hub-journey');
+  wrap.innerHTML=`<div class="fit-hub-journey-head"><span>${esc(t('hub.journey.label'))}</span><small>${snapshot.session.logged}${snapshot.session.planned?' / '+snapshot.session.planned:''} series</small></div><div class="fit-hub-journey-track"></div>`;
+  const track=wrap.querySelector('.fit-hub-journey-track');
+  snapshot.journey.forEach((step,index)=>{
+    const b=el('button',`fit-hub-step ${step.state}`,`<i>${step.state==='done'?'✓':index+1}</i><span><strong>${esc(labels[step.id])}</strong><small>${esc(states[step.state]||step.state)}</small></span>`);
+    b.type='button';
+    b.disabled=step.state==='locked';
+    if(step.id==='checkin')b.onclick=()=>document.querySelector('.fit-mood')?.scrollIntoView({behavior:'smooth',block:'center'});
+    if(step.id==='session')b.onclick=()=>openSection('training');
+    if(step.id==='close')b.onclick=()=>openSection('training');
+    if(step.id==='reward')b.onclick=()=>openSection('armory');
+    track.append(b);
+  });
+  return wrap;
+}
+
+function hubSpatial(){
+  const wrap=el('section','fit-hub-spatial');
+  wrap.innerHTML=`<span>${esc(t('hub.spatial.label'))}</span><div></div>`;
+  const row=wrap.querySelector('div');
+  [
+    ['hoy',t('hub.spatial.home')],
+    ['training',t('hub.spatial.training')],
+    ['nutrition',t('hub.spatial.nutrition')],
+    ['recovery',t('hub.spatial.recovery')],
+    ['progress',t('hub.spatial.progress')],
+  ].forEach(([key,label])=>{
+    const b=el('button','',esc(label));b.type='button';b.dataset.hubSpace=key;
+    if(key==='hoy')b.classList.add('active');
+    b.onclick=()=>hubWorldFocus(key);
+    row.append(b);
+  });
+  return wrap;
+}
+
+function hubHistory(snapshot){
+  const wrap=el('section','fit-hub-history');
+  wrap.innerHTML=`<span>${esc(t('hub.history.label'))}</span><div>
+    <b>${snapshot.workouts}<small>${esc(t('hub.history.workouts'))}</small></b>
+    <b>${snapshot.sets}<small>${esc(t('hub.history.sets'))}</small></b>
+    <b>${snapshot.prs}<small>${esc(t('hub.history.prs'))}</small></b>
+  </div>`;
+  return wrap;
+}
+
 function home(body){
   body.textContent='';
   const p=S.data.profile,today=S.data.today,active=S.getActiveSession(),stats=S.data.stats;
   const pending=active&&!['completada','abandonada'].includes(active.status)?active:null;
   const w=S.todayWorkout();
+  const snapshot=hubSnapshot({
+    data:S.data,
+    level:S.level(),
+    rank:S.rank(),
+    workout:w,
+    active,
+    now:new Date(),
+  });
 
   const avatar=p.face
     ? `<img src="${esc(p.face)}" alt="">`
@@ -122,6 +257,14 @@ function home(body){
     <button class="fit-profile-chip" type="button" aria-label="Abrir mi perfil">${avatar}</button>`);
   head.querySelector('.fit-profile-chip').onclick=()=>openSection('profile');
   body.append(head);
+  body.append(
+    hubIdentity(snapshot,p),
+    hubSpatial(),
+    hubReview(snapshot,()=>home(body)),
+    hubCoach(snapshot),
+    hubJourney(snapshot),
+    hubHistory(snapshot)
+  );
 
   if((stats?.workouts||0)===0&&!today.trained&&!pending){
     body.append(el('div','fit-first-guide',`
