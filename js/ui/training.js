@@ -17,6 +17,16 @@ import {
   haptic, playTone, enterHome, BUILDERS,
 } from "./shared.js";
 import { confirmEarlyFinish } from "./cinematics.js";
+import {
+  SET_FEELINGS, normalizeSetFeedback, sessionPhase, sessionCompletion,
+  sessionPath, completionDelta,
+} from "../session-live.js";
+import {
+  supportsLocalRecording, preferredVideoMime, putExerciseVideo,
+  latestExerciseVideo, deleteExerciseVideo, videoObjectUrl,
+  MAX_RECORDING_MS,
+} from "../media-vault.js";
+import { isGranted, setConsent } from "../consents.js";
 
 const EXACT_POSE = { squat: 1, bench: 1, ohp: 1, pullup: 1, row: 1, lunge: 1, curl: 1, plank: 1 };
 const AVATAR_ACTION = {
@@ -24,6 +34,141 @@ const AVATAR_ACTION = {
   row: "row", lunge: "lunge", curl: "curl", plank: "plank", pushup: "plank",
   hipthrust: "sit", burpee: "squat", mobility: "stretch", breathing: "meditate",
 };
+let personalVideoUrl = null;
+
+const phaseText = (phase) => ({
+  initial:[t("session.phase.initial"),t("session.phase.prep")],
+  central:[t("session.phase.central"),t("session.phase.work")],
+  final:[t("session.phase.final"),t("session.phase.close")],
+}[phase.id] || [phase.label,phase.title]);
+
+function livePhaseCard(session) {
+  const path=sessionPath(session);
+  const phase=sessionPhase(session);
+  const [label,title]=phaseText(phase);
+  const card=el("section","fit-live-phase");
+  card.innerHTML=`
+    <div><small>${esc(label)}</small><strong>${esc(title)}</strong></div>
+    <span>${path.progress}%</span>
+    <i><em style="width:${path.progress}%"></em></i>
+    <div class="fit-live-phase-dots">
+      <b class="${phase.id==='initial'?'on':path.progress>0?'done':''}">1</b>
+      <b class="${phase.id==='central'?'on':phase.id==='final'?'done':''}">2</b>
+      <b class="${phase.id==='final'?'on':''}">3</b>
+    </div>`;
+  return card;
+}
+
+function ensureRecordingConsent() {
+  if (isGranted("recordings")) return Promise.resolve(true);
+  return new Promise((resolve)=>{
+    showModal(`
+      <div class="cine-tag">${esc(t("session.video.localOnly"))}</div>
+      <div class="cine-title" style="font-size:22px">${esc(t("session.video.consentTitle"))}</div>
+      <div class="cine-sub">${esc(t("session.video.consentBody"))}</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn grow" id="m-rec-no">${esc(t("session.video.cancel"))}</button>
+        <button class="btn btn-primary grow" id="m-rec-yes">${esc(t("session.video.accept"))}</button>
+      </div>`,()=>{
+        $("#m-rec-no").onclick=()=>{hideModal();resolve(false);};
+        $("#m-rec-yes").onclick=()=>{
+          const saved=setConsent("recordings",true);
+          hideModal();
+          if(!saved) toast("PRIVACIDAD","No pudimos guardar tu preferencia; te la volveremos a pedir.","danger");
+          resolve(true);
+        };
+      });
+  });
+}
+
+async function recordExerciseVideo(exKey) {
+  if (!supportsLocalRecording()) return toast("VÍDEO",t("session.video.unsupported"),"danger");
+  if (!(await ensureRecordingConsent())) return;
+  let stream=null;
+  try {
+    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user",width:{ideal:720}},audio:false});
+  } catch {
+    return toast("CÁMARA","No se pudo abrir la cámara. Revisa el permiso del navegador.","danger");
+  }
+
+  showModal(`
+    <div class="cine-tag">${esc(t("session.video.localOnly"))}</div>
+    <div class="cine-title" style="font-size:20px">${esc(exerciseDef({ex:exKey}).name)}</div>
+    <video id="m-rec-preview" autoplay muted playsinline class="fit-record-preview"></video>
+    <div class="fit-record-status" id="m-rec-status">${esc(t("session.video.start"))} · máx. 60 s</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn grow" id="m-rec-cancel">${esc(t("session.video.cancel"))}</button>
+      <button class="btn btn-primary grow" id="m-rec-toggle">${esc(t("session.video.start"))}</button>
+    </div>`,()=>{
+      const video=$("#m-rec-preview"),toggle=$("#m-rec-toggle"),cancel=$("#m-rec-cancel"),status=$("#m-rec-status");
+      video.srcObject=stream;
+      const mime=preferredVideoMime();
+      const chunks=[];
+      let recorder=null,startedAt=0,timer=0;
+
+      const stopTracks=()=>stream?.getTracks().forEach((track)=>track.stop());
+      const close=()=>{clearTimeout(timer);stopTracks();hideModal();};
+
+      cancel.onclick=()=>{
+        if(recorder?.state==="recording") recorder.stop();
+        else close();
+      };
+      toggle.onclick=()=>{
+        if(recorder?.state==="recording"){recorder.stop();return;}
+        try{
+          recorder=new MediaRecorder(stream,mime?{mimeType:mime,videoBitsPerSecond:900000}:{videoBitsPerSecond:900000});
+        }catch{
+          close();toast("VÍDEO",t("session.video.unsupported"),"danger");return;
+        }
+        chunks.length=0;
+        recorder.ondataavailable=(event)=>{if(event.data?.size)chunks.push(event.data);};
+        recorder.onstop=async()=>{
+          clearTimeout(timer);
+          const durationMs=Date.now()-startedAt;
+          const blob=new Blob(chunks,{type:recorder.mimeType||"video/webm"});
+          stopTracks();
+          try{
+            const meta=await putExerciseVideo(exKey,blob,{durationMs});
+            if(UI.session) UI.session.pendingEvidence={exKey,evidenceId:`local:${exKey}`,createdAt:meta.createdAt};
+            hideModal();
+            toast("VÍDEO",t("session.video.saved"),"gold");
+            if(UI.session) renderSession();
+          }catch{
+            hideModal();toast("VÍDEO","No pudimos guardar el vídeo local. Puede faltar espacio.","danger");
+          }
+        };
+        recorder.start(250);
+        startedAt=Date.now();
+        status.textContent="● GRABANDO · toca para detener";
+        toggle.textContent=t("session.video.stop");
+        timer=setTimeout(()=>{if(recorder?.state==="recording")recorder.stop();},MAX_RECORDING_MS);
+      };
+    });
+  });
+}
+
+async function appendLatestUserVideo(parent,exKey) {
+  try{
+    const record=await latestExerciseVideo(exKey);
+    if(!record||!parent?.isConnected)return;
+    if(personalVideoUrl) URL.revokeObjectURL(personalVideoUrl);
+    personalVideoUrl=videoObjectUrl(record);
+    if(!personalVideoUrl)return;
+    const box=el("div","fit-personal-video");
+    box.innerHTML=`
+      <div><span>${esc(t("session.video.latest"))}</span><small>${new Date(record.createdAt).toLocaleDateString("es-ES")}</small></div>
+      <video src="${personalVideoUrl}" controls muted playsinline preload="metadata"></video>
+      <button type="button" class="btn btn-block">${esc(t("session.video.delete"))}</button>`;
+    box.querySelector("button").onclick=async()=>{
+      await deleteExerciseVideo(exKey);
+      if(personalVideoUrl){URL.revokeObjectURL(personalVideoUrl);personalVideoUrl=null;}
+      box.remove();
+      toast("VÍDEO",t("session.video.deleteDone"));
+    };
+    parent.appendChild(box);
+  }catch{/* vault opcional */}
+}
+
 const timedOf = (e) => !!(e.timed || e.ex === "plank" || e.ex === "mobility" || e.ex === "breathing");
 const schemeText = (e) => {
   const load = e.kg ? `${fmtDec(e.kg)} kg` : "PESO CORPORAL";
