@@ -17,7 +17,7 @@ import {
 import { respaldar, guardarSeguro, recuperar } from "./backup.js";
 
 const KEY = "bayona.save.v2";
-export const SCHEMA = 3;
+export const SCHEMA = 4;
 
 /**
  * Recompensa por nivel. Vive fuera del objeto S y en orden: se recorre
@@ -124,8 +124,35 @@ function freshToday() {
 
 function freshProfile() {
   return {
-    name: "", goal: "BIENESTAR Y ADHERENCIA", skin: 0, coach: "MENTOR", created: Date.now(),
-    onboarded: false, experience: null, availability: null, equipment: null,
+    name: "",
+    goal: "BIENESTAR Y ADHERENCIA",          // compatibilidad v2
+    goalPrimary: "BIENESTAR Y ADHERENCIA",
+    goals: ["BIENESTAR Y ADHERENCIA"],
+    customGoals: [],
+    skin: 0,
+    coach: "MENTOR",                         // tono del asistente legado
+    coachPersona: "sebastian",               // identidad visual/acompañamiento
+    created: Date.now(),
+    onboarded: false,
+    onboardingVersion: 0,
+    onboardingCompletedAt: null,
+    experience: null,
+    availability: null,                      // compatibilidad con planificador actual
+    equipment: null,                         // compatibilidad con planificador actual
+    trainingPlaces: [],
+    customPlaces: [],
+    weeklyAvailability: { days: [], preferredWindows: [], difficultDays: [] },
+    preferredSessionRange: [],
+    sessionMinutes: 30,
+    birthDate: null,
+    ageBand: null,
+    developmentProfile: null,
+    physiologySex: "unspecified",
+    displayIdentity: null,
+    membershipPlan: "free",
+    healthScreening: null,
+    notificationPreferences: { morning:false, preTraining:false, evening:false, asked:false },
+    firstRunTour: { version: 0, completed:false, skipped:false, step:0 },
     heightCm: null, weightKg: null, age: null, face: null, skinHex: null,
     avatar3d: null, // descriptor { provider, avatarId, urlType, cacheKey, httpUrl, at }
   };
@@ -177,13 +204,52 @@ export const S = {
     const d = this.data;
     d.schema = d.schema || 2;
     d.profile = { ...freshProfile(), ...(d.profile || {}) };
+    // Profile v4: conservar saves antiguos, añadir estructuras nuevas sin borrar nada.
+    d.profile.goalPrimary = d.profile.goalPrimary || d.profile.goal || "BIENESTAR Y ADHERENCIA";
+    d.profile.goals = Array.isArray(d.profile.goals) && d.profile.goals.length
+      ? d.profile.goals
+      : [d.profile.goalPrimary];
+    d.profile.customGoals = Array.isArray(d.profile.customGoals) ? d.profile.customGoals : [];
+    d.profile.trainingPlaces = Array.isArray(d.profile.trainingPlaces) ? d.profile.trainingPlaces : [];
+    d.profile.customPlaces = Array.isArray(d.profile.customPlaces) ? d.profile.customPlaces : [];
+    d.profile.weeklyAvailability = {
+      days: [],
+      preferredWindows: [],
+      difficultDays: [],
+      ...(d.profile.weeklyAvailability && typeof d.profile.weeklyAvailability === "object" ? d.profile.weeklyAvailability : {}),
+    };
+    d.profile.weeklyAvailability.days = Array.isArray(d.profile.weeklyAvailability.days) ? d.profile.weeklyAvailability.days : [];
+    d.profile.weeklyAvailability.preferredWindows = Array.isArray(d.profile.weeklyAvailability.preferredWindows) ? d.profile.weeklyAvailability.preferredWindows : [];
+    d.profile.weeklyAvailability.difficultDays = Array.isArray(d.profile.weeklyAvailability.difficultDays) ? d.profile.weeklyAvailability.difficultDays : [];
+    d.profile.preferredSessionRange = Array.isArray(d.profile.preferredSessionRange) ? d.profile.preferredSessionRange : [];
+    d.profile.membershipPlan = typeof d.profile.membershipPlan === "string" ? d.profile.membershipPlan : "free";
+    d.profile.coachPersona = typeof d.profile.coachPersona === "string" ? d.profile.coachPersona : "sebastian";
+    d.profile.notificationPreferences = {
+      morning:false, preTraining:false, evening:false, asked:false,
+      ...(d.profile.notificationPreferences && typeof d.profile.notificationPreferences === "object" ? d.profile.notificationPreferences : {}),
+    };
+    d.profile.firstRunTour = {
+      version:0, completed:false, skipped:false, step:0,
+      ...(d.profile.firstRunTour && typeof d.profile.firstRunTour === "object" ? d.profile.firstRunTour : {}),
+    };
     const legacyGoal = {
       FUERZA: "FUERZA Y POTENCIA",
       HIPERTROFIA: "HIPERTROFIA MUSCULAR",
       RESISTENCIA: "RESISTENCIA Y CONDICIÓN FÍSICA",
       SALUD: "BIENESTAR Y ADHERENCIA",
     }[d.profile.goal];
-    if (legacyGoal) d.profile.goal = legacyGoal;
+    if (legacyGoal) {
+      d.profile.goal = legacyGoal;
+      if (!d.profile.goalPrimary || d.profile.goalPrimary === "FUERZA" || d.profile.goalPrimary === "HIPERTROFIA" || d.profile.goalPrimary === "RESISTENCIA" || d.profile.goalPrimary === "SALUD") {
+        d.profile.goalPrimary = legacyGoal;
+      }
+      d.profile.goals = [...new Set([d.profile.goalPrimary, ...d.profile.goals.map((g) => ({
+        FUERZA: "FUERZA Y POTENCIA",
+        HIPERTROFIA: "HIPERTROFIA MUSCULAR",
+        RESISTENCIA: "RESISTENCIA Y CONDICIÓN FÍSICA",
+        SALUD: "BIENESTAR Y ADHERENCIA",
+      }[g] || g))])];
+    }
     d.settings = { sound: true, motion: true, haptics: true, quality: "AUTO", ...(d.settings || {}) };
     d.today = { ...freshToday(), ...(d.today || {}) };
     d.voice = Array.isArray(d.voice) ? d.voice : [];
