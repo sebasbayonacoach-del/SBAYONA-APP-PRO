@@ -5999,3 +5999,78 @@ html[data-surface-theme="light"] body.fitness-app .fit-hub-coach{
   .fit-hub-journey-track{grid-template-columns:repeat(2,1fr)}
   .fit-hub-history{align-items:flex-start;flex-direction:column}
 }
+
+
+/* ============================================================
+   38 · SESIÓN VIVA · fases, feedback, evidencia y cierre
+   ============================================================ */
+.fit-live-phase{
+  display:grid;grid-template-columns:minmax(0,1fr) auto;gap:9px;align-items:center;
+  margin:8px 0;padding:11px 12px;border:1px solid var(--hair);border-radius:13px;background:var(--panel)
+}
+.fit-live-phase>div:first-child{display:grid;gap:3px}
+.fit-live-phase small{color:var(--orange);font:800 7px/1 var(--sans);letter-spacing:.12em}
+.fit-live-phase strong{color:var(--ink);font:700 12px/1 var(--sans)}
+.fit-live-phase>span{color:var(--mute);font:700 8px/1 var(--mono)}
+.fit-live-phase>i{grid-column:1/-1;height:4px;overflow:hidden;border-radius:999px;background:var(--paper-2);border:1px solid var(--hair)}
+.fit-live-phase>i>em{display:block;height:100%;border-radius:inherit;background:var(--orange)}
+.fit-live-phase-dots{grid-column:1/-1;display:grid!important;grid-template-columns:repeat(3,1fr);gap:6px!important}
+.fit-live-phase-dots b{height:20px;display:grid;place-items:center;border:1px solid var(--hair);border-radius:999px;color:var(--mute);font:750 7px/1 var(--mono)}
+.fit-live-phase-dots b.on{border-color:var(--orange);background:rgba(255,106,0,.1);color:var(--orange)}
+.fit-live-phase-dots b.done{border-color:#2f8a59;color:#58bd81}
+
+.fit-set-feedback{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.fit-set-feedback label,.fit-session-note{display:grid;gap:6px;color:var(--mute);font:750 7px/1.2 var(--sans);letter-spacing:.08em}
+.fit-set-feedback select,.fit-set-feedback textarea,.fit-session-note textarea{
+  width:100%;box-sizing:border-box;border:1px solid var(--hair);border-radius:8px;background:var(--paper-2);color:var(--ink);font:550 10px/1.35 var(--sans)
+}
+.fit-set-feedback select{min-height:36px;padding:0 9px}
+.fit-set-feedback textarea,.fit-session-note textarea{min-height:66px;padding:9px;resize:vertical}
+.fit-set-note{grid-column:1/-1}
+.fit-set-media{display:flex;align-items:center;justify-content:space-between;gap:9px;margin:10px 0}
+.fit-set-media>span{color:var(--mute);font:500 8px/1.3 var(--sans);text-align:right}
+.fit-record-preview{width:100%;max-height:54vh;display:block;margin:12px 0;border:1px solid var(--hair);border-radius:10px;background:#000;object-fit:contain;transform:scaleX(-1)}
+.fit-record-status{margin:8px 0;color:var(--orange);font:750 9px/1.3 var(--mono)}
+
+.fit-personal-video{display:grid;gap:8px;margin:9px 0;padding:10px;border:1px solid var(--orange);border-radius:10px;background:rgba(255,106,0,.04)}
+.fit-personal-video>div{display:flex;justify-content:space-between;gap:10px}.fit-personal-video span{color:var(--orange);font:800 7px/1 var(--sans);letter-spacing:.1em}.fit-personal-video small{color:var(--mute);font:600 7px/1 var(--mono)}
+.fit-personal-video video{width:100%;max-height:260px;border-radius:8px;background:#000;object-fit:contain}
+
+.fit-session-close{display:grid;gap:11px;padding:16px;border:1px solid var(--orange);border-radius:16px;background:linear-gradient(135deg,rgba(255,106,0,.06),transparent 42%),var(--panel)}
+.fit-session-close h3{margin:0;color:var(--ink);font:700 24px/1 var(--serif);letter-spacing:-.03em}
+.fit-session-close>p{margin:0;color:var(--mute);font:500 10px/1.5 var(--sans)}
+.fit-session-close-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.fit-session-close-stats>span{display:grid;gap:4px;padding:9px;border:1px solid var(--hair);border-radius:9px;background:var(--paper-2)}
+.fit-session-close-stats small{color:var(--mute);font:750 6px/1 var(--sans);letter-spacing:.08em}.fit-session-close-stats b{color:var(--ink);font:750 11px/1 var(--mono)}
+
+.fit-session-summary{display:grid;gap:10px}
+.fit-session-summary-person{display:grid;grid-template-columns:56px minmax(0,1fr);align-items:center;gap:12px}
+.fit-session-summary-person>img,.fit-session-summary-person>span{
+  width:54px;height:54px;display:grid;place-items:center;object-fit:cover;border:1px solid var(--hair-strong);
+  border-radius:50%;background:var(--paper-2);color:var(--orange);font:800 18px/1 var(--sans)
+}
+.fit-session-summary-person>div{display:grid;gap:4px}.fit-session-summary-person small{color:var(--orange);font:800 7px/1 var(--sans);letter-spacing:.1em}.fit-session-summary-person strong{color:var(--ink);font:750 22px/1 var(--serif);letter-spacing:-.03em}.fit-session-summary-person em{color:var(--mute);font:500 9px/1.3 var(--sans);font-style:normal}
+.fit-session-level{display:grid;grid-template-columns:1fr 1fr;gap:7px}.fit-session-level>span{display:grid;gap:4px;padding:10px;border:1px solid var(--hair);border-radius:9px;background:var(--paper-2)}
+.fit-session-level small{color:var(--mute);font:750 6px/1 var(--sans);letter-spacing:.09em}.fit-session-level b{font:800 16px/1 var(--mono);color:var(--ink)}.fit-session-level i{color:var(--orange);font:750 6.5px/1 var(--sans);font-style:normal}
+.fit-session-xp{display:grid;gap:6px}.fit-session-xp>span{display:flex;justify-content:space-between;gap:10px}.fit-session-xp small{color:var(--mute);font:750 6.5px/1 var(--sans);letter-spacing:.08em}.fit-session-xp b{font:650 8px/1 var(--mono);color:var(--ink)}
+.fit-session-xp>i{height:5px;overflow:hidden;border-radius:999px;background:var(--paper-2);border:1px solid var(--hair)}.fit-session-xp>i>em{display:block;height:100%;background:var(--orange);border-radius:inherit}
+.fit-session-summary-note{padding:9px;border-left:2px solid var(--orange);background:var(--paper-2);color:var(--ink-soft);font:500 9px/1.45 var(--sans)}
+
+html[data-surface-theme="light"] body.fitness-app .fit-live-phase,
+html[data-surface-theme="light"] body.fitness-app .fit-session-close,
+html[data-surface-theme="light"] body.fitness-app .fit-personal-video{
+  background:#fffdf9
+}
+html[data-surface-theme="light"] body.fitness-app .fit-set-feedback select,
+html[data-surface-theme="light"] body.fitness-app .fit-set-feedback textarea,
+html[data-surface-theme="light"] body.fitness-app .fit-session-note textarea,
+html[data-surface-theme="light"] body.fitness-app .fit-session-close-stats>span,
+html[data-surface-theme="light"] body.fitness-app .fit-session-level>span{
+  background:#f7f3ec
+}
+@media(max-width:620px){
+  .fit-set-feedback{grid-template-columns:1fr}.fit-set-note{grid-column:auto}
+  .fit-set-media{align-items:stretch;flex-direction:column}.fit-set-media>span{text-align:left}
+  .fit-session-close-stats{grid-template-columns:1fr}
+  .fit-session-level{grid-template-columns:1fr 1fr}
+}
