@@ -44,13 +44,20 @@ S.reset(true);
   assert(S.data.xp === xpBefore, 'XP revertido al corregir', `${S.data.xp} vs ${xpBefore}`);
 }
 
-// finalización idempotente: una acción nunca premia dos veces
+// finalización honesta + idempotente: parcial ≠ completada
 {
-  const w1 = S.completeWorkout('op_upper', { loggedSets: 10, plannedSets: 14, minutes: 55 });
-  const w2 = S.completeWorkout('op_upper', { loggedSets: 10, plannedSets: 14, minutes: 55 });
-  assert(w1 && w1.points > 0, 'primer cierre premia');
+  S.reset(true);
+  const partial = S.completeWorkout('op_upper', { loggedSets: 10, plannedSets: 14, minutes: 55 });
+  assert(partial && partial.completed === false, 'cierre parcial se desvía sin bono');
+  assert(S.data.today.trained === false, '10/14 series NO marca el día como entrenado');
+
+  const pointsBefore = S.data.points;
+  const w1 = S.completeWorkout('op_upper', { loggedSets: 14, plannedSets: 14, minutes: 55 });
+  const w2 = S.completeWorkout('op_upper', { loggedSets: 14, plannedSets: 14, minutes: 55 });
+  assert(w1 && w1.points > 0, '100% previsto concede bono final');
+  assert(S.data.points === pointsBefore + w1.points, 'el bono se suma una sola vez');
   assert(w2 === null, 'segundo cierre de la misma sesión → sin bono doble');
-  assert(S.data.today.trained === true, 'el día queda COMPLETADO solo al cerrar sesión');
+  assert(S.data.today.trained === true, 'el día queda COMPLETADO solo con 100% previsto');
 }
 
 // desbloqueos intermedios al subir varios niveles de golpe
