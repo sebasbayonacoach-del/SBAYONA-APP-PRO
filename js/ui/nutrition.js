@@ -52,8 +52,8 @@ function advancedModal(){
     <div class="cine-tag">${esc(required)}</div>
     <div class="cine-title" style="font-size:22px">${esc(t("nut.plan.locked"))}</div>
     <div class="cine-sub">${esc(t("nut.plan.preview"))}</div>
-    <button class="btn btn-primary btn-block" id="nut-lock-close">OK</button>`,()=>{
-      $("#nut-lock-close").onclick=hideModal;
+    <button class="btn btn-primary btn-block" id="m-nut-lock-close">OK</button>`,()=>{
+      $("#m-nut-lock-close").onclick=hideModal;
     });
 }
 
