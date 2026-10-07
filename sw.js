@@ -4,7 +4,7 @@
 // Con esto la app abre sin red y el registro de series funciona offline
 // (los datos viven en el dispositivo y se sincronizan después).
 // ============================================================
-const CACHE = "bayona-shell-v39";
+const CACHE = "bayona-shell-v40";
 const SHELL = [
   "./css/pro.css",
   "./css/luxe.css",
@@ -15,7 +15,7 @@ const SHELL = [
   "./js/comandos.js", "./js/ui/command.js",
   "./css/fitness.css", "./js/ui/fitness.js",
   "./css/dashboard.css", "./js/ui/dashboard.js", "./js/recipeImage.js",
-  "./css/coach.css", "./js/coach/ai-core.js", "./js/coach/ai.js",
+  "./css/coach.css", "./js/coach/ai-core.js", "./js/coach/ai.js", "./js/coach/memory.js",
   "./js/personalization.js", "./js/cycle.js", "./js/ui/personal.js", "./css/personal.css",
   "./js/pwa.js", "./js/sync/config.js", "./js/sync/supabase.js", "./js/sync/outbox.js", "./js/sync/coaching.js", "./js/nutricion-db.js", "./js/data/alimentos.json",
   "./index.html",
