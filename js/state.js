@@ -15,6 +15,9 @@ import {
   normalizeWeeklyPlan, NUTRITION_FEELINGS,
 } from "./nutrition-calendar.js";
 import {
+  normalizeRecoveryConfig, normalizeRecoveryPractice, normalizeOtherActivity,
+} from "./recovery-sleep.js";
+import {
   setReward, prReward, workoutCompleteReward, mealReward, waterReward,
   stepsReward, mindReward, mobilityReward, healthMapReward, missionReward,
   focusReward, activePauseReward,
@@ -22,7 +25,7 @@ import {
 import { respaldar, guardarSeguro, recuperar } from "./backup.js";
 
 const KEY = "bayona.save.v2";
-export const SCHEMA = 6;
+export const SCHEMA = 7;
 
 /**
  * Recompensa por nivel. Vive fuera del objeto S y en orden: se recorre
@@ -125,6 +128,12 @@ function freshToday() {
     activePauses: 0,       // pausas activas de escritorio
     postureChecks: 0,      // checklists de postura (registro, sin XP)
     nightRoutine: [],      // rutina nocturna cumplida (ids de pasos)
+    sleepBedAt: null,
+    sleepWakeAt: null,
+    sleepSource: null,       // manual | wearable
+    recoveryPractices: [],   // prácticas reales registradas hoy
+    otherActivities: [],     // otros deportes/actividad fuera del plan
+    recoveryNote: "",
   };
 }
 
@@ -273,6 +282,13 @@ export const S = {
     d.consents = d.consents || null; // espejo legado; la fuente vive en js/consents.js
     d.healthFlags = d.healthFlags || null;
     d.nutrition = nutritionDefaults(d.nutrition || {});
+    d.recovery = normalizeRecoveryConfig(d.recovery || {});
+    d.today.recoveryPractices = Array.isArray(d.today.recoveryPractices) ? d.today.recoveryPractices : [];
+    d.today.otherActivities = Array.isArray(d.today.otherActivities) ? d.today.otherActivities : [];
+    d.today.recoveryNote = typeof d.today.recoveryNote === "string" ? d.today.recoveryNote.slice(0, 240) : "";
+    d.today.sleepBedAt = typeof d.today.sleepBedAt === "string" ? d.today.sleepBedAt : null;
+    d.today.sleepWakeAt = typeof d.today.sleepWakeAt === "string" ? d.today.sleepWakeAt : null;
+    d.today.sleepSource = ["manual","wearable"].includes(d.today.sleepSource) ? d.today.sleepSource : null;
     d.plan = d.plan || { week: 1, sessionsDone: {}, custom: {} };
     d.plan.custom = d.plan.custom || {};
     d.activeSession = d.activeSession || null;
@@ -333,6 +349,7 @@ export const S = {
       consents: null,
       healthFlags: null,
       nutrition: nutritionDefaults(),
+      recovery: normalizeRecoveryConfig(),
       activeSession: null,
     };
     if (!silent) this.save();
@@ -367,7 +384,14 @@ export const S = {
       muscleSets: d.today.muscleSets || {}, prPoints: d.today.prPoints || [],
       setLog: (d.today.setLog || []).slice(-60), // series reales (kg/reps/ex) para las gráficas de progreso (P14)
       strain: d.today.strain || 0,
-      sleep: d.today.sleep, soreness: d.today.soreness, energy: d.today.energy,
+      sleep: d.today.sleep, soreness: d.today.soreness, energy: d.today.energy, stress: d.today.stress,
+      sleepBedAt: d.today.sleepBedAt || null, sleepWakeAt: d.today.sleepWakeAt || null,
+      sleepSource: d.today.sleepSource || null,
+      recoveryPractices: (d.today.recoveryPractices || []).slice(-20),
+      otherActivities: (d.today.otherActivities || []).slice(-20),
+      activePauses: d.today.activePauses || 0,
+      nightRoutine: (d.today.nightRoutine || []).slice(0, 20),
+      recoveryNote: d.today.recoveryNote || "",
       nutritionFeeling: d.today.nutritionFeeling || null,
       meals: (d.today.meals || []).slice(-12).map((m) => ({
         id: m.id, name: m.name, kcal: m.kcal, p: m.p, c: m.c, f: m.f, fib: m.fib || 0,
@@ -561,6 +585,87 @@ export const S = {
   logSoreness(v) { return this._registro("soreness", v, 0, 10, true); },
   logEnergy(v) { return this._registro("energy", v, 0, 10, true); },
   logStress(v) { return this._registro("stress", v, 0, 10, true); },
+
+  setSleepSchedule(patch = {}) {
+    this.data.recovery = normalizeRecoveryConfig({
+      ...(this.data.recovery || {}),
+      sleepSchedule: {
+        ...(this.data.recovery?.sleepSchedule || {}),
+        ...(patch || {}),
+      },
+    });
+    this.save(); emit("recovery");
+    return this.data.recovery.sleepSchedule;
+  },
+
+  setActivePauseSchedule(patch = {}) {
+    this.data.recovery = normalizeRecoveryConfig({
+      ...(this.data.recovery || {}),
+      activePause: {
+        ...(this.data.recovery?.activePause || {}),
+        ...(patch || {}),
+      },
+    });
+    this.save(); emit("recovery");
+    return this.data.recovery.activePause;
+  },
+
+  logSleepWindow({ hours, bedAt = null, wakeAt = null, source = "manual" } = {}) {
+    const ok = this.logSleep(hours);
+    if (!ok) return false;
+    const parse = (value) => {
+      if (!value) return null;
+      const d = new Date(value);
+      return Number.isNaN(d.getTime()) ? null : d.toISOString();
+    };
+    this.data.today.sleepBedAt = parse(bedAt);
+    this.data.today.sleepWakeAt = parse(wakeAt);
+    this.data.today.sleepSource = source === "wearable" ? "wearable" : "manual";
+    this.save(); emit("today");
+    return {
+      hours: this.data.today.sleep,
+      bedAt: this.data.today.sleepBedAt,
+      wakeAt: this.data.today.sleepWakeAt,
+      source: this.data.today.sleepSource,
+    };
+  },
+
+  addRecoveryPractice(input = {}) {
+    const rec = normalizeRecoveryPractice(input);
+    this.data.today.recoveryPractices = Array.isArray(this.data.today.recoveryPractices)
+      ? this.data.today.recoveryPractices : [];
+    this.data.today.recoveryPractices.push(rec);
+    this.data.today.recoveryPractices = this.data.today.recoveryPractices.slice(-20);
+    this.save(); emit("today");
+    return rec;
+  },
+
+  addOtherActivity(input = {}) {
+    const rec = normalizeOtherActivity(input);
+    this.data.today.otherActivities = Array.isArray(this.data.today.otherActivities)
+      ? this.data.today.otherActivities : [];
+    this.data.today.otherActivities.push(rec);
+    this.data.today.otherActivities = this.data.today.otherActivities.slice(-20);
+    this.save(); emit("today");
+    return rec;
+  },
+
+  setRecoveryNote(value = "") {
+    this.data.today.recoveryNote = String(value || "").trim().replace(/\s+/g, " ").slice(0, 240);
+    this.save(); emit("today");
+    return this.data.today.recoveryNote;
+  },
+
+  /** Solo para una integración verificada: nunca se marca conectado desde la UI por sí sola. */
+  setWearableState(input = {}) {
+    this.data.recovery = normalizeRecoveryConfig({
+      ...(this.data.recovery || {}),
+      wearable: input,
+    });
+    this.save(); emit("recovery");
+    return this.data.recovery.wearable;
+  },
+
   /** Escala 0-10 redondeada; fuera de rango o no numérico → se ignora. */
   _registro(campo, valor, min, max, entero) {
     let v = enRango(valor, min, max);
