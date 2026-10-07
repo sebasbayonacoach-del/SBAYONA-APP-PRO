@@ -7,6 +7,11 @@ export const MEMORY_CATEGORIES=Object.freeze(["training","nutrition","recovery",
 export const MEMORY_STATUSES=Object.freeze(["active","pending","accepted","rejected","applied"]);
 
 const clean=(v,max=220)=>String(v||"").trim().replace(/\s+/g," ").slice(0,max);
+const hash=(value)=>{
+  let h=2166136261;
+  for(const ch of String(value||"")){h^=ch.charCodeAt(0);h=Math.imul(h,16777619);}
+  return (h>>>0).toString(36);
+};
 const iso=(v)=>{
   const d=v instanceof Date?v:new Date(v||Date.now());
   return Number.isNaN(d.getTime())?new Date().toISOString():d.toISOString();
@@ -20,7 +25,7 @@ export function normalizeMemoryEvent(input={}){
   const summary=clean(input.summary,220);
   if(!summary)return null;
   return {
-    id:clean(input.id,80)||`mem_${Date.now()}_${Math.random().toString(36).slice(2,8)}`,
+    id:clean(input.id,80)||`mem_${Date.now()}_${hash(summary)}`,
     at:iso(input.at),
     type,category,basis,status,summary,
     evidence:Array.isArray(input.evidence)
@@ -70,14 +75,14 @@ export function derivedMemoryFacts(data={}){
   const history=Array.isArray(data.history)?data.history:[];
   const recent=[...history.slice(-6),today].filter((x)=>x&&x.date);
 
-  const sleep=avg(recent.map((x)=>Number(x.sleep)).filter((x)=>Number.isFinite(x)));
+  const sleep=avg(recent.filter((x)=>x.sleep!=null).map((x)=>Number(x.sleep)).filter((x)=>Number.isFinite(x)));
   if(sleep!=null)facts.push({
     id:"derived_sleep7",basis:"derived",category:"recovery",
     summary:`Sueño medio reciente: ${sleep} h`,
     evidence:recent.filter((x)=>x.sleep!=null).map((x)=>`${x.date}: ${x.sleep} h`).slice(-7),
   });
 
-  const energy=avg(recent.map((x)=>Number(x.energy)).filter((x)=>Number.isFinite(x)));
+  const energy=avg(recent.filter((x)=>x.energy!=null).map((x)=>Number(x.energy)).filter((x)=>Number.isFinite(x)));
   if(energy!=null)facts.push({
     id:"derived_energy7",basis:"derived",category:"recovery",
     summary:`Energía media reciente: ${energy}/10`,
