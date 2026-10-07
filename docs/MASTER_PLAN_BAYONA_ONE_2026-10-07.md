@@ -331,6 +331,8 @@ Estado: implementado en rama de Sprint; pendiente de certificación CI.
 - exportación avanzada.
 
 ### Sprint 07 · Recovery + Sleep
+Estado: implementado en rama de Sprint; pendiente de certificación CI.
+
 - sueño;
 - fatiga;
 - estrés;
