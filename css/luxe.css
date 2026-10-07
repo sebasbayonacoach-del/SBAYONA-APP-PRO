@@ -551,6 +551,8 @@ html[data-surface-theme="light"] .luxe-device{border-color:#222;background:#f8f5
   --luxe-muted:#c4c4c4;
   --luxe-muted-2:#949494;
   --luxe-accent:#f4a261;
+  --luxe-accent-fire:#e76f51;
+  --luxe-accent-deep:#d45d38;
   --luxe-accent-soft:rgba(244,162,97,.12);
   --luxe-accent-glow:rgba(231,111,81,.20);
   --luxe-radius:0px;
@@ -618,3 +620,9 @@ html[data-surface-theme="light"] .luxe-demo-lock{
 }
 .luxe-demo-avatar,
 .luxe-demo-orbit{border-radius:50%!important}
+
+.luxe-btn-primary:active,
+.luxe-cta:active{
+  background:#d45d38!important;
+  border-color:#d45d38!important;
+}
