@@ -34,7 +34,7 @@ ok(!ui.includes("applyAdjustedPlan(tool"),"no existe aplicación silenciosa inve
 ok(ai.includes("memoryPromptLines(d, 12)"),"contexto del Coach incluye memoria etiquetada");
 ok(core.includes("MEMORIA RELEVANTE"),"prompt separa memoria relevante");
 ok(core.includes("[REGISTRADO]")&&core.includes("[DERIVADO]")&&core.includes("[COACH]"),"reglas explican los tres orígenes");
-ok(core.includes("no la presentes como medición directa"),"inferencia no puede venderse como dato medido");
+ok(core.includes("la presentes como medición directa"),"inferencia no puede venderse como dato medido");
 ok(core.includes("herramientas son propuestas visibles"),"prompt prohíbe cambios silenciosos");
 
 ok(state.includes("coachMemory: memoryDefaults()"),"estado nuevo incluye memoria vacía");

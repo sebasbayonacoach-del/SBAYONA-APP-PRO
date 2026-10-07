@@ -687,12 +687,13 @@ export const S = {
   },
 
   updateCoachMemoryStatus(id, status) {
-    const before = this.data.coachMemory || memoryDefaults();
-    const next = updateMemoryStatus(before, id, status);
-    const changed = JSON.stringify(before) !== JSON.stringify(next);
+    const current = this.data.coachMemory || memoryDefaults();
+    const existing = current.events?.find((x) => x.id === id);
+    if (!existing || existing.status === status) return false;
+    const next = updateMemoryStatus(current, id, status);
     this.data.coachMemory = next;
-    if (changed) { this.save(); emit("coach-memory", { id, status }); }
-    return changed;
+    this.save(); emit("coach-memory", { id, status });
+    return true;
   },
 
   /** Escala 0-10 redondeada; fuera de rango o no numérico → se ignora. */
