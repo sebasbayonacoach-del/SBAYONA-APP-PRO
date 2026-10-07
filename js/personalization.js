@@ -1,5 +1,7 @@
-// Profile-based suggestions. Coach overrides always take precedence in state.js.
-// Goal taxonomy follows the BAYONA/Trainingym evaluation catalogue.
+// BAYONA — personalización de perfil y sesión.
+// La capa actual conserva compatibilidad con el planificador v2 mientras Profile v4
+// añade objetivos/lugares múltiples y una semana real.
+
 export const GOALS = [
   "COMPOSICIÓN CORPORAL",
   "HIPERTROFIA MUSCULAR",
@@ -8,11 +10,28 @@ export const GOALS = [
   "MOVILIDAD Y FUNCIÓN",
   "RENDIMIENTO DEPORTIVO",
   "BIENESTAR Y ADHERENCIA",
+  "VOLVER A ENTRENAR",
+  "PREPARAR UNA PRUEBA",
 ];
 
 export const EXPERIENCE = ["EMPIEZO AHORA", "ALGO DE EXPERIENCIA", "ENTRENO HACE AÑOS"];
 export const AVAILABILITY = ["2 DÍAS/SEMANA", "3 DÍAS/SEMANA", "4-5 DÍAS/SEMANA", "CASI A DIARIO"];
+
+// Compatibilidad: el motor de ejercicios todavía consume este campo resumido.
 export const EQUIPMENT = ["SIN EQUIPAMIENTO", "MANCUERNAS/BANDAS", "GIMNASIO COMPLETO"];
+
+export const TRAINING_PLACES = [
+  "CASA · SIN MATERIAL",
+  "CASA · CON MATERIAL",
+  "GIMNASIO",
+  "PARQUE / CALISTENIA",
+  "PISTA / CAMPO",
+  "PISCINA",
+  "BOX / ESTUDIO",
+  "CLUB DEPORTIVO",
+  "TRABAJO",
+  "VIAJO MUCHO",
+];
 
 const LEGACY_GOAL = new Map([
   ["FUERZA", "FUERZA Y POTENCIA"],
@@ -26,31 +45,104 @@ export function normalizeGoal(goal) {
   return LEGACY_GOAL.get(raw) || raw;
 }
 
-export function validateProfile(input) {
-  const goal = normalizeGoal(input.goal);
+function cleanText(value, max = 80) {
+  return String(value || "").trim().replace(/\s+/g, " ").slice(0, max);
+}
+
+function uniqueTexts(values, maxItems = 12, maxLength = 80) {
+  return [...new Set((Array.isArray(values) ? values : []).map((x) => cleanText(x, maxLength)).filter(Boolean))].slice(0, maxItems);
+}
+
+export function availabilityFromDays(days) {
+  const n = uniqueTexts(days, 7, 12).length;
+  if (n <= 2) return "2 DÍAS/SEMANA";
+  if (n === 3) return "3 DÍAS/SEMANA";
+  if (n <= 5) return "4-5 DÍAS/SEMANA";
+  return "CASI A DIARIO";
+}
+
+export function legacyEquipmentFromPlaces(places) {
+  const list = uniqueTexts(places).map((x) => x.toUpperCase());
+  if (list.some((x) => x.includes("GIMNASIO") || x.includes("BOX") || x.includes("CLUB"))) return "GIMNASIO COMPLETO";
+  if (list.some((x) => x.includes("CON MATERIAL"))) return "MANCUERNAS/BANDAS";
+  return "SIN EQUIPAMIENTO";
+}
+
+export function validateProfile(input = {}) {
+  const rawGoals = uniqueTexts(input.goals?.length ? input.goals : [input.goal].filter(Boolean), 8, 80)
+    .map(normalizeGoal);
+  const primary = normalizeGoal(input.goalPrimary || input.goal || rawGoals[0] || "BIENESTAR Y ADHERENCIA");
+  if (!GOALS.includes(primary)) throw new Error("Revisa el objetivo principal de tu perfil.");
+  const goals = [...new Set([primary, ...rawGoals.filter((goal) => GOALS.includes(goal))])];
+  const customGoals = uniqueTexts(input.customGoals, 5, 80);
+
+  const places = uniqueTexts(input.trainingPlaces?.length ? input.trainingPlaces : [], 10, 80);
+  const customPlaces = uniqueTexts(input.customPlaces, 5, 80);
+
   const experience = EXPERIENCE.includes(input.experience) ? input.experience : EXPERIENCE[1];
-  if (!GOALS.includes(goal) || !AVAILABILITY.includes(input.availability) || !EQUIPMENT.includes(input.equipment)) {
-    throw new Error("Revisa las opciones de tu perfil.");
-  }
-  const minutes = Number(input.sessionMinutes);
-  if (![15, 30, 45, 60].includes(minutes)) throw new Error("Elige la duración de la sesión.");
+  const weeklyDays = uniqueTexts(input.weeklyAvailability?.days, 7, 12);
+  const availability = AVAILABILITY.includes(input.availability)
+    ? input.availability
+    : availabilityFromDays(weeklyDays.length ? weeklyDays : ["L", "X", "V"]);
+
+  const equipment = EQUIPMENT.includes(input.equipment)
+    ? input.equipment
+    : legacyEquipmentFromPlaces([...places, ...customPlaces]);
+
+  const minutes = Number(input.sessionMinutes || input.preferredSessionMinutes || 30);
+  if (![15, 30, 45, 60].includes(minutes)) throw new Error("Elige una duración aproximada válida.");
+
+  const preferredSessionRange = uniqueTexts(input.preferredSessionRange, 2, 12);
+  const membershipPlan = cleanText(input.membershipPlan || "free", 20).toLowerCase();
+
   return {
-    name: String(input.name || "TÚ").trim().slice(0, 18) || "TÚ",
-    goal,
+    name: cleanText(input.name || "TÚ", 18) || "TÚ",
+
+    // v2 compatibility
+    goal: primary,
     experience,
-    availability: input.availability,
-    equipment: input.equipment,
+    availability,
+    equipment,
     sessionMinutes: minutes,
+
+    // Profile v4
+    goalPrimary: primary,
+    goals,
+    customGoals,
+    trainingPlaces: places,
+    customPlaces,
+    weeklyAvailability: {
+      days: weeklyDays,
+      preferredWindows: uniqueTexts(input.weeklyAvailability?.preferredWindows, 7, 24),
+      difficultDays: uniqueTexts(input.weeklyAvailability?.difficultDays, 7, 12),
+    },
+    preferredSessionRange: preferredSessionRange.length ? preferredSessionRange : [String(minutes)],
+    birthDate: cleanText(input.birthDate, 10) || null,
+    ageBand: cleanText(input.ageBand, 24) || null,
+    developmentProfile: input.developmentProfile && typeof input.developmentProfile === "object"
+      ? { ...input.developmentProfile }
+      : null,
+    physiologySex: ["female", "male", "intersex", "unspecified"].includes(input.physiologySex)
+      ? input.physiologySex
+      : "unspecified",
+    displayIdentity: cleanText(input.displayIdentity, 40) || null,
+    coachPersona: cleanText(input.coachPersona || "sebastian", 24).toLowerCase(),
+    membershipPlan,
+    onboardingVersion: Number(input.onboardingVersion) || 3,
+    onboardingCompletedAt: input.onboardingCompletedAt || null,
   };
 }
 
-export function profileWeek(profile) {
-  const days = {
+export function profileWeek(profile = {}) {
+  const dayIndex = { L:0, M:1, X:2, J:3, V:4, S:5, D:6 };
+  const explicit = (profile.weeklyAvailability?.days || []).map((d) => dayIndex[String(d).toUpperCase()]).filter(Number.isInteger);
+  const days = explicit.length ? explicit : ({
     "2 DÍAS/SEMANA": [0, 3],
     "3 DÍAS/SEMANA": [0, 2, 4],
     "4-5 DÍAS/SEMANA": [0, 1, 3, 4],
     "CASI A DIARIO": [0, 1, 3, 4],
-  }[profile.availability] || [0, 2, 4];
+  }[profile.availability] || [0, 2, 4]);
+
   const gym = profile.equipment === "GIMNASIO COMPLETO";
   const split = gym && days.length > 3;
   let i = 0;
@@ -62,7 +154,7 @@ export function profileWeek(profile) {
 }
 
 export function personalizeWorkout(workout, profile) {
-  if (!workout || !profile.onboarded) return workout;
+  if (!workout || !profile?.onboarded) return workout;
   const beginner = profile.experience === EXPERIENCE[0];
   const time = Number(profile.sessionMinutes) || 45;
   const fraction = Math.min(1, time / workout.min);
