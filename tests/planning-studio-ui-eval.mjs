@@ -17,6 +17,7 @@ const domain=read("js/coach-lab.js");
 const state=read("js/state.js");
 const css=read("css/coach.css");
 const sw=read("sw.js");
+const i18n=read("js/i18n.js");
 
 ok(coachos.includes("renderPlanningStudio"),"Coach OS abre Planning Studio");
 ok(ui.includes("buildProgramDraft"),"UI crea programas desde dominio");
@@ -27,7 +28,7 @@ ok(ui.includes("addSessionToWeek"),"sesiones entran en microciclo");
 ok(ui.includes("searchExercises")&&ui.includes("exerciseFacets"),"buscador usa motor avanzado");
 ok(ui.includes('fetch("./trainingym/catalog.json"'),"buscador consume catálogo real");
 ok(ui.includes('availability:"video"'),"constructor puede exigir ejercicio con vídeo");
-ok(ui.includes("3.141 ejercicios"),"UI declara tamaño del catálogo auditado");
+ok(ui.includes('t("planning.hero.sub")')&&i18n.includes("3.141 ejercicios"),"UI declara tamaño del catálogo auditado vía i18n");
 
 ok(ui.includes("Nada se calcula solo"),"UI declara que la carga no se inventa");
 ok(ui.includes("SIN DEFINIR"),"carga ausente sigue ausente");
