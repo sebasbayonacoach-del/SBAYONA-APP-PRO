@@ -14,6 +14,10 @@ export const DEFAULT_RECOVERY = Object.freeze({
     reminders: { windDown:false, bedtime:false },
     configured: false,
   },
+  activePause: {
+    enabled: false,
+    intervalMin: 90,
+  },
 });
 
 const TIME_RE=/^(?:[01]\d|2[0-3]):[0-5]\d$/;
@@ -39,8 +43,19 @@ export function normalizeRecoveryPreferences(input={}){
   };
 }
 
+export function normalizeActivePause(input={}){
+  const interval=clamp(input.intervalMin,30,240);
+  return {
+    enabled:Boolean(input.enabled),
+    intervalMin:interval==null?90:Math.round(interval),
+  };
+}
+
 export function recoveryDefaults(input={}){
-  return { preferences:normalizeRecoveryPreferences(input.preferences||{}) };
+  return {
+    preferences:normalizeRecoveryPreferences(input.preferences||{}),
+    activePause:normalizeActivePause(input.activePause||{}),
+  };
 }
 
 function mins(time){
@@ -165,10 +180,12 @@ export function recoveryTrend(history=[],today={},days=7){
 export function recoverySnapshot({
   today={},history=[],recovery={},integrations={},readiness=null,now=new Date(),
 }={}){
-  const preferences=normalizeRecoveryPreferences(recovery.preferences||{});
+  const config=recoveryDefaults(recovery);
+  const preferences=config.preferences;
   const night=Array.isArray(today.nightRoutine)?today.nightRoutine.filter((x)=>NIGHT_STEPS.includes(x)):[];
   return {
     preferences,
+    activePause:config.activePause,
     sleepWindowHours:sleepWindowDuration(preferences.bedtime,preferences.wakeTime),
     timeline:sleepTimeline(preferences),
     nextEvent:nextSleepEvent(preferences,now),
