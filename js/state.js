@@ -774,6 +774,18 @@ export const S = {
     return r;
   },
 
+  /** Cierre parcial: conserva series/XP, pero NO marca trained ni entrega bono final. */
+  closePartialWorkout(workoutId, { loggedSets = 0, plannedSets = 0, minutes = null } = {}) {
+    const t = this.data.today;
+    t.startedWorkout = loggedSets > 0 || t.startedWorkout;
+    this.data.activeSession = null;
+    const name = WORKOUTS[workoutId]?.name || this.customRoutine(workoutId)?.name || workoutId;
+    this.logJourney("workout", `Sesión parcial · ${name} · ${loggedSets}/${plannedSets} series conservadas`, 0);
+    this.save();
+    emit("today");
+    return { completed:false, loggedSets, plannedSets, minutes };
+  },
+
   /** Abandono: conserva lo registrado y marca el estado sin premiar finalización. */
   abandonWorkout(workoutId, { loggedSets = 0 } = {}) {
     const t = this.data.today;
