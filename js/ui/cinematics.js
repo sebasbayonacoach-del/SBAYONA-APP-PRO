@@ -101,7 +101,7 @@ export function confirmEarlyFinish({ loggedSets, plannedSets, minutes }) {
       <div class="cine-tag">FINALIZAR ANTES DE TIEMPO</div>
       <div class="cine-title" style="font-size:22px">¿CERRAR LA SESIÓN?</div>
       <div class="cine-sub">Se conservan tus <b>${esc(loggedSets)}</b> series registradas (${esc(loggedSets)}/${esc(plannedSets)} previstas) con su XP ya ganado.<br>
-      El bono de finalización sería <b>+${r.xp} XP · +${r.points} ◆</b>.<br>Una sesión parcia cuenta como actividad iniciada, no como objetivo cumplido.</div>
+      Si sales ahora, <b>no</b> se concede el bono final de +${r.xp} XP · +${r.points} ◆.<br>Una sesión parcial cuenta como actividad iniciada, no como objetivo cumplido.</div>
       <div style="display:flex;gap:8px">
         <button class="btn grow" id="m-keep">SEGUIR ENTRENANDO</button>
         <button class="btn btn-primary grow" id="m-finish">GUARDAR Y SALIR</button>
