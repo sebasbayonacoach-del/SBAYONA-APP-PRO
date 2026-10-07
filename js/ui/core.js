@@ -21,6 +21,7 @@ import { t, esc } from "../i18n.js";
 import { askCore, buildCoachContext, probeCloud } from "../coach/ai.js";
 import { WORKOUTS } from "../data.js";
 import { validaAsignacion } from "../coachos.js";
+import { coachMemoryFacts, toolEvidence, proposalFromTool } from "../coach/memory.js";
 
 const STORE = "bayona.coach.chat.v1";
 const MAX_TURNS = 40;
@@ -91,6 +92,36 @@ BUILDERS.core = (body) => {
 
   const aviso = el("div", "coach-note", t("coach.note"));
   body.appendChild(aviso);
+
+  /* ---------- memoria explicable ---------- */
+  const memoryBox = el("section", "coach-memory");
+  body.appendChild(memoryBox);
+  function paintMemory() {
+    const facts = coachMemoryFacts(S.data, 6);
+    memoryBox.textContent = "";
+    const head = el("div", "coach-memory-head");
+    head.append(
+      elT("small", "", t("coach.memory.title")),
+      elT("span", "", t("coach.memory.sub"))
+    );
+    memoryBox.appendChild(head);
+    if (!facts.length) {
+      memoryBox.appendChild(elT("div", "coach-memory-empty", t("coach.memory.empty")));
+      return;
+    }
+    const list = el("div", "coach-memory-list");
+    facts.forEach((fact) => {
+      const row = el("article", "coach-memory-row");
+      const badge = elT("span", `coach-memory-basis ${fact.basis}`,
+        t(fact.basis === "derived" ? "coach.memory.derived" : fact.basis === "coach" ? "coach.memory.coach" : "coach.memory.registered"));
+      const txt = elT("strong", "", fact.summary);
+      row.append(badge, txt);
+      if (fact.evidence?.length) row.appendChild(elT("small", "", fact.evidence.slice(0,2).join(" · ")));
+      list.appendChild(row);
+    });
+    memoryBox.appendChild(list);
+  }
+  paintMemory();
 
   /* ---------- personalidad ---------- */
   body.appendChild(el("div", "sec-label", t("coach.personality")));
@@ -168,8 +199,27 @@ BUILDERS.core = (body) => {
   /** tarjeta de herramienta: se ve lo que el coach ha hecho de verdad */
   function toolCard(tool) {
     const card = el("div", "coach-tool");
+    const proposal = proposalFromTool(tool);
+    const memoryEvent = proposal ? S.rememberCoachEvent(proposal) : null;
+    const evidence = toolEvidence(tool.name, tool.args || {}, S.data);
+
     card.appendChild(el("div", "coach-tool-l", t("coach.tool")));
     card.appendChild(elT("div", "coach-tool-t", tool.label));
+    if (memoryEvent) card.appendChild(elT("div", "coach-proposal-status pending", t("coach.proposal.pending")));
+    if (evidence.length) {
+      const why = el("div", "coach-evidence");
+      why.appendChild(elT("small", "", t("coach.evidence.title")));
+      evidence.forEach((item) => {
+        const row = el("div", "coach-evidence-row");
+        row.append(
+          elT("span", `coach-memory-basis ${item.basis}`,
+            t(item.basis === "coach" ? "coach.memory.coach" : item.basis === "derived" ? "coach.memory.derived" : "coach.memory.registered")),
+          elT("strong", "", `${item.label}: ${item.value}`)
+        );
+        why.appendChild(row);
+      });
+      card.appendChild(why);
+    }
     if (tool.args?.razon) card.appendChild(elT("div", "coach-tool-r", tool.args.razon));
     if (tool.args?.zona) card.appendChild(elT("div", "coach-tool-r", `${tool.args.zona}${tool.args.intensidad ? ` · ${tool.args.intensidad}/3` : ""}`));
     if (tool.args?.tema) card.appendChild(elT("div", "coach-tool-r", tool.args.tema));
@@ -185,8 +235,10 @@ BUILDERS.core = (body) => {
         const v = validaAsignacion({ clienteId: "local", workoutId: tool.args.workoutId, dia, nota: tool.args.nota || "" });
         if (!v.ok) return toast(t("state.error"), v.error, "danger");
         S.addAsignacion({ clienteId: "local", workoutId: tool.args.workoutId, dia, nota: tool.args.nota || "" });
+        if (memoryEvent) S.updateCoachMemoryStatus(memoryEvent.id, "applied");
         b.textContent = t("coach.assigned");
         b.disabled = true;
+        paintMemory();
         toast(t("coach.assigned"), t("coach.assignedNote", { name: w.name }));
       };
       card.appendChild(b);
@@ -215,8 +267,10 @@ BUILDERS.core = (body) => {
           pain: [...new Set([...(S.data.healthFlags?.pain || []), tool.args.zona])],
         };
         S.save();
+        if (memoryEvent) S.updateCoachMemoryStatus(memoryEvent.id, "applied");
         b.textContent = t("coach.saved");
         b.disabled = true;
+        paintMemory();
       };
       card.appendChild(b);
     }
@@ -227,8 +281,30 @@ BUILDERS.core = (body) => {
     }
     if (tool.name === "nutrition_suggest") {
       const b = el("button", "btn", t("coach.openKitchen"));
-      b.onclick = () => openSection("nutrition");
+      b.onclick = () => {
+        if (memoryEvent) S.updateCoachMemoryStatus(memoryEvent.id, "accepted");
+        paintMemory();
+        openSection("nutrition");
+      };
       card.appendChild(b);
+    }
+    if (tool.name === "adjust_session") {
+      const review = el("button", "btn", t("coach.proposal.review"));
+      review.onclick = () => UI.actions.openTraining?.(S.todayWorkout()?.id);
+      card.appendChild(review);
+      if (memoryEvent) {
+        const reject = el("button", "btn", t("coach.proposal.reject"));
+        reject.onclick = () => {
+          S.updateCoachMemoryStatus(memoryEvent.id, "rejected");
+          reject.disabled = true;
+          review.disabled = true;
+          card.querySelector(".coach-proposal-status")?.classList.replace("pending","rejected");
+          const status = card.querySelector(".coach-proposal-status");
+          if (status) status.textContent = t("coach.proposal.rejected");
+          paintMemory();
+        };
+        card.appendChild(reject);
+      }
     }
 
     log.appendChild(card);
