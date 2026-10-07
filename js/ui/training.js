@@ -144,7 +144,6 @@ async function recordExerciseVideo(exKey) {
         timer=setTimeout(()=>{if(recorder?.state==="recording")recorder.stop();},MAX_RECORDING_MS);
       };
     });
-  });
 }
 
 async function appendLatestUserVideo(parent,exKey) {
