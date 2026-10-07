@@ -15,6 +15,7 @@ import { WORKOUTS } from "../data.js";
 import { coreReply, intencionAsignacion } from "./replies.js";
 import { shortSession, todaysSession } from "../engine.js";
 import * as core from "./ai-core.js";
+import { memoryPromptLines } from "./memory.js";
 
 export {
   decideRoute, derivacionATexto, contextToPrompt, COACH_TOOLS, TOOL_NAMES,
@@ -86,6 +87,7 @@ export function buildCoachContext() {
       avisos: d.healthFlags?.redFlags || [],
       dolor: d.healthFlags?.pain || [],
     },
+    memoria: memoryPromptLines(d, 12),
   };
 }
 

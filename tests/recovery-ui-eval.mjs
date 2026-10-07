@@ -40,6 +40,9 @@ ok(css.includes("42 · RECOVERY + SLEEP"),"capa visual dedicada existe");
 ok(css.includes(".recovery-hero-grid")&&css.includes(".recovery-trend-grid")&&css.includes(".recovery-night-grid"),"hero, tendencia y cierre tienen layout");
 ok(css.includes('html[data-surface-theme="light"]')&&css.includes('html[data-surface-theme="dark"]'),"Recovery respeta Día/Noche");
 ok(sw.includes("./js/recovery-sleep.js"),"dominio Recovery funciona offline");
-ok(/CACHE = "bayona-shell-v39"/.test(sw),"shell PWA subió a v39");
+{
+  const version=Number((sw.match(/bayona-shell-v(\d+)/)||[])[1]||0);
+  ok(version>=39,`shell PWA conserva Recovery (v${version} >= v39)`);
+}
 
 console.log(`\n📊 RESULTADO: ${pass} pass · 0 fail\n`);

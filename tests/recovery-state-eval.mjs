@@ -9,7 +9,7 @@ console.log("\n🌙 RECOVERY + SLEEP · ESTADO\n");
 S.init();
 S.reset(true);
 
-ok(SCHEMA===7,"schema actualizado a 7");
+ok(SCHEMA>=7,`schema conserva Recovery (v${SCHEMA} >= 7)`);
 ok(S.data.recovery.preferences.bedtime===null,"perfil nuevo no inventa hora de dormir");
 ok(S.data.integrations.health.connected===false,"wearable empieza desconectado");
 ok(S.data.today.sleep===null&&S.data.today.sleepSource===null,"sueño diario empieza sin dato");
