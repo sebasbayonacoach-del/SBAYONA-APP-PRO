@@ -11,69 +11,186 @@ import { lineaDelTiempo } from "../timeline.js";
 import {
   volumenPorSemana, constancia, progresoFuerza, exportarDatos, borrarCuenta, claveSemana,
 } from "../progreso.js";
+import {
+  progressSnapshot, progressRecords, strengthRecords,
+} from "../progress-visual.js";
+import { hasFeature, planFromProfile, PLAN_META } from "../entitlements.js";
+import { progressReviewStatus } from "../hub.js";
 import { esc, fmtDate, fmtInt, t } from "../i18n.js";
 import {
   UI, $, el, showModal, hideModal, toast, BUILDERS,
 } from "./shared.js";
 
+function progressHero(snapshot){
+  const review=progressReviewStatus(S.data.profile||{},new Date());
+  const reviewText=review.status==="unscheduled"
+    ? t("hub.review.unscheduled")
+    : review.status==="today"
+      ? t("hub.review.today")
+      : review.status==="overdue"
+        ? t("hub.review.overdue")
+        : t("hub.review.days",{days:review.days});
+  const card=el("section","progress-hero");
+  card.innerHTML=`
+    <div class="progress-hero-copy">
+      <small>${esc(t("progress.hero.kicker"))}</small>
+      <h3>${esc(t("progress.hero.title"))}</h3>
+      <p>${esc(t("progress.hero.sub"))}</p>
+    </div>
+    <div class="progress-hero-stats">
+      <article><small>${esc(t("progress.hero.sessions"))}</small><strong>${snapshot.stats.workouts}</strong></article>
+      <article><small>${esc(t("progress.hero.sets"))}</small><strong>${snapshot.stats.sets}</strong></article>
+      <article><small>${esc(t("progress.hero.prs"))}</small><strong>${snapshot.stats.prs}</strong></article>
+      <article><small>${esc(t("progress.hero.streak"))}</small><strong>${snapshot.stats.streak}</strong></article>
+      <article><small>${esc(t("progress.hero.minutes"))}</small><strong>${fmtInt(snapshot.stats.sessionsMin)}</strong></article>
+    </div>
+    <div class="progress-review"><span><small>${esc(t("hub.review.label"))}</small><strong>${esc(reviewText)}</strong></span></div>`;
+  return card;
+}
+
+function deltaChip(value,unit=""){
+  if(value==null)return '<em>—</em>';
+  if(value===0)return `<em>${esc(t("progress.delta.same"))}</em>`;
+  const sign=value>0?"+":"";
+  return `<em class="${value>0?"up":"down"}">${sign}${esc(value)}${unit}</em>`;
+}
+
+function periodCard(period){
+  const card=el("section","progress-period");
+  card.innerHTML=`
+    <div class="progress-section-head">
+      <span><small>${esc(t("progress.period.label"))}</small><strong>${esc(t("progress.period.compare"))}</strong></span>
+      ${period.comparable?"":`<em>${esc(t("progress.period.noCompare"))}</em>`}
+    </div>
+    <div class="progress-period-grid">
+      <article><small>${esc(t("progress.period.sessions"))}</small><strong>${period.current.sessions}</strong>${period.comparable?deltaChip(period.delta.sessions):"<em>—</em>"}</article>
+      <article><small>${esc(t("progress.period.sets"))}</small><strong>${period.current.sets}</strong>${period.comparable?deltaChip(period.delta.sets):"<em>—</em>"}</article>
+      <article><small>${esc(t("progress.period.active"))}</small><strong>${period.current.activeDays}</strong>${period.comparable?deltaChip(period.delta.activeDays):"<em>—</em>"}</article>
+      <article><small>${esc(t("progress.period.volume"))}</small><strong>${period.current.volumeKg==null?"—":fmtInt(period.current.volumeKg)}</strong>${period.comparable?deltaChip(period.delta.volumeKg," kg"):"<em>—</em>"}</article>
+      <article><small>${esc(t("progress.period.prs"))}</small><strong>${period.current.prs}</strong>${period.comparable?deltaChip(period.delta.prs):"<em>—</em>"}</article>
+    </div>`;
+  return card;
+}
+
+function strengthHighlights(snapshot){
+  const wrap=el("section","progress-strength");
+  wrap.innerHTML=`<div class="progress-section-head"><span><small>${esc(t("progress.strength.label"))}</small><strong>${esc(t("progress.strength.estimated"))}</strong></span></div><div class="progress-strength-grid"></div>`;
+  const grid=wrap.querySelector(".progress-strength-grid");
+  const leaders=snapshot.strength.slice(0,4);
+  if(!leaders.length){
+    grid.appendChild(el("div","progress-empty",esc(t("state.notLogged"))));
+    return wrap;
+  }
+  leaders.forEach((row)=>{
+    const name=EXERCISES[row.ejercicio]?.name||row.ejercicio;
+    const delta=row.delta==null?t("progress.strength.noDelta"):t("progress.strength.delta",{value:(row.delta>0?"+":"")+row.delta});
+    const card=el("article","");
+    card.innerHTML=`<small>${esc(name)}</small><strong>${esc(row.last?.e1RM??"—")} <i>kg</i></strong><span>${esc(delta)}</span><em>${row.points} pts</em>`;
+    grid.appendChild(card);
+  });
+  return wrap;
+}
+
+function measurementSummary(snapshot){
+  const m=snapshot.measures;
+  const card=el("section","progress-measure-summary");
+  const latest=m.latest;
+  card.innerHTML=`
+    <div class="progress-section-head">
+      <span><small>${esc(t("progress.measure.label"))}</small><strong>${latest?esc(t("progress.measure.latest")):esc(t("progress.measure.none"))}</strong></span>
+      <em>${m.due?esc(m.due.motivo):""}</em>
+    </div>
+    <div class="progress-measure-grid">
+      <article><small>PESO</small><strong>${latest?.pesoKg!=null?esc(latest.pesoKg)+" kg":"—"}</strong>${m.deltas.pesoKg?deltaChip(m.deltas.pesoKg.delta," kg"):"<em>—</em>"}</article>
+      <article><small>CINTURA</small><strong>${latest?.cinturaCm!=null?esc(latest.cinturaCm)+" cm":"—"}</strong>${m.deltas.cinturaCm?deltaChip(m.deltas.cinturaCm.delta," cm"):"<em>—</em>"}</article>
+      <article><small>CADERA</small><strong>${latest?.caderaCm!=null?esc(latest.caderaCm)+" cm":"—"}</strong>${m.deltas.caderaCm?deltaChip(m.deltas.caderaCm.delta," cm"):"<em>—</em>"}</article>
+      <article><small>GRASA</small><strong>${latest?.grasaPct!=null?esc(latest.grasaPct)+" %":"—"}</strong>${m.deltas.grasaPct?deltaChip(m.deltas.grasaPct.delta," %"):"<em>—</em>"}</article>
+    </div>`;
+  return card;
+}
+
+function photosSummary(snapshot){
+  const p=snapshot.photos;
+  const card=el("section","progress-photos-summary");
+  card.innerHTML=`
+    <div class="progress-section-head">
+      <span><small>${esc(t("progress.photos.label"))}</small><strong>${esc(t("progress.photos.count",{count:p.count}))}</strong></span>
+      <em>${esc(p.comparable?t("progress.photos.compare"):t("progress.photos.needTwo"))}</em>
+    </div>
+    <div class="progress-photo-counts">
+      <span><small>FRONTAL</small><b>${p.byView.front}</b></span>
+      <span><small>LATERAL</small><b>${p.byView.side}</b></span>
+      <span><small>POSTERIOR</small><b>${p.byView.back}</b></span>
+    </div>`;
+  return card;
+}
+
+function advancedProgressBlock(){
+  const plan=planFromProfile(S.data.profile);
+  if(hasFeature(plan,"progress.advanced")){
+    const box=el("section","progress-advanced");
+    box.innerHTML=`<div class="progress-section-head"><span><small>${esc(t("progress.advanced.kicker"))}</small><strong>${esc(t("progress.advanced.title"))}</strong></span></div><p>${esc(t("progress.advanced.body"))}</p>`;
+    box.appendChild(analyticsBlock());
+    return box;
+  }
+  const box=el("section","progress-advanced locked");
+  box.innerHTML=`
+    <div class="progress-section-head"><span><small>${esc(t("progress.advanced.kicker"))}</small><strong>${esc(t("progress.advanced.locked"))}</strong></span><b>${esc(PLAN_META.performance.label)}</b></div>
+    <p>${esc(t("progress.advanced.preview"))}</p>`;
+  return box;
+}
+
 BUILDERS.progress = (body) => {
   body = body || $("#drawer-body");
-  const d = S.data;
-  body.textContent = "";
-  body.appendChild(el("div", "sec-label", "TU ENTRENAMIENTO EN NÚMEROS"));
-  const grid = el("div", "stat-grid");
-  const L = S.level();
-  [
-    ["TIEMPO DE SESIONES", d.stats.sessionsMin, "MIN PLANIFICADOS"],
-    ["CONSTANCIA", d.streak, "DÍAS DE RACHA"],
-    ["ENTRENOS", d.stats.workouts, "SESIONES"],
-    ["RÉCORDS", d.stats.prs, "PRs"],
-    ["SERIES", d.stats.sets, "REGISTRADAS"],
-    ["DISTANCIA", d.stats.km, "KM"],
-  ].forEach(([k, v, s]) => {
-    grid.appendChild(el("div", "stat-cell", `<div class="k">${k}</div><div class="v">${fmtInt(v)} <small>${esc(s)}</small></div>`));
-  });
-  body.appendChild(grid);
+  const d=S.data;
+  const snapshot=progressSnapshot(d,todayKey());
+  body.textContent="";
 
-  body.appendChild(el("div", "sec-label", "ANALÍTICA DE RENDIMIENTO"));
-  body.appendChild(analyticsBlock());
+  body.append(
+    progressHero(snapshot),
+    periodCard(snapshot.period28),
+    strengthHighlights(snapshot)
+  );
 
-  body.appendChild(el("div", "sec-label", "PROGRESO HONESTO · SOLO TUS DATOS"));
+  body.appendChild(el("div","sec-label","PROGRESO HONESTO · SOLO TUS DATOS"));
   body.appendChild(progresoHonestoBlock());
 
-  body.appendChild(el("div", "sec-label", "HABILIDADES"));
-  const SK = { strength: "FUERZA", cardio: "RESISTENCIA", mobility: "MOVILIDAD", recovery: "RECUPERACIÓN", discipline: "DISCIPLINA", mind: "MENTE" };
-  Object.entries(SK).forEach(([k, label]) => {
-    const v = d.skills[k];
-    const m = el("div", "macro");
-    m.innerHTML = `<div class="top"><span>${label}</span><span class="mono">${esc(v)}</span></div>
-      <div class="mbar"><i style="width:${Math.min(100, v)}%;background:var(--orange)"></i></div>`;
+  body.append(measurementSummary(snapshot));
+  medidasBlock(body);
+
+  body.append(photosSummary(snapshot));
+  photosBlock(body);
+
+  body.appendChild(advancedProgressBlock());
+
+  body.appendChild(el("div","sec-label","HABILIDADES"));
+  const SK={strength:"FUERZA",cardio:"RESISTENCIA",mobility:"MOVILIDAD",recovery:"RECUPERACIÓN",discipline:"DISCIPLINA",mind:"MENTE"};
+  Object.entries(SK).forEach(([k,label])=>{
+    const v=d.skills[k];
+    const m=el("div","macro");
+    m.innerHTML=`<div class="top"><span>${label}</span><span class="mono">${esc(v)}</span></div>
+      <div class="mbar"><i style="width:${Math.min(100,v)}%;background:var(--orange)"></i></div>`;
     body.appendChild(m);
   });
 
-  body.appendChild(el("div", "sec-label", "RÉCORDS PERSONALES"));
-  const prKeys = Object.keys(d.prs);
-  if (!prKeys.length) body.appendChild(el("div", "card", `<div class="sub">Aún no hay récords. El primero te espera en el GIMNASIO.</div>`));
-  prKeys.forEach((k) => {
-    const p = d.prs[k];
-    body.appendChild(el("div", "card", `<div class="card-row"><h4>${esc(EXERCISES[k]?.name || k)}</h4><span class="pill gold">${esc(p.kg)} kg × ${esc(p.reps)}</span></div>
+  body.appendChild(el("div","sec-label","RÉCORDS PERSONALES"));
+  const prKeys=Object.keys(d.prs);
+  if(!prKeys.length) body.appendChild(el("div","card",`<div class="sub">${esc(t("state.notLogged"))}</div>`));
+  prKeys.forEach((k)=>{
+    const p=d.prs[k];
+    body.appendChild(el("div","card",`<div class="card-row"><h4>${esc(EXERCISES[k]?.name||k)}</h4><span class="pill gold">${esc(p.kg)} kg × ${esc(p.reps)}</span></div>
       <div class="sub mono">1RM estimado ${esc(p.e1)} kg · ${esc(fmtDate(p.date))}</div>`));
   });
 
-  body.appendChild(el("div", "sec-label", "TU HISTORIA · ANTES → AHORA (TODO EN UNA LÍNEA)"));
-  const tl = el("div", "tl");
-  const evs = lineaDelTiempo({
-    medidas: d.medidas || [], fotos: d.photos || [],
-    history: d.history || [], journey: d.journey || [],
-  });
-  const TIPO_TAG = { medicion: "MEDICIÓN", foto: "FOTO", pr: "RÉCORD", hito: "HITO" };
-  if (!evs.length) tl.appendChild(el("div", "tl-item", `<div class="tl-txt">Día 1. Todo empieza con tu primer entrenamiento.</div>`));
-  evs.forEach((e) => {
-    tl.appendChild(el("div", "tl-item" + (e.tipo === "pr" ? " pr" : ""),
-      `<div class="tl-day">${esc(fmtDate(e.fecha))} · ${esc(TIPO_TAG[e.tipo] || "HITO")}</div><div class="tl-txt">${esc(e.texto)}</div>${e.xp ? `<div class="tl-xp">+${esc(e.xp)} XP</div>` : ""}`));
+  body.appendChild(el("div","sec-label",t("progress.timeline.label")));
+  const tl=el("div","tl");
+  const TIPO_TAG={medicion:"MEDICIÓN",foto:"FOTO",pr:"RÉCORD",hito:"HITO"};
+  if(!snapshot.timeline.length) tl.appendChild(el("div","tl-item",`<div class="tl-txt">${esc(t("progress.timeline.empty"))}</div>`));
+  snapshot.timeline.forEach((event)=>{
+    tl.appendChild(el("div","tl-item"+(event.tipo==="pr"?" pr":""),
+      `<div class="tl-day">${esc(fmtDate(event.fecha))} · ${esc(TIPO_TAG[event.tipo]||"HITO")}</div><div class="tl-txt">${esc(event.texto)}</div>${event.xp?`<div class="tl-xp">+${esc(event.xp)} XP</div>`:""}`));
   });
   body.appendChild(tl);
-
 };
 
 // ---------------- ANALÍTICA ----------------
@@ -223,33 +340,12 @@ function comparator() {
  *  Día con algo registrado pero sin detalle de series → marca `actividad`
  *  (viene de lo que la persona registró de verdad: sesión, agua…). */
 function registrosDeProgreso() {
-  const d = S.data;
-  const out = [];
-  const push = (fecha, series, activo) => {
-    if (series.length) out.push({ fecha, series });
-    else if (activo) out.push({ fecha, actividad: true });
-  };
-  for (const h of d.history || []) {
-    const series = (h.setLog || []).map((s) => ({ ejercicio: s.ex || null, kg: s.kg, reps: s.reps }));
-    push(h.date, series, (h.workouts > 0) || (h.sets > 0) || (h.water >= 1500));
-  }
-  const t = d.today || {};
-  const seriesHoy = (t.setLog || []).map((s) => ({ ejercicio: s.ex || null, kg: s.kg, reps: s.reps }));
-  push(t.date, seriesHoy, !!(t.trained || t.startedWorkout || t.mobility || t.mind > 0 || t.water >= 1500));
-  return out;
+  return progressRecords(S.data);
 }
 
 /** Registros de fuerza: series reales + récords ya registrados (e1RM guardado). */
 function registrosFuerza() {
-  const rows = registrosDeProgreso().map((r) => ({ fecha: r.fecha, series: (r.series || []).slice() }));
-  const add = (fecha, s) => {
-    let row = rows.find((x) => x.fecha === fecha);
-    if (!row) { row = { fecha, series: [] }; rows.push(row); }
-    row.series.push(s);
-  };
-  for (const h of S.data.history || []) (h.prPoints || []).forEach((p) => add(h.date, { ejercicio: p.ex, e1RM: p.e1 }));
-  ((S.data.today || {}).prPoints || []).forEach((p) => add(S.data.today.date, { ejercicio: p.ex, e1RM: p.e1 }));
-  return rows;
+  return strengthRecords(S.data);
 }
 
 function progresoHonestoBlock() {
