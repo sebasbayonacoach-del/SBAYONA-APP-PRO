@@ -44,7 +44,7 @@ export function normalizeFitCoinTx(input={}){
     amount,balanceBefore:before,balanceAfter:after,
     source:clean(input.source,60)||"system",
     reference:clean(input.reference,100)||null,
-    label:clean(input.label,160)||"Movimiento FitCoins",
+    label:clean(input.label,160)||"fitcoin.transaction",
   };
 }
 
@@ -105,7 +105,7 @@ export function communityDefaults(input={},legacyBalance=0){
       amount:Math.trunc(Number(legacyBalance)),
       balanceBefore:0,
       source:"legacy_balance",
-      label:"Saldo inicial migrado a FitCoins",
+      label:"fitcoin.opening",
     });
     if(opening)out.fitcoinLedger.push(opening);
   }
@@ -132,7 +132,7 @@ export function redeemFitCoinReward(community={},rewardId,balance,ownedIds=[]){
   const tx=normalizeFitCoinTx({
     id:`redeem_tx_${reward.id}_${Date.now()}`,
     amount:-reward.cost,balanceBefore:current,source:"reward_redemption",
-    reference:reward.id,label:`Canje · ${reward.name}`,
+    reference:reward.id,label:"fitcoin.redemption",
   });
   if(!tx)return {ok:false,community:d,balance:current,error:"invalid_transaction"};
   d.fitcoinLedger.push(tx);
