@@ -125,6 +125,7 @@ const es = {
   "session.video.cancel": "AHORA NO",
   "session.video.start": "INICIAR GRABACIÓN",
   "session.video.stop": "DETENER Y GUARDAR",
+  "session.video.recording": "● GRABANDO · toca para detener",
   "session.video.saved": "Vídeo guardado en este dispositivo.",
   "session.video.deleteDone": "Vídeo local eliminado.",
   "session.close.kicker": "FASE FINAL · CIERRE",
