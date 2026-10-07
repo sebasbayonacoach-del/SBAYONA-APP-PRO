@@ -9,6 +9,7 @@ import { RANKS, ITEMS, WORKOUTS, MACRO, MEALS, EXERCISES, phaseOfWeek } from "./
 import { profileWeek, personalizeWorkout } from "./personalization.js";
 import { deleteCycle, readCycle } from "./cycle.js";
 import { resetConsents } from "./consents.js";
+import { defaultProgressReviewAt } from "./hub.js";
 import {
   setReward, prReward, workoutCompleteReward, mealReward, waterReward,
   stepsReward, mindReward, mobilityReward, healthMapReward, missionReward,
@@ -17,7 +18,7 @@ import {
 import { respaldar, guardarSeguro, recuperar } from "./backup.js";
 
 const KEY = "bayona.save.v2";
-export const SCHEMA = 4;
+export const SCHEMA = 5;
 
 /**
  * Recompensa por nivel. Vive fuera del objeto S y en orden: se recorre
@@ -153,6 +154,7 @@ function freshProfile() {
     healthScreening: null,
     notificationPreferences: { morning:false, preTraining:false, evening:false, asked:false },
     firstRunTour: { version: 0, completed:false, skipped:false, step:0 },
+    nextProgressReviewAt: null,
     heightCm: null, weightKg: null, age: null, face: null, skinHex: null,
     avatar3d: null, // descriptor { provider, avatarId, urlType, cacheKey, httpUrl, at }
   };
@@ -232,6 +234,9 @@ export const S = {
       version:0, completed:false, skipped:false, step:0,
       ...(d.profile.firstRunTour && typeof d.profile.firstRunTour === "object" ? d.profile.firstRunTour : {}),
     };
+    d.profile.nextProgressReviewAt = typeof d.profile.nextProgressReviewAt === "string"
+      ? d.profile.nextProgressReviewAt
+      : null;
     const legacyGoal = {
       FUERZA: "FUERZA Y POTENCIA",
       HIPERTROFIA: "HIPERTROFIA MUSCULAR",
@@ -871,8 +876,27 @@ export const S = {
   },
   onboard(profile) {
     Object.assign(this.data.profile, profile, { onboarded: true });
+    if (!this.data.profile.nextProgressReviewAt) {
+      this.data.profile.nextProgressReviewAt = defaultProgressReviewAt(new Date());
+    }
     this.logJourney("start", "BAYONA iniciado. La historia empieza aquí.", 0);
     this.save();
+  },
+
+  setProgressReviewAt(value) {
+    const d = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(d.getTime())) return false;
+    this.data.profile.nextProgressReviewAt = d.toISOString();
+    this.save();
+    emit("profile");
+    return this.data.profile.nextProgressReviewAt;
+  },
+
+  scheduleProgressReview(days = 28) {
+    this.data.profile.nextProgressReviewAt = defaultProgressReviewAt(new Date(), days);
+    this.save();
+    emit("profile");
+    return this.data.profile.nextProgressReviewAt;
   },
 
   // ---------- VOZ PRIVADA (consentimiento explícito; solo en el dispositivo) ----------
