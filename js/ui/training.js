@@ -836,50 +836,95 @@ function abandonSession() {
 }
 
 // ---------------- FINALIZAR ----------------
-function finishWorkout() {
+function finishWorkout({ early = false } = {}) {
   endRest();
   const session = UI.session;
   if (!session) return BUILDERS.training();
-  document.body.classList.remove("modo-sesion"); // resumen → vuelve el sistema completo
+  document.body.classList.remove("modo-sesion");
+
+  const completion=sessionCompletion(session);
+  const profile=S.data.profile||{};
+  const face=profile.face
+    ? `<img src="${esc(profile.face)}" alt="${esc(t("session.summary.faceAlt"))}">`
+    : `<span>${esc((profile.name&&profile.name!=="TÚ"?profile.name:"B").slice(0,1).toUpperCase())}</span>`;
+
+  if (!completion.complete) {
+    S.closePartialWorkout(session.workoutId,{
+      loggedSets:session.logged,
+      plannedSets:session.plannedSets,
+      minutes:session.minutes,
+    });
+    session.status="cerrada parcial";
+    UI.session=null;
+    UI.W?.avatar.setAction("idle");
+    UI.W?.setCoreMood("calm");
+    haptic(24);
+    showModal(`
+      <div class="fit-session-summary partial">
+        <div class="fit-session-summary-person">${face}<div><small>SESIÓN REGISTRADA</small><strong>${esc(t("session.summary.partial"))}</strong></div></div>
+        <div class="cine-sub">${esc(session.name)}<br>${session.logged}/${session.plannedSets} series · ${completion.pct}% del plan</div>
+        <div class="reward-line"><span>${esc(t("session.summary.seriesXp"))}</span><b>+${fmtInt(session.xpAcc||0)} XP</b></div>
+        <div class="reward-line"><span>${esc(t("session.summary.finishXp"))}</span><b>+0 XP</b></div>
+        <div class="sub">${esc(t("session.summary.noBonus"))}</div>
+        ${session.closeNote?`<div class="fit-session-summary-note">${esc(session.closeNote)}</div>`:""}
+        <button class="btn btn-primary btn-block btn-big" id="m-ok">CONTINUAR</button>
+      </div>`,()=>{
+        $("#m-ok").onclick=()=>{hideModal();enterHome();};
+      });
+    return;
+  }
+
+  const beforeLevel=S.level();
+  const before={level:beforeLevel.lvl,credits:S.data.credits,points:S.data.points};
   const reward = S.completeWorkout(session.workoutId, {
     loggedSets: session.logged,
     plannedSets: session.plannedSets,
     minutes: session.minutes,
   });
-  session.status = "completada";
+  const afterLevel=S.level();
+  const after={level:afterLevel.lvl,credits:S.data.credits,points:S.data.points};
+  const delta=completionDelta(before,after,reward);
+  session.status="completada";
+
+  if(session.closeNote) S.logJourney("workout",`Cierre de sesión · ${session.closeNote}`,0);
+
   UI.W?.avatar.setAction("celebrate");
   UI.W?.setCoreMood("gold");
   haptic(60);
 
-  // recompensa elegible por hito (determinista y elegible — sin azar de casino)
   let choices = [];
-  if (S.data.stats.workouts % 3 === 0) {
+  if (reward && S.data.stats.workouts % 3 === 0) {
     choices = ITEMS.filter((i) => !S.isOwned(i.id) && i.rarity !== "MYTHIC").slice(0, 2);
   }
-  const rewardLines = reward
-    ? `<div class="reward-line"><span>XP EN SERIES</span><b>+${fmtInt(session.xpAcc || 0)}</b></div>
-       <div class="reward-line"><span>BONO DE FINALIZACIÓN</span><b>+${reward.xp} XP</b></div>
-       <div class="reward-line"><span>PUNTOS BAYONA</span><b>+${reward.points} ◆</b></div>`
-    : `<div class="reward-line"><span>XP EN SERIES</span><b>+${fmtInt(session.xpAcc || 0)}</b></div>
-       <div class="sub">Esta sesión ya se había completado hoy: sin bono de finalización adicional (una acción nunca premia dos veces).</div>`;
 
+  const title=reward?t("session.summary.complete"):"SESIÓN CERRADA";
+  const xpPct=Math.min(100,Math.round((afterLevel.cur/Math.max(1,afterLevel.need))*100));
   UI.session = null;
   showModal(`
-    <div class="cine-tag">SESIÓN REGISTRADA</div>
-    <div class="cine-title">${reward ? "MISIÓN COMPLETA" : "SESIÓN CERRADA"}</div>
-    <div class="cine-sub">${esc(session.name)}<br>Series efectivas: ${esc(session.logged)}/${esc(session.plannedSets)} · ${esc(session.minutes)} min</div>
-    ${rewardLines}
-    ${choices.length ? `<div class="sub" style="margin-top:10px">Hito alcanzado: elige tu recompensa</div>
-      <div style="display:flex;gap:8px">${choices.map((c, i) => `<button class="btn grow pick-r" data-i="${i}">${esc(c.name)}</button>`).join("")}</div>` : ""}
-    <div style="height:14px"></div>
-    <button class="btn btn-gold btn-block btn-big" id="m-ok">${choices.length ? "CONTINUAR SIN ELEGIR" : "CONTINUAR"}</button>
+    <div class="fit-session-summary complete">
+      <div class="fit-session-summary-person">${face}<div><small>SESIÓN REGISTRADA</small><strong>${esc(title)}</strong><em>${esc(session.name)}</em></div></div>
+      <div class="fit-session-level">
+        <span><small>${esc(t("session.summary.level"))}</small><b>${afterLevel.lvl}</b>${delta.leveledUp?"<i>SUBISTE DE NIVEL</i>":""}</span>
+        <span><small>${esc(t("session.summary.fitcoins"))}</small><b>✦ ${delta.fitCoinsTotal}</b><i>+${delta.fitCoinsGained} esta sesión</i></span>
+      </div>
+      <div class="fit-session-xp"><span><small>${esc(t("session.summary.progress"))}</small><b>${afterLevel.cur} / ${afterLevel.need} XP</b></span><i><em style="width:${xpPct}%"></em></i></div>
+      <div class="cine-sub">${session.logged}/${session.plannedSets} series · ${session.minutes} min · 100% del plan</div>
+      <div class="reward-line"><span>${esc(t("session.summary.seriesXp"))}</span><b>+${fmtInt(session.xpAcc||0)} XP</b></div>
+      <div class="reward-line"><span>${esc(t("session.summary.finishXp"))}</span><b>+${reward?fmtInt(reward.xp):0} XP</b></div>
+      <div class="reward-line"><span>${esc(t("session.summary.points"))}</span><b>+${delta.pointsGained} ◆</b></div>
+      ${session.closeNote?`<div class="fit-session-summary-note">${esc(session.closeNote)}</div>`:""}
+      ${choices.length ? `<div class="sub" style="margin-top:10px">Hito alcanzado: elige tu recompensa</div>
+        <div style="display:flex;gap:8px">${choices.map((c,i)=>`<button class="btn grow pick-r" data-i="${i}">${esc(c.name)}</button>`).join("")}</div>` : ""}
+      <div style="height:14px"></div>
+      <button class="btn btn-gold btn-block btn-big" id="m-ok">${choices.length?"CONTINUAR SIN ELEGIR":"CONTINUAR"}</button>
+    </div>
   `, () => {
-    const pick = (i) => {
-      const it = choices[i];
-      if (it) { S.grantItem(it.id); S.equip(it.id); hideModal(); openSection("armory"); }
+    const pick=(i)=>{
+      const it=choices[i];
+      if(it){S.grantItem(it.id);S.equip(it.id);hideModal();openSection("armory");}
     };
-    $("#modal-box").querySelectorAll(".pick-r").forEach((b) => (b.onclick = () => pick(+b.dataset.i)));
-    $("#m-ok").onclick = () => {
+    $("#modal-box").querySelectorAll(".pick-r").forEach((button)=>(button.onclick=()=>pick(+button.dataset.i)));
+    $("#m-ok").onclick=()=>{
       hideModal();
       UI.W?.setCoreMood("calm");
       enterHome();
