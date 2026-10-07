@@ -8,8 +8,8 @@ import { Avatar } from "./avatar.js";
 import { Fallback2D } from "./fallback2d.js";
 
 const PALETTE = {
-  blue: 0x9a9a9a, cyan: 0xffffff, gold: 0xff6a00, orange: 0xff6a00,
-  warm: 0xf0f0f0, deep: 0x000000,
+  blue: 0x949494, cyan: 0xffffff, gold: 0xf4a261, orange: 0xf4a261,
+  fire: 0xe76f51, deepOrange: 0xd45d38, warm: 0xc4c4c4, deep: 0x050505,
 };
 
 export class World {
@@ -48,7 +48,7 @@ export class World {
     this.key.shadow.camera.left = -3; this.key.shadow.camera.right = 3;
     this.key.shadow.camera.top = 4; this.key.shadow.camera.bottom = -1;
     this.scene.add(this.key);
-    this.rim = new THREE.DirectionalLight(0xff6a00, 0.35);
+    this.rim = new THREE.DirectionalLight(0xf4a261, 0.35);
     this.rim.position.set(-3, 2.4, -2.5);
     this.scene.add(this.rim);
 
@@ -97,7 +97,7 @@ export class World {
 
   // ---------------- LUZ · CINE (blanco) / NOCHE (negro) ----------------
   applyMoodColors(mood) {
-    const bg = mood === "noche" ? 0x070605 : 0xf1ede5;
+    const bg = mood === "noche" ? 0x050505 : 0xf7f3ec;
     this.scene.background = new THREE.Color(bg);
     this.scene.fog = new THREE.Fog(bg, mood === "noche" ? 4 : 6, mood === "noche" ? 13 : 17);
   }
@@ -108,14 +108,14 @@ export class World {
     this.applyMoodColors(m);
     if (m === "noche") {
       this.hemi.intensity = 0.22;
-      this.hemi.color.setHex(0xbcd2ff); this.hemi.groundColor.setHex(0x0a0806);
-      this.key.intensity = 0.55; this.key.color.setHex(0xdfe6ff);
+      this.hemi.color.setHex(0xc4c4c4); this.hemi.groundColor.setHex(0x050505);
+      this.key.intensity = 0.55; this.key.color.setHex(0xffffff);
       this.rim.intensity = 1.05;
       if (this.renderer) this.renderer.toneMappingExposure = 1.18;
     } else {
       this.hemi.intensity = 0.85;
-      this.hemi.color.setHex(0xffffff); this.hemi.groundColor.setHex(0xe6ded2);
-      this.key.intensity = 1.35; this.key.color.setHex(0xfff3e6);
+      this.hemi.color.setHex(0xffffff); this.hemi.groundColor.setHex(0xefe8de);
+      this.key.intensity = 1.35; this.key.color.setHex(0xffffff);
       this.rim.intensity = 0.5;
       if (this.renderer) this.renderer.toneMappingExposure = 1.05;
     }
@@ -220,12 +220,12 @@ export class World {
     const group = new THREE.Group();
     const orb = new THREE.Mesh(
       new THREE.IcosahedronGeometry(0.085, 1),
-      new THREE.MeshStandardMaterial({ color: 0xff6a00, emissive: 0xff6a00, emissiveIntensity: 0.35, roughness: 0.35, metalness: 0.1 })
+      new THREE.MeshStandardMaterial({ color: 0xf4a261, emissive: 0xf4a261, emissiveIntensity: 0.35, roughness: 0.35, metalness: 0.1 })
     );
     group.add(orb);
     const halo = new THREE.Mesh(
       new THREE.SphereGeometry(0.14, 16, 12),
-      new THREE.MeshBasicMaterial({ color: 0xff6a00, transparent: true, opacity: 0.12 })
+      new THREE.MeshBasicMaterial({ color: 0xf4a261, transparent: true, opacity: 0.12 })
     );
     group.add(halo);
     const ring = new THREE.Mesh(
@@ -234,16 +234,16 @@ export class World {
     );
     ring.rotation.x = Math.PI / 2.4;
     group.add(ring);
-    const light = new THREE.PointLight(0xff6a00, 0.8, 3);
+    const light = new THREE.PointLight(0xf4a261, 0.8, 3);
     group.add(light);
     return { group, orb, halo, ring, light, phase: 0, mood: "calm" };
   }
 
   setCoreMood(mood) {
     this.core.mood = mood;
-    const c = mood === "alert" ? 0xff6a00 : mood === "gold" ? 0xff6a00 : 0x111111;
+    const c = mood === "alert" ? 0xe76f51 : mood === "gold" ? 0xf4a261 : 0x141416;
     this.core.orb.material.color.setHex(c);
-    this.core.orb.material.emissive.setHex(mood === "calm" ? 0xff6a00 : c);
+    this.core.orb.material.emissive.setHex(mood === "calm" ? 0xf4a261 : c);
     this.core.light.color.setHex(c);
     this.core.halo.material.color.setHex(c);
   }
@@ -257,7 +257,7 @@ export class World {
       pos[i * 3 + 2] = (Math.random() - 0.5) * 8;
     }
     g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
-    const m = new THREE.PointsMaterial({ color: 0xff6a00, size: 0.012, transparent: true, opacity: 0.35 });
+    const m = new THREE.PointsMaterial({ color: 0xf4a261, size: 0.012, transparent: true, opacity: 0.35 });
     this.motes = new THREE.Points(g, m);
     return this.motes;
   }
@@ -280,13 +280,13 @@ export class World {
 
   buildEnv(name) {
     const g = new THREE.Group();
-    const accentLight = new THREE.PointLight(0xff6a00, 0, 8);
+    const accentLight = new THREE.PointLight(0xf4a261, 0, 8);
     g.add(accentLight);
     const props = new THREE.Group(); g.add(props);
     // paleta por modo: CINE (blanco cálido + naranja) / NOCHE (negro + naranja)
     const P = this.mood === "noche"
-      ? { FLOOR: 0x0e0b08, WALL: 0x171310, INK: 0x0a0806, ACC: 0xff6a00, SOFT: 0x28221b }
-      : { FLOOR: 0xe9e3d7, WALL: 0xf7f3ea, INK: 0x211d18, ACC: 0xff6a00, SOFT: 0xd9d2c4 };
+      ? { FLOOR: 0x0c0c0d, WALL: 0x141416, INK: 0x050505, ACC: 0xf4a261, SOFT: 0x242426 }
+      : { FLOOR: 0xefe8de, WALL: 0xffffff, INK: 0x111111, ACC: 0xf4a261, SOFT: 0xddd5ca };
     const { FLOOR, WALL, INK, ACC, SOFT } = P;
 
     switch (name) {
@@ -331,7 +331,7 @@ export class World {
           }
         }
         for (let i = 0; i < 3; i++) {
-          const p = new THREE.Mesh(new THREE.TorusGeometry(0.24, 0.05, 10, 24), this.mat([0x1a1a1a, 0xff6a00, 0x9a9a9a][i], 0.5, 0.3));
+          const p = new THREE.Mesh(new THREE.TorusGeometry(0.24, 0.05, 10, 24), this.mat([0x1a1a1a, 0xf4a261, 0x9a9a9a][i], 0.5, 0.3));
           p.position.set(-2.9 + i * 0.1, 0.24 + i * 0.02, 0.6); p.rotation.y = Math.PI / 2;
           p.castShadow = true; props.add(p);
         }
@@ -355,7 +355,7 @@ export class World {
         const bowl = new THREE.Mesh(new THREE.SphereGeometry(0.14, 16, 10, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2), this.mat(0xffffff, 0.35));
         bowl.position.set(0.5, 0.83, 0.3); props.add(bowl);
         for (let i = 0; i < 3; i++) {
-          const f = new THREE.Mesh(new THREE.SphereGeometry(0.05, 12, 10), this.mat([0xff6a00, 0x2e2e2e, 0xf0f0f0][i], 0.5));
+          const f = new THREE.Mesh(new THREE.SphereGeometry(0.05, 12, 10), this.mat([0xf4a261, 0x2e2e2e, 0xf0f0f0][i], 0.5));
           f.position.set(0.42 + i * 0.09, 0.87, 0.28 + (i % 2) * 0.06); props.add(f);
         }
         const warm = new THREE.PointLight(0xffffff, 2.5, 6);
@@ -384,7 +384,7 @@ export class World {
       case "mind": {
         this.floor(g, FLOOR, 18);
         this.box(props, [8, 3.2, 0.15], [0, 1.6, -3], this.mat(WALL, 0.9));
-        const glow = new THREE.Mesh(new THREE.CircleGeometry(1.5, 48), new THREE.MeshBasicMaterial({ color: 0xff6a00, transparent: true, opacity: 0.08 }));
+        const glow = new THREE.Mesh(new THREE.CircleGeometry(1.5, 48), new THREE.MeshBasicMaterial({ color: 0xf4a261, transparent: true, opacity: 0.08 }));
         glow.position.set(0, 1.5, -2.85); props.add(glow);
         const cushion = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.46, 0.14, 28), this.mat(INK, 0.9));
         cushion.position.set(0, 0.07, 0); cushion.receiveShadow = true; props.add(cushion);
