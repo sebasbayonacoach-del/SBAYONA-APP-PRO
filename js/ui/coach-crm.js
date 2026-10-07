@@ -8,6 +8,8 @@ import {
 } from "../coach/crm.js";
 import { $, el, showModal, hideModal, toast } from "./shared.js";
 import { esc } from "../i18n.js";
+import { currentSession, accountRole } from "../sync/supabase.js";
+import { syncCoachCrmCloud } from "../sync/coaching.js";
 
 const money=(cents,currency)=>{
   try{return new Intl.NumberFormat("es-ES",{style:"currency",currency}).format((Number(cents)||0)/100);}
@@ -29,11 +31,11 @@ export function registerCloudClientInCrm(client){
   const current=crm().clients.find((x)=>x.id===id);
   const name=client?.name||client?.profile?.display_name||current?.name||"Cliente BAYONA";
   const patch={
-    id,name,status:"active",source:"cloud",
+    id,name,linkedUserId:id,status:"active",source:"cloud",
     createdAt:client?.accepted_at||client?.created_at||current?.createdAt,
     updatedAt:client?.updated_at||client?.accepted_at||client?.created_at||current?.updatedAt,
   };
-  const stable=current&&current.name===patch.name&&current.status==="active"&&current.source==="cloud";
+  const stable=current&&current.name===patch.name&&current.linkedUserId===id&&current.status==="active"&&current.source==="cloud";
   return stable?current:S.upsertCoachCrmClient(patch);
 }
 
@@ -75,6 +77,23 @@ export function renderCoachCrm(body,onBack){
   addClient.onclick=()=>clientModal(()=>renderCoachCrm(body,onBack));
   addAppointment.onclick=()=>appointmentModal(null,()=>renderCoachCrm(body,onBack));
   actions.append(addClient,addAppointment);
+  if(currentSession()&&accountRole()==="coach"){
+    const sync=el("button","btn","SINCRONIZAR NUBE");
+    sync.title="Acción explícita: fusiona CRM privado con Supabase. No se ejecuta automáticamente.";
+    sync.onclick=async()=>{
+      const label=sync.textContent;
+      sync.disabled=true;sync.textContent="SINCRONIZANDO…";
+      try{
+        const result=await syncCoachCrmCloud(S);
+        toast("CRM NUBE",`Sincronización completada · ${result.total} operaciones.`);
+        renderCoachCrm(body,onBack);
+      }catch(e){
+        toast("CRM LOCAL A SALVO",e?.message||"No se pudo sincronizar la nube.","danger");
+        sync.disabled=false;sync.textContent=label;
+      }
+    };
+    actions.appendChild(sync);
+  }
   body.appendChild(actions);
 
   renderAlerts(body,data,onBack);
