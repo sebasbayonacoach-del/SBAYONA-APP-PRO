@@ -55,8 +55,8 @@ ok(load.some((x)=>x.strain===10),"strain semanal conserva dato real");
 
 const p=periodSummary(data,28,"2026-10-07");
 ok(p.days===28&&p.current.sets>0,"comparativa de 28 días resume trabajo actual");
-ok(p.comparable===true,"periodo previo con datos se marca comparable");
-ok(typeof p.delta.sets==="number","delta de series es numérico cuando existe");
+ok(p.comparable===false,"sin periodo previo suficiente no se inventa comparación");
+ok(typeof p.delta.sets==="number","el delta matemático existe, aunque la UI no lo vende como comparable");
 
 const photos=photoSummary(data.photos);
 ok(photos.count===2&&photos.byView.front===2&&photos.comparable,"fotos resumidas por vista");
