@@ -67,6 +67,7 @@ export function normalizeCommunityPost(input={}){
   if(!type||!evidenceId||!title)return null;
   return {
     id:clean(input.id,90)||`post_${Date.now()}_${hash(evidenceId)}`,
+    cloudId:clean(input.cloudId,90)||null,
     at:iso(input.at),type,evidenceId,title,
     subtitle:clean(input.subtitle,180),
     metric:clean(input.metric,80),
