@@ -62,6 +62,7 @@ export function normalizeAppointment(input={}){
     note:clean(input.note,300),
     source:["manual","cloud","calendar"].includes(input.source)?input.source:"manual",
     createdAt:iso(input.createdAt)||new Date().toISOString(),
+    updatedAt:iso(input.updatedAt)||iso(input.createdAt)||new Date().toISOString(),
   };
 }
 
@@ -84,6 +85,7 @@ export function normalizePayment(input={}){
     note:clean(input.note,300),
     source:["manual","billing"].includes(input.source)?input.source:"manual",
     createdAt:iso(input.createdAt)||new Date().toISOString(),
+    updatedAt:iso(input.updatedAt)||iso(input.createdAt)||new Date().toISOString(),
   };
 }
 
