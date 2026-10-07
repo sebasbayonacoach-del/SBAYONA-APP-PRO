@@ -36,6 +36,9 @@ ok(css.includes("41 · PROGRESS VISUAL"),"capa visual dedicada existe");
 ok(css.includes(".progress-period-grid")&&css.includes(".progress-strength-grid")&&css.includes(".progress-measure-grid"),"comparativa, fuerza y cuerpo tienen layouts visuales");
 ok(css.includes('html[data-surface-theme="light"]')&&css.includes('html[data-surface-theme="dark"]'),"Progreso respeta Día/Noche");
 ok(sw.includes("./js/progress-visual.js"),"dominio funciona offline");
-ok(/CACHE = "bayona-shell-v38"/.test(sw),"shell PWA subió a v38");
+{
+  const version=Number((sw.match(/bayona-shell-v(\d+)/)||[])[1]||0);
+  ok(version>=38,`shell PWA conserva Progreso (v${version} >= v38)`);
+}
 
 console.log(`\n📊 RESULTADO: ${pass} pass · 0 fail\n`);
