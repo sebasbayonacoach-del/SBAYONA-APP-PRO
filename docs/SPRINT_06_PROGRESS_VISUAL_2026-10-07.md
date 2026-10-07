@@ -108,6 +108,6 @@ Nuevas suites:
 - `tests/progress-visual-eval.mjs`
 - `tests/progress-visual-ui-eval.mjs`
 
-Suite total esperada: **59 suites**.
+Suite total esperada: **62 suites**.
 
 Merge únicamente con `bateria` y `ci` verdes.
