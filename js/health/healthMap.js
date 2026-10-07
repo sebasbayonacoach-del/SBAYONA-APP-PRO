@@ -84,6 +84,35 @@ export function scoreParQ(answers = {}) {
   };
 }
 
+export function contextualizeTrainingScreening(screening = {}, context = {}) {
+  const base = screening?.clearance ? screening : scoreParQ(screening);
+  const text = (value) => String(value || "").trim();
+  const contextFlags = [
+    ...(text(context.currentInjuries) ? ["current_injury"] : []),
+    ...(text(context.currentPain) ? ["current_pain"] : []),
+    ...(text(context.conditions) ? ["known_condition"] : []),
+    ...(text(context.medications) ? ["declared_medication"] : []),
+    ...(text(context.professionalRestrictions) ? ["professional_restriction"] : []),
+    ...(["pregnant", "postpartum"].includes(context.pregnancyPostpartum) ? [context.pregnancyPostpartum] : []),
+  ];
+  const nutritionFlags = text(context.allergiesIntolerances) ? ["allergies_intolerances"] : [];
+  if (base.clearance === "refer_required") {
+    return { ...base, contextFlags, nutritionFlags };
+  }
+  if (!contextFlags.length) {
+    return { ...base, contextFlags, nutritionFlags };
+  }
+  return {
+    ...base,
+    clearance: "conditional",
+    contextFlags,
+    nutritionFlags,
+    note: base.clearance === "conditional"
+      ? `${base.note} Hay contexto adicional declarado que el plan debe respetar.`
+      : "El PAR-Q+ no detectó una bandera de derivación, pero hay contexto declarado que requiere adaptar o revisar el plan antes de aumentar la exigencia.",
+  };
+}
+
 /**
  * HEALTH MAP completo → prioridades del plan.
  * @param {{parq:Record<string,boolean>, phq2:object, gad2:object, pains:Array, goals:string[]}} input

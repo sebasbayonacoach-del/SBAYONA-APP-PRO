@@ -141,6 +141,11 @@ function freshProfile() {
     equipment: null,                         // compatibilidad con planificador actual
     trainingPlaces: [],
     customPlaces: [],
+    equipmentItems: [],
+    healthContext: {
+      currentInjuries: "", currentPain: "", conditions: "", medications: "",
+      professionalRestrictions: "", allergiesIntolerances: "", pregnancyPostpartum: "none",
+    },
     weeklyAvailability: { days: [], preferredWindows: [], difficultDays: [] },
     preferredSessionRange: [],
     sessionMinutes: 30,
@@ -212,6 +217,12 @@ export const S = {
     d.profile.customGoals = Array.isArray(d.profile.customGoals) ? d.profile.customGoals : [];
     d.profile.trainingPlaces = Array.isArray(d.profile.trainingPlaces) ? d.profile.trainingPlaces : [];
     d.profile.customPlaces = Array.isArray(d.profile.customPlaces) ? d.profile.customPlaces : [];
+    d.profile.equipmentItems = Array.isArray(d.profile.equipmentItems) ? d.profile.equipmentItems : [];
+    d.profile.healthContext = {
+      currentInjuries:"", currentPain:"", conditions:"", medications:"",
+      professionalRestrictions:"", allergiesIntolerances:"", pregnancyPostpartum:"none",
+      ...(d.profile.healthContext && typeof d.profile.healthContext === "object" ? d.profile.healthContext : {}),
+    };
     d.profile.weeklyAvailability = {
       days: [],
       preferredWindows: [],

@@ -68,6 +68,28 @@ export function legacyEquipmentFromPlaces(places) {
   return "SIN EQUIPAMIENTO";
 }
 
+export function parseEquipmentItems(value) {
+  const source = Array.isArray(value)
+    ? value
+    : String(value || "").split(/[;,\n]/);
+  return uniqueTexts(source, 30, 60);
+}
+
+export function normalizeHealthContext(input = {}) {
+  const pregnancy = ["none", "pregnant", "postpartum", "unspecified"].includes(input.pregnancyPostpartum)
+    ? input.pregnancyPostpartum
+    : "none";
+  return {
+    currentInjuries: cleanText(input.currentInjuries, 240),
+    currentPain: cleanText(input.currentPain, 240),
+    conditions: cleanText(input.conditions, 240),
+    medications: cleanText(input.medications, 240),
+    professionalRestrictions: cleanText(input.professionalRestrictions, 240),
+    allergiesIntolerances: cleanText(input.allergiesIntolerances, 240),
+    pregnancyPostpartum: pregnancy,
+  };
+}
+
 export function validateProfile(input = {}) {
   const rawGoals = uniqueTexts(input.goals?.length ? input.goals : [input.goal].filter(Boolean), 8, 80)
     .map(normalizeGoal);
@@ -78,6 +100,8 @@ export function validateProfile(input = {}) {
 
   const places = uniqueTexts(input.trainingPlaces?.length ? input.trainingPlaces : [], 10, 80);
   const customPlaces = uniqueTexts(input.customPlaces, 5, 80);
+  const equipmentItems = parseEquipmentItems(input.equipmentItems);
+  const healthContext = normalizeHealthContext(input.healthContext);
 
   const experience = EXPERIENCE.includes(input.experience) ? input.experience : EXPERIENCE[1];
   const weeklyDays = uniqueTexts(input.weeklyAvailability?.days, 7, 12);
@@ -111,6 +135,8 @@ export function validateProfile(input = {}) {
     customGoals,
     trainingPlaces: places,
     customPlaces,
+    equipmentItems,
+    healthContext,
     weeklyAvailability: {
       days: weeklyDays,
       preferredWindows: uniqueTexts(input.weeklyAvailability?.preferredWindows, 7, 24),

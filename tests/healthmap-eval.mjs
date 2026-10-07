@@ -1,6 +1,7 @@
 // Salud · healthmap-eval.mjs — evaluación ejecutable (node tests/healthmap-eval.mjs)
 import {
-  PAR_Q_ITEMS, scoreParQ, scorePhq2, scoreGad2, bodyMapPriorities, buildHealthMap,
+  PAR_Q_ITEMS, scoreParQ, contextualizeTrainingScreening,
+  scorePhq2, scoreGad2, bodyMapPriorities, buildHealthMap,
 } from '../js/health/healthMap.js';
 import { formToInput, verdict, stepComplete } from '../js/health/healthUI.js';
 
@@ -18,6 +19,14 @@ assert(scoreParQ({ chest_pain: true }).clearance === 'refer_required', 'dolor to
 assert(scoreParQ({ chest_pain: true }).redFlags.includes('chest_pain'), 'bandera roja expuesta');
 assert(scoreParQ({ joint: true }).clearance === 'conditional', 'condición articular → conditional');
 assert(scoreParQ({ meds_bp: true }).note.includes('modificaciones'), 'ámbar → nota de modificaciones');
+const contextPain=contextualizeTrainingScreening(scoreParQ({}),{currentPain:'rodilla'});
+assert(contextPain.clearance==='conditional'&&contextPain.contextFlags.includes('current_pain'),'dolor declarado → conditional, sin inventar diagnóstico');
+const contextRestriction=contextualizeTrainingScreening(scoreParQ({}),{professionalRestrictions:'sin impacto'});
+assert(contextRestriction.clearance==='conditional'&&contextRestriction.contextFlags.includes('professional_restriction'),'restricción profesional → conditional');
+const nutritionOnly=contextualizeTrainingScreening(scoreParQ({}),{allergiesIntolerances:'lactosa'});
+assert(nutritionOnly.clearance==='cleared'&&nutritionOnly.nutritionFlags.includes('allergies_intolerances'),'alergia/intolerancia sola no cambia clearance de ejercicio');
+const redPlusContext=contextualizeTrainingScreening(scoreParQ({chest_pain:true}),{currentPain:'rodilla'});
+assert(redPlusContext.clearance==='refer_required','contexto adicional nunca rebaja una bandera roja');
 
 console.log('— PHQ-2 / GAD-2 (screening de ánimo/ansiedad) —');
 assert(scorePhq2({ interest: 0, mood: 0 }).band === 'minimo', 'PHQ-2 0/6 → mínimo');

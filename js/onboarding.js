@@ -12,7 +12,9 @@ import {
   legacyEquipmentFromPlaces, availabilityFromDays,
 } from "./personalization.js";
 import { PLAN_META, normalizePlan } from "./entitlements.js";
-import { scoreParQ, PAR_Q_ITEMS } from "./health/healthMap.js";
+import {
+  scoreParQ, PAR_Q_ITEMS, contextualizeTrainingScreening,
+} from "./health/healthMap.js";
 
 const TOTAL = 9;
 const DAYS = ["L","M","X","J","V","S","D"];
@@ -73,12 +75,18 @@ const st = {
   customGoal:"",
   trainingPlaces:["CASA · CON MATERIAL"],
   customPlace:"",
+  equipmentText:"",
   weeklyDays:["L","X","V"],
   preferredWindows:[],
+  difficultDays:[],
   sessionMinutes:"30",
   birthDate:"",
   physiologySex:"unspecified",
   safety:Object.fromEntries(PAR_Q_ITEMS.map((x)=>[x.id,false])),
+  healthDetails:{
+    currentInjuries:"", currentPain:"", conditions:"", medications:"",
+    professionalRestrictions:"", allergiesIntolerances:"", pregnancyPostpartum:"none",
+  },
   coachPersona:"sebastian",
   membershipPlan:"free",
   experience:EXPERIENCE[1],
@@ -140,7 +148,7 @@ function ageInfo() {
 }
 
 function safetyResult() {
-  return scoreParQ(st.safety);
+  return contextualizeTrainingScreening(scoreParQ(st.safety), st.healthDetails);
 }
 
 function view() {
@@ -186,8 +194,13 @@ function view() {
         <p>Elige todo lo que uses. BAYONA adapta los ejercicios al contexto disponible.</p>
         ${toggleGrid("trainingPlaces",rows,st.trainingPlaces,"Lugares de entrenamiento")}
         <div class="ob-inline-field">
-          <label for="ob-custom-place">Otro lugar o material</label>
-          <input id="ob-custom-place" maxlength="80" placeholder="Ej. garaje con barra y discos" value="${esc(st.customPlace)}">
+          <label for="ob-custom-place">Otro lugar</label>
+          <input id="ob-custom-place" maxlength="80" placeholder="Ej. garaje, playa, sala del hotel" value="${esc(st.customPlace)}">
+        </div>
+        <div class="ob-inline-field">
+          <label for="ob-equipment">Material que sí tienes · opcional</label>
+          <input id="ob-equipment" maxlength="240" placeholder="Ej. mancuernas, bandas, barra, banco" value="${esc(st.equipmentText)}">
+          <small>Sepáralo por comas. No hace falta listar lo que no usas.</small>
         </div>
       </div>
       ${footer()}`;
@@ -205,6 +218,10 @@ function view() {
       <div class="ob-mini-title">MOMENTO PREFERIDO · OPCIONAL</div>
       <div class="ob-chips" role="group" aria-label="${esc(t("onboarding.windows.aria"))}">
         ${WINDOWS.map(([v,l])=>`<button type="button" data-window="${v}" class="${st.preferredWindows.includes(v)?"on":""}" aria-pressed="${st.preferredWindows.includes(v)}">${l}</button>`).join("")}
+      </div>
+      <div class="ob-mini-title">DÍAS QUE SUELEN COMPLICARSE · OPCIONAL</div>
+      <div class="ob-days ob-days-difficult" role="group" aria-label="${esc(t("onboarding.difficultDays.aria"))}">
+        ${DAYS.map((d)=>`<button type="button" data-difficult-day="${d}" class="${st.difficultDays.includes(d)?"on":""}" aria-pressed="${st.difficultDays.includes(d)}">${d}</button>`).join("")}
       </div>
       <div class="ob-mini-title">EN UN DÍA NORMAL, ¿QUÉ SUELE CABER?</div>
       <div class="ob-duration" role="group" aria-label="${esc(t("onboarding.duration.aria"))}">
@@ -259,6 +276,40 @@ function view() {
           <b>${result.clearance==="cleared"?"Sin alertas detectadas en este cribado":result.clearance==="conditional"?"Hay algo que debemos adaptar":"Antes de intensidad, hace falta valoración profesional"}</b>
           <span>${esc(result.note)}</span>
         </div>
+
+        <details class="ob-health-details">
+          <summary><span>Contexto que quieres que tengamos en cuenta</span><small>OPCIONAL</small></summary>
+          <div class="ob-health-grid">
+            <label>Lesiones actuales
+              <textarea data-health="currentInjuries" maxlength="240" placeholder="Ej. esguince de tobillo en recuperación">${esc(st.healthDetails.currentInjuries)}</textarea>
+            </label>
+            <label>Dolor o molestia actual
+              <textarea data-health="currentPain" maxlength="240" placeholder="Dónde, cuándo aparece y qué lo empeora">${esc(st.healthDetails.currentPain)}</textarea>
+            </label>
+            <label>Condiciones médicas conocidas
+              <textarea data-health="conditions" maxlength="240" placeholder="Solo lo que ya conoces o te han diagnosticado">${esc(st.healthDetails.conditions)}</textarea>
+            </label>
+            <label>Medicación relevante declarada
+              <textarea data-health="medications" maxlength="240" placeholder="Opcional; no hacemos interpretación médica">${esc(st.healthDetails.medications)}</textarea>
+            </label>
+            <label>Restricciones de un profesional de salud
+              <textarea data-health="professionalRestrictions" maxlength="240" placeholder="Ej. evitar impacto durante 4 semanas">${esc(st.healthDetails.professionalRestrictions)}</textarea>
+            </label>
+            <label>Alergias o intolerancias conocidas
+              <textarea data-health="allergiesIntolerances" maxlength="240" placeholder="Para no proponer alimentos incompatibles">${esc(st.healthDetails.allergiesIntolerances)}</textarea>
+            </label>
+            ${st.physiologySex==="female"?`
+              <label>Embarazo / posparto · opcional
+                <select data-health-select="pregnancyPostpartum">
+                  <option value="none" ${st.healthDetails.pregnancyPostpartum==="none"?"selected":""}>No aplica</option>
+                  <option value="pregnant" ${st.healthDetails.pregnancyPostpartum==="pregnant"?"selected":""}>Embarazo</option>
+                  <option value="postpartum" ${st.healthDetails.pregnancyPostpartum==="postpartum"?"selected":""}>Posparto</option>
+                  <option value="unspecified" ${st.healthDetails.pregnancyPostpartum==="unspecified"?"selected":""}>Prefiero no indicarlo</option>
+                </select>
+              </label>`:""}
+          </div>
+          <p class="ob-privacy-line">Estos datos se guardan como contexto declarado por ti. BAYONA no los convierte en diagnósticos ni cambia una indicación médica.</p>
+        </details>
       </div>
       ${footer()}`;
   }
@@ -367,6 +418,10 @@ function render(box) {
     button.onclick=()=>{st.preferredWindows=toggle(st.preferredWindows,button.dataset.window);render(box);};
   });
 
+  box.querySelectorAll("[data-difficult-day]").forEach((button)=>{
+    button.onclick=()=>{st.difficultDays=toggle(st.difficultDays,button.dataset.difficultDay);render(box);};
+  });
+
   box.querySelectorAll("[data-minutes]").forEach((button)=>{
     button.onclick=()=>{st.sessionMinutes=button.dataset.minutes;render(box);};
   });
@@ -395,6 +450,15 @@ function render(box) {
   if (primary) primary.onchange=()=>{st.goalPrimary=primary.value;};
   const customPlace=q("#ob-custom-place");
   if (customPlace) customPlace.oninput=()=>{st.customPlace=customPlace.value;};
+  const equipment=q("#ob-equipment");
+  if (equipment) equipment.oninput=()=>{st.equipmentText=equipment.value;};
+
+  box.querySelectorAll("[data-health]").forEach((field)=>{
+    field.oninput=()=>{st.healthDetails[field.dataset.health]=field.value;};
+  });
+  box.querySelectorAll("[data-health-select]").forEach((field)=>{
+    field.onchange=()=>{st.healthDetails[field.dataset.healthSelect]=field.value;};
+  });
 
   const birth=q("#ob-birth");
   if (birth) birth.onchange=()=>{st.birthDate=birth.value;render(box);};
@@ -405,7 +469,10 @@ function render(box) {
       st.customGoal=q("#ob-custom-goal")?.value.trim()||st.customGoal;
       st.goalPrimary=q("#ob-primary-goal")?.value||st.goalPrimary;
     }
-    if (st.step===2) st.customPlace=q("#ob-custom-place")?.value.trim()||st.customPlace;
+    if (st.step===2) {
+      st.customPlace=q("#ob-custom-place")?.value.trim()||st.customPlace;
+      st.equipmentText=q("#ob-equipment")?.value.trim()||st.equipmentText;
+    }
     st.step=Math.min(TOTAL-1,st.step+1);
     render(box);
   });
@@ -424,12 +491,14 @@ function render(box) {
       customGoals,
       trainingPlaces:st.trainingPlaces,
       customPlaces,
+      equipmentItems:st.equipmentText,
+      healthContext:st.healthDetails,
       experience:st.experience,
       availability:availabilityFromDays(st.weeklyDays),
       equipment:legacyEquipmentFromPlaces([...st.trainingPlaces,...customPlaces]),
       sessionMinutes:Number(st.sessionMinutes),
       preferredSessionRange:[st.sessionMinutes],
-      weeklyAvailability:{days:st.weeklyDays,preferredWindows:st.preferredWindows,difficultDays:[]},
+      weeklyAvailability:{days:st.weeklyDays,preferredWindows:st.preferredWindows,difficultDays:st.difficultDays},
       birthDate:st.birthDate||null,
       ageBand:a.ageBand,
       developmentProfile:a.age===null?null:{age:a.age,minor:a.minor,requiresGuardianReview:a.minor},
@@ -445,6 +514,8 @@ function render(box) {
         clearance:health.clearance,
         redFlags:health.redFlags,
         ambers:health.ambers,
+        contextFlags:health.contextFlags||[],
+        nutritionFlags:health.nutritionFlags||[],
         answers:{...st.safety},
         screenedAt:new Date().toISOString(),
       },
@@ -486,6 +557,11 @@ export function perfilRapido() {
     equipment:"MANCUERNAS/BANDAS",
     trainingPlaces:["CASA · CON MATERIAL"],
     customPlaces:[],
+    equipmentItems:[],
+    healthContext:{
+      currentInjuries:"",currentPain:"",conditions:"",medications:"",
+      professionalRestrictions:"",allergiesIntolerances:"",pregnancyPostpartum:"none",
+    },
     weeklyAvailability:{days:["L","X","V"],preferredWindows:[],difficultDays:[]},
     sessionMinutes:30,
     preferredSessionRange:["30"],
@@ -523,12 +599,22 @@ const css=`
 .ob-context-note{display:grid;gap:4px;margin-top:14px;padding:12px;border:1px solid #2b3033;border-radius:9px;background:#101314}.ob-context-note b{font-size:12px}.ob-context-note span{color:#8b9296;font-size:11px;line-height:1.45}.ob-privacy-line{font-size:10px!important;color:#6f777b!important}
 .ob-safety-stage{padding-top:22px}.ob-safety-list{display:grid;gap:7px;margin-top:18px}.ob-safety-row{display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #202427}.ob-safety-row>span{color:#d7d4ce;font:500 11px/1.4 var(--sans)}.ob-safety-row>div{display:flex;gap:4px}.ob-safety-row button{min-width:42px;height:30px;border:1px solid #30363a;border-radius:6px;background:#101314;color:#8d9599;font:750 9px var(--sans);cursor:pointer}.ob-safety-row button.on{border-color:#4b6a58;color:#8bd7aa}.ob-safety-row button.yes{border-color:#ff8a3d;color:#ff9e5c;background:#1b120d}
 .ob-safety-result{display:grid;gap:4px;margin-top:14px;padding:12px;border:1px solid #2e363a;border-radius:9px}.ob-safety-result b{font-size:11px}.ob-safety-result span{color:#8b9296;font-size:10px;line-height:1.45}.ob-safety-result.refer_required{border-color:#8c4039}.ob-safety-result.conditional{border-color:#8b6339}
+.ob-inline-field small{color:#697175;font:500 9px/1.4 var(--sans)}
+.ob-health-details{margin-top:12px;border:1px solid #293034;border-radius:10px;background:#0e1112;overflow:hidden}
+.ob-health-details summary{min-height:44px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 12px;color:#d9d6d0;cursor:pointer;list-style:none;font:650 10px/1.3 var(--sans)}
+.ob-health-details summary::-webkit-details-marker{display:none}.ob-health-details summary small{color:#ff7a1a;font:800 7px/1 var(--sans);letter-spacing:.1em}
+.ob-health-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:12px;border-top:1px solid #22272a}
+.ob-health-grid label{display:grid;gap:6px;color:#8b9296;font:650 8px/1.3 var(--sans);letter-spacing:.04em}
+.ob-health-grid textarea,.ob-health-grid select{width:100%;box-sizing:border-box;border:1px solid #2b3033;border-radius:7px;background:#0b0e0f;color:#f2efe9;outline:none;font:500 10px/1.4 var(--sans)}
+.ob-health-grid textarea{min-height:68px;padding:9px;resize:vertical}.ob-health-grid select{min-height:38px;padding:0 9px}
+.ob-health-grid textarea:focus,.ob-health-grid select:focus{border-color:#ff6a00}
+.ob-health-details>.ob-privacy-line{padding:0 12px 12px}
 .ob-coaches{display:grid;gap:8px;margin-top:24px}.ob-coaches button{display:grid;grid-template-columns:50px 1fr 24px;align-items:center;gap:12px;padding:12px;border:1px solid #293034;border-radius:11px;background:#0f1213;color:#fff;text-align:left;cursor:pointer}.ob-coaches button.on{border-color:#ff6a00;background:#17130f}.ob-coach-avatar{width:46px;height:46px;display:grid;place-items:center;border-radius:50%;background:#1b1f22;color:#ff7416;font:800 12px var(--sans)}.ob-coaches small{display:block;color:#777f84;font:700 8px var(--sans);letter-spacing:.08em}.ob-coaches strong{display:block;margin-top:2px;font:700 14px var(--sans)}.ob-coaches em{display:block;margin-top:4px;color:#8b9296;font:400 10px/1.4 var(--sans);font-style:normal}.ob-coaches i{color:#ff7416;font-style:normal}
 .ob-plans{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:24px}.ob-plans button{min-height:118px;display:grid;gap:9px;padding:13px;border:1px solid #293034;border-radius:11px;background:#0f1213;color:#fff;text-align:left;cursor:pointer}.ob-plans button.on{border-color:#ff6a00;background:#17130f}.ob-plans button>span{display:flex;justify-content:space-between;gap:8px}.ob-plans small{color:#ff7a1a;font:800 9px var(--sans);letter-spacing:.08em}.ob-plans strong{font:700 12px var(--sans)}.ob-plans em{color:#d3d0ca;font:550 11px/1.4 var(--sans);font-style:normal}.ob-plans i{color:#777f84;font:500 9px/1.45 var(--sans);font-style:normal}
 .ob-ready-mark{width:54px;height:54px;display:grid;place-items:center;margin-bottom:22px;border-radius:50%;background:#ff6a00;color:#08090a;font-size:22px;font-weight:900}.ob-summary-v3{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;margin-top:24px;border:1px solid #252a2d;border-radius:10px;overflow:hidden;background:#252a2d}.ob-summary-v3 span{display:grid;gap:6px;padding:12px;background:#0e1011}.ob-summary-v3 small{color:#697175;font:750 7px var(--sans);letter-spacing:.1em}.ob-summary-v3 b{color:#ece9e3;font:650 11px/1.3 var(--sans)}.ob-finish-line{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.ob-finish-line span{padding:6px 8px;border:1px solid #293034;border-radius:999px;color:#7f878b;font:650 8px var(--sans)}
 .ob-actions{display:grid;grid-template-columns:48px 1fr;gap:10px;align-items:center;padding-top:14px;border-top:1px solid #202427}.ob-actions>span{width:48px}.ob-back,.ob-primary{min-height:44px;border-radius:8px;cursor:pointer}.ob-back{border:1px solid #30363a;background:#0d0f10;color:#9ca3a6;font-size:16px}.ob-primary{border:1px solid #ff6a00;background:#ff6a00;color:#090909;font:850 9px var(--sans);letter-spacing:.12em}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
-@media(max-width:620px){#ob-layer{padding:0;place-items:stretch}#ob-box{width:100%;min-height:100dvh;max-height:100dvh;border:0;border-radius:0;padding:17px 14px 14px}.ob-stage{padding:24px 2px 18px}#ob-box h2{font-size:clamp(29px,9vw,38px)}.ob-choice-grid{margin-top:20px}.ob-choice{min-height:64px;padding:10px}.ob-plans{grid-template-columns:1fr}.ob-plans button{min-height:94px}.ob-summary-v3{margin-top:18px}.ob-safety-row{grid-template-columns:1fr}.ob-safety-row>div{justify-content:flex-start}}
+@media(max-width:620px){#ob-layer{padding:0;place-items:stretch}#ob-box{width:100%;min-height:100dvh;max-height:100dvh;border:0;border-radius:0;padding:17px 14px 14px}.ob-stage{padding:24px 2px 18px}#ob-box h2{font-size:clamp(29px,9vw,38px)}.ob-choice-grid{margin-top:20px}.ob-choice{min-height:64px;padding:10px}.ob-plans{grid-template-columns:1fr}.ob-plans button{min-height:94px}.ob-summary-v3{margin-top:18px}.ob-safety-row{grid-template-columns:1fr}.ob-safety-row>div{justify-content:flex-start}.ob-health-grid{grid-template-columns:1fr}}
 `;
 
 function boot(retries=20) {

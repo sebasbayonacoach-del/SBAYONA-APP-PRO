@@ -45,6 +45,7 @@ const es = {
   "onboarding.days.aria": "Días posibles",
   "onboarding.windows.aria": "Franjas preferidas",
   "onboarding.duration.aria": "Duración aproximada",
+  "onboarding.difficultDays.aria": "Días que suelen complicarse",
   "onboarding.coach.aria": "Estilo de Coach",
   "onboarding.plan.aria": "Membresía",
   "onboarding.dialog.aria": "Configurar BAYONA",

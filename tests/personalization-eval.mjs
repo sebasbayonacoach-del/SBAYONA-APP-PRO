@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { readCycle, saveCycle, logCycle, deleteCycle, cycleSummary, localDate, CYCLE_KEY } from '../js/cycle.js';
-import { profileWeek, personalizeWorkout, validateProfile } from '../js/personalization.js';
+import {
+  profileWeek, personalizeWorkout, validateProfile, parseEquipmentItems, normalizeHealthContext,
+} from '../js/personalization.js';
 import { S } from '../js/state.js';
 import { WORKOUTS } from '../js/data.js';
 import { todaysSession } from '../js/engine.js';
@@ -32,6 +34,20 @@ assert.equal(profileWeek({availability:'2 DÍAS/SEMANA',equipment:'SIN EQUIPAMIE
 assert.ok(profileWeek({availability:'3 DÍAS/SEMANA',equipment:'SIN EQUIPAMIENTO'}).filter(Boolean).every(id=>id==='bodyweight'));
 assert.deepEqual(profileWeek({availability:'4-5 DÍAS/SEMANA',equipment:'GIMNASIO COMPLETO'}),['op_upper','op_lower',null,'op_upper','op_lower',null,null]);
 assert.throws(()=>validateProfile({goal:'invalid'}));
+assert.deepEqual(parseEquipmentItems('mancuernas, bandas; banco\nbarra'),['mancuernas','bandas','banco','barra']);
+assert.deepEqual(parseEquipmentItems(['bandas','bandas','barra']),['bandas','barra']);
+const health=normalizeHealthContext({currentPain:' rodilla al bajar ',pregnancyPostpartum:'invalid'});
+assert.equal(health.currentPain,'rodilla al bajar');
+assert.equal(health.pregnancyPostpartum,'none');
+const rich=validateProfile({
+  goal:'BIENESTAR Y ADHERENCIA',
+  equipmentItems:'mancuernas, bandas',
+  weeklyAvailability:{days:['L','X','V'],difficultDays:['M','J']},
+  healthContext:{professionalRestrictions:'sin impacto'},
+});
+assert.deepEqual(rich.equipmentItems,['mancuernas','bandas']);
+assert.deepEqual(rich.weeklyAvailability.difficultDays,['M','J']);
+assert.equal(rich.healthContext.professionalRestrictions,'sin impacto');
 const beginner={onboarded:true,experience:'EMPIEZO AHORA',sessionMinutes:15};
 const before=JSON.stringify(WORKOUTS.bodyweight);
 const short=personalizeWorkout(WORKOUTS.bodyweight,beginner);

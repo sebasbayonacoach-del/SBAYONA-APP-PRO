@@ -34,13 +34,17 @@ assert(html[0].includes('id="ob-name"')&&!html[0].includes("ob-choice-grid"),"1 
 assert((html[1].match(/data-toggle="goals"/g)||[]).length===GOALS.length,"2 · todos los objetivos");
 assert(html[1].includes('id="ob-custom-goal"')&&html[1].includes('id="ob-primary-goal"'),"2 · objetivo escrito + prioridad principal");
 assert((html[2].match(/data-toggle="trainingPlaces"/g)||[]).length===TRAINING_PLACES.length,"3 · todos los entornos");
-assert(html[2].includes('id="ob-custom-place"'),"3 · entorno/material escrito");
+assert(html[2].includes('id="ob-custom-place"'),"3 · entorno escrito");
+assert(html[2].includes('id="ob-equipment"'),"3 · material concreto opcional");
 assert(html[3].includes("TU SEMANA REAL")&&(html[3].match(/data-day=/g)||[]).length===7,"4 · semana real, siete días");
+assert((html[3].match(/data-difficult-day=/g)||[]).length===7,"4 · días difíciles separados de disponibilidad");
 assert((html[3].match(/data-minutes=/g)||[]).length===4,"4 · duración aproximada");
 assert(!html[3].includes("sesión ideal"),"se elimina la pregunta ambigua sesión ideal");
 assert(html[4].includes('id="ob-birth"')&&html[4].includes("CONTEXTO FISIOLÓGICO"),"5 · etapa + contexto fisiológico opcional");
 assert((html[5].match(/class="ob-safety-row"/g)||[]).length===7,"6 · screening de seguridad completo");
 assert(html[5].includes("no un diagnóstico"),"6 · declara límites clínicos");
+assert((html[5].match(/data-health="/g)||[]).length===6,"6 · contexto de salud declarado y opcional");
+assert(html[5].includes("no los convierte en diagnósticos"),"6 · texto libre no se interpreta clínicamente");
 assert((html[6].match(/data-coach=/g)||[]).length===3,"7 · tres estilos de Coach");
 assert(html[6].includes("Sebastián")&&html[6].includes("Mara")&&html[6].includes("Minimal"),"7 · Sebastián, Coach femenina y minimal");
 assert((html[7].match(/data-plan=/g)||[]).length===PLANS.length,"8 · cuatro membresías");
@@ -62,6 +66,7 @@ assert(TRAINING_PLACES.length===10&&TRAINING_PLACES.includes("PISCINA")&&TRAININ
 const p=perfilRapido();
 assert(p.name==="TÚ"&&p.goalPrimary==="BIENESTAR Y ADHERENCIA","perfil compatible sin etiqueta atleta");
 assert(Array.isArray(p.goals)&&Array.isArray(p.trainingPlaces)&&p.weeklyAvailability.days.length===3,"perfil v4 conserva estructura rica");
+assert(Array.isArray(p.equipmentItems)&&p.healthContext?.pregnancyPostpartum==="none","perfil v4 incluye material y contexto de salud");
 assert(p.membershipPlan==="free"&&p.coachPersona==="sebastian","defaults de plan y Coach explícitos");
 assert(p.consents.vision===false&&p.consents.health===false&&p.consents.avatar_3d===false,"ningún permiso concedido por defecto");
 
