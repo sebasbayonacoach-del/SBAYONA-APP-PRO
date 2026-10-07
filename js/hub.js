@@ -4,14 +4,14 @@
 export const DEFAULT_PROGRESS_REVIEW_DAYS = 28;
 
 export const HUB_FOCUS = Object.freeze({
-  hoy:       { cam:[0,1.15,3.3],  tgt:[0,0.95,0], action:"idle" },
-  training:  { cam:[1.15,1.32,3.25],tgt:[0,0.98,0], action:"idle" },
-  nutrition: { cam:[-1.05,1.22,3.15],tgt:[0,0.92,0], action:"sit" },
-  recovery:  { cam:[-.72,1.3,3.3],tgt:[0,0.9,0], action:"stretch" },
-  progress:  { cam:[.82,1.18,3.0],tgt:[0,0.96,0], action:"idle" },
-  core:      { cam:[0,1.28,2.8],tgt:[0,1.0,0], action:"idle" },
-  plan:      { cam:[-.55,1.36,3.5],tgt:[0,1.05,-.4], action:"idle" },
-  armory:    { cam:[0,1.08,2.55],tgt:[0,0.96,0], action:"idle" },
+  hoy:       { env:"home", cam:[0,1.15,3.3],  tgt:[0,0.95,0], action:"idle" },
+  training:  { env:"gym", cam:[1.15,1.32,3.25],tgt:[0,0.98,0], action:"idle" },
+  nutrition: { env:"kitchen", cam:[-1.05,1.22,3.15],tgt:[0,0.92,0], action:"sit" },
+  recovery:  { env:"recovery", cam:[-.72,1.3,3.3],tgt:[0,0.9,0], action:"stretch" },
+  progress:  { env:"home", cam:[.82,1.18,3.0],tgt:[0,0.96,0], action:"idle" },
+  core:      { env:"home", cam:[0,1.28,2.8],tgt:[0,1.0,0], action:"idle" },
+  plan:      { env:"lab", cam:[-.55,1.36,3.5],tgt:[0,1.05,-.4], action:"idle" },
+  armory:    { env:"locker", cam:[0,1.08,2.55],tgt:[0,0.96,0], action:"idle" },
 });
 
 const validDate = (value) => {
