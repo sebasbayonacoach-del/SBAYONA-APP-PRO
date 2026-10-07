@@ -9,7 +9,7 @@ import {
   searchExercises, exerciseFacets,
 } from "../coach-lab.js";
 import { $, el, showModal, hideModal, toast } from "./shared.js";
-import { esc } from "../i18n.js";
+import { esc, t } from "../i18n.js";
 
 let catalogPromise=null;
 async function loadCatalog(){
@@ -40,11 +40,11 @@ export function renderPlanningStudio(body,onBack){
   const programs=Array.isArray(S.data.coachPrograms)?S.data.coachPrograms:[];
   const hero=el("section","planning-hero");
   hero.innerHTML=`
-    <div><small>PLANNING STUDIO</small><h3>De la temporada a la sesión.</h3><p>Macrociclos, mesociclos, microciclos, cargas, tests y 3.141 ejercicios del catálogo PROPLAYER.</p></div>
+    <div><small>${esc(t("planning.hero.kicker"))}</small><h3>${esc(t("planning.hero.title"))}</h3><p>${esc(t("planning.hero.sub"))}</p></div>
     <div class="planning-kpis">
-      <article><small>PROGRAMAS</small><strong>${programs.length}</strong></article>
-      <article><small>ACTIVOS</small><strong>${programs.filter((p)=>p.id===S.data.activeCoachProgramId).length}</strong></article>
-      <article><small>CLIENTES CRM</small><strong>${S.data.coachCrm?.clients?.length||0}</strong></article>
+      <article><small>${esc(t("planning.kpi.programs"))}</small><strong>${programs.length}</strong></article>
+      <article><small>${esc(t("planning.kpi.active"))}</small><strong>${programs.filter((p)=>p.id===S.data.activeCoachProgramId).length}</strong></article>
+      <article><small>${esc(t("planning.kpi.clients"))}</small><strong>${S.data.coachCrm?.clients?.length||0}</strong></article>
     </div>`;
   body.appendChild(hero);
 
@@ -137,11 +137,11 @@ function renderCalendar(body,p,onBack){
     const load=w.loadTarget||{};
     const loadText=[load.volumePct!=null?`VOL ${load.volumePct}%`:null,load.intensityPct!=null?`INT ${load.intensityPct}%`:null,load.rpe!=null?`RPE ${load.rpe}`:null].filter(Boolean).join(" · ");
     row.innerHTML=`
-      <span><small>SEMANA</small><strong>${w.week}</strong></span>
-      <span><small>FASE</small><strong>${esc(String(w.stageId).replaceAll("_"," "))}</strong></span>
-      <span><small>FECHAS</small><strong>${esc(shortDate(w.startDate))} → ${esc(shortDate(w.endDate))}</strong></span>
-      <span><small>CARGA</small><strong>${esc(loadText||"SIN DEFINIR")}</strong></span>
-      <span><small>CONTENIDO</small><strong>${w.sessions} sesión(es) · ${w.tests} test(s)</strong></span>`;
+      <span><small>${esc(t("planning.week.week"))}</small><strong>${w.week}</strong></span>
+      <span><small>${esc(t("planning.week.stage"))}</small><strong>${esc(String(w.stageId).replaceAll("_"," "))}</strong></span>
+      <span><small>${esc(t("planning.week.dates"))}</small><strong>${esc(shortDate(w.startDate))} → ${esc(shortDate(w.endDate))}</strong></span>
+      <span><small>${esc(t("planning.week.load"))}</small><strong>${esc(loadText||t("planning.week.undefined"))}</strong></span>
+      <span><small>${esc(t("planning.week.content"))}</small><strong>${esc(t("planning.week.contentValue",{sessions:w.sessions,tests:w.tests}))}</strong></span>`;
     row.onclick=()=>weekModal(body,p,w.week,onBack);
     wrap.appendChild(row);
   });
@@ -154,7 +154,7 @@ function renderTests(body,p,onBack){
   if(!p.tests?.length)card.appendChild(el("div","planning-empty","Sin tests planificados."));
   (p.tests||[]).forEach((test)=>{
     const row=el("div","planning-test-row");
-    row.innerHTML=`<span><strong>${esc(test.name)}</strong><small>S${esc(test.scheduledWeek)} · ${esc(test.metric||"métrica")} ${test.target!=null?"· objetivo "+esc(test.target)+" "+esc(test.unit||""):""}</small></span><span class="pill ${test.status==="completed"?"gold":""}">${esc(test.status.toUpperCase())}</span>`;
+    row.innerHTML=`<span><strong>${esc(test.name)}</strong><small>S${esc(test.scheduledWeek)} · ${esc(test.metric||t("planning.test.metricFallback"))} ${test.target!=null?"· "+esc(t("planning.test.target"))+" "+esc(test.target)+" "+esc(test.unit||""):""}</small></span><span class="pill ${test.status==="completed"?"gold":""}">${esc(test.status.toUpperCase())}</span>`;
     if(test.status==="planned"){
       const b=el("button","btn","REGISTRAR RESULTADO");
       b.onclick=()=>resultModal(body,p,test,onBack);
@@ -372,16 +372,16 @@ async function exerciseBrowser(body,onBack){
   back.onclick=()=>renderPlanningStudio(body,onBack);
   body.appendChild(back);
   const head=el("section","planning-program-head");
-  head.innerHTML=`<div><small>CATÁLOGO PROPLAYER</small><h3>Buscador de ejercicios</h3><p>${rows.length.toLocaleString("es-ES")} ejercicios disponibles · resultados con vídeo local/CDN cuando existe.</p></div>`;
+  head.innerHTML=`<div><small>${esc(t("planning.catalog.kicker"))}</small><h3>${esc(t("planning.catalog.title"))}</h3><p>${esc(t("planning.catalog.sub",{count:rows.length.toLocaleString("es-ES")}))}</p></div>`;
   body.appendChild(head);
   const filters=el("section","planning-search-panel");
   filters.innerHTML=`
-    <input id="ps-browser-q" placeholder="Buscar por nombre, músculo, tipo, etiqueta o resistencia">
-    <select id="ps-browser-muscle"><option value="">TODOS LOS MÚSCULOS</option>${facets.muscles.map((x)=>`<option value="${esc(x)}">${esc(x)}</option>`).join("")}</select>
-    <select id="ps-browser-type"><option value="">TODOS LOS TIPOS</option>${facets.types.map((x)=>`<option value="${esc(x)}">${esc(x)}</option>`).join("")}</select>
-    <select id="ps-browser-effort"><option value="">TODO ESFUERZO</option>${facets.efforts.map((x)=>`<option value="${esc(x)}">${esc(x)}</option>`).join("")}</select>
-    <select id="ps-browser-res"><option value="">TODA RESISTENCIA</option>${facets.resistances.map((x)=>`<option value="${esc(x)}">${esc(x)}</option>`).join("")}</select>
-    <select id="ps-browser-media"><option value="">CUALQUIER MEDIA</option><option value="video">CON VÍDEO</option><option value="no_video">SIN VÍDEO</option></select>`;
+    <input id="ps-browser-q" placeholder="${esc(t("planning.catalog.searchPlaceholder"))}">
+    <select id="ps-browser-muscle"><option value="">${esc(t("planning.catalog.allMuscles"))}</option>${facets.muscles.map((x)=>`<option value="${esc(x)}">${esc(x)}</option>`).join("")}</select>
+    <select id="ps-browser-type"><option value="">${esc(t("planning.catalog.allTypes"))}</option>${facets.types.map((x)=>`<option value="${esc(x)}">${esc(x)}</option>`).join("")}</select>
+    <select id="ps-browser-effort"><option value="">${esc(t("planning.catalog.allEfforts"))}</option>${facets.efforts.map((x)=>`<option value="${esc(x)}">${esc(x)}</option>`).join("")}</select>
+    <select id="ps-browser-res"><option value="">${esc(t("planning.catalog.allResistance"))}</option>${facets.resistances.map((x)=>`<option value="${esc(x)}">${esc(x)}</option>`).join("")}</select>
+    <select id="ps-browser-media"><option value="">${esc(t("planning.catalog.anyMedia"))}</option><option value="video">${esc(t("planning.catalog.withVideo"))}</option><option value="no_video">${esc(t("planning.catalog.withoutVideo"))}</option></select>`;
   body.appendChild(filters);
   const out=el("section","planning-browser-results");
   body.appendChild(out);
@@ -397,7 +397,7 @@ async function exerciseBrowser(body,onBack){
     out.textContent="";
     found.forEach((x)=>{
       const row=el("article","planning-browser-row");
-      row.innerHTML=`<span><strong>${esc(x.nombre)}</strong><small>#${esc(x.pos)} · ${esc(x.grupo_muscular||"—")} · ${esc(x.tipo||"—")}</small></span><span><small>ESFUERZO</small><b>${esc((x.nivel_esfuerzo||[]).join(", ")||"—")}</b></span><span><small>RESISTENCIA</small><b>${esc((x.perfil_resistencia||[]).join(", ")||"—")}</b></span><span class="pill ${x.video_disponible_local?"gold":""}">${x.video_disponible_local?"VÍDEO":"SIN VÍDEO"}</span>`;
+      row.innerHTML=`<span><strong>${esc(x.nombre)}</strong><small>#${esc(x.pos)} · ${esc(x.grupo_muscular||"—")} · ${esc(x.tipo||"—")}</small></span><span><small>${esc(t("planning.catalog.effort"))}</small><b>${esc((x.nivel_esfuerzo||[]).join(", ")||"—")}</b></span><span><small>${esc(t("planning.catalog.resistance"))}</small><b>${esc((x.perfil_resistencia||[]).join(", ")||"—")}</b></span><span class="pill ${x.video_disponible_local?"gold":""}">${esc(t(x.video_disponible_local?"planning.catalog.video":"planning.catalog.noVideo"))}</span>`;
       out.appendChild(row);
     });
     if(!found.length)out.appendChild(el("div","planning-empty","Sin resultados."));
