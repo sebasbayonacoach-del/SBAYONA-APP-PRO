@@ -200,7 +200,7 @@ export function progressSnapshot(data={},nowKey=data.today?.date){
     photos:photoSummary(data.photos),
     period28:periodSummary(data,28,nowKey),
     timeline:lineaDelTiempo({
-      medidas,
+      medidas:measures,
       fotos:data.photos||[],
       history:data.history||[],
       journey:data.journey||[],
