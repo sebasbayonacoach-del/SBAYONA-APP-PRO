@@ -153,7 +153,7 @@ export function progressShareCandidates(data={}){
   }
   for(const day of hist.slice(-30)){
     if(day?.workouts>0)out.push({
-      kind:"workout",id:`workout:${day.date}`,title:"Sesión completada",
+      kind:"workout",id:`workout:${day.date}`,title:"community.progress.workoutTitle",
       subtitle:day.workoutDone||"Entrenamiento BAYONA",metric:`${day.sets||0} series`,
     });
     for(const pr of Array.isArray(day?.prPoints)?day.prPoints:[]){
