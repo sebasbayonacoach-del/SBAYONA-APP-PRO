@@ -15,7 +15,8 @@ import {
   normalizeWeeklyPlan, NUTRITION_FEELINGS,
 } from "./nutrition-calendar.js";
 import {
-  normalizeRecoveryConfig, normalizeRecoveryPractice, normalizeOtherActivity,
+  recoveryDefaults, normalizeRecoveryPreferences, normalizeActivePause,
+  normalizeRecoveryPractice, normalizeOtherActivity, wearableSnapshot,
 } from "./recovery-sleep.js";
 import {
   setReward, prReward, workoutCompleteReward, mealReward, waterReward,
@@ -282,7 +283,9 @@ export const S = {
     d.consents = d.consents || null; // espejo legado; la fuente vive en js/consents.js
     d.healthFlags = d.healthFlags || null;
     d.nutrition = nutritionDefaults(d.nutrition || {});
-    d.recovery = normalizeRecoveryConfig(d.recovery || {});
+    d.recovery = recoveryDefaults(d.recovery || {});
+    d.integrations = d.integrations && typeof d.integrations === "object" ? d.integrations : {};
+    d.integrations.health = wearableSnapshot(d.integrations);
     d.today.recoveryPractices = Array.isArray(d.today.recoveryPractices) ? d.today.recoveryPractices : [];
     d.today.otherActivities = Array.isArray(d.today.otherActivities) ? d.today.otherActivities : [];
     d.today.recoveryNote = typeof d.today.recoveryNote === "string" ? d.today.recoveryNote.slice(0, 240) : "";
@@ -349,7 +352,8 @@ export const S = {
       consents: null,
       healthFlags: null,
       nutrition: nutritionDefaults(),
-      recovery: normalizeRecoveryConfig(),
+      recovery: recoveryDefaults(),
+      integrations: { health: wearableSnapshot({}) },
       activeSession: null,
     };
     if (!silent) this.save();
@@ -587,24 +591,20 @@ export const S = {
   logStress(v) { return this._registro("stress", v, 0, 10, true); },
 
   setSleepSchedule(patch = {}) {
-    this.data.recovery = normalizeRecoveryConfig({
-      ...(this.data.recovery || {}),
-      sleepSchedule: {
-        ...(this.data.recovery?.sleepSchedule || {}),
-        ...(patch || {}),
-      },
+    this.data.recovery = recoveryDefaults(this.data.recovery || {});
+    this.data.recovery.preferences = normalizeRecoveryPreferences({
+      ...(this.data.recovery.preferences || {}),
+      ...(patch || {}),
     });
     this.save(); emit("recovery");
-    return this.data.recovery.sleepSchedule;
+    return this.data.recovery.preferences;
   },
 
   setActivePauseSchedule(patch = {}) {
-    this.data.recovery = normalizeRecoveryConfig({
-      ...(this.data.recovery || {}),
-      activePause: {
-        ...(this.data.recovery?.activePause || {}),
-        ...(patch || {}),
-      },
+    this.data.recovery = recoveryDefaults(this.data.recovery || {});
+    this.data.recovery.activePause = normalizeActivePause({
+      ...(this.data.recovery.activePause || {}),
+      ...(patch || {}),
     });
     this.save(); emit("recovery");
     return this.data.recovery.activePause;
@@ -634,6 +634,7 @@ export const S = {
     const rec = normalizeRecoveryPractice(input);
     this.data.today.recoveryPractices = Array.isArray(this.data.today.recoveryPractices)
       ? this.data.today.recoveryPractices : [];
+    if (!rec) return null;
     this.data.today.recoveryPractices.push(rec);
     this.data.today.recoveryPractices = this.data.today.recoveryPractices.slice(-20);
     this.save(); emit("today");
@@ -644,6 +645,7 @@ export const S = {
     const rec = normalizeOtherActivity(input);
     this.data.today.otherActivities = Array.isArray(this.data.today.otherActivities)
       ? this.data.today.otherActivities : [];
+    if (!rec) return null;
     this.data.today.otherActivities.push(rec);
     this.data.today.otherActivities = this.data.today.otherActivities.slice(-20);
     this.save(); emit("today");
@@ -658,12 +660,17 @@ export const S = {
 
   /** Solo para una integración verificada: nunca se marca conectado desde la UI por sí sola. */
   setWearableState(input = {}) {
-    this.data.recovery = normalizeRecoveryConfig({
-      ...(this.data.recovery || {}),
-      wearable: input,
-    });
+    const snap = wearableSnapshot({ health: input });
+    this.data.integrations = this.data.integrations && typeof this.data.integrations === "object"
+      ? this.data.integrations : {};
+    this.data.integrations.health = {
+      connected: snap.connected,
+      provider: snap.provider,
+      lastSyncAt: snap.lastSyncAt,
+      metrics: { ...snap.metrics },
+    };
     this.save(); emit("recovery");
-    return this.data.recovery.wearable;
+    return this.data.integrations.health;
   },
 
   /** Escala 0-10 redondeada; fuera de rango o no numérico → se ignora. */
