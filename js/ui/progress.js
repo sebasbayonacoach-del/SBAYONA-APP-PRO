@@ -459,10 +459,13 @@ function svgFuerza(rows) {
   const svg = el("div");
   svg.innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:112px" role="img" aria-label="Progreso de 1RM estimado por ejercicio">${g}</svg>`;
   wrap.appendChild(svg);
+  const canProject = hasFeature(planFromProfile(S.data.profile), "progress.advanced");
   f.forEach((ex, k) => {
     const last = ex.puntos[ex.puntos.length - 1];
     const cur = S.data.prs[ex.ejercicio];
-    const proj = project1RM(ex.ejercicio, Math.round(((cur?.e1 || last.e1RM) * 1.15) / 5) * 5);
+    const proj = canProject
+      ? project1RM(ex.ejercicio, Math.round(((cur?.e1 || last.e1RM) * 1.15) / 5) * 5)
+      : null;
     wrap.appendChild(el("div", "sub", `<span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${COLORS[k]};margin-right:6px"></span>${esc(EXERCISES[ex.ejercicio]?.name || ex.ejercicio)} · ${esc(last.e1RM)} kg e1RM${proj ? ` · proyección +${esc(proj.rate)} kg/sem (~${esc(proj.weeks)} sem)` : ""}`));
   });
   return wrap;
