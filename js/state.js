@@ -10,6 +10,7 @@ import { profileWeek, personalizeWorkout } from "./personalization.js";
 import { deleteCycle, readCycle } from "./cycle.js";
 import { resetConsents } from "./consents.js";
 import { defaultProgressReviewAt } from "./hub.js";
+import { validateProgram } from "./coach-lab.js";
 import {
   setReward, prReward, workoutCompleteReward, mealReward, waterReward,
   stepsReward, mindReward, mobilityReward, healthMapReward, missionReward,
@@ -18,7 +19,7 @@ import {
 import { respaldar, guardarSeguro, recuperar } from "./backup.js";
 
 const KEY = "bayona.save.v2";
-export const SCHEMA = 5;
+export const SCHEMA = 6;
 
 /**
  * Recompensa por nivel. Vive fuera del objeto S y en orden: se recorre
@@ -262,6 +263,7 @@ export const S = {
     d.medidas = Array.isArray(d.medidas) ? d.medidas : [];
     d.asignaciones = Array.isArray(d.asignaciones) ? d.asignaciones : [];
     d.customRoutines = Array.isArray(d.customRoutines) ? d.customRoutines : [];
+    d.coachPrograms = Array.isArray(d.coachPrograms) ? d.coachPrograms : [];
     d.diary = Array.isArray(d.diary) ? d.diary : [];
     d.photos = Array.isArray(d.photos) ? d.photos : [];
     d.phygital = d.phygital || { redeemed: [], audit: [] };
@@ -323,6 +325,7 @@ export const S = {
       medidas: [],
       asignaciones: [],
       customRoutines: [],
+      coachPrograms: [],
       phygital: { redeemed: [], audit: [] },
       consents: null,
       healthFlags: null,
@@ -698,6 +701,35 @@ export const S = {
     return rec;
   },
   customRoutine(id) { return (this.data.customRoutines || []).find((x) => x.id === id) || null; },
+  coachProgramsList(clientId = null) {
+    const list = Array.isArray(this.data.coachPrograms) ? this.data.coachPrograms : [];
+    return clientId ? list.filter((x) => x.clientId === clientId) : [...list];
+  },
+  coachProgram(id) {
+    return (this.data.coachPrograms || []).find((x) => x.id === id) || null;
+  },
+  saveCoachProgram(program) {
+    const check = validateProgram(program);
+    if (!check.ok) return { ok:false, errors:check.errors };
+    this.data.coachPrograms = Array.isArray(this.data.coachPrograms) ? this.data.coachPrograms : [];
+    const copy = structuredClone(program);
+    copy.updatedAt = new Date().toISOString();
+    const index = this.data.coachPrograms.findIndex((x) => x.id === copy.id);
+    if (index >= 0) this.data.coachPrograms[index] = copy;
+    else this.data.coachPrograms.push(copy);
+    if (this.data.coachPrograms.length > 120) this.data.coachPrograms = this.data.coachPrograms.slice(-120);
+    this.save();
+    emit("coach-programs", { id:copy.id, clientId:copy.clientId });
+    return { ok:true, program:copy };
+  },
+  deleteCoachProgram(id) {
+    const before = (this.data.coachPrograms || []).length;
+    this.data.coachPrograms = (this.data.coachPrograms || []).filter((x) => x.id !== id);
+    if (this.data.coachPrograms.length === before) return false;
+    this.save();
+    emit("coach-programs", { id, deleted:true });
+    return true;
+  },
   customRoutinesList() { return [...(this.data.customRoutines || [])]; },
   deleteCustomRoutine(id) {
     const before = (this.data.customRoutines || []).length;
