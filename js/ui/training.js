@@ -139,7 +139,7 @@ async function recordExerciseVideo(exKey) {
         };
         recorder.start(250);
         startedAt=Date.now();
-        status.textContent="● GRABANDO · toca para detener";
+        status.textContent=t("session.video.recording");
         toggle.textContent=t("session.video.stop");
         timer=setTimeout(()=>{if(recorder?.state==="recording")recorder.stop();},MAX_RECORDING_MS);
       };
