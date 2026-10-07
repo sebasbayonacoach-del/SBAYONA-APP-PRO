@@ -4,11 +4,11 @@
 // Con esto la app abre sin red y el registro de series funciona offline
 // (los datos viven en el dispositivo y se sincronizan después).
 // ============================================================
-const CACHE = "bayona-shell-v32";
+const CACHE = "bayona-shell-v33";
 const SHELL = [
   "./css/pro.css",
   "./css/luxe.css",
-  "./js/ui/landing.js", "./js/ui/landing-boot.js", "./js/app-loader.js",
+  "./js/ui/landing.js", "./js/ui/landing-boot.js", "./js/app-loader.js", "./js/theme.js", "./js/entitlements.js",
   "./js/gym/model.js", "./js/gym/store.js", "./js/gym/acceso.js", "./js/gym/informes.js", "./js/gym/pagos.js",
   "./js/ui/centro.js", "./js/ui/cuotas.js", "./js/ui/agenda.js",
   "./js/ui/acceso.js",  "./js/ui/portal.js", "./js/ui/informes.js",
@@ -31,7 +31,7 @@ const SHELL = [
   "./js/ui/shared.js", "./js/ui/one.js", "./js/ui/affiliate-v12.js", "./js/ui/cinematics.js", "./js/ui/training.js", "./js/ui/proplayer-library.js", "./trainingym/catalog.json", "./js/ui/nutrition.js",
   "./js/ui/recovery.js", "./js/ui/mind.js", "./js/ui/plan.js", "./js/ui/armory.js",
   "./js/ui/progress.js", "./js/ui/core.js", "./js/ui/more.js",
-  "./js/ui/hoy.js", "./js/ui/trabajo.js", "./js/ui/coachos.js", "./js/ui/appearance.js", "./js/ui/motion.js",
+  "./js/ui/hoy.js", "./js/ui/trabajo.js", "./js/ui/coachos.js", "./js/ui/appearance.js", "./js/ui/first-run-tour.js", "./js/ui/motion.js",
   "./js/sync/account.js", "./js/hoy.js", "./js/contexto.js", "./js/coachos.js", "./js/medidas.js",
   "./js/timeline.js", "./js/nutricion.js", "./js/sync/mirror.js",
   "./js/coach/coachStub.js", "./js/coach/replies.js", "./js/seguridad-guion.js", "./js/data/offlineQueue.js",
