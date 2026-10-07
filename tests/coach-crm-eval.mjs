@@ -11,6 +11,7 @@ console.log("\n📇 COACH CRM · DOMINIO\n");
 
 ok(normalizeCrmClient({name:" Ana "})?.name==="Ana","cliente se normaliza");
 ok(normalizeCrmClient({name:""})===null,"cliente sin nombre se rechaza");
+ok(normalizeCrmClient({id:"local1",cloudId:"cloud-1",linkedUserId:"user-1",name:"Ana"})?.cloudId==="cloud-1","cliente conserva id nube separado del local");
 
 const ap=normalizeAppointment({id:"a1",clientId:"c1",startAt:"2026-10-07T17:00:00+02:00",durationMin:45,kind:"session"});
 ok(ap?.durationMin===45&&ap.status==="scheduled","cita estructurada");
