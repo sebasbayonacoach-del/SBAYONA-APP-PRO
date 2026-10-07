@@ -31,7 +31,10 @@ export function progressReviewStatus(profile = {}, now = new Date()) {
   const next = validDate(profile.nextProgressReviewAt);
   if (!next) return { status:"unscheduled", nextAt:null, days:null };
   const today = validDate(now) || new Date();
-  const diff = Math.ceil((next.getTime() - today.getTime()) / 864e5);
+  // Una revisión es una fecha de calendario. Medir milisegundos rompe al
+  // cruzar horario de verano/invierno (28 días pueden parecer 29 o 27).
+  const calendarDay = (d) => Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 864e5;
+  const diff = calendarDay(next) - calendarDay(today);
   return {
     status: diff < 0 ? "overdue" : diff === 0 ? "today" : "scheduled",
     nextAt: next.toISOString(),
