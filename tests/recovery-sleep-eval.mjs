@@ -1,7 +1,7 @@
 import { strict as assert } from "node:assert";
 import {
   NIGHT_STEPS,normalizeRecoveryPreferences,recoveryDefaults,sleepWindowDuration,
-  sleepTimeline,nextSleepEvent,normalizeOtherActivity,normalizeRecoveryPractice,
+  sleepRecordFromTimes,sleepTimeline,nextSleepEvent,normalizeOtherActivity,normalizeRecoveryPractice,
   wearableSnapshot,recoveryTrend,recoverySnapshot,
 } from "../js/recovery-sleep.js";
 
@@ -17,6 +17,9 @@ const prefs=normalizeRecoveryPreferences({
 ok(prefs.configured&&prefs.windDownMin===60,"horario personal se normaliza");
 ok(sleepWindowDuration("23:15","07:15")===8,"ventana nocturna cruza medianoche");
 ok(sleepWindowDuration("bad","07:15")===null,"horario inválido no se inventa");
+const sleepRec=sleepRecordFromTimes("2026-10-07","23:15","06:45");
+ok(sleepRec?.hours===7.5,"registro real cruza medianoche y calcula duración");
+ok(sleepRecordFromTimes("2026-10-07","99:00","07:00")===null,"registro con hora inválida se rechaza");
 
 const tl=sleepTimeline(prefs);
 ok(tl.length===3&&tl[0].time==="22:15"&&tl[2].time==="07:15","timeline calcula desaceleración y despertar");
