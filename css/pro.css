@@ -8,7 +8,7 @@
 
    LOS CINCO MOTIVOS (verificados en tests/pro-ui-eval.mjs)
    ─────────────────────────────────────────────────────────────
-   1 · NEUTRO. Fuera el naranja. El acento es el propio tinta
+   1 · MARCA. Negro profundo + naranja BAYONA. La acción principal usa
      (negro): botones negros sobre papel, como en el software que
      la gente usa ocho horas al día. El color SOLO informa:
      verde = va bien, ámbar = ojo, rojo = para.
@@ -6073,4 +6073,231 @@ html[data-surface-theme="light"] body.fitness-app .fit-session-level>span{
   .fit-set-media{align-items:stretch;flex-direction:column}.fit-set-media>span{text-align:left}
   .fit-session-close-stats{grid-template-columns:1fr}
   .fit-session-level{grid-template-columns:1fr 1fr}
+}
+
+
+/* ============================================================
+   39 · BRAND SYSTEM · paridad exacta con SBAYONA-WEB-PRO
+   Noche usa los tokens literales de la web. Día es la adaptación
+   accesible del producto, manteniendo el mismo naranja BAYONA.
+   ============================================================ */
+:root{
+  --brand-black:#050505;
+  --brand-black-2:#0c0c0d;
+  --brand-black-3:#141416;
+  --brand-white:#ffffff;
+  --brand-muted:#c4c4c4;
+  --brand-gray:#949494;
+  --brand-orange:#f4a261;
+  --brand-orange-fire:#e76f51;
+  --brand-orange-deep:#d45d38;
+  --brand-orange-dark:#ffc08a;
+  --brand-orange-light:#9c4f1f;
+}
+
+html[data-surface-theme="dark"] body.fitness-app,
+html[data-mode="noche"] body.fitness-app{
+  --fit-bg:var(--brand-black);
+  --fit-surface:var(--brand-black-2);
+  --fit-ink:var(--brand-white);
+  --fit-muted:var(--brand-muted);
+  --fit-line:#262629;
+  --fit-dark:var(--brand-black);
+  --fit-accent:var(--brand-orange);
+
+  --paper:var(--brand-black);
+  --paper-2:var(--brand-black-2);
+  --panel:var(--brand-black-2);
+  --ink:var(--brand-white);
+  --ink-soft:var(--brand-muted);
+  --mute:var(--brand-gray);
+  --hair:#262629;
+  --hair-strong:#3a3a3e;
+  --orange:var(--brand-orange);
+  --acc-2:var(--brand-orange);
+  --acc-ink:var(--brand-black);
+
+  --one-coach-bg:var(--brand-black);
+  --one-coach-surface:var(--brand-black-2);
+  --one-coach-surface-2:var(--brand-black-3);
+  --one-coach-line:#2b2b2f;
+  --one-coach-ink:var(--brand-white);
+  --one-coach-muted:var(--brand-muted);
+
+  --danger:#f28b82;
+  --ok:#70c996;
+  --warn:#f0b45b;
+  --pro-radius:0px;
+  color-scheme:dark;
+  background:var(--brand-black);
+  color:var(--brand-white);
+}
+
+html[data-surface-theme="light"] body.fitness-app{
+  --fit-bg:#f7f3ec;
+  --fit-surface:#ffffff;
+  --fit-ink:#111111;
+  --fit-muted:#665f58;
+  --fit-line:#ddd5ca;
+  --fit-dark:#111111;
+  --fit-accent:var(--brand-orange);
+
+  --paper:#f7f3ec;
+  --paper-2:#ffffff;
+  --panel:#ffffff;
+  --ink:#111111;
+  --ink-soft:#665f58;
+  --mute:#81766c;
+  --hair:#ddd5ca;
+  --hair-strong:#bfb4a7;
+  --orange:var(--brand-orange);
+  --acc-2:var(--brand-orange);
+  --acc-ink:var(--brand-black);
+
+  --one-coach-bg:#f7f3ec;
+  --one-coach-surface:#ffffff;
+  --one-coach-surface-2:#efe8de;
+  --one-coach-line:#ddd5ca;
+  --one-coach-ink:#111111;
+  --one-coach-muted:#665f58;
+
+  --danger:#a72a23;
+  --ok:#17683d;
+  --warn:#845300;
+  --pro-radius:0px;
+  color-scheme:light;
+  background:#f7f3ec;
+  color:#111111;
+}
+
+/* Marca: controles planos, geometría recta, naranja como acción. */
+body.fitness-app :focus-visible{
+  outline-color:var(--brand-orange)!important;
+}
+body.fitness-app .card,
+body.fitness-app .dash-card,
+body.fitness-app .stat-cell,
+body.fitness-app .metric,
+body.fitness-app .fit-room,
+body.fitness-app .fit-session-card,
+body.fitness-app .fit-technique,
+body.fitness-app .fit-hub-identity,
+body.fitness-app .fit-hub-spatial,
+body.fitness-app .fit-hub-review,
+body.fitness-app .fit-hub-coach,
+body.fitness-app .fit-hub-journey,
+body.fitness-app .fit-hub-history,
+body.fitness-app .fit-live-phase,
+body.fitness-app .fit-session-close,
+body.fitness-app .entitlement-preview{
+  border-radius:0!important;
+}
+body.fitness-app .btn,
+body.fitness-app .opt,
+body.fitness-app .quickq button,
+body.fitness-app #mode-chip,
+body.fitness-app input:not([type="checkbox"]):not([type="range"]),
+body.fitness-app select,
+body.fitness-app textarea,
+body.fitness-app .pill{
+  border-radius:0!important;
+}
+
+body.fitness-app .btn-primary,
+body.fitness-app .btn-gold{
+  background:var(--brand-orange)!important;
+  border-color:var(--brand-orange)!important;
+  color:var(--brand-black)!important;
+  font-weight:700;
+}
+body.fitness-app .btn-primary:hover,
+body.fitness-app .btn-gold:hover{
+  background:var(--brand-orange-fire)!important;
+  border-color:var(--brand-orange-fire)!important;
+  color:var(--brand-black)!important;
+}
+body.fitness-app .btn-ghost{
+  border-color:var(--hair-strong);
+  color:var(--fit-ink);
+}
+body.fitness-app .pill.gold,
+body.fitness-app .fit-hub-person small,
+body.fitness-app .fit-hub-coach small,
+body.fitness-app .fit-live-phase small,
+body.fitness-app .fit-session-summary-person small,
+body.fitness-app .fit-session-level i,
+body.fitness-app .entitlement-kicker{
+  color:var(--brand-orange-dark);
+}
+html[data-surface-theme="light"] body.fitness-app .pill.gold,
+html[data-surface-theme="light"] body.fitness-app .fit-hub-person small,
+html[data-surface-theme="light"] body.fitness-app .fit-hub-coach small,
+html[data-surface-theme="light"] body.fitness-app .fit-live-phase small,
+html[data-surface-theme="light"] body.fitness-app .fit-session-summary-person small,
+html[data-surface-theme="light"] body.fitness-app .fit-session-level i,
+html[data-surface-theme="light"] body.fitness-app .entitlement-kicker{
+  color:var(--brand-orange-light);
+}
+
+body.fitness-app #panel-nav .rail-btn.active::before,
+body.fitness-app .xpbar i,
+body.fitness-app .m-bar i,
+body.fitness-app .mbar i,
+body.fitness-app .fit-session-progress i,
+body.fitness-app .fit-hub-xp>i>em,
+body.fitness-app .fit-session-xp>i>em,
+body.fitness-app .fit-live-phase>i>em{
+  background:var(--brand-orange)!important;
+}
+body.fitness-app .wallet .bp,
+body.fitness-app .wallet .cr,
+body.fitness-app .wallet .cur{
+  color:var(--brand-orange-dark);
+}
+html[data-surface-theme="light"] body.fitness-app .wallet .bp,
+html[data-surface-theme="light"] body.fitness-app .wallet .cr,
+html[data-surface-theme="light"] body.fitness-app .wallet .cur{
+  color:var(--brand-orange-light);
+}
+
+/* Entrada, HUD y sesión: mismo contraste de la web. */
+html[data-surface-theme="dark"] body.fitness-app #topbar,
+html[data-surface-theme="dark"] body.fitness-app #panel-nav,
+html[data-surface-theme="dark"] body.fitness-app #drawer,
+html[data-surface-theme="dark"] body.fitness-app .drawer-head,
+html[data-surface-theme="dark"] body.fitness-app #panel-foot{
+  background:var(--brand-black-2)!important;
+  border-color:#262629!important;
+}
+html[data-surface-theme="dark"] body.fitness-app #scene-wrap{
+  background:var(--brand-black)!important;
+}
+html[data-surface-theme="dark"] body.fitness-app #entry{
+  background:
+    radial-gradient(circle at 18% 18%,rgba(244,162,97,.12),transparent 34%),
+    radial-gradient(circle at 86% 82%,rgba(231,111,81,.06),transparent 34%),
+    var(--brand-black)!important;
+}
+html[data-surface-theme="dark"] body.fitness-app #entry .e-app-shell,
+html[data-surface-theme="dark"] body.fitness-app #entry .e-role-card,
+html[data-surface-theme="dark"] body.fitness-app #entry .e-system-pills span,
+html[data-surface-theme="dark"] body.fitness-app #entry .e-quick-resume{
+  border-color:#2c2c30!important;
+  background:var(--brand-black-2)!important;
+}
+html[data-surface-theme="dark"] body.fitness-app #entry .e-role-dashboard{
+  border-color:#2c2c30!important;
+  background:
+    radial-gradient(circle at 50% 25%,rgba(244,162,97,.10),transparent 38%),
+    var(--brand-black-3)!important;
+}
+
+/* La geometría física del personaje/foto sigue siendo circular. */
+body.fitness-app .fit-hub-avatar,
+body.fitness-app .fit-hub-coach-mark,
+body.fitness-app .fit-demo-avatar,
+body.fitness-app .profile-v2-avatar,
+body.fitness-app .fit-session-summary-person>img,
+body.fitness-app .fit-session-summary-person>span{
+  border-radius:50%!important;
 }
