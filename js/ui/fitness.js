@@ -111,8 +111,11 @@ function hubWorldFocus(key){
   document.body.dataset.hubFocus=key;
   document.querySelectorAll('[data-hub-space]').forEach((n)=>n.classList.toggle('active',n.dataset.hubSpace===key));
   if(!UI.W)return;
-  UI.W.setCameraGoal?.(preset.cam,preset.tgt);
-  UI.W.avatar?.setAction?.(preset.action);
+  if (UI.W.goTo) UI.W.goTo(preset.env||'home',{avatarAction:preset.action,camPos:preset.cam,camTarget:preset.tgt});
+  else {
+    UI.W.setCameraGoal?.(preset.cam,preset.tgt);
+    UI.W.avatar?.setAction?.(preset.action);
+  }
 }
 
 function hubIdentity(snapshot,profile){
