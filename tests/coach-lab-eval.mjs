@@ -22,7 +22,7 @@ const rows=[
 ];
 let found=searchExercises(rows,{q:"p"});
 ok(found.length===4,"una sola letra devuelve todas las coincidencias");
-ok(found[0].nombre==="Peso muerto"&&found[1].nombre==="Press banca"&&found[2].nombre==="Puente de glúteo","empieza por nombre antes de coincidencias secundarias");
+ok(found[0].nombre==="Peso muerto"&&found[1].nombre==="Puente de glúteo"&&found[2].nombre==="Press banca","empates por prefijo respetan la posición estable del catálogo");
 found=searchExercises(rows,{q:"pecho"});
 ok(found.length===2&&found[0].nombre==="Press banca","nombre pesa más que grupo muscular");
 found=searchExercises(rows,{q:"p",type:"Movilidad"});
