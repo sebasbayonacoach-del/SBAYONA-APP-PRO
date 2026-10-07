@@ -108,7 +108,7 @@ function matchesFilter(record,filters={}) {
 
 export function searchExercises(records=[],filters={},limit=300) {
   const q=normalizeCoachText(filters.q||"");
-  const max=Math.max(1,Math.min(1000,Number(limit)||300));
+  const max=Math.max(1,Math.min(5000,Number(limit)||300));
   return arr(records)
     .map((record,index)=>({record,index,score:q?queryScore(record,q):0}))
     .filter((x)=>x.score>=0 && matchesFilter(x.record,filters))
