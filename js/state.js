@@ -117,6 +117,7 @@ function freshToday() {
     soreness: null,           // 0-10 — null = sin registrar
     energy: null,             // 0-10 — null = sin registrar
     stress: null,             // 0-10 — null = sin registrar
+    nutritionFeeling: null,   // contexto de comida — null = sin registrar
     workoutDone: null,
     xpGained: 0,
     missionKeys: [],       // idempotencia: misiones del día YA reclamadas
