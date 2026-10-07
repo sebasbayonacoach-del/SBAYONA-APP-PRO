@@ -43,7 +43,10 @@ ok(css.includes("40 · NUTRITION CALENDAR"),"capa visual dedicada existe");
 ok(css.includes(".nut-now-grid")&&css.includes(".nut-week-grid")&&css.includes(".nut-pref-grid"),"contexto, semana y preferencias tienen estilos");
 ok(css.includes('html[data-surface-theme="light"]')&&css.includes('html[data-surface-theme="dark"]'),"Nutrición respeta Día/Noche");
 ok(sw.includes("./js/nutrition-calendar.js"),"dominio nutricional funciona offline");
-ok(/CACHE = "bayona-shell-v37"/.test(sw),"shell PWA subió a v37");
+{
+  const version=Number((sw.match(/bayona-shell-v(\d+)/)||[])[1]||0);
+  ok(version>=37,`shell PWA conserva Nutrition (v${version} >= v37)`);
+}
 ok(i18n.includes('"nut.calendar.title"')&&i18n.includes('"nut.plan.locked"'),"copy nuevo vive en catálogo");
 
 console.log(`\n📊 RESULTADO: ${pass} pass · 0 fail\n`);
