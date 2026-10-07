@@ -296,7 +296,7 @@ Capturas:
 npm test
 
 Criterio:
-44 suites previas siguen verdes + nuevas suites.
+46 suites previas siguen verdes + nuevas suites.
 
 ---
 
