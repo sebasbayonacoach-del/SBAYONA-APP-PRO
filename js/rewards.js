@@ -9,7 +9,7 @@
 export const RULES = {
   set: { base: 8, perRep: 4, perSecond: 0.4, cap: 120, tech: { high: 90, highXP: 6, ok: 75, okXP: 3 } },
   pr: { xp: 350, points: 60, skill: "strength", skillGain: 2 },
-  workout: { base: 120, perMin: 4, pointsBase: 180, pointsPerMin: 4 },
+  workout: { base: 120, perMin: 4, pointsBase: 180, pointsPerMin: 4, fitcoins: 20 },
   meal: { xp: 15, skill: "discipline" },
   water: { xp: 8, skill: "recovery" },
   steps: { perStepDiv: 12, skill: "cardio" },
@@ -83,7 +83,7 @@ export function workoutCompleteReward({ minutes = 30, loggedSets = 0, plannedSet
   const points = R.pointsBase + Math.round(minutes * R.pointsPerMin);
   const partial = plannedSets > 0 && loggedSets < plannedSets;
   return {
-    xp, points, skill: "discipline", skillGain: 1,
+    xp, points, fitcoins: R.fitcoins, skill: "discipline", skillGain: 1,
     text: partial
       ? `Sesión cerrada antes de tiempo: ${loggedSets}/${plannedSets} series · se guarda lo registrado`
       : `Sesión completada · ${loggedSets} series`,
