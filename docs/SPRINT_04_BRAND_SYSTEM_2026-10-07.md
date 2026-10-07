@@ -85,6 +85,6 @@ Nuevas suites:
 - `tests/brand-eval.mjs`
 - `tests/brand-ui-eval.mjs`
 
-Suite total esperada: **56 suites**.
+Suite total esperada: **59 suites**.
 
 Merge únicamente con `bateria` y `ci` verdes.
