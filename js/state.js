@@ -754,6 +754,9 @@ export const S = {
    * El bono es SOLO de finalización (las series ya se premiaron al registrarse).
    */
   completeWorkout(workoutId, { loggedSets = 0, plannedSets = 0, minutes = null } = {}) {
+    if (plannedSets > 0 && loggedSets < plannedSets) {
+      return this.closePartialWorkout(workoutId, { loggedSets, plannedSets, minutes });
+    }
     const t = this.data.today;
     if (t.workoutDone === workoutId) return null; // sin dobles recompensas
     t.trained = true;
