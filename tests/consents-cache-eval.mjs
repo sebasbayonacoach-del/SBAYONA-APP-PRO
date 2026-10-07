@@ -20,5 +20,10 @@ setConsent('vision', true);
 }
 resetConsents();
 
+setConsent('recordings', true);
+assert(isGranted('recordings') === true, 'grabación local tiene consentimiento separado');
+resetConsents();
+assert(isGranted('recordings') === false, 'borrado de consentimientos revoca grabación local');
+
 console.log(`\n  → ${pass} ok, ${fail} fallos`);
 process.exit(fail ? 1 : 0);
