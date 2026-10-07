@@ -159,11 +159,11 @@ Nuevas suites:
 - `tests/planning-studio-ui-eval.mjs`;
 - `tests/planning-catalog-eval.mjs`.
 
-Suite total: **70 suites**.
+Suite total: **75 suites**.
 
 Validación local:
 
-- 70/70 suites verdes;
+- 70/75 suites verdes;
 - golden biomecánica verde;
 - catálogo real verificado;
 - búsqueda multi-token verificada;

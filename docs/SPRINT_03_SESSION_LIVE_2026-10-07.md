@@ -69,6 +69,6 @@ Nuevas suites:
 - `tests/media-vault-eval.mjs`
 - `tests/session-live-ui-eval.mjs`
 
-Suite total esperada: **70 suites**.
+Suite total esperada: **75 suites**.
 
 Merge permitido únicamente con `bateria` y `ci` verdes.
