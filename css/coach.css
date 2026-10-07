@@ -256,3 +256,133 @@
   .coach-log { max-height: min(62vh, 720px); }
   .coach-bub { max-width: 78%; }
 }
+
+
+/* ============================================================
+   COACH MEMORY · origen, evidencia y propuestas explícitas
+   ============================================================ */
+.coach-memory{
+  display:grid;
+  gap:8px;
+  margin:0 0 16px;
+  padding:11px 12px;
+  border:1px solid var(--hair);
+  background:var(--paper-2);
+}
+.coach-memory-head{display:grid;gap:4px}
+.coach-memory-head small{
+  color:var(--acc-2);
+  font:800 9px/1 var(--mono2);
+  letter-spacing:.13em;
+}
+.coach-memory-head span{
+  color:var(--ink-mute);
+  font:500 11px/1.45 var(--sans);
+}
+.coach-memory-list{display:grid;gap:5px}
+.coach-memory-row{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr);
+  gap:4px 8px;
+  align-items:start;
+  padding:8px;
+  border:1px solid var(--hair);
+  background:var(--paper);
+}
+.coach-memory-row strong{
+  color:var(--ink);
+  font:600 11px/1.35 var(--sans);
+}
+.coach-memory-row>small{
+  grid-column:2;
+  color:var(--ink-mute);
+  font:500 9px/1.35 var(--sans);
+}
+.coach-memory-basis{
+  display:inline-flex;
+  width:max-content;
+  padding:4px 5px;
+  border:1px solid var(--hair-strong);
+  font:800 7px/1 var(--mono2);
+  letter-spacing:.07em;
+  color:var(--ink-mute);
+}
+.coach-memory-basis.registered{
+  border-color:color-mix(in srgb,var(--ok) 56%,var(--hair));
+  color:var(--ok);
+}
+.coach-memory-basis.derived{
+  border-color:color-mix(in srgb,var(--acc-2) 60%,var(--hair));
+  color:var(--acc-2);
+}
+.coach-memory-basis.coach{
+  border-color:var(--hair-strong);
+  color:var(--ink);
+}
+.coach-memory-empty{
+  padding:9px;
+  border:1px dashed var(--hair);
+  color:var(--ink-mute);
+  font:500 10px/1.45 var(--sans);
+}
+
+.coach-proposal-status{
+  display:inline-flex;
+  width:max-content;
+  margin-top:7px;
+  padding:4px 6px;
+  border:1px solid var(--hair-strong);
+  color:var(--ink-mute);
+  font:800 7px/1 var(--mono2);
+  letter-spacing:.08em;
+}
+.coach-proposal-status.pending{
+  border-color:var(--acc-2);
+  color:var(--acc-2);
+}
+.coach-proposal-status.applied{
+  border-color:var(--ok);
+  color:var(--ok);
+}
+.coach-proposal-status.rejected{
+  border-color:var(--danger);
+  color:var(--danger);
+}
+
+.coach-evidence{
+  display:grid;
+  gap:5px;
+  margin-top:9px;
+  padding-top:8px;
+  border-top:1px solid var(--hair);
+}
+.coach-evidence>small{
+  color:var(--ink-mute);
+  font:800 7px/1 var(--mono2);
+  letter-spacing:.1em;
+}
+.coach-evidence-row{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr);
+  gap:7px;
+  align-items:center;
+}
+.coach-evidence-row strong{
+  color:var(--ink-soft);
+  font:550 10px/1.35 var(--sans);
+}
+.coach-memory,
+.coach-memory-row,
+.coach-memory-basis,
+.coach-memory-empty,
+.coach-proposal-status,
+.coach-evidence-row{
+  border-radius:0!important;
+}
+
+@media(max-width:520px){
+  .coach-memory{padding:9px}
+  .coach-memory-row{grid-template-columns:1fr}
+  .coach-memory-row>small{grid-column:1}
+  .coach-evidence-row{grid-template-columns:1fr}
+}
