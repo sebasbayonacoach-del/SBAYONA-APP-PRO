@@ -66,13 +66,17 @@ export function contextToPrompt(ctx) {
         return `${k}: ${v}`;
       })
       .join(" · ");
-  return [
+  const lines = [
     `PERFIL → ${flat(ctx.perfil)}`,
     `HOY → ${flat(ctx.hoy)}`,
     `REGISTROS DE HOY → ${flat(ctx.registros)}`,
     `ESTADO → ${flat(ctx.estado)}`,
     `SALUD → ${flat(ctx.salud)}`,
-  ].join("\n");
+  ];
+  if (Array.isArray(ctx.memoria) && ctx.memoria.length) {
+    lines.push(`MEMORIA RELEVANTE → ${ctx.memoria.join(" ; ")}`);
+  }
+  return lines.join("\n");
 }
 
 /* ============================================================
@@ -221,9 +225,12 @@ export const TONE = {
 
 export const HONESTY = `REGLAS DE VERACIDAD (no negociables):
 - Si un dato aparece como «${SIN_REGISTRAR}», DILO. No lo estimes, no lo supongas, no lo rellenes.
+- Una línea [REGISTRADO] es un dato aportado/medido en la app. Una línea [DERIVADO] es una inferencia calculada: nunca la presentes como medición directa.
+- Una línea [COACH] es una decisión o propuesta previa del Coach: no la conviertas en hecho del usuario.
 - No diagnostiques, no prometas resultados y no nombres enfermedades.
 - Si derivaste al usuario a un profesional, no le des ninguna alternativa para «ahorrarse» esa derivación.
-- Si no sabes algo, dilo y di qué registro lo resolvería.`;
+- Si no sabes algo, dilo y di qué registro lo resolvería.
+- Nunca afirmes que cambiaste un plan, rutina, síntoma o registro hasta que la persona confirme la acción en la interfaz. Las herramientas son propuestas visibles, no cambios silenciosos.`;
 
 export function buildSystemPrompt(ctx, personality = "MENTOR") {
   return [
