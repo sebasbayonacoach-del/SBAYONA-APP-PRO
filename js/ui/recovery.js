@@ -19,6 +19,11 @@ const NIGHT_LABELS={
   respiracion:"RESPIRACIÓN",
   hora:"HORA DE DORMIR DECIDIDA",
 };
+const ACTIVITY_KEY={
+  easy:"recovery.activity.easy",
+  moderate:"recovery.activity.moderate",
+  hard:"recovery.activity.hard",
+};
 const PRACTICE_KEY={
   walk:"recovery.practice.walk",
   mobility:"recovery.practice.mobility",
@@ -291,7 +296,7 @@ function activitiesCard(snap){
   const list=card.querySelector(".recovery-log-list");
   if(!snap.today.otherActivities.length)list.appendChild(el("div","recovery-empty",esc(t("recovery.activity.empty"))));
   snap.today.otherActivities.slice(-5).reverse().forEach((x)=>{
-    list.appendChild(el("div","recovery-log-row",`<span>${esc(x.name)}</span><strong>${x.minutes} min</strong><small>${esc(t("recovery.activity."+x.intensity))}</small>`));
+    list.appendChild(el("div","recovery-log-row",`<span>${esc(x.name)}</span><strong>${x.minutes} min</strong><small>${esc(t(ACTIVITY_KEY[x.intensity]||"recovery.activity.moderate"))}</small>`));
   });
   card.querySelector("[data-act-add]").onclick=addActivity;
   return card;
