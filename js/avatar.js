@@ -398,9 +398,9 @@ export class Avatar {
     this.clearEquip();
     const B = this.bones;
     this.styleInfo = {
-      top: equipped.top && itemsById[equipped.top] ? itemsById[equipped.top].vis : { kind: "tee", color: "#111111", accent: "#ff6a00" },
-      bottom: equipped.bottom && itemsById[equipped.bottom] ? itemsById[equipped.bottom].vis : { kind: "long", color: "#0a0a0a" },
-      shoes: equipped.shoes && itemsById[equipped.shoes] ? itemsById[equipped.shoes].vis : { color: "#f5f5f5" },
+      top: equipped.top && itemsById[equipped.top] ? itemsById[equipped.top].vis : { kind: "tee", color: "#141416", accent: "#F4A261" },
+      bottom: equipped.bottom && itemsById[equipped.bottom] ? itemsById[equipped.bottom].vis : { kind: "long", color: "#050505" },
+      shoes: equipped.shoes && itemsById[equipped.shoes] ? itemsById[equipped.shoes].vis : { color: "#FFFFFF" },
       head: equipped.head && itemsById[equipped.head] ? itemsById[equipped.head].vis : null,
       effects: equipped.effects && itemsById[equipped.effects] ? itemsById[equipped.effects].vis : null,
     };
@@ -411,7 +411,7 @@ export class Avatar {
       });
 
     // ---- TOP ----
-    const top = equipped.top && itemsById[equipped.top]?.vis ? itemsById[equipped.top].vis : { kind: "tee", color: "#111111", accent: "#ff6a00" };
+    const top = equipped.top && itemsById[equipped.top]?.vis ? itemsById[equipped.top].vis : { kind: "tee", color: "#141416", accent: "#F4A261" };
     {
       const m = mat(top.color, { metal: 0.06 });
       // la camiseta envuelve el torso en TODOS los ejes (sin aplastar en z:
@@ -442,7 +442,7 @@ export class Avatar {
     }
 
     // ---- BOTTOM ----
-    const bot = equipped.bottom && itemsById[equipped.bottom]?.vis ? itemsById[equipped.bottom].vis : { kind: "long", color: "#0a0a0a" };
+    const bot = equipped.bottom && itemsById[equipped.bottom]?.vis ? itemsById[equipped.bottom].vis : { kind: "long", color: "#050505" };
     {
       const m = mat(bot.color, { metal: 0.05 });
       const parts = [];
@@ -460,13 +460,13 @@ export class Avatar {
     }
 
     // ---- SHOES ----
-    const sh = equipped.shoes && itemsById[equipped.shoes]?.vis ? itemsById[equipped.shoes].vis : { color: "#f5f5f5", accent: "#111111" };
+    const sh = equipped.shoes && itemsById[equipped.shoes]?.vis ? itemsById[equipped.shoes].vis : { color: "#FFFFFF", accent: "#141416" };
     {
       const parts = [];
       for (const s of ["L", "R"]) {
         const f = B["footMesh" + s];
         f.material = mat(sh.color, { metal: 0.05, glow: sh.glow });
-        const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.105, 0.02, 0.1), mat(sh.accent || "#111111"));
+        const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.105, 0.02, 0.1), mat(sh.accent || "#141416"));
         stripe.position.set(0, 0.0, 0.02); f.add(stripe); parts.push(stripe);
       }
       this.equipParts.shoes = parts;
@@ -480,7 +480,7 @@ export class Avatar {
       if (hd.kind === "cap") {
         const crown = new THREE.Mesh(new THREE.SphereGeometry(0.145, 18, 12, 0, Math.PI * 2, 0, Math.PI / 2.1), m);
         crown.position.y = 0.08; B.head.add(crown); parts.push(crown);
-        const brim = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.02, 0.14), mat(hd.accent || "#111111"));
+        const brim = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.02, 0.14), mat(hd.accent || "#141416"));
         brim.position.set(0, 0.1, 0.14); B.head.add(brim); parts.push(brim);
       } else if (hd.kind === "headphones") {
         const band = new THREE.Mesh(new THREE.TorusGeometry(0.15, 0.018, 8, 20, Math.PI), m);
