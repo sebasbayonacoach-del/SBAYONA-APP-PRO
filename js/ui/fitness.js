@@ -4,6 +4,9 @@ import { S, todayKey } from '../state.js';
 import { esc, t } from '../i18n.js';
 import { BUILDERS, UI, el, openSection, toast } from './shared.js';
 import { renderHoy } from './hoy.js';
+import {
+  PLAN_META, planFromProfile, featureForSection, hasFeature, featureTier,
+} from '../entitlements.js';
 
 const paths = {
   hoy:'M3 10 12 3l9 7v10H3Z M9 20v-7h6v7',
@@ -66,8 +69,10 @@ function moodStrip(today,rerender){
     b.setAttribute('aria-label',`Energía: ${label}`);
     b.setAttribute('aria-pressed',String(today.energy!=null&&Math.abs(today.energy-value)<=1));
     b.onclick=()=>{
+      const wasEmpty = today.energy == null;
       S.logEnergy(value);
       toast('GUARDADO',label);
+      if (wasEmpty) window.dispatchEvent(new CustomEvent('bayona:first-mood-recorded', { detail:{ value, label } }));
       rerender();
     };
     row.append(b);
@@ -83,6 +88,20 @@ function room(key,title,sub,ico=key){
   return b;
 }
 
+function quickRoute(key,title,sub,ico='arrow'){
+  const plan=planFromProfile(S.data.profile);
+  const feature=featureForSection(key);
+  const locked=feature&&!hasFeature(plan,feature);
+  const required=locked?PLAN_META[featureTier(feature)]?.label:null;
+
+  const b=el('button','fit-hub-quick',`<span class="fit-hub-quick-icon">${icon(ico)}</span><span><strong>${esc(title)}</strong><small>${esc(sub)}</small></span><em>${locked?esc(required):icon('arrow')}</em>`);
+  b.type='button';
+  b.dataset.destination=key;
+  if(locked)b.dataset.locked='true';
+  b.onclick=()=>openSection(key);
+  return b;
+}
+
 function home(body){
   body.textContent='';
   const p=S.data.profile,today=S.data.today,active=S.getActiveSession(),stats=S.data.stats;
@@ -93,11 +112,12 @@ function home(body){
     ? `<img src="${esc(p.face)}" alt="">`
     : `<span>${esc((p.name&&p.name!=='TÚ'?p.name:'B').slice(0,1).toUpperCase())}</span>`;
   const greeting=p.name&&p.name!=='TÚ'?`Hola, ${esc(p.name)}.`:'Tu día.';
+  const membership=PLAN_META[planFromProfile(p)]?.label || 'FREE';
   const head=el('section','fit-app-head',`
     <div>
       <small>${esc(new Date().toLocaleDateString('es',{weekday:'long',day:'numeric',month:'long'}))}</small>
       <h2>${greeting}</h2>
-      <span>BAYONA ONE · ${esc(String(p.goal||'TU OBJETIVO').replace(' Y ',' · '))}</span>
+      <span>BAYONA ONE · ${esc(String(p.goal||'TU OBJETIVO').replace(' Y ',' · '))} · ${esc(membership)}</span>
     </div>
     <button class="fit-profile-chip" type="button" aria-label="Abrir mi perfil">${avatar}</button>`);
   head.querySelector('.fit-profile-chip').onclick=()=>openSection('profile');
@@ -145,6 +165,15 @@ function home(body){
     room('progress','Evolucionar','Historial y cambios','progress')
   );
   body.append(rooms);
+
+  body.append(el('div','fit-hub-secondary-title',`<span>${esc(t('hub.quick.label'))}</span><small>${esc(t('hub.quick.hint'))}</small>`));
+  const quick=el('section','fit-hub-secondary');
+  quick.append(
+    quickRoute('core',t('hub.quick.coach.title'),t('hub.quick.coach.sub'),'profile'),
+    quickRoute('plan',t('hub.quick.plan.title'),t('hub.quick.plan.sub'),'plan'),
+    quickRoute('armory',t('hub.quick.rewards.title'),t('hub.quick.rewards.sub'),'settings')
+  );
+  body.append(quick);
 
   body.append(el('div','fit-week-title','<span>ESTA SEMANA</span>'));
   body.append(weekStrip());
@@ -195,7 +224,9 @@ export function installFitnessUI(){
       ['appearance','Mi imagen','Foto y apariencia'],
       ['account','Mi cuenta','Cuenta y sincronización'],
       ['more','Privacidad','Permisos, exportación y datos'],
-    ].forEach(([key,title,sub])=>extras.append(route(key,title,sub,'settings')));
+    ].forEach(([key,title,sub])=>extras.append(
+      key==='plan' ? quickRoute(key,title,sub,'settings') : route(key,title,sub,'settings')
+    ));
     body.append(extras);
   };
 
