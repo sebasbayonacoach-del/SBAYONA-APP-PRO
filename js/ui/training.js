@@ -491,6 +491,7 @@ function renderSession() {
   const prog = el("div", "card");
   prog.innerHTML = `<div class="card-row"><span class="pill gold">${esc(session.logged)} / ${esc(session.plannedSets)} SERIES REGISTRADAS</span><span class="pill">EJERCICIO ${Math.min(session.exIdx+1,session.exercises.length)} DE ${session.exercises.length}</span></div><div class="fit-session-progress" role="progressbar" aria-label="Series registradas" aria-valuemin="0" aria-valuemax="${session.plannedSets}" aria-valuenow="${session.logged}"><i style="width:${session.logged/Math.max(1,session.plannedSets)*100}%"></i></div>`;
   body.appendChild(prog);
+  body.appendChild(livePhaseCard(session));
 
   const libraryQuick = el("div", "fit-session-library");
   const libraryButton = elT("button", "btn", "BIBLIOTECA 3.141");
@@ -499,7 +500,7 @@ function renderSession() {
   libraryQuick.append(elT("span", "", "¿Necesitas consultar otra técnica?"), libraryButton);
   body.appendChild(libraryQuick);
 
-  if (exIdx >= session.exercises.length) return finishWorkout();
+  if (exIdx >= session.exercises.length) return renderSessionClose(body);
 
   const s = session.exercises[exIdx];
   const E = exerciseDef(s);
@@ -515,6 +516,7 @@ function renderSession() {
   body.appendChild(setForm(s, setIdx, sug));
   const technique = el("details", "fit-technique");
   technique.append(el("summary", "", "Técnica e instrucciones"));
+  appendLatestUserVideo(technique,s.ex);
   const vid = sessionVideoFor(s);
   if (vid) {
     technique.append(el("div", "media-hero", `<video src="${vid}" controls muted playsinline preload="none" poster="${sessionPosterFor(s)}"></video>`));
@@ -587,7 +589,7 @@ function renderSession() {
   const bEnd = el("button", "btn btn-danger grow", "FINALIZAR SESIÓN");
   bEnd.addEventListener("click", async () => {
     const ok = await confirmEarlyFinish({ loggedSets: session.logged, plannedSets: session.plannedSets, minutes: session.minutes });
-    if (ok) finishWorkout();
+    if (ok) finishWorkout({ early:true });
   });
   row2.append(bPause, bEnd);
   body.appendChild(row2);
@@ -599,6 +601,33 @@ function renderSession() {
   }
 
   UI.W?.avatar.setAction(AVATAR_ACTION[s.ex] || "idle");
+}
+
+function renderSessionClose(body) {
+  const session=UI.session;
+  if(!session)return BUILDERS.training();
+  const completion=sessionCompletion(session);
+  const card=el("section","fit-session-close");
+  card.innerHTML=`
+    <div class="sec-label" style="margin-top:0">${esc(t("session.close.kicker"))}</div>
+    <h3>${esc(t("session.close.title"))}</h3>
+    <p>${esc(t("session.close.body"))}</p>
+    <div class="fit-session-close-stats">
+      <span><small>SERIES</small><b>${session.logged} / ${session.plannedSets}</b></span>
+      <span><small>PROGRESO</small><b>${completion.pct}%</b></span>
+      <span><small>XP EN SERIES</small><b>+${fmtInt(session.xpAcc||0)}</b></span>
+    </div>
+    <label class="fit-session-note"><span>${esc(t("session.feedback.note"))}</span><textarea maxlength="180" placeholder="${esc(t("session.feedback.notePlaceholder"))}">${esc(session.closeNote||"")}</textarea></label>
+    <button type="button" class="btn ${completion.complete?"btn-gold":"btn-primary"} btn-block btn-big">${esc(completion.complete?t("session.close.complete"):t("session.close.partial"))}</button>`;
+  const note=card.querySelector("textarea");
+  note.oninput=()=>{session.closeNote=note.value.slice(0,180);persist();};
+  card.querySelector("button").onclick=async()=>{
+    if(completion.complete)return finishWorkout();
+    const ok=await confirmEarlyFinish({loggedSets:session.logged,plannedSets:session.plannedSets,minutes:session.minutes});
+    if(ok)finishWorkout({early:true});
+  };
+  body.appendChild(card);
+  UI.W?.avatar.setAction("idle");
 }
 
 function setForm(s, setIdx, sug) {
