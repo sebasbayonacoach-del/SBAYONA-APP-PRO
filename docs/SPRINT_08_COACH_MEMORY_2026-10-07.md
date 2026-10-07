@@ -147,6 +147,6 @@ Nuevas suites:
 - `tests/coach-memory-state-eval.mjs`
 - `tests/coach-memory-ui-eval.mjs`
 
-Suite total esperada: **62 suites**.
+Suite total esperada: **66 suites**.
 
 Merge únicamente con `bateria` y `ci` verdes.
