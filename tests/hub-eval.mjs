@@ -36,7 +36,7 @@ ok(snap.fitCoins===140&&snap.points===88,"FitCoins reutiliza credits; puntos sig
 ok(snap.level===4&&snap.xp.pct===25,"nivel y XP salen de datos reales");
 ok(snap.workouts===9&&snap.sets===120&&snap.prs===3,"historial visible sin inventar");
 ok(snap.review.status==="unscheduled","snapshot no fabrica próxima revisión");
-ok(focusPreset("nutrition").action==="sit","nutrición tiene preset espacial");
-ok(Array.isArray(focusPreset("training").cam)&&focusPreset("training").cam.length===3,"preset de cámara válido");
+ok(focusPreset("nutrition").action==="sit"&&focusPreset("nutrition").env==="kitchen","nutrición tiene preset espacial real");
+ok(Array.isArray(focusPreset("training").cam)&&focusPreset("training").cam.length===3&&focusPreset("training").env==="gym","preset de cámara y entorno válido");
 
 console.log(`\n📊 RESULTADO: ${pass} pass · 0 fail\n`);
