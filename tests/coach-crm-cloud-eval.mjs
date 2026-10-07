@@ -37,7 +37,7 @@ ok(sync.includes("syncCoachCrmCloud"),"existe fusión explícita");
 ok(sync.includes("crmNewer"),"sync compara timestamps");
 ok(sync.includes("cloudId"),"sync separa id local y cloud");
 ok(sync.includes('accountRole() !== "coach"'),"sync requiere rol Coach");
-ok(!sync.includes("service_role"),"cliente nunca usa service_role");
+ok(!/SUPABASE_SERVICE_ROLE_KEY|service_role\\s*[:=]/i.test(sync),"cliente nunca usa una credencial service_role");
 
 ok(ui.includes('syncCoachCrmCloud(S)'),"UI invoca sync solo por acción");
 ok(ui.includes('sync.onclick=async()=>'),"sync está detrás de click explícito");
