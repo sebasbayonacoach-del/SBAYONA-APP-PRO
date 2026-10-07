@@ -49,6 +49,9 @@ ok(css.includes(".coach-memory-row")&&css.includes(".coach-evidence-row"),"memor
 ok(css.includes(".coach-proposal-status.pending")&&css.includes(".coach-proposal-status.rejected"),"estados de propuesta tienen estilos");
 
 ok(sw.includes("./js/coach/memory.js"),"memoria funciona offline");
-ok(/CACHE = "bayona-shell-v40"/.test(sw),"shell PWA subió a v40");
+{
+  const version=Number((sw.match(/bayona-shell-v(\d+)/)||[])[1]||0);
+  ok(version>=40,`shell PWA conserva Coach Memory (v${version} >= v40)`);
+}
 
 console.log(`\n📊 RESULTADO: ${pass} pass · 0 fail\n`);

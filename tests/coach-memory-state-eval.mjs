@@ -9,7 +9,7 @@ console.log("\n🧠 COACH MEMORY · ESTADO\n");
 S.init();
 S.reset(true);
 
-ok(SCHEMA===8,"schema actualizado a 8");
+ok(SCHEMA>=8,`schema conserva Coach Memory (v${SCHEMA} >= 8)`);
 ok(Array.isArray(S.data.coachMemory.events)&&S.data.coachMemory.events.length===0,"memoria nueva empieza vacía");
 
 const first=S.rememberCoachEvent({

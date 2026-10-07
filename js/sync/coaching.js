@@ -3,7 +3,7 @@
 // No usa service_role. Todas las operaciones se ejecutan con la sesión del usuario.
 import {
   currentUser, currentSession, accountRole,
-  select, insert, rpc,
+  select, insert, update, rpc,
 } from "./supabase.js";
 
 function mustUser() {
@@ -216,4 +216,230 @@ export async function hydrateAssignmentsToLocal(S) {
     count += 1;
   }
   return count;
+}
+
+
+/* =====================================================================
+   COACH CRM CLOUD · sync explícita
+   ---------------------------------------------------------------------
+   No se ejecuta automáticamente: contactos y notas solo suben cuando
+   el Coach pulsa sincronizar. Si la migración 0006 no está desplegada,
+   la operación falla sin tocar ni borrar el CRM local.
+   ===================================================================== */
+
+const crmIso = (v) => {
+  if (!v) return null;
+  const d = new Date(v);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
+};
+const crmNewer = (a, b) => {
+  const ta = crmIso(a) ? new Date(a).getTime() : 0;
+  const tb = crmIso(b) ? new Date(b).getTime() : 0;
+  return ta > tb;
+};
+const first = (v) => asArray(v)[0] || null;
+
+function assertCoachCloud() {
+  const u = mustUser();
+  if (accountRole() !== "coach") throw new Error("Esta acción requiere una cuenta Coach.");
+  return u;
+}
+
+function cloudClientPatch(local, coachId) {
+  return {
+    coach_id: coachId,
+    client_id: local.linkedUserId || null,
+    name: local.name,
+    email: local.email || null,
+    phone: local.phone || null,
+    status: local.status,
+    source: local.source || "manual",
+    note: local.note || "",
+  };
+}
+
+async function pushClient(local, coachId) {
+  const patch = cloudClientPatch(local, coachId);
+  if (local.cloudId) {
+    return first(await update("coach_crm_clients", patch, {
+      id: `eq.${local.cloudId}`,
+      coach_id: `eq.${coachId}`,
+    }));
+  }
+  return first(await insert("coach_crm_clients", [patch]));
+}
+
+const CHILDREN = {
+  appointments: {
+    table: "coach_crm_appointments",
+    parent: "clientId",
+    patch: (x, coachId, cloudClientId) => ({
+      coach_id: coachId, crm_client_id: cloudClientId,
+      start_at: x.startAt, duration_min: x.durationMin, kind: x.kind,
+      status: x.status, note: x.note || "", source: x.source || "manual",
+    }),
+    from: (r, localClientId) => ({
+      cloudId:r.id, clientId:localClientId, startAt:r.start_at, durationMin:r.duration_min,
+      kind:r.kind, status:r.status, note:r.note||"", source:r.source||"cloud",
+      createdAt:r.created_at, updatedAt:r.updated_at,
+    }),
+  },
+  payments: {
+    table: "coach_crm_payments",
+    parent: "clientId",
+    patch: (x, coachId, cloudClientId) => ({
+      coach_id: coachId, crm_client_id: cloudClientId,
+      amount_cents:x.amountCents, currency:x.currency, status:x.status,
+      due_at:x.dueAt||null, paid_at:x.paidAt||null, method:x.method||null,
+      reference:x.reference||null, note:x.note||"", source:x.source||"manual",
+    }),
+    from: (r, localClientId) => ({
+      cloudId:r.id, clientId:localClientId, amountCents:Number(r.amount_cents),
+      currency:r.currency, status:r.status, dueAt:r.due_at, paidAt:r.paid_at,
+      method:r.method, reference:r.reference, note:r.note||"", source:r.source||"billing",
+      createdAt:r.created_at, updatedAt:r.updated_at,
+    }),
+  },
+  referrals: {
+    table: "coach_crm_referrals",
+    parent: "referrerClientId",
+    patch: (x, coachId, cloudClientId) => ({
+      coach_id:coachId, referrer_crm_client_id:cloudClientId,
+      referred_name:x.referredName, contact:x.contact||null, status:x.status,
+      note:x.note||"",
+    }),
+    from: (r, localClientId) => ({
+      cloudId:r.id, referrerClientId:localClientId, referredName:r.referred_name,
+      contact:r.contact, status:r.status, note:r.note||"",
+      createdAt:r.created_at, updatedAt:r.updated_at,
+    }),
+  },
+  purchases: {
+    table: "coach_crm_purchases",
+    parent: "clientId",
+    patch: (x, coachId, cloudClientId) => ({
+      coach_id:coachId, crm_client_id:cloudClientId, item:x.item,
+      amount_cents:x.amountCents, currency:x.currency, status:x.status,
+      reference:x.reference||null, note:x.note||"", source:x.source||"manual",
+    }),
+    from: (r, localClientId) => ({
+      cloudId:r.id, clientId:localClientId, item:r.item, amountCents:Number(r.amount_cents),
+      currency:r.currency, status:r.status, reference:r.reference, note:r.note||"",
+      source:r.source||"store", createdAt:r.created_at, updatedAt:r.updated_at,
+    }),
+  },
+  notes: {
+    table: "coach_crm_notes",
+    parent: "clientId",
+    immutable: true,
+    patch: (x, coachId, cloudClientId) => ({
+      coach_id:coachId, crm_client_id:cloudClientId, text:x.text,
+      tags:Array.isArray(x.tags)?x.tags:[],
+    }),
+    from: (r, localClientId) => ({
+      cloudId:r.id, clientId:localClientId, text:r.text, tags:r.tags||[], at:r.created_at,
+    }),
+  },
+};
+
+export async function pushCoachCrmToCloud(S) {
+  const u = assertCoachCloud();
+  if (!S?.data?.coachCrm) return { clients:0, records:0 };
+
+  const local = S.data.coachCrm;
+  const cloudByLocal = new Map();
+  let clients = 0, records = 0;
+
+  for (const c of local.clients || []) {
+    const row = await pushClient(c, u.id);
+    if (!row?.id) throw new Error("No se pudo sincronizar una ficha CRM.");
+    cloudByLocal.set(c.id, row.id);
+    S.upsertCoachCrmClient({
+      ...c, cloudId:row.id, linkedUserId:row.client_id||c.linkedUserId||null,
+      updatedAt:row.updated_at||c.updatedAt,
+    });
+    clients++;
+  }
+
+  for (const [kind, def] of Object.entries(CHILDREN)) {
+    for (const item of local[kind] || []) {
+      const cloudClientId = cloudByLocal.get(item[def.parent])
+        || local.clients?.find((c)=>c.id===item[def.parent])?.cloudId;
+      if (!cloudClientId) continue;
+      const patch = def.patch(item, u.id, cloudClientId);
+      let row = null;
+      if (item.cloudId) {
+        if (def.immutable) { records++; continue; }
+        row = first(await update(def.table, patch, {
+          id:`eq.${item.cloudId}`, coach_id:`eq.${u.id}`,
+        }));
+      } else {
+        row = first(await insert(def.table, [patch]));
+      }
+      if (!row?.id) throw new Error(`No se pudo sincronizar ${kind}.`);
+      S.addCoachCrmRecord(kind, {
+        ...item, cloudId:row.id, updatedAt:row.updated_at||item.updatedAt,
+      });
+      records++;
+    }
+  }
+  return { clients, records };
+}
+
+export async function pullCoachCrmFromCloud(S) {
+  const u = assertCoachCloud();
+  if (!S) return { clients:0, records:0 };
+
+  const remoteClients = asArray(await select("coach_crm_clients", {
+    coach_id:`eq.${u.id}`, order:"updated_at.asc", limit:"500",
+  }));
+
+  const remoteToLocal = new Map();
+  let clients = 0, records = 0;
+
+  for (const r of remoteClients) {
+    const current = (S.data.coachCrm?.clients||[]).find((c)=>
+      c.cloudId===r.id || (r.client_id && c.linkedUserId===r.client_id)
+    );
+    const localId = current?.id || `cloudcrm_${r.id}`;
+    remoteToLocal.set(r.id, localId);
+    if (!current || !crmNewer(current.updatedAt, r.updated_at)) {
+      S.upsertCoachCrmClient({
+        id:localId, cloudId:r.id, linkedUserId:r.client_id||null,
+        name:r.name, email:r.email, phone:r.phone, status:r.status, source:r.source,
+        note:r.note||"", createdAt:r.created_at, updatedAt:r.updated_at,
+      });
+      clients++;
+    }
+  }
+
+  for (const [kind, def] of Object.entries(CHILDREN)) {
+    const rows = asArray(await select(def.table, {
+      coach_id:`eq.${u.id}`, order:"created_at.asc", limit:"2000",
+    }));
+    for (const r of rows) {
+      const cloudParent = r.crm_client_id || r.referrer_crm_client_id;
+      const localClientId = remoteToLocal.get(cloudParent);
+      if (!localClientId) continue;
+      const current = (S.data.coachCrm?.[kind]||[]).find((x)=>x.cloudId===r.id);
+      const remoteUpdated = r.updated_at || r.created_at;
+      if (current && crmNewer(current.updatedAt||current.at||current.createdAt, remoteUpdated)) continue;
+      const mapped = def.from(r, localClientId);
+      const id = current?.id || `cloud_${kind}_${r.id}`;
+      S.addCoachCrmRecord(kind, { ...mapped, id });
+      records++;
+    }
+  }
+
+  return { clients, records };
+}
+
+export async function syncCoachCrmCloud(S) {
+  const pulled = await pullCoachCrmFromCloud(S);
+  const pushed = await pushCoachCrmToCloud(S);
+  return {
+    pulled,
+    pushed,
+    total: pulled.clients + pulled.records + pushed.clients + pushed.records,
+  };
 }

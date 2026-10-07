@@ -25,9 +25,12 @@ import {
 } from "./rewards.js";
 import { respaldar, guardarSeguro, recuperar } from "./backup.js";
 import { memoryDefaults, addMemoryEvent, updateMemoryStatus } from "./coach/memory.js";
+import {
+  coachCrmDefaults, upsertCrmClient, addCrmRecord, updateCrmRecordStatus,
+} from "./coach/crm.js";
 
 const KEY = "bayona.save.v2";
-export const SCHEMA = 8;
+export const SCHEMA = 9;
 
 /**
  * Recompensa por nivel. Vive fuera del objeto S y en orden: se recorre
@@ -288,6 +291,7 @@ export const S = {
     d.integrations = d.integrations && typeof d.integrations === "object" ? d.integrations : {};
     d.integrations.health = wearableSnapshot(d.integrations);
     d.coachMemory = memoryDefaults(d.coachMemory || {});
+    d.coachCrm = coachCrmDefaults(d.coachCrm || {});
     d.today.recoveryPractices = Array.isArray(d.today.recoveryPractices) ? d.today.recoveryPractices : [];
     d.today.otherActivities = Array.isArray(d.today.otherActivities) ? d.today.otherActivities : [];
     d.today.recoveryNote = typeof d.today.recoveryNote === "string" ? d.today.recoveryNote.slice(0, 240) : "";
@@ -357,6 +361,7 @@ export const S = {
       recovery: recoveryDefaults(),
       integrations: { health: wearableSnapshot({}) },
       coachMemory: memoryDefaults(),
+      coachCrm: coachCrmDefaults(),
       activeSession: null,
     };
     if (!silent) this.save();
@@ -674,6 +679,36 @@ export const S = {
     };
     this.save(); emit("recovery");
     return this.data.integrations.health;
+  },
+
+  upsertCoachCrmClient(input = {}) {
+    const before = this.data.coachCrm || coachCrmDefaults();
+    const next = upsertCrmClient(before, input);
+    if (JSON.stringify(before) === JSON.stringify(next)) return null;
+    this.data.coachCrm = next;
+    const rec = next.clients.find((x) => x.id === input.id) || next.clients.at(-1) || null;
+    this.save(); emit("coach-crm", { kind: "clients", record: rec });
+    return rec;
+  },
+
+  addCoachCrmRecord(kind, input = {}) {
+    const before = this.data.coachCrm || coachCrmDefaults();
+    const next = addCrmRecord(before, kind, input);
+    if (JSON.stringify(before) === JSON.stringify(next)) return null;
+    this.data.coachCrm = next;
+    const list = next[kind] || [];
+    const rec = input.id ? list.find((x) => x.id === input.id) : list.at(-1);
+    this.save(); emit("coach-crm", { kind, record: rec || null });
+    return rec || null;
+  },
+
+  updateCoachCrmStatus(kind, id, status) {
+    const current = this.data.coachCrm || coachCrmDefaults();
+    const result = updateCrmRecordStatus(current, kind, id, status);
+    if (!result.changed) return false;
+    this.data.coachCrm = result.crm;
+    this.save(); emit("coach-crm", { kind, record: result.record });
+    return true;
   },
 
   rememberCoachEvent(event = {}) {

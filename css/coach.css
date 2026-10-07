@@ -386,3 +386,142 @@
   .coach-memory-row>small{grid-column:1}
   .coach-evidence-row{grid-template-columns:1fr}
 }
+
+
+/* ============================================================
+   COACH CRM · cartera, agenda y ledger operativo
+   ============================================================ */
+.coach-crm-entry{
+  display:flex;justify-content:space-between;gap:12px;align-items:center;
+  margin:10px 0 14px;padding:12px;border:1px solid var(--hair);
+  background:var(--paper-2)
+}
+.coach-crm-entry>div{display:grid;gap:4px}
+.coach-crm-entry small,.coach-crm-hero small,.coach-crm-client-head small{
+  color:var(--acc-2);font:800 8px/1 var(--mono2);letter-spacing:.12em
+}
+.coach-crm-entry strong{color:var(--ink);font:700 12px/1.25 var(--sans)}
+.coach-crm-entry span{color:var(--ink-mute);font:500 9px/1.35 var(--sans)}
+
+.coach-crm-hero{
+  display:grid;grid-template-columns:minmax(0,1.2fr) minmax(320px,.8fr);
+  gap:14px;margin-top:10px;padding:16px;border:1px solid var(--hair);background:var(--paper-2)
+}
+.coach-crm-hero>div:first-child{display:grid;gap:6px;align-content:start}
+.coach-crm-hero h3,.coach-crm-client-head h3{
+  margin:0;color:var(--ink);font:750 clamp(24px,4vw,36px)/1 var(--serif);letter-spacing:-.04em
+}
+.coach-crm-hero p,.coach-crm-client-head p{
+  margin:0;color:var(--ink-mute);font:500 10px/1.5 var(--sans)
+}
+.coach-crm-kpis{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px
+}
+.coach-crm-kpis article{
+  display:grid;gap:5px;align-content:start;min-height:66px;padding:9px;
+  border:1px solid var(--hair);background:var(--paper)
+}
+.coach-crm-kpis article small{color:var(--ink-mute);font:800 6px/1 var(--sans);letter-spacing:.08em}
+.coach-crm-kpis article strong{color:var(--ink);font:800 18px/1 var(--mono2)}
+
+.coach-crm-strip{
+  display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 10px;
+  margin-top:8px;padding:10px 12px;border:1px solid var(--hair);background:var(--paper-2)
+}
+.coach-crm-strip strong{color:var(--ink);font:800 8px/1 var(--mono2);letter-spacing:.08em}
+.coach-crm-strip span{color:var(--ink);font:700 11px/1.2 var(--sans)}
+.coach-crm-strip small{grid-column:1/-1;color:var(--ink-mute);font:500 8px/1.4 var(--sans)}
+
+.coach-crm-actions{display:flex;gap:7px;margin:8px 0 4px}
+.coach-crm-actions-wrap{flex-wrap:wrap}
+.coach-crm-actions .btn{flex:0 1 auto}
+
+.coach-crm-card{
+  display:grid;gap:6px;padding:10px;border:1px solid var(--hair);background:var(--paper-2)
+}
+.coach-crm-empty,.coach-crm-disclaimer{
+  display:block;padding:9px;border:1px dashed var(--hair);
+  color:var(--ink-mute);font:500 9px/1.45 var(--sans)
+}
+.coach-crm-row{
+  display:flex;gap:7px;align-items:center;padding:8px;border:1px solid var(--hair);background:var(--paper)
+}
+.coach-crm-row>span:first-child{display:grid;gap:3px;min-width:0;margin-right:auto}
+.coach-crm-row strong{color:var(--ink);font:650 10px/1.25 var(--sans)}
+.coach-crm-row small{color:var(--ink-mute);font:500 8px/1.35 var(--sans)}
+.coach-crm-row .btn{flex:0 0 auto;margin:0}
+
+.coach-crm-row-main{
+  display:grid;gap:3px;min-width:0;flex:1;padding:0;border:0;background:transparent;color:inherit;text-align:left;cursor:pointer
+}
+.coach-crm-row-main strong{color:var(--ink);font:650 10px/1.25 var(--sans)}
+.coach-crm-row-main span{color:var(--ink-mute);font:500 8px/1.35 var(--sans)}
+
+.coach-crm-alert{
+  display:grid;grid-template-columns:auto auto minmax(0,1fr);gap:7px;align-items:center;
+  width:100%;padding:8px;border:1px solid var(--hair);background:var(--paper);color:inherit;text-align:left;cursor:pointer
+}
+.coach-crm-alert>span:nth-child(2){color:var(--ink-mute);font:600 8px/1.2 var(--sans)}
+.coach-crm-alert strong,.coach-crm-alert-static strong{color:var(--ink);font:600 9px/1.35 var(--sans)}
+.coach-crm-alert-static{display:flex;gap:8px;align-items:center;padding:8px;border:1px solid var(--hair);background:var(--paper)}
+
+.coach-crm-client{
+  display:grid;grid-template-columns:minmax(180px,1.4fr) repeat(3,minmax(70px,.65fr));
+  gap:8px;align-items:center;width:100%;padding:9px;
+  border:1px solid var(--hair);background:var(--paper);color:inherit;text-align:left;cursor:pointer
+}
+.coach-crm-client>span{display:grid;gap:3px;min-width:0}
+.coach-crm-client strong{color:var(--ink);font:650 10px/1.2 var(--sans)}
+.coach-crm-client b{color:var(--ink);font:750 10px/1.2 var(--mono2);overflow:hidden;text-overflow:ellipsis}
+.coach-crm-client small{color:var(--ink-mute);font:600 7px/1.25 var(--sans);letter-spacing:.04em}
+.coach-crm-client:hover,.coach-crm-alert:hover{border-color:var(--acc-2)}
+
+.coach-crm-ledger-row{
+  display:grid;grid-template-columns:auto minmax(90px,.7fr) minmax(120px,1.2fr) auto;
+  gap:7px;align-items:center;width:100%;padding:8px;border:1px solid var(--hair);
+  background:var(--paper);color:inherit;text-align:left
+}
+button.coach-crm-ledger-row{cursor:pointer}
+.coach-crm-ledger-row strong{color:var(--ink);font:650 9px/1.25 var(--sans)}
+.coach-crm-ledger-row>span:not(.pill){color:var(--ink-soft);font:500 9px/1.3 var(--sans)}
+.coach-crm-ledger-row small{color:var(--ink-mute);font:500 7.5px/1.3 var(--sans)}
+
+.coach-crm-client-head{
+  display:flex;justify-content:space-between;gap:14px;align-items:flex-start;
+  margin-top:10px;padding:14px;border:1px solid var(--hair);background:var(--paper-2)
+}
+.coach-crm-client-head>div:first-child{display:grid;gap:5px}
+.coach-crm-client-head>div:last-child{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+
+.coach-crm-note{
+  display:grid;gap:4px;padding:8px;border:1px solid var(--hair);background:var(--paper)
+}
+.coach-crm-note strong{color:var(--ink);font:550 9px/1.45 var(--sans)}
+.coach-crm-note small{color:var(--ink-mute);font:500 7.5px/1.3 var(--sans)}
+
+.coach-crm-entry,.coach-crm-hero,.coach-crm-kpis article,.coach-crm-strip,
+.coach-crm-card,.coach-crm-row,.coach-crm-alert,.coach-crm-alert-static,
+.coach-crm-client,.coach-crm-ledger-row,.coach-crm-client-head,.coach-crm-note{
+  border-radius:0!important
+}
+
+@media(max-width:760px){
+  .coach-crm-entry{align-items:stretch;flex-direction:column}
+  .coach-crm-hero{grid-template-columns:1fr}
+  .coach-crm-client{grid-template-columns:minmax(0,1fr) repeat(2,minmax(64px,.5fr))}
+  .coach-crm-client>span:last-child{grid-column:2/-1}
+  .coach-crm-ledger-row{grid-template-columns:auto minmax(0,1fr)}
+  .coach-crm-ledger-row>span:not(.pill),.coach-crm-ledger-row small{grid-column:2}
+}
+@media(max-width:520px){
+  .coach-crm-kpis{grid-template-columns:1fr 1fr}
+  .coach-crm-actions{flex-direction:column}
+  .coach-crm-actions-wrap{display:grid;grid-template-columns:1fr 1fr}
+  .coach-crm-row{align-items:stretch;flex-direction:column}
+  .coach-crm-row .btn{width:100%}
+  .coach-crm-client{grid-template-columns:1fr 1fr}
+  .coach-crm-client>span:first-child{grid-column:1/-1}
+  .coach-crm-client>span:last-child{grid-column:auto}
+  .coach-crm-client-head{flex-direction:column}
+  .coach-crm-client-head>div:last-child{justify-content:flex-start}
+}

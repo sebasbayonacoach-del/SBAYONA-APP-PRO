@@ -342,6 +342,8 @@ Estado: implementado en rama de Sprint; pendiente de certificación CI.
 - integración wearable solo si existe proveedor.
 
 ### Sprint 08 · Coach Memory + IA adaptativa
+Estado: integrado y certificado · 62 suites.
+
 - event store;
 - explicación;
 - propuesta de cambios;
@@ -349,6 +351,8 @@ Estado: implementado en rama de Sprint; pendiente de certificación CI.
 - seguridad.
 
 ### Sprint 09 · Coach CRM
+Estado: implementado en rama de Sprint; pendiente de certificación CI.
+
 - cartera;
 - ficha;
 - agenda;

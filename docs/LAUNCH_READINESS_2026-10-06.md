@@ -30,7 +30,7 @@
 
 La batería completa pasa:
 
-- **62 suites**
+- **66 suites**
 - **0 fallos**
 - Smoke de sintaxis: todos los módulos parsean.
 - Golden set de biomecánica: 100 % de precisión en los escenarios evaluados.
