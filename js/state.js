@@ -32,7 +32,7 @@ import { validateProgram } from "./coach-lab.js";
 import {
   communityDefaults, appendFitCoinTx, redeemFitCoinReward as redeemRewardDomain,
   progressShareCandidates, createProgressPost as createProgressPostDomain,
-  toggleLocalReaction, recordReferralShare as recordReferralShareDomain,
+  toggleLocalReaction, referralCodeFor, recordReferralShare as recordReferralShareDomain,
   communitySummary as communitySummaryDomain,
 } from "./community.js";
 
@@ -1051,6 +1051,16 @@ export const S = {
     this.data.community = out.community;
     this.save(); emit("community", { type: "reaction", postId, reaction: out.reaction });
     return out;
+  },
+
+  referralCode() {
+    this.data.community = communityDefaults(this.data.community || {}, this.fitCoinBalance());
+    if (!this.data.community.referralCode) {
+      const seed = `${this.data.profile.created || 0}:${this.data.profile.name || "BAYONA"}`;
+      this.data.community.referralCode = referralCodeFor(seed);
+      this.save();
+    }
+    return this.data.community.referralCode;
   },
 
   recordReferralShare(channel = "share") {
