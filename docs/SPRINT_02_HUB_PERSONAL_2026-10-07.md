@@ -47,6 +47,6 @@ Nuevas suites:
 - `tests/hub-eval.mjs`
 - `tests/hub-ui-eval.mjs`
 
-Suite total esperada: **59 suites**.
+Suite total esperada: **62 suites**.
 
 El merge a la rama oficial solo debe hacerse si GitHub Actions deja `bateria` y `ci` en verde.
