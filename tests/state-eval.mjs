@@ -84,5 +84,20 @@ S.reset(true);
   assert(S.data.today.meals.length === 2, 'ambas comidas en el registro');
 }
 
+
+
+// Hub: la próxima revisión es un checkpoint de producto persistente, no una métrica inventada
+{
+  S.reset(true);
+  assert(S.data.profile.nextProgressReviewAt === null, 'perfil nuevo sin onboarding no inventa revisión');
+  S.onboard({ name:'TEST', goal:'BIENESTAR Y ADHERENCIA' });
+  assert(typeof S.data.profile.nextProgressReviewAt === 'string', 'onboarding programa próxima revisión real');
+  const first = S.data.profile.nextProgressReviewAt;
+  const invalid = S.setProgressReviewAt('no-es-fecha');
+  assert(invalid === false && S.data.profile.nextProgressReviewAt === first, 'fecha inválida no corrompe la revisión');
+  const scheduled = S.scheduleProgressReview(14);
+  assert(typeof scheduled === 'string' && new Date(scheduled).getTime() > Date.now(), 'revisión se puede reprogramar explícitamente');
+}
+
 console.log(`\n📊 RESULTADO: ${pass} pass · ${fail} fail\n`);
 process.exit(fail ? 1 : 0);
