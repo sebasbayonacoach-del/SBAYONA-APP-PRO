@@ -33,6 +33,8 @@ ok(ui.includes('S.addCoachCrmRecord("notes"'),"notas se registran");
 ok(ui.includes('S.updateCoachCrmStatus("payments"'),"estado de pago cambia explícitamente");
 ok(ui.includes("no realiza ningún cargo")&&ui.includes("no ejecuta el cobro"),"UI no finge procesamiento bancario");
 ok(!ui.includes("stripe")&&!ui.includes("checkout"),"CRM local no dispara cobros externos");
+ok(ui.includes("SINCRONIZAR NUBE")&&ui.includes("sync.onclick"),"subida de CRM requiere acción explícita");
+ok(ui.includes("currentSession()&&accountRole()===\"coach\""),"sync solo aparece a Coach autenticado");
 
 ok(domain.includes("amountCents"),"dominio usa céntimos enteros");
 ok(domain.includes("dueByCurrency"),"dominio separa saldos por moneda");
