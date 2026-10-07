@@ -147,7 +147,7 @@ export function progressShareCandidates(data={}){
   const hist=Array.isArray(data.history)?data.history:[];
   if(today.trained){
     out.push({
-      kind:"workout",id:`workout:${today.date}`,title:"Sesión completada",
+      kind:"workout",id:`workout:${today.date}`,title:"community.progress.workoutTitle",
       subtitle:today.workoutDone||"Entrenamiento BAYONA",metric:`${today.trainingSets||0} series`,
     });
   }
@@ -160,14 +160,14 @@ export function progressShareCandidates(data={}){
       if(!pr?.ex)continue;
       out.push({
         kind:"pr",id:`pr:${day.date}:${clean(pr.ex,50)}:${Number(pr.e1)||0}`,
-        title:"Nuevo récord personal",subtitle:clean(pr.ex,80),
+        title:"community.progress.prTitle",subtitle:clean(pr.ex,80),
         metric:Number(pr.e1)?`e1RM ${Number(pr.e1)} kg`:"PR registrado",
       });
     }
   }
   const streak=Math.trunc(Number(data.streak)||0);
   if(streak>=3)out.push({
-    kind:"streak",id:`streak:${streak}`,title:"Constancia",subtitle:"Racha BAYONA",metric:`${streak} días`,
+    kind:"streak",id:`streak:${streak}`,title:"community.progress.streakTitle",subtitle:"Racha BAYONA",metric:`${streak} días`,
   });
   const seen=new Set();
   return out.filter((x)=>{if(seen.has(x.id))return false;seen.add(x.id);return true;}).slice(-80).reverse();
