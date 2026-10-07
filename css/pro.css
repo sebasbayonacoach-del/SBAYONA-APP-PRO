@@ -5908,3 +5908,94 @@ html[data-surface-theme="light"] body.fitness-app #topbar .chip{
   border-color:#d5cec3 !important;
   background:#fffdf9 !important;
 }
+
+
+/* ============================================================
+   37 · PERSONAL HUB · command center
+   ============================================================ */
+.fit-hub-identity{
+  display:grid;grid-template-columns:minmax(0,1.25fr) auto;gap:14px;
+  padding:14px;border:1px solid var(--hair);border-radius:16px;background:var(--panel)
+}
+.fit-hub-person{display:flex;align-items:center;gap:11px;min-width:0}
+.fit-hub-avatar{
+  position:relative;width:54px;height:54px;display:grid;place-items:center;flex:0 0 auto;
+  overflow:hidden;border:1px solid var(--hair-strong);border-radius:50%;
+  background:radial-gradient(circle at 50% 28%,rgba(255,106,0,.18),transparent 44%),var(--paper-2);
+  color:var(--orange);font:800 18px/1 var(--sans);cursor:pointer
+}
+.fit-hub-avatar img{width:100%;height:100%;object-fit:cover}
+.fit-hub-avatar i{
+  position:absolute;right:2px;bottom:2px;width:9px;height:9px;border:2px solid var(--panel);
+  border-radius:50%;background:var(--orange)
+}
+.fit-hub-person>div{display:grid;gap:3px;min-width:0}
+.fit-hub-person small{color:var(--orange);font:800 7px/1 var(--sans);letter-spacing:.12em}
+.fit-hub-person strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink);font:700 15px/1.15 var(--sans)}
+.fit-hub-person span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--mute);font:500 9px/1.25 var(--sans)}
+.fit-hub-economy{display:grid;grid-template-columns:repeat(3,minmax(54px,1fr));gap:6px}
+.fit-hub-economy>span{
+  min-width:58px;display:grid;align-content:center;gap:4px;padding:8px;border:1px solid var(--hair);
+  border-radius:10px;background:var(--paper-2);text-align:center
+}
+.fit-hub-economy small{color:var(--mute);font:750 6.5px/1 var(--sans);letter-spacing:.08em}
+.fit-hub-economy b{color:var(--ink);font:750 13px/1 var(--mono)}
+.fit-hub-xp{grid-column:1/-1;display:grid;grid-template-columns:auto 1fr;align-items:center;gap:12px;padding-top:4px}
+.fit-hub-xp>span{display:grid;gap:3px}.fit-hub-xp small{color:var(--mute);font:750 6.5px/1 var(--sans);letter-spacing:.08em}.fit-hub-xp b{font:650 8px/1 var(--mono);color:var(--ink-soft)}
+.fit-hub-xp>i{height:5px;overflow:hidden;border-radius:999px;background:var(--paper-2);border:1px solid var(--hair)}.fit-hub-xp>i>em{display:block;height:100%;background:var(--orange);border-radius:inherit}
+
+.fit-hub-spatial{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:8px;padding:8px 10px;border:1px solid var(--hair);border-radius:12px;background:var(--panel)}
+.fit-hub-spatial>span{color:var(--mute);font:800 7px/1 var(--sans);letter-spacing:.12em;white-space:nowrap}
+.fit-hub-spatial>div{display:flex;gap:5px;overflow:auto;scrollbar-width:none}.fit-hub-spatial>div::-webkit-scrollbar{display:none}
+.fit-hub-spatial button{min-height:28px;padding:0 9px;border:1px solid var(--hair);border-radius:999px;background:var(--paper-2);color:var(--mute);font:650 8px/1 var(--sans);white-space:nowrap;cursor:pointer}
+.fit-hub-spatial button.active{border-color:var(--orange);background:rgba(255,106,0,.08);color:var(--ink)}
+.fit-hub-spatial button:focus-visible{outline:2px solid var(--orange);outline-offset:2px}
+
+.fit-hub-review{
+  display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px;margin-top:8px;padding:11px 12px;
+  border:1px solid var(--hair);border-radius:12px;background:var(--panel)
+}
+.fit-hub-review>span{display:grid;gap:4px}.fit-hub-review small{color:var(--mute);font:800 7px/1 var(--sans);letter-spacing:.1em}.fit-hub-review strong{font:650 11px/1.2 var(--sans);color:var(--ink)}
+.fit-hub-review button{min-height:30px;padding:0 10px;border:1px solid var(--hair-strong);border-radius:8px;background:var(--paper-2);color:var(--ink);font:750 8px/1 var(--sans);cursor:pointer}
+.fit-hub-review button:hover{border-color:var(--orange)}
+
+.fit-hub-coach{
+  display:grid;grid-template-columns:38px minmax(0,1fr) auto;align-items:center;gap:10px;margin-top:8px;padding:12px;
+  border:1px solid var(--hair);border-radius:14px;background:linear-gradient(115deg,rgba(255,106,0,.06),transparent 44%),var(--panel)
+}
+.fit-hub-coach-mark{width:36px;height:36px;display:grid;place-items:center;border-radius:50%;background:var(--paper-2);border:1px solid var(--hair);color:var(--orange);font:800 11px/1 var(--sans)}
+.fit-hub-coach>div:nth-child(2){min-width:0}.fit-hub-coach small{display:block;color:var(--orange);font:800 7px/1 var(--sans);letter-spacing:.1em}.fit-hub-coach strong{display:block;margin-top:3px;font:700 11px/1 var(--sans)}.fit-hub-coach p{margin:5px 0 0;color:var(--mute);font:500 9.5px/1.4 var(--sans)}
+.fit-hub-coach button{min-height:30px;padding:0 10px;border:1px solid var(--orange);border-radius:8px;background:var(--orange);color:#090909;font:800 7.5px/1 var(--sans);letter-spacing:.05em;cursor:pointer}
+
+.fit-hub-journey{margin-top:8px;padding:12px;border:1px solid var(--hair);border-radius:14px;background:var(--panel)}
+.fit-hub-journey-head{display:flex;justify-content:space-between;gap:12px;align-items:center}.fit-hub-journey-head span{color:var(--ink-soft);font:800 7px/1 var(--sans);letter-spacing:.11em}.fit-hub-journey-head small{color:var(--mute);font:600 7px/1 var(--mono)}
+.fit-hub-journey-track{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:9px}
+.fit-hub-step{min-height:60px;display:grid;grid-template-columns:25px 1fr;align-items:center;gap:7px;padding:7px;border:1px solid var(--hair);border-radius:9px;background:var(--paper-2);color:var(--ink);text-align:left;cursor:pointer}
+.fit-hub-step>i{width:24px;height:24px;display:grid;place-items:center;border-radius:50%;border:1px solid var(--hair-strong);color:var(--mute);font:800 8px/1 var(--mono);font-style:normal}
+.fit-hub-step>span{display:grid;gap:3px}.fit-hub-step strong{font:650 8.5px/1 var(--sans)}.fit-hub-step small{font:750 6px/1 var(--sans);letter-spacing:.07em;color:var(--mute)}
+.fit-hub-step.done>i{border-color:#2f8a59;color:#58bd81}.fit-hub-step.current,.fit-hub-step.claimable{border-color:var(--orange)}.fit-hub-step.current>i,.fit-hub-step.claimable>i{background:var(--orange);border-color:var(--orange);color:#090909}.fit-hub-step:disabled{opacity:.46;cursor:default}
+
+.fit-hub-history{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:8px;padding:10px 12px;border:1px solid var(--hair);border-radius:12px;background:var(--panel)}
+.fit-hub-history>span{color:var(--mute);font:800 7px/1 var(--sans);letter-spacing:.11em}
+.fit-hub-history>div{display:flex;gap:14px}.fit-hub-history b{display:flex;align-items:baseline;gap:4px;color:var(--ink);font:750 11px/1 var(--mono)}.fit-hub-history small{color:var(--mute);font:500 7px/1 var(--sans)}
+
+html[data-surface-theme="light"] body.fitness-app .fit-hub-avatar,
+html[data-surface-theme="light"] body.fitness-app .fit-hub-economy>span,
+html[data-surface-theme="light"] body.fitness-app .fit-hub-spatial button,
+html[data-surface-theme="light"] body.fitness-app .fit-hub-review button,
+html[data-surface-theme="light"] body.fitness-app .fit-hub-step{
+  background:#f7f3ec
+}
+html[data-surface-theme="light"] body.fitness-app .fit-hub-coach{
+  background:linear-gradient(115deg,rgba(239,98,0,.07),transparent 44%),#fffdf9
+}
+@media(max-width:760px){
+  .fit-hub-identity{grid-template-columns:1fr}
+  .fit-hub-economy{grid-template-columns:repeat(3,1fr)}
+  .fit-hub-spatial{align-items:flex-start;flex-direction:column}
+  .fit-hub-review{grid-template-columns:1fr}
+  .fit-hub-review button{width:100%}
+  .fit-hub-coach{grid-template-columns:38px 1fr}.fit-hub-coach button{grid-column:1/-1;width:100%}
+  .fit-hub-journey-track{grid-template-columns:repeat(2,1fr)}
+  .fit-hub-history{align-items:flex-start;flex-direction:column}
+}
