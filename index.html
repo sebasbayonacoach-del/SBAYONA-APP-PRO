@@ -30,15 +30,15 @@
 <link rel="stylesheet" href="css/fitness.css?v=10" />
 <link rel="stylesheet" href="css/coach.css?v=1" />
 <link rel="stylesheet" href="css/dashboard.css?v=1" />
-<!-- PRO · el lenguaje visual real. Se carga EL ÚLTIMO y manda sobre
-     las capas anteriores: neutro, denso, sin botones gigantes. -->
+<!-- PRO · lenguaje visual BAYONA. Se carga EL ÚLTIMO y manda sobre
+     las capas anteriores: marca web + densidad de software + accesibilidad. -->
 <link rel="stylesheet" href="css/pro.css?v=3" />
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="icon" href="icon-192.png" sizes="192x192" type="image/png" />
 <link rel="apple-touch-icon" href="icon-192.png" />
 <script>
-  /* firma visual v3 «CINE»: se aplica antes del primer pintado (sin parpadeos).
-     CINE = blanco + naranja · NOCHE = negro + naranja (modo nocturno). */
+  /* BAYONA Brand System: se aplica antes del primer pintado (sin parpadeos).
+     NOCHE replica la web actual; DÍA conserva el naranja con superficies claras. */
   try {
     var ap = JSON.parse(localStorage.getItem('bayona.appearance.v1') || '{}');
     var d = document.documentElement;
@@ -53,8 +53,8 @@
     d.dataset.mode = resolvedTheme === 'light' ? 'cine' : 'noche';
     d.dataset.font = 'claude';
     d.dataset.density = ap.density || 'comoda';
-    d.dataset.radius = ap.radius || 'suave';
-    d.dataset.glass = ap.glass === undefined ? 'on' : ap.glass;
+    d.dataset.radius = ap.radius || 'recto';
+    d.dataset.glass = ap.glass === undefined ? 'off' : ap.glass;
     d.dataset.glow = ap.glow || 'bajo';
     d.dataset.scale = ap.scale || '100';
     d.dataset.motion = ap.motion || 'pleno';

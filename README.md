@@ -37,7 +37,7 @@ una landing pública cinematográfica —dark `#080a0c` + glass + grain + aurora
   precache v21 y archivos de marketing (`robots`, `sitemap`, manifest).
 
 **Lo que NO hace, y lo dice**: la landing no recoge emails ni falsifica
-métricas — las cifras del hero (`100% local · 0 datos vendidos · 49 suites`)
+métricas — las cifras del hero (`100% local · 0 datos vendidos · 51 suites`)
 son reales y verificables. El CTA entra al onboarding real; no hay demo
 falsa.
 
@@ -491,6 +491,6 @@ Requiere Node.js 22 o posterior para las pruebas (importación JSON).
 - Pausar una sesión devuelve a HOY y recupera la navegación.
 - PWA: recursos del avatar recuperados, caché de recursos versionados y paquete móvil completo.
 
-`npm test` ejecuta las 49 suites; `npm run qa:5000` ejecuta el plan de 5.000 preguntas, `tests/pro-ui-eval.mjs` el contrato de diseño y `tests/paleta-eval.mjs` el de teclado. `npm run mobile:pack` genera los recursos para Capacitor; no compila ni firma un APK/IPA. El coach con IA es opcional: sin `OPENAI_API_KEY`, CORE sigue funcionando con su motor local (`api/COACH_IA.md`). Backend de cuentas, credenciales y publicación en tiendas requieren configuración y validación independientes.
+`npm test` ejecuta las 51 suites; `npm run qa:5000` ejecuta el plan de 5.000 preguntas, `tests/pro-ui-eval.mjs` el contrato de diseño y `tests/paleta-eval.mjs` el de teclado. `npm run mobile:pack` genera los recursos para Capacitor; no compila ni firma un APK/IPA. El coach con IA es opcional: sin `OPENAI_API_KEY`, CORE sigue funcionando con su motor local (`api/COACH_IA.md`). Backend de cuentas, credenciales y publicación en tiendas requieren configuración y validación independientes.
 
 Criterio para ciclo y entrenamiento: [consenso UEFA, 2025](https://bmjopensem.bmj.com/content/11/3/e002769). La evidencia no respalda prescribir automáticamente la intensidad según una fase estimada del calendario; se priorizan síntomas, autonomía y contexto individual.

@@ -10,13 +10,14 @@ import { S } from "../state.js";
 import { processFace } from "../face.js";
 import { setConsent, isGranted } from "../consents.js";
 import { applyTheme, readTheme } from "../theme.js";
+import { BRAND } from "../brand.js";
 import { UI, $, el, elT, toast, BUILDERS, TITLES, openSection, closeDrawer } from "./shared.js";
 
 const KEY = "bayona.appearance.v1";
 
 /** firma única de identidad visual (sin variantes de color) */
 export const THEMES = [
-  { id: "naranja", name: "MONO NARANJA", dot: "linear-gradient(120deg,#ff6a00 0 50%,#ffffff 50% 75%,#000000 75% 100%)" },
+  { id: "naranja", name: "BAYONA ORIGINAL", dot: `linear-gradient(120deg,${BRAND.orange} 0 45%,${BRAND.orangeFire} 45% 62%,${BRAND.white} 62% 78%,${BRAND.black} 78% 100%)` },
 ];
 
 const DEFAULTS = {
@@ -24,8 +25,8 @@ const DEFAULTS = {
   mode: "noche",        // noche / cine (día)
   font: "claude",       // firma tipográfica CLAUDE (Styrene B / Tiempos Text)
   density: "comoda",
-  radius: "suave",
-  glass: "on",          // cristal (glassmorphism) activo por defecto
+  radius: "recto",
+  glass: "off",         // la web actual prioriza planos limpios
   glow: "bajo",
   scale: "100",
   motion: "pleno",
@@ -75,9 +76,7 @@ export function applyAppearance() {
   if (UI.W?.setMood) UI.W.setMood(AP.mode);
   const mn = document.getElementById("mode-name");
   if (mn) mn.textContent = AP.mode === "noche" ? "NOCHE" : "CINE";
-  // color del tema de sistema del navegador (barra móvil)
-  const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute("content", AP.mode === "noche" ? "#0a0806" : "#f1ede5");
+  // theme.js sincroniza también la barra del navegador con los tokens BAYONA.
 }
 
 /** interruptor rápido CINE / NOCHE (HUD y portada) */
@@ -180,9 +179,11 @@ BUILDERS.appearance = (body) => {
   body.appendChild(el("div", "sec-label", "PALETA"));
   const sw = el("div", "swatches");
   [
-    ["NARANJA", "#ff6a00"],
-    ["BLANCO", "#ffffff"],
-    ["NEGRO", "#000000"],
+    ["NARANJA", BRAND.orange],
+    ["FUEGO", BRAND.orangeFire],
+    ["GRAFITO", BRAND.black3],
+    ["BLANCO", BRAND.white],
+    ["NEGRO", BRAND.black],
   ].forEach(([nm, col], i) => {
     const b = el("button", "swatch-btn" + (i === 0 ? " on" : ""));
     b.type = "button";
@@ -193,8 +194,8 @@ BUILDERS.appearance = (body) => {
   body.appendChild(sw);
 
   // ---------- FIRMA VISUAL FIJA ----------
-  options(body, "LUZ", "mode", [["noche", "NOCHE · NEGRO"]],
-    "BAYONA ONE mantiene negro + naranja en toda la experiencia.");
+  options(body, "LUZ", "mode", [["noche", "NOCHE · MARCA"], ["cine", "DÍA · CLARO"]],
+    "Noche replica la identidad de la web; Día mantiene el mismo naranja con superficies claras.");
 
   // ---------- CRISTAL ----------
   options(body, "CRISTAL", "glass", [["on", "CRISTAL"], ["off", "PLANO"]],
@@ -304,7 +305,7 @@ BUILDERS.appearance = (body) => {
   // ---------- RESTABLECER ----------
   body.appendChild(el("div", "sec-label", "DISEÑO"));
   const rz = el("div", "card");
-  rz.innerHTML = `<h4>RESTABLECER DISEÑO</h4><div class="sub">Vuelve a la firma original «MONO NARANJA · NEGRO». No toca tus datos de juego.</div>`;
+  rz.innerHTML = `<h4>RESTABLECER DISEÑO</h4><div class="sub">Vuelve a la firma original BAYONA: negro profundo + naranja cálido. No toca tus datos de juego.</div>`;
   const rb = el("button", "btn btn-ghost btn-block", "VOLVER A LA FIRMA ORIGINAL");
   rb.style.marginTop = "12px";
   rb.type = "button";

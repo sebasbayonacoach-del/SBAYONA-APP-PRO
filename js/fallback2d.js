@@ -17,13 +17,13 @@ const JOINTS = [
 ];
 
 const ENV_ART = {
-  home:     { top: "#ffffff", bottom: "#e8e8e8", glow: "#ff6a00", deco: "window" },
-  gym:      { top: "#f0f0f0", bottom: "#dcdcdc", glow: "#ff6a00", deco: "neon" },
-  kitchen:  { top: "#ffffff", bottom: "#ececec", glow: "#ff6a00", deco: "counter" },
-  recovery: { top: "#f0f0f0", bottom: "#e0e0e0", glow: "#ff6a00", deco: "panels" },
-  mind:     { top: "#fafafa", bottom: "#ececec", glow: "#ff6a00", deco: "halo" },
-  lab:      { top: "#f0f0f0", bottom: "#e4e4e4", glow: "#ff6a00", deco: "charts" },
-  locker:   { top: "#ececec", bottom: "#dcdcdc", glow: "#ff6a00", deco: "lockers" },
+  home:     { top: "#ffffff", bottom: "#e8e8e8", glow: "#F4A261", deco: "window" },
+  gym:      { top: "#f0f0f0", bottom: "#dcdcdc", glow: "#F4A261", deco: "neon" },
+  kitchen:  { top: "#ffffff", bottom: "#ececec", glow: "#F4A261", deco: "counter" },
+  recovery: { top: "#f0f0f0", bottom: "#e0e0e0", glow: "#F4A261", deco: "panels" },
+  mind:     { top: "#fafafa", bottom: "#ececec", glow: "#F4A261", deco: "halo" },
+  lab:      { top: "#f0f0f0", bottom: "#e4e4e4", glow: "#F4A261", deco: "charts" },
+  locker:   { top: "#ececec", bottom: "#dcdcdc", glow: "#F4A261", deco: "lockers" },
 };
 
 export class Fallback2D {
@@ -123,7 +123,7 @@ export class Fallback2D {
     seg("spine", "chest", 0.175, topCol);
     seg("chest", "neck", 0.14, topCol);
     // accent stripe
-    seg("spine", "chest", 0.03, style.top?.accent || "#ff6a00");
+    seg("spine", "chest", 0.03, style.top?.accent || "#F4A261");
 
     // head + cara real del usuario
     if (P.head) {
@@ -170,7 +170,7 @@ export class Fallback2D {
     if (core) {
       const cp = this.project(core.group.position, cx, cy, s);
       this.coreScreen = cp;
-      const mood = core.mood === "alert" ? "#ff6a00" : core.mood === "gold" ? "#ff6a00" : "#111111";
+      const mood = core.mood === "alert" ? "#F4A261" : core.mood === "gold" ? "#F4A261" : "#111111";
       const puls = 1 + Math.sin(t * 2.4) * 0.1;
       const gg = ctx.createRadialGradient(cp.x, cp.y, 1, cp.x, cp.y, s * 0.14 * puls);
       gg.addColorStop(0, mood); gg.addColorStop(0.35, mood + "66"); gg.addColorStop(1, "transparent");
@@ -178,7 +178,7 @@ export class Fallback2D {
       ctx.beginPath(); ctx.arc(cp.x, cp.y, s * 0.14 * puls, 0, Math.PI * 2); ctx.fill();
       ctx.fillStyle = "#ffffff";
       ctx.beginPath(); ctx.arc(cp.x, cp.y, s * 0.03, 0, Math.PI * 2); ctx.fill();
-      ctx.strokeStyle = "#ff6a00"; ctx.lineWidth = 1.5;
+      ctx.strokeStyle = "#F4A261"; ctx.lineWidth = 1.5;
       ctx.beginPath(); ctx.ellipse(cp.x, cp.y, s * 0.09, s * 0.03, t, 0, Math.PI * 2); ctx.stroke();
     }
   }
