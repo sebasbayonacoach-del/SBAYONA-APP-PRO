@@ -33,6 +33,8 @@ export function normalizeCrmClient(input={}){
   if(!name)return null;
   return {
     id:id(input.id,"client"),
+    cloudId:clean(input.cloudId,90)||null,
+    linkedUserId:clean(input.linkedUserId,90)||null,
     name,
     email:clean(input.email,120)||null,
     phone:clean(input.phone,40)||null,
@@ -51,6 +53,7 @@ export function normalizeAppointment(input={}){
   const duration=Math.round(Number(input.durationMin));
   return {
     id:id(input.id,"appt"),
+    cloudId:clean(input.cloudId,90)||null,
     clientId,
     startAt,
     durationMin:Number.isFinite(duration)?Math.max(5,Math.min(480,duration)):60,
@@ -69,6 +72,7 @@ export function normalizePayment(input={}){
   const st=status(input.status,CRM_PAYMENT_STATUSES,"due");
   return {
     id:id(input.id,"pay"),
+    cloudId:clean(input.cloudId,90)||null,
     clientId,
     amountCents,
     currency:currency(input.currency),
@@ -89,6 +93,7 @@ export function normalizeReferral(input={}){
   if(!referrerClientId||!referredName)return null;
   return {
     id:id(input.id,"ref"),
+    cloudId:clean(input.cloudId,90)||null,
     referrerClientId,
     referredName,
     contact:clean(input.contact,120)||null,
@@ -106,6 +111,7 @@ export function normalizePurchase(input={}){
   if(!clientId||!item||amountCents===null)return null;
   return {
     id:id(input.id,"purchase"),
+    cloudId:clean(input.cloudId,90)||null,
     clientId,item,amountCents,
     currency:currency(input.currency),
     status:status(input.status,CRM_PURCHASE_STATUSES,"ordered"),
@@ -123,6 +129,7 @@ export function normalizeCrmNote(input={}){
   if(!clientId||!text)return null;
   return {
     id:id(input.id,"note"),
+    cloudId:clean(input.cloudId,90)||null,
     clientId,text,
     tags:Array.isArray(input.tags)?[...new Set(input.tags.map((x)=>clean(x,30)).filter(Boolean))].slice(0,10):[],
     at:iso(input.at)||new Date().toISOString(),
