@@ -433,6 +433,7 @@ function customWater() {
 }
 
 function customMeal() {
+  const currentFeeling=S.data.today.nutritionFeeling||"";
   showModal(`
     <div class="cine-tag">REGISTRAR COMIDA</div>
     <div class="cine-title" style="font-size:22px">AÑADIR ALIMENTO</div>
@@ -445,9 +446,9 @@ function customMeal() {
     </div>
     <div class="sf-row">
       <label>COMIDA
-        <select id="cm-slot">${MEAL_SLOTS.map((s) => `<option>${s}</option>`).join("")}</select>
+        <select id="cm-slot">${MEAL_SLOTS.map((slot)=>`<option>${slot}</option>`).join("")}</select>
       </label>
-      <label>HORA<input id="cm-time" type="time" value="${new Date().toTimeString().slice(0, 5)}" /></label>
+      <label>HORA<input id="cm-time" type="time" value="${new Date().toTimeString().slice(0,5)}" /></label>
       <label>KCAL<input id="cm-kcal" type="number" inputmode="numeric" min="0" placeholder="420" /></label>
     </div>
     <div class="sf-row">
@@ -456,6 +457,18 @@ function customMeal() {
       <label>GRASAS (g)<input id="cm-f" type="number" inputmode="decimal" min="0" placeholder="12" /></label>
       <label>FIBRA (g)<input id="cm-fib" type="number" inputmode="decimal" min="0" placeholder="6" /></label>
     </div>
+    <div class="sf-row">
+      <label>${esc(t("nut.meal.feeling"))}
+        <select id="cm-feeling">
+          <option value="">—</option>
+          ${NUTRITION_FEELINGS.map((id)=>`<option value="${id}" ${id===currentFeeling?"selected":""}>${esc(t(FEELING_KEY[id]))}</option>`).join("")}
+        </select>
+      </label>
+    </div>
+    <label>${esc(t("nut.meal.note"))}
+      <textarea id="cm-note" maxlength="180" placeholder="${esc(t("nut.meal.notePlaceholder"))}"></textarea>
+    </label>
+    <div style="height:10px"></div>
     <button class="btn btn-primary btn-block" id="cm-ok">GUARDAR COMIDA</button>
   `, () => {
     $("#cm-ok").onclick = () => {
@@ -463,20 +476,32 @@ function customMeal() {
       const kcal = +$("#cm-kcal").value || 0;
       if (!name) return toast("REVISA", "Ponle nombre al alimento.", "danger");
       if (!kcal) return toast("REVISA", "Indica las kilocalorías aproximadas.", "danger");
+
       const qty = +$("#cm-qty").value || null;
       const unit = $("#cm-unit").value;
       const slot = $("#cm-slot").value;
       const time = $("#cm-time").value;
+      const at = mealAtFromLocal(S.data.today.date,time);
+      if(!at || new Date(at).getTime() > Date.now()+5*60_000){
+        return toast("REVISA",t("nut.meal.timeInvalid"),"danger");
+      }
+
       const r = S.eat({
-        custom: true,
-        name: `${name}${qty ? ` · ${fmtDec(qty)} ${unit}` : ""} (${slot} ${time})`,
-        kcal, p: +$("#cm-p").value || 0, c: +$("#cm-c").value || 0,
-        f: +$("#cm-f").value || 0, fib: +$("#cm-fib").value || 0,
+        custom:true,
+        name,
+        qty,unit,slot,at,
+        feeling:$("#cm-feeling").value||null,
+        note:$("#cm-note").value,
+        kcal,
+        p:+$("#cm-p").value||0,
+        c:+$("#cm-c").value||0,
+        f:+$("#cm-f").value||0,
+        fib:+$("#cm-fib").value||0,
       });
       hideModal();
       if (!r) return toast("ERROR", "No se pudo registrar la comida.", "danger");
       UI.W?.avatar.setAction("eat");
-      toast("COMIDA REGISTRADA", `${name} · +${r.xp} XP`);
+      toast("COMIDA REGISTRADA", `${name} · ${t("nut.meal.savedAt",{time})} · +${r.xp} XP`);
       setTimeout(() => UI.W?.avatar.setAction("sit"), 2600);
       BUILDERS.nutrition();
     };
