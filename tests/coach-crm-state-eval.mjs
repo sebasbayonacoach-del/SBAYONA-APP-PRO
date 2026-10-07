@@ -9,7 +9,7 @@ console.log("\n📇 COACH CRM · ESTADO\n");
 S.init();
 S.reset(true);
 
-ok(SCHEMA===9,"schema actualizado a 9");
+ok(SCHEMA>=9,`schema conserva Coach CRM (v${SCHEMA} >= 9)`);
 ok(S.data.coachCrm.clients.length===0,"CRM nuevo empieza sin clientes inventados");
 ok(S.data.coachCrm.payments.length===0,"CRM nuevo empieza sin pagos inventados");
 
