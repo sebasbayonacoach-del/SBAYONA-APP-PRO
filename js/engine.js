@@ -211,7 +211,7 @@ export function shortSession(min = 20) {
 }
 
 // registra la sesión en histórico (para tendencias)
-export function archiveSet(exKey, kg, reps, rir, muscleOverride = null) {
+export function archiveSet(exKey, kg, reps, rir, muscleOverride = null, meta = {}) {
   const t = S.data.today;
   t.muscleSets = t.muscleSets || {};
   const m = muscleOverride || EXERCISES[exKey]?.muscle || "FULL";
@@ -219,8 +219,15 @@ export function archiveSet(exKey, kg, reps, rir, muscleOverride = null) {
   t.prPoints = t.prPoints || [];
   const e1 = epley1RM(kg, reps);
   if (e1) t.prPoints.push({ ex: exKey, e1 });
+  const record = {
+    ex: exKey, kg, reps, rir,
+    feeling: meta.feeling || null,
+    effort: Number.isFinite(Number(meta.effort)) ? Number(meta.effort) : null,
+    note: String(meta.note || "").slice(0, 180),
+    evidenceId: meta.evidenceId || null,
+  };
   t.strain = sessionStrain(
-    (t.setLog = t.setLog || []).concat([{ kg, reps, rir, e1Base: S.data.prs[exKey]?.e1 || e1 }])
+    (t.setLog = t.setLog || []).concat([{ ...record, e1Base: S.data.prs[exKey]?.e1 || e1 }])
   );
-  t.setLog.push({ ex: exKey, kg, reps, rir }); // ex: para las gráficas de progreso (P14)
+  t.setLog.push(record); // ex + feedback real para progreso y aprendizaje futuro
 }
