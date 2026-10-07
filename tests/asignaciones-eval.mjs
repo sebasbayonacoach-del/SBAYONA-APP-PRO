@@ -69,7 +69,7 @@ const fakeS = (asignaciones = [], { workout = null, over = {} } = {}) => ({
 {
   S.init(); S.reset(true);
   S.addAsignacion({ clienteId: 'local', workoutId: 'op_upper', dia: S.data.today.date, nota: '' });
-  S.completeWorkout('op_upper', { loggedSets: 12, plannedSets: 14 });
+  S.completeWorkout('op_upper', { loggedSets: 14, plannedSets: 14 });
   const lista = S.asignacionesDe('local');
   assert(lista[0].estado === 'completada', 'al cerrar la sesión, la asignación queda COMPLETADA', JSON.stringify(lista[0]));
   assert(lista[0].cerradaEn === S.data.today.date, 'se registra cuándo se cerró');
