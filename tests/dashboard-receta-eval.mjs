@@ -286,7 +286,10 @@ console.log("\n— contrato con el catálogo, los estilos y el shell —");
   }
 
   // las clases que pinta el JS existen en la hoja (como clase o como id)
-  // dashboard.css cubre el tablero histórico; pro.css es la capa final de producto\n  // y es dueña de los componentes nuevos de Nutrición. El contrato valida la cascada real.\n  const css = leer("css/dashboard.css") + "\\n" + leer("css/pro.css");\n  const fuente = leer("js/ui/dashboard.js") + leer("js/ui/nutrition.js");
+  // dashboard.css cubre el tablero histórico; pro.css es la capa final de producto
+  // y es dueña de los componentes nuevos de Nutrición. El contrato valida la cascada real.
+  const css = leer("css/dashboard.css") + "\n" + leer("css/pro.css");
+  const fuente = leer("js/ui/dashboard.js") + leer("js/ui/nutrition.js");
   const nombres = [...new Set([...fuente.matchAll(/["'`\s]((?:dash|nut)-[a-z-]+)["'`\s]/g)].map((m) => m[1]))];
   const sinEstilo = nombres.filter((c) => !css.includes(`.${c}`) && !css.includes(`#${c}`));
   assert(sinEstilo.length === 0,
