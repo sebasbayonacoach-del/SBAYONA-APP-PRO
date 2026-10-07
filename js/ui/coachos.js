@@ -18,6 +18,7 @@ import {
 } from "./shared.js";
 import { currentSession, accountRole } from "../sync/supabase.js";
 import { linkedClients } from "../sync/coaching.js";
+import { renderCoachCrm, registerCloudClientInCrm } from "./coach-crm.js";
 
 function cartera() { return [fichaLocal(S), ...CLIENTES_DEMO]; }
 
@@ -51,6 +52,7 @@ function renderCloudClients(body) {
     const intro = el("div", "mc-sub", clients.length + (clients.length === 1 ? " cliente vinculado" : " clientes vinculados"));
     status.appendChild(intro);
     for (const client of clients) {
+      registerCloudClientInCrm(client);
       const row = el("div", "kv");
       row.innerHTML = `<span class="k">ACTIVO</span><span class="v">${esc(client.name)}</span>`;
       status.appendChild(row);
@@ -85,6 +87,15 @@ function renderCartera(body) {
   body.appendChild(el("div", "media-caption",
     "Tu ficha usa datos reales de este dispositivo. Los clientes vinculados en la nube son reales; la cartera de ejemplo sigue marcada como DEMO."));
   renderCloudClients(body);
+
+  // ---------- CRM OPERATIVO ----------
+  const crmEntry = el("section", "coach-crm-entry");
+  crmEntry.innerHTML = `
+    <div><small>SPRINT 09 · CRM</small><strong>CARTERA · AGENDA · PAGOS · REFERIDOS · COMPRAS</strong><span>Los datos demo no entran al ledger.</span></div>`;
+  const crmButton = el("button", "btn btn-primary", "ABRIR CRM OPERATIVO");
+  crmButton.onclick = () => renderCoachCrm(body, () => renderCartera(body));
+  crmEntry.appendChild(crmButton);
+  body.appendChild(crmEntry);
 
   // ---------- CORE COACH ----------
   body.appendChild(el("div", "sec-label", "CORE COACH · PRIORIDADES DE HOY"));
