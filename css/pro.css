@@ -6614,3 +6614,134 @@ html[data-surface-theme="light"] body.fitness-app .nut-preferences{
   .nut-now-grid{grid-template-columns:1fr 1fr}
   .nut-pref-grid{grid-template-columns:1fr}
 }
+
+
+/* ============================================================
+   41 · PROGRESS VISUAL · antes → ahora → lo que sigue
+   ============================================================ */
+.progress-hero{
+  display:grid;gap:14px;padding:16px;border:1px solid var(--hair);
+  background:
+    linear-gradient(115deg,color-mix(in srgb,var(--brand-orange) 7%,transparent),transparent 42%),
+    var(--panel)
+}
+.progress-hero-copy{display:grid;gap:6px;max-width:600px}
+.progress-hero-copy small,.progress-section-head small{
+  color:var(--brand-orange-dark);font:800 7px/1 var(--sans);letter-spacing:.12em
+}
+html[data-surface-theme="light"] .progress-hero-copy small,
+html[data-surface-theme="light"] .progress-section-head small{color:var(--brand-orange-light)}
+.progress-hero-copy h3{
+  margin:0;color:var(--ink);font:750 clamp(24px,4.8vw,38px)/1 var(--serif);letter-spacing:-.04em
+}
+.progress-hero-copy p{margin:0;color:var(--mute);font:500 10px/1.5 var(--sans)}
+.progress-hero-stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.progress-hero-stats article,.progress-period-grid article,.progress-measure-grid article{
+  display:grid;gap:5px;min-height:70px;padding:9px;border:1px solid var(--hair);background:var(--paper-2)
+}
+.progress-hero-stats small,.progress-period-grid small,.progress-measure-grid small{
+  color:var(--mute);font:800 6px/1 var(--sans);letter-spacing:.08em
+}
+.progress-hero-stats strong,.progress-period-grid strong,.progress-measure-grid strong{
+  color:var(--ink);font:800 17px/1 var(--mono)
+}
+.progress-review{
+  display:flex;justify-content:space-between;gap:10px;padding-top:2px
+}
+.progress-review>span{display:grid;gap:3px}
+.progress-review small{color:var(--mute);font:800 6px/1 var(--sans);letter-spacing:.09em}
+.progress-review strong{color:var(--ink-soft);font:600 9px/1.3 var(--sans)}
+
+.progress-period,.progress-strength,.progress-measure-summary,.progress-photos-summary,.progress-advanced{
+  display:grid;gap:10px;margin-top:8px;padding:12px;border:1px solid var(--hair);background:var(--panel)
+}
+.progress-section-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.progress-section-head>span{display:grid;gap:4px}
+.progress-section-head strong{color:var(--ink);font:700 11px/1.25 var(--sans)}
+.progress-section-head>em,.progress-section-head>b{
+  max-width:48%;color:var(--mute);font:550 8px/1.35 var(--sans);font-style:normal;text-align:right
+}
+.progress-section-head>b{color:var(--brand-orange-dark);font-weight:800}
+html[data-surface-theme="light"] .progress-section-head>b{color:var(--brand-orange-light)}
+
+.progress-period-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.progress-period-grid article{min-height:76px}
+.progress-period-grid em,.progress-measure-grid em{
+  color:var(--mute);font:650 7px/1 var(--mono);font-style:normal
+}
+.progress-period-grid em.up,.progress-measure-grid em.up{color:var(--ok)}
+.progress-period-grid em.down,.progress-measure-grid em.down{color:var(--brand-orange-dark)}
+html[data-surface-theme="light"] .progress-period-grid em.down,
+html[data-surface-theme="light"] .progress-measure-grid em.down{color:var(--brand-orange-light)}
+
+.progress-strength-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.progress-strength-grid article{
+  display:grid;gap:5px;min-height:88px;padding:9px;border:1px solid var(--hair);background:var(--paper-2)
+}
+.progress-strength-grid small{color:var(--mute);font:800 6px/1.2 var(--sans);letter-spacing:.07em}
+.progress-strength-grid strong{color:var(--ink);font:800 18px/1 var(--mono)}
+.progress-strength-grid strong i{color:var(--mute);font:600 8px/1 var(--sans);font-style:normal}
+.progress-strength-grid span{color:var(--ink-soft);font:550 7.5px/1.3 var(--sans)}
+.progress-strength-grid em{margin-top:auto;color:var(--mute);font:650 6.5px/1 var(--mono);font-style:normal}
+.progress-empty{padding:13px;border:1px dashed var(--hair);color:var(--mute);font:550 9px/1.4 var(--sans)}
+
+.progress-measure-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.progress-photo-counts{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.progress-photo-counts>span{
+  display:grid;gap:4px;padding:9px;border:1px solid var(--hair);background:var(--paper-2)
+}
+.progress-photo-counts small{color:var(--mute);font:800 6px/1 var(--sans);letter-spacing:.08em}
+.progress-photo-counts b{color:var(--ink);font:800 15px/1 var(--mono)}
+
+.progress-advanced{
+  background:
+    linear-gradient(120deg,color-mix(in srgb,var(--brand-orange) 5%,transparent),transparent 45%),
+    var(--panel)
+}
+.progress-advanced>p{margin:0;color:var(--mute);font:500 9px/1.45 var(--sans)}
+.progress-advanced.locked{border-style:dashed}
+.progress-advanced.locked .progress-section-head>b{
+  padding:5px 7px;border:1px solid var(--brand-orange);color:var(--brand-orange-dark)
+}
+html[data-surface-theme="light"] .progress-advanced.locked .progress-section-head>b{color:var(--brand-orange-light)}
+
+/* Los bloques históricos ahora viven dentro del flujo visual final. */
+body.fitness-app .progress-hero,
+body.fitness-app .progress-period,
+body.fitness-app .progress-strength,
+body.fitness-app .progress-measure-summary,
+body.fitness-app .progress-photos-summary,
+body.fitness-app .progress-advanced,
+body.fitness-app .progress-hero-stats article,
+body.fitness-app .progress-period-grid article,
+body.fitness-app .progress-strength-grid article,
+body.fitness-app .progress-measure-grid article,
+body.fitness-app .progress-photo-counts>span{
+  border-radius:0!important
+}
+html[data-surface-theme="dark"] body.fitness-app .progress-hero,
+html[data-surface-theme="dark"] body.fitness-app .progress-period,
+html[data-surface-theme="dark"] body.fitness-app .progress-strength,
+html[data-surface-theme="dark"] body.fitness-app .progress-measure-summary,
+html[data-surface-theme="dark"] body.fitness-app .progress-photos-summary,
+html[data-surface-theme="dark"] body.fitness-app .progress-advanced{background-color:var(--brand-black-2)}
+html[data-surface-theme="light"] body.fitness-app .progress-hero,
+html[data-surface-theme="light"] body.fitness-app .progress-period,
+html[data-surface-theme="light"] body.fitness-app .progress-strength,
+html[data-surface-theme="light"] body.fitness-app .progress-measure-summary,
+html[data-surface-theme="light"] body.fitness-app .progress-photos-summary,
+html[data-surface-theme="light"] body.fitness-app .progress-advanced{background-color:#fff}
+
+@media(max-width:760px){
+  .progress-hero-stats{grid-template-columns:repeat(3,1fr)}
+  .progress-period-grid{grid-template-columns:repeat(2,1fr)}
+  .progress-strength-grid{grid-template-columns:repeat(2,1fr)}
+  .progress-measure-grid{grid-template-columns:repeat(2,1fr)}
+  .progress-section-head{flex-direction:column}
+  .progress-section-head>em,.progress-section-head>b{max-width:none;text-align:left}
+}
+@media(max-width:430px){
+  .progress-hero{padding:12px}
+  .progress-hero-stats{grid-template-columns:repeat(2,1fr)}
+  .progress-strength-grid,.progress-measure-grid{grid-template-columns:1fr 1fr}
+}
