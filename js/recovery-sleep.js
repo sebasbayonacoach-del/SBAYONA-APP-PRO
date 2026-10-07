@@ -75,6 +75,25 @@ export function sleepWindowDuration(bedtime,wakeTime){
   return diff===0?24:Math.round((diff/60)*10)/10;
 }
 
+export function sleepRecordFromTimes(dateKey,bedtime,wakeTime){
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(String(dateKey||"")))return null;
+  if(!TIME_RE.test(String(bedtime||""))||!TIME_RE.test(String(wakeTime||"")))return null;
+  const [y,m,day]=String(dateKey).split("-").map(Number);
+  const [bh,bm]=String(bedtime).split(":").map(Number);
+  const [wh,wm]=String(wakeTime).split(":").map(Number);
+  const wakeAt=new Date(y,m-1,day,wh,wm,0,0);
+  const bedAt=new Date(y,m-1,day,bh,bm,0,0);
+  if(bedAt>=wakeAt)bedAt.setDate(bedAt.getDate()-1);
+  const hours=(wakeAt-bedAt)/36e5;
+  if(!Number.isFinite(hours)||hours<=0||hours>24)return null;
+  return {
+    hours:Math.round(hours*100)/100,
+    bedAt:bedAt.toISOString(),
+    wakeAt:wakeAt.toISOString(),
+    source:"manual",
+  };
+}
+
 export function sleepTimeline(preferences={}){
   const p=normalizeRecoveryPreferences(preferences);
   if(!p.bedtime||!p.wakeTime)return [];
