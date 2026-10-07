@@ -54,6 +54,9 @@ ok(css.includes(".planning-week")&&css.includes(".planning-browser-row"),"calend
 ok(css.includes("@media(max-width:520px)"),"Planning Studio contempla móvil");
 
 ok(sw.includes("./js/coach-lab.js")&&sw.includes("./js/ui/planning-studio.js"),"Planning Studio funciona offline");
-ok(/CACHE = "bayona-shell-v42"/.test(sw),"shell PWA subió a v42");
+{
+  const version=Number((sw.match(/bayona-shell-v(\d+)/)||[])[1]||0);
+  ok(version>=42,`shell PWA conserva Planning Studio (v${version} >= v42)`);
+}
 
 console.log(`\n📊 RESULTADO: ${pass} pass · 0 fail\n`);
