@@ -316,6 +316,16 @@ function renderReferrals(body){
   body.appendChild(card);
 }
 
+function ledgerLabel(tx){
+  if(tx.source==="legacy_balance"||tx.label==="fitcoin.opening")return t("community.ledger.opening");
+  if(tx.source==="reward_redemption"||tx.label==="fitcoin.redemption"){
+    const reward=FITCOIN_REWARDS.find((x)=>x.id===tx.reference);
+    return t("community.ledger.redemption",{reward:reward?.name||tx.reference||""});
+  }
+  if(tx.label==="fitcoin.transaction")return t("community.ledger.transaction");
+  return tx.label;
+}
+
 function renderLedger(body){
   body.appendChild(el("div","sec-label",t("community.ledger.label")));
   const card=el("section","community-ledger");
@@ -325,7 +335,7 @@ function renderLedger(body){
     const row=el("article","community-ledger-row");
     row.append(
       el("span",tx.amount>0?"positive":"negative",`${tx.amount>0?"+":""}${fmtInt(tx.amount)} ✦`),
-      el("strong","",tx.label),
+      el("strong","",ledgerLabel(tx)),
       el("small","",fmtDate(tx.at)),
       el("b","",t("community.ledger.balance",{balance:fmtInt(tx.balanceAfter)}))
     );
