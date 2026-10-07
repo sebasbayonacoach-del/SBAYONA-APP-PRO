@@ -19,6 +19,7 @@ import {
 import { currentSession, accountRole } from "../sync/supabase.js";
 import { linkedClients } from "../sync/coaching.js";
 import { renderCoachCrm, registerCloudClientInCrm } from "./coach-crm.js";
+import { renderPlanningStudio } from "./planning-studio.js";
 
 function cartera() { return [fichaLocal(S), ...CLIENTES_DEMO]; }
 
@@ -96,6 +97,14 @@ function renderCartera(body) {
   crmButton.onclick = () => renderCoachCrm(body, () => renderCartera(body));
   crmEntry.appendChild(crmButton);
   body.appendChild(crmEntry);
+
+  const planningEntry = el("section", "planning-entry");
+  planningEntry.innerHTML = `
+    <div><small>SPRINT 10 · PLANNING STUDIO</small><strong>MACRO · MESO · MICRO · SESIÓN</strong><span>Tests, cargas, plantillas deportivas y catálogo PROPLAYER.</span></div>`;
+  const planningButton = el("button", "btn", "ABRIR PLANNING STUDIO");
+  planningButton.onclick = () => renderPlanningStudio(body, () => renderCartera(body));
+  planningEntry.appendChild(planningButton);
+  body.appendChild(planningEntry);
 
   // ---------- CORE COACH ----------
   body.appendChild(el("div", "sec-label", "CORE COACH · PRIORIDADES DE HOY"));
