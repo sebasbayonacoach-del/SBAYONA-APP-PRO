@@ -320,6 +320,8 @@ Estado: implementado en rama de Sprint; pendiente de certificación CI.
 - registro libre.
 
 ### Sprint 06 · Progreso Visual
+Estado: implementado en rama de Sprint; pendiente de certificación CI.
+
 - timeline;
 - fuerza;
 - volumen;
