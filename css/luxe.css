@@ -6,7 +6,7 @@
    #luxe-landing + #entry.luxe + nav luxe. Nunca pisa filas de
    30px ni filetes de 1px dentro del panel.
 
-   Tokens: dark #080A0C + glass blur(16px) + grain + aurora oklch
+   Tokens: BAYONA web #050505 / #0C0C0D / #141416 + naranja #F4A261
    Type: display 48-64 tight -.04em · label 10px · body 15/1.6
    Motion: blur-reveal + parallax, respeta prefers-reduced-motion
    ============================================================ */
@@ -536,3 +536,85 @@ html[data-surface-theme="light"] .luxe-device{border-color:#222;background:#f8f5
 .luxe-pricing{grid-template-columns:repeat(4,1fr)}
 @media(max-width:980px){.luxe-demo-shell{grid-template-columns:1fr}.luxe-device-stage{min-height:620px}.luxe-pricing{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:620px){.luxe-demo-section{padding-left:12px;padding-right:12px}.luxe-device-stage{min-height:0;padding:16px 8px;border-radius:18px}.luxe-device{height:610px;border-width:6px;border-radius:30px}.luxe-demo-focus{grid-template-columns:100px 1fr}.luxe-demo-orbit{height:132px}.luxe-pricing{grid-template-columns:1fr}}
+
+
+/* ============================================================
+   BRAND PARITY · SBAYONA-WEB-PRO
+   ============================================================ */
+:root{
+  --luxe-bg:#050505;
+  --luxe-surface:#0c0c0d;
+  --luxe-surface-2:#141416;
+  --luxe-line:#262629;
+  --luxe-line-2:#3a3a3e;
+  --luxe-ink:#ffffff;
+  --luxe-muted:#c4c4c4;
+  --luxe-muted-2:#949494;
+  --luxe-accent:#f4a261;
+  --luxe-accent-soft:rgba(244,162,97,.12);
+  --luxe-accent-glow:rgba(231,111,81,.20);
+  --luxe-radius:0px;
+  --luxe-radius-sm:0px;
+}
+html[data-surface-theme="dark"] #luxe-nav{
+  background:rgba(5,5,5,.86);
+  border-bottom-color:rgba(255,255,255,.08);
+}
+html[data-surface-theme="dark"] .luxe-hero-visual,
+html[data-surface-theme="dark"] .luxe-device-stage{
+  background:
+    radial-gradient(circle at 50% 18%,rgba(244,162,97,.10),transparent 34%),
+    #0c0c0d;
+}
+html[data-surface-theme="dark"] .luxe-demo-meta,
+html[data-surface-theme="dark"] .luxe-demo-grid article,
+html[data-surface-theme="dark"] .luxe-demo-focus{
+  background:#0c0c0d;
+  border-color:#262629;
+}
+html[data-surface-theme="light"]{
+  --luxe-bg:#f7f3ec;
+  --luxe-surface:#ffffff;
+  --luxe-surface-2:#efe8de;
+  --luxe-line:#ddd5ca;
+  --luxe-line-2:#bfb4a7;
+  --luxe-ink:#111111;
+  --luxe-muted:#665f58;
+  --luxe-muted-2:#81766c;
+  --luxe-accent:#f4a261;
+  --luxe-accent-soft:rgba(244,162,97,.12);
+  --luxe-accent-glow:rgba(231,111,81,.16);
+}
+html[data-surface-theme="light"] .luxe-label,
+html[data-surface-theme="light"] .luxe-demo-lock{
+  color:#9c4f1f;
+}
+.luxe-btn-primary,
+.luxe-cta{
+  background:#f4a261!important;
+  border-color:#f4a261!important;
+  color:#050505!important;
+  border-radius:0!important;
+}
+.luxe-btn-primary:hover,
+.luxe-cta:hover{
+  background:#e76f51!important;
+  border-color:#e76f51!important;
+  color:#050505!important;
+}
+#luxe-nav .luxe-nav-links a,
+.luxe-demo-plan-tabs button,
+.luxe-demo-theme button,
+.luxe-demo-meta,
+.luxe-demo-grid article,
+.luxe-demo-focus{
+  border-radius:0!important;
+}
+/* El teléfono demo conserva su forma física, no es una tarjeta de marca. */
+.luxe-device,
+.luxe-demo-avatar,
+.luxe-demo-orbit{
+  border-radius:38px!important;
+}
+.luxe-demo-avatar,
+.luxe-demo-orbit{border-radius:50%!important}
