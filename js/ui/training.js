@@ -635,6 +635,14 @@ function setForm(s, setIdx, sug) {
   const wrap = el("div", "card set-form");
   const kgVal = s.kg > 0 ? (sug || s.kg) : 0;
   const repVal = s.reps;
+  const hasEvidence = UI.session?.pendingEvidence?.exKey === s.ex;
+  const feelingKey = {
+    smooth:"session.feedback.smooth",
+    solid:"session.feedback.solid",
+    hard:"session.feedback.hard",
+    very_hard:"session.feedback.veryHard",
+    pain:"session.feedback.pain",
+  };
   wrap.innerHTML = `
     <div class="sec-label" style="margin-top:0">REGISTRAR SERIE ${setIdx + 1}/${s.sets}</div>
     <div class="sf-row">
@@ -646,15 +654,43 @@ function setForm(s, setIdx, sug) {
         </select>
       </label>
     </div>
+    <div class="fit-set-feedback">
+      <label>${esc(t("session.feedback.label"))}
+        <select id="sf-feeling">
+          <option value="">${esc(t("session.feedback.none"))}</option>
+          ${SET_FEELINGS.map((x)=>`<option value="${x.id}">${esc(t(feelingKey[x.id]))}</option>`).join("")}
+        </select>
+      </label>
+      <label>${esc(t("session.feedback.effort"))}
+        <select id="sf-effort">
+          <option value="">—</option>
+          ${[1,2,3,4,5].map((x)=>`<option value="${x}">${x}/5</option>`).join("")}
+        </select>
+      </label>
+      <label class="fit-set-note">${esc(t("session.feedback.note"))}
+        <textarea id="sf-note" maxlength="180" placeholder="${esc(t("session.feedback.notePlaceholder"))}"></textarea>
+      </label>
+    </div>
+    <div class="fit-set-media">
+      <button type="button" class="btn" id="sf-record">${hasEvidence?"✓ "+esc(t("session.video.saved")):esc(t("session.video.record"))}</button>
+      <span>${esc(t("session.video.localOnly"))}</span>
+    </div>
     <div class="sub">Edita los valores reales antes de confirmar. RIR = repeticiones que te quedaban en reserva.</div>
     <button class="btn btn-primary btn-block btn-big" id="sf-ok">REGISTRAR SERIE</button>`;
+  wrap.querySelector("#sf-record").addEventListener("click", () => recordExerciseVideo(s.ex));
   wrap.querySelector("#sf-ok").addEventListener("click", () => {
     const kg = s.kg > 0 ? Number(wrap.querySelector("#sf-kg").value) : 0;
     const reps = parseInt(wrap.querySelector("#sf-reps").value, 10) || 0;
     const rir = parseInt(wrap.querySelector("#sf-rir").value, 10);
+    const feedback = normalizeSetFeedback({
+      feeling:wrap.querySelector("#sf-feeling").value,
+      effort:wrap.querySelector("#sf-effort").value,
+      note:wrap.querySelector("#sf-note").value,
+    });
+    const evidenceId = UI.session?.pendingEvidence?.exKey === s.ex ? UI.session.pendingEvidence.evidenceId : null;
     if (reps <= 0) return toast("REVISA LA SERIE", timed ? "Indica los segundos realizados." : "Indica las repeticiones realizadas.", "danger");
     if (!Number.isFinite(kg) || kg < 0 || !Number.isInteger(rir) || rir < 0 || rir > 4) return toast("REVISA LA SERIE", "La carga debe ser cero o positiva y el RIR debe estar entre 0 y 4.", "danger");
-    logCurrentSet({ kg, reps, rir });
+    logCurrentSet({ kg, reps, rir, ...feedback, evidenceId });
   });
   return wrap;
 }
@@ -663,7 +699,7 @@ function persist() {
   if (UI.session) { UI.session.updatedAt = Date.now(); S.setActiveSession({ ...UI.session }); }
 }
 
-function logCurrentSet({ kg, reps, rir }) {
+function logCurrentSet({ kg, reps, rir, feeling = null, effort = null, note = "", evidenceId = null }) {
   const session = UI.session;
   const s = session.exercises[session.exIdx];
   const timed = timedOf(s);
@@ -676,18 +712,26 @@ function logCurrentSet({ kg, reps, rir }) {
   if (!res) return toast("SERIE YA REGISTRADA", "Esa serie ya estaba guardada (sin XP duplicado).");
   const E = exerciseDef(s);
   const restSec = Math.max(0, Math.round(Number(s.rest ?? 90)));
-  archiveSet(s.ex, kg, reps, rir, E.muscle);
-  session.setsDone.push({ idKey, exKey: s.ex, exIdx: session.exIdx, setIdx: session.setIdx, kg, reps, rir, seconds: timed ? reps : 0, xp: res.xp, pr: res.pr, skill: res.skill, ts: Date.now() });
+  const meta={feeling,effort,note,evidenceId};
+  archiveSet(s.ex, kg, reps, rir, E.muscle, meta);
+  session.setsDone.push({
+    idKey, exKey:s.ex, exIdx:session.exIdx, setIdx:session.setIdx,
+    kg,reps,rir,seconds:timed?reps:0,xp:res.xp,pr:res.pr,skill:res.skill,
+    feeling,effort,note,evidenceId,ts:Date.now(),
+  });
   session.logged++;
   session.xpAcc = (session.xpAcc || 0) + res.xp;
+  if(session.pendingEvidence?.exKey===s.ex) session.pendingEvidence=null;
   haptic(20);
   UI.W?.avatar.setAction("celebrate");
   setTimeout(() => UI.W?.avatar.setAction(AVATAR_ACTION[s.ex] || "idle"), 900);
   if (session.setIdx + 1 >= s.sets) { session.exIdx++; session.setIdx = 0; }
   else session.setIdx++;
+  const hasNext=session.exIdx<session.exercises.length;
   persist();
   renderSession();
-  if (UI.session && restSec > 0) startRest(restSec);
+  if (feeling==="pain") toast("SERIE REGISTRADA",t("session.pain.notice"),"danger");
+  if (UI.session && hasNext && restSec > 0) startRest(restSec);
 }
 
 function undoLastSet() {
