@@ -31,7 +31,7 @@ ok(ui.includes('availability:"video"'),"constructor puede exigir ejercicio con v
 ok(ui.includes('t("planning.hero.sub")')&&i18n.includes("3.141 ejercicios"),"UI declara tamaño del catálogo auditado vía i18n");
 
 ok(ui.includes("Nada se calcula solo"),"UI declara que la carga no se inventa");
-ok(ui.includes("SIN DEFINIR"),"carga ausente sigue ausente");
+ok(ui.includes('t("planning.week.undefined")')&&i18n.includes('"planning.week.undefined": "SIN DEFINIR"'),"carga ausente sigue ausente");
 ok(ui.includes("no genera recomendaciones automáticas"),"gate manual bloquea autorrecomendación");
 ok(ui.includes("MARCA SOLO LO DECLARADO"),"contexto sensible requiere declaración explícita");
 ok(ui.includes("Añade primero un cliente al Coach CRM"),"programa exige cliente real del CRM");
