@@ -160,6 +160,6 @@ Nuevas suites:
 - `tests/nutrition-state-eval.mjs`
 - `tests/nutrition-ui-eval.mjs`
 
-Suite total esperada: **56 suites**.
+Suite total esperada: **59 suites**.
 
 Merge únicamente con `bateria` y `ci` verdes.
