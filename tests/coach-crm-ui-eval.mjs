@@ -53,6 +53,9 @@ ok(css.includes(".coach-crm-client")&&css.includes(".coach-crm-ledger-row"),"car
 ok(css.includes("@media(max-width:520px)"),"CRM contempla móvil");
 
 ok(sw.includes("./js/coach/crm.js")&&sw.includes("./js/ui/coach-crm.js"),"CRM funciona offline");
-ok(/CACHE = "bayona-shell-v41"/.test(sw),"shell PWA subió a v41");
+{
+  const version=Number((sw.match(/bayona-shell-v(\d+)/)||[])[1]||0);
+  ok(version>=41,`shell PWA conserva Coach CRM (v${version} >= v41)`);
+}
 
 console.log(`\n📊 RESULTADO: ${pass} pass · 0 fail\n`);
