@@ -36,7 +36,7 @@ const completeEnd=state.indexOf("/** Cierre parcial",completeStart);
 const completeBlock=state.slice(completeStart,completeEnd);
 ok(completeBlock.includes("loggedSets < plannedSets"),"dominio rechaza completar si faltan series");
 ok(completeBlock.includes("closePartialWorkout"),"completado incompleto se desvía a parcial");
-const partialStart=state.indexOf("closePartialWorkout(workoutId");
+const partialStart=state.indexOf("  closePartialWorkout(workoutId");
 const partialEnd=state.indexOf("/** Abandono:",partialStart);
 const partialBlock=state.slice(partialStart,partialEnd);
 ok(!partialBlock.includes("t.trained = true"),"cierre parcial jamás marca trained");
