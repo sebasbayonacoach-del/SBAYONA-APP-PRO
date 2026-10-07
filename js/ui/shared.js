@@ -5,6 +5,10 @@
 // ============================================================
 import { S, on } from "../state.js";
 import { t, esc } from "../i18n.js";
+import {
+  hasFeature, featureForSection, lockedFeatureCopy, planFromProfile,
+  PLAN_META, planComparison,
+} from "../entitlements.js";
 
 export const $ = (sel) => document.querySelector(sel);
 
@@ -115,6 +119,41 @@ export function reopenPanel() {
  * Abre una sección. Si hay sesión activa en otra sección: se PAUSA y persiste
  * (nunca se pierde; se reanuda desde ENTRENAMIENTO).
  */
+function renderLockedSection(body, feature) {
+  const plan = planFromProfile(S.data?.profile);
+  const info = lockedFeatureCopy(feature, plan);
+  const current = PLAN_META[plan];
+  const cards = planComparison();
+
+  body.innerHTML = `
+    <section class="entitlement-preview">
+      <div class="entitlement-lock" aria-hidden="true">◇</div>
+      <span class="entitlement-kicker">${esc(t("entitlement.preview.kicker"))}</span>
+      <h3>${esc(t("entitlement.preview.title"))}</h3>
+      <p>${esc(info.text)}</p>
+      <div class="entitlement-status">
+        <span><small>${esc(t("entitlement.current"))}</small><b>${esc(current.label)}</b></span>
+        <i>→</i>
+        <span><small>${esc(t("entitlement.required"))}</small><b>${esc(info.required)}</b></span>
+      </div>
+      <div class="entitlement-preview-list">
+        <span>✓ ${esc(t("entitlement.plan.block1"))}</span>
+        <span>✓ ${esc(t("entitlement.plan.block2"))}</span>
+        <span>✓ ${esc(t("entitlement.plan.block3"))}</span>
+      </div>
+      <button class="btn entitlement-compare" type="button">${esc(t("entitlement.compare"))}</button>
+    </section>`;
+
+  body.querySelector(".entitlement-compare")?.addEventListener("click", () => {
+    const rows = cards.map((p) => `
+      <div class="entitlement-plan-row ${p.id === plan ? "current" : ""}">
+        <span><small>${esc(p.label)}</small><b>${p.priceEur ? "≈ " + esc(p.priceEur) + " € / mes" : "0 €"}</b></span>
+        <em>${esc(p.tagline)}</em>
+      </div>`).join("");
+    showModal(`<div class="entitlement-modal"><div class="sec-label">${esc(t("entitlement.compare"))}</div>${rows}<p>${esc(t("entitlement.billing.note"))}</p></div>`);
+  });
+}
+
 export function openSection(name) {
   if (document.body.classList.contains("fitness-app") && name === "home") name = "hoy";
   document.body.classList.toggle("avatar-view", name === "armory");
@@ -132,8 +171,13 @@ export function openSection(name) {
   const title = TITLES[name] || TITLES.more;
   if (!document.body.classList.contains("fitness-app") || name === "armory") travel(name); // el personaje viaja; la UI se construye YA (sin pisar vistas por carrera)
   const body = openDrawer(title[0], title[1]);
+  const sectionFeature = featureForSection(name);
+  const personalLocked = document.body.dataset.entryRole !== "coach"
+    && sectionFeature
+    && !hasFeature(planFromProfile(S.data?.profile), sectionFeature);
   const build = BUILDERS[name] || BUILDERS.home;
-  if (build) build(body);
+  if (personalLocked) renderLockedSection(body, sectionFeature);
+  else if (build) build(body);
   body.scrollTop = 0;
   const coachAccount = document.body.dataset.entryRole === "coach";
   const group = coachAccount && ["coachos","library","agenda","account"].includes(name)
