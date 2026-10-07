@@ -362,7 +362,7 @@ Estado: implementado en rama de Sprint; pendiente de certificación CI.
 - alertas.
 
 ### Sprint 10 · Planning Studio
-Estado: implementado en rama de Sprint; pendiente de certificación CI.
+Estado: integrado y certificado · 70 suites.
 
 - macrociclos;
 - mesociclos;
@@ -373,6 +373,8 @@ Estado: implementado en rama de Sprint; pendiente de certificación CI.
 - buscador de ejercicios avanzado.
 
 ### Sprint 11 · Comunidad + FitCoins + tienda
+Estado: implementado en rama de Sprint; pendiente de certificación CI.
+
 - progreso social;
 - referidos;
 - canje;

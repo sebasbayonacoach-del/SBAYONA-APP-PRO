@@ -32,8 +32,10 @@ const pr = prReward();
 assert(pr.xp === 350 && pr.points === 60, 'PR = 350 XP + 60 puntos (lo anunciado)', `fue ${pr.xp}/${pr.points}`);
 const wc = workoutCompleteReward({ minutes: 55, loggedSets: 18, plannedSets: 18 });
 assert(wc.xp === 120 + 220 && wc.points === 180 + 220, 'bono de cierre 340 XP / 400 ◆', `fue ${wc.xp}/${wc.points}`);
+assert(wc.fitcoins === 20, 'sesión completa = 20 FitCoins, una vez por cierre');
 const wp = workoutCompleteReward({ minutes: 30, loggedSets: 5, plannedSets: 12 });
 assert(wp.text.includes('antes de tiempo'), 'el cierre parcial se explica');
+assert(wp.fitcoins === 20, 'la función de preview conserva el bono; el estado bloquea cierre parcial antes de premiarlo');
 
 // previsto = recibido (misma fórmula, sin cifras inventadas)
 const w = {

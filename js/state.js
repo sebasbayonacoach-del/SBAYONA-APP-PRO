@@ -29,9 +29,15 @@ import {
   coachCrmDefaults, upsertCrmClient, addCrmRecord, updateCrmRecordStatus,
 } from "./coach/crm.js";
 import { validateProgram } from "./coach-lab.js";
+import {
+  communityDefaults, appendFitCoinTx, redeemFitCoinReward as redeemRewardDomain,
+  progressShareCandidates, createProgressPost as createProgressPostDomain,
+  toggleLocalReaction, referralCodeFor, recordReferralShare as recordReferralShareDomain,
+  communitySummary as communitySummaryDomain,
+} from "./community.js";
 
 const KEY = "bayona.save.v2";
-export const SCHEMA = 10;
+export const SCHEMA = 11;
 
 /**
  * Recompensa por nivel. Vive fuera del objeto S y en orden: se recorre
@@ -311,6 +317,7 @@ export const S = {
     d.xp = Number.isFinite(d.xp) ? d.xp : 0;
     d.points = Number.isFinite(d.points) ? d.points : 0;
     d.credits = Number.isFinite(d.credits) ? d.credits : 120;
+    d.community = communityDefaults(d.community || {}, d.credits);
     d.skills = { strength: 0, cardio: 0, mobility: 0, recovery: 0, discipline: 0, mind: 0, ...(d.skills || {}) };
     d.stats = { workouts: 0, sets: 0, prs: 0, sessionsMin: 0, km: 0, ...(d.stats || {}) };
     d.streak = Number.isFinite(d.streak) ? d.streak : 0;
@@ -370,6 +377,7 @@ export const S = {
       coachCrm: coachCrmDefaults(),
       coachPrograms: [],
       activeCoachProgramId: null,
+      community: communityDefaults({}, 120),
       activeSession: null,
     };
     if (!silent) this.save();
@@ -483,18 +491,27 @@ export const S = {
     this.save(); emit("wallet");
     return true;
   },
-  addCredits(n) {
+  addCredits(n, source = "system", reference = null, label = "FitCoins ganados") {
     const v = enRango(n, 0, CARTERA_TECHO);
     if (!v) return false;
-    this.data.credits = Math.min(this.data.credits + v, CARTERA_TECHO);
-    this.save(); emit("wallet");
+    const before = Math.trunc(this.data.credits || 0);
+    const amount = Math.trunc(Math.min(v, CARTERA_TECHO - before));
+    if (!amount) return false;
+    this.data.community = communityDefaults(this.data.community || {}, before);
+    const out = appendFitCoinTx(this.data.community, {
+      amount, balanceBefore: before, source, reference, label,
+    });
+    if (!out.ok) return false;
+    this.data.community = out.community;
+    this.data.credits = out.tx.balanceAfter;
+    this.save(); emit("wallet", out.tx);
     return true;
   },
 
   unlockForLevel(lvl) {
     const r = RECOMPENSA_NIVEL[lvl];
     if (r) {
-      if (r.credits) this.addCredits(r.credits);
+      if (r.credits) this.addCredits(r.credits, "level_up", `level:${lvl}`, `Nivel ${lvl} · FitCoins`);
       if (r.item && !this.data.inventory.owned.includes(r.item)) {
         this.data.inventory.owned.push(r.item);
         emit("itemUnlock", { id: r.item });
@@ -991,6 +1008,74 @@ export const S = {
   getActiveSession() { return this.data.activeSession; },
   clearActiveSession() { this.data.activeSession = null; this.save(); emit("session", null); },
 
+  // ---------- COMUNIDAD + FITCOINS ----------
+  fitCoinBalance() { return Math.max(0, Math.trunc(Number(this.data.credits) || 0)); },
+
+  fitCoinLedger() {
+    this.data.community = communityDefaults(this.data.community || {}, this.fitCoinBalance());
+    return this.data.community.fitcoinLedger || [];
+  },
+
+  redeemFitCoinReward(rewardId) {
+    const before = this.fitCoinBalance();
+    this.data.community = communityDefaults(this.data.community || {}, before);
+    const out = redeemRewardDomain(this.data.community, rewardId, before, this.data.inventory.owned || []);
+    if (!out.ok) return out;
+    this.data.community = out.community;
+    this.data.credits = out.balance;
+    if (!this.data.inventory.owned.includes(out.reward.itemId)) {
+      this.data.inventory.owned.push(out.reward.itemId);
+      emit("itemUnlock", { id: out.reward.itemId });
+    }
+    this.save(); emit("wallet", out.tx); emit("community", { type: "redemption", rewardId });
+    return out;
+  },
+
+  progressShareCandidates() { return progressShareCandidates(this.data); },
+
+  createProgressPost(candidateId, caption = "") {
+    const candidate = progressShareCandidates(this.data).find((x) => x.id === candidateId);
+    if (!candidate) return { ok: false, error: "evidence_not_found" };
+    this.data.community = communityDefaults(this.data.community || {}, this.fitCoinBalance());
+    const out = createProgressPostDomain(this.data.community, candidate, caption);
+    if (!out.ok) return out;
+    this.data.community = out.community;
+    this.save(); emit("community", { type: "post", post: out.post });
+    return out;
+  },
+
+  toggleCommunityReaction(postId, type = "respect") {
+    this.data.community = communityDefaults(this.data.community || {}, this.fitCoinBalance());
+    const out = toggleLocalReaction(this.data.community, postId, type);
+    if (!out.ok) return out;
+    this.data.community = out.community;
+    this.save(); emit("community", { type: "reaction", postId, reaction: out.reaction });
+    return out;
+  },
+
+  referralCode() {
+    this.data.community = communityDefaults(this.data.community || {}, this.fitCoinBalance());
+    if (!this.data.community.referralCode) {
+      const seed = `${this.data.profile.created || 0}:${this.data.profile.name || "BAYONA"}`;
+      this.data.community.referralCode = referralCodeFor(seed);
+      this.save();
+    }
+    return this.data.community.referralCode;
+  },
+
+  recordReferralShare(channel = "share") {
+    this.data.community = communityDefaults(this.data.community || {}, this.fitCoinBalance());
+    const seed = `${this.data.profile.created || 0}:${this.data.profile.name || "BAYONA"}`;
+    const out = recordReferralShareDomain(this.data.community, seed, channel);
+    this.data.community = out.community;
+    this.save(); emit("community", { type: "referral-share", invite: out.invite });
+    return out;
+  },
+
+  communitySummary() {
+    return communitySummaryDomain(this.data.community || {}, this.fitCoinBalance());
+  },
+
   // ---------- ENTRENAMIENTO ----------
   /**
    * Registra UNA serie real. La recompensa sale de setReward (fuente única) y
@@ -1049,6 +1134,7 @@ export const S = {
     this.data.lastActiveDay = todayKey();
     const r = workoutCompleteReward({ minutes: mins, loggedSets, plannedSets });
     this.addPoints(r.points);
+    if (r.fitcoins) this.addCredits(r.fitcoins, "workout_complete", `workout:${todayKey()}:${workoutId}`, "Sesión completada");
     this.addXP(r.xp, r.skill, r.skillGain);
     this.data.activeSession = null;
     this.save();

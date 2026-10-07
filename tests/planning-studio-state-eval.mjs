@@ -10,7 +10,7 @@ console.log("\n🧭 PLANNING STUDIO · ESTADO\n");
 S.init();
 S.reset(true);
 
-ok(SCHEMA===10,"schema actualizado a 10");
+ok(SCHEMA>=10,`schema conserva Planning Studio (v${SCHEMA} >= 10)`);
 ok(Array.isArray(S.data.coachPrograms)&&S.data.coachPrograms.length===0,"perfil nuevo no inventa programas");
 ok(S.data.activeCoachProgramId===null,"sin programa activo inventado");
 

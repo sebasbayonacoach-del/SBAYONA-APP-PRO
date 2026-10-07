@@ -123,6 +123,6 @@ Nuevas suites:
 - `tests/recovery-state-eval.mjs`
 - `tests/recovery-ui-eval.mjs`
 
-Suite total esperada: **70 suites**.
+Suite total esperada: **75 suites**.
 
 Merge únicamente con `bateria` y `ci` verdes.
