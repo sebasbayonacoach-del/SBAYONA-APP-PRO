@@ -41,7 +41,7 @@ BUILDERS.more = (body) => {
     ["profile", "EDITAR MI PERFIL"], ["rhythm", "MI RITMO Y CICLO"],
     ["training", "ENTRENAMIENTO"], ["nutrition", "NUTRICIÓN"], ["recovery", "RECUPERACIÓN"],
     ["mind", "MENTE"], ["trabajo", "TRABAJO"], ["hoy", "HOY"],
-    ["progress", "PROGRESO"], ["social", "COMUNIDAD"], ["plan", "PLAN"], ["armory", "ARMARIO"], ["core", "CORE"],
+    ["progress", "PROGRESO"], ["social", t("community.title").toUpperCase()], ["plan", "PLAN"], ["armory", "ARMARIO"], ["core", "CORE"],
   ].forEach(([k, nm]) => {
     const b = el("button", "opt", nm);
     b.type = "button";
