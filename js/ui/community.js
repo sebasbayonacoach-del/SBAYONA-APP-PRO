@@ -16,6 +16,8 @@ import {
 
 BUILDERS.social = (body) => renderCommunity(body);
 
+const progressTitle=(value)=>String(value||"").startsWith("community.")?t(value):String(value||"");
+
 function renderCommunity(body){
   body=body||$("#drawer-body");
   body.textContent="";
@@ -69,7 +71,7 @@ function renderFeed(body){
       el("small","",fmtDate(post.at))
     );
     const main=el("div","community-post-main");
-    main.appendChild(el("strong","",post.title));
+    main.appendChild(el("strong","",progressTitle(post.title)));
     if(post.subtitle)main.appendChild(el("span","",post.subtitle));
     if(post.metric)main.appendChild(el("b","",post.metric));
     if(post.caption)main.appendChild(el("p","",post.caption));
@@ -119,7 +121,7 @@ function renderCloudFeed(body){
         el("small","",fmtDate(post.created_at))
       );
       const main=el("div","community-post-main");
-      main.appendChild(el("strong","",post.title));
+      main.appendChild(el("strong","",progressTitle(post.title)));
       if(post.subtitle)main.appendChild(el("span","",post.subtitle));
       if(post.metric)main.appendChild(el("b","",post.metric));
       if(post.caption)main.appendChild(el("p","",post.caption));
@@ -157,7 +159,7 @@ function shareProgressModal(body){
   const shared=new Set((S.data.community?.posts||[]).map((p)=>p.evidenceId));
   const available=candidates.filter((x)=>!shared.has(x.id));
   if(!available.length)return toast(t("community.share"),t("community.share.none"));
-  const options=available.map((x)=>`<option value="${esc(x.id)}">${esc(x.title)} · ${esc(x.metric||x.subtitle||"")}</option>`).join("");
+  const options=available.map((x)=>`<option value="${esc(x.id)}">${esc(progressTitle(x.title))} · ${esc(x.metric||x.subtitle||"")}</option>`).join("");
   showModal(`
     <div class="cine-tag">${esc(t("community.share.evidence"))}</div>
     <div class="cine-title" style="font-size:22px">${esc(t("community.share.title"))}</div>
