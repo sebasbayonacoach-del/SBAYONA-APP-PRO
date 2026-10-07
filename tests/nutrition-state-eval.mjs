@@ -9,7 +9,7 @@ console.log("\n🥗 NUTRITION CALENDAR · ESTADO\n");
 S.init();
 S.reset(true);
 
-ok(SCHEMA===6,"schema actualizado a 6");
+ok(SCHEMA>=6,`schema conserva Nutrition (v${SCHEMA} >= 6)`);
 ok(S.data.nutrition?.goals?.configured===false,"objetivos base no fingen personalización");
 ok(S.data.today.nutritionFeeling===null,"sensación nutricional empieza sin registrar");
 
