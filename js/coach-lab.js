@@ -16,6 +16,19 @@ export const CONTEXT_FLAGS = Object.freeze([
   "post_surgery",
 ]);
 
+export const SPORT_TEMPLATES = Object.freeze({
+  general: { id:"general", label:"General", programTemplateId:"general_adherence", defaultWeeks:12, focus:["adherencia","fuerza_general","movilidad"] },
+  football: { id:"football", label:"Fútbol", programTemplateId:"sport_performance", defaultWeeks:16, focus:["fuerza","aceleracion","cambio_direccion","sprints_repetidos"] },
+  running: { id:"running", label:"Running", programTemplateId:"sport_performance", defaultWeeks:12, focus:["fuerza","economia_carrera","tolerancia_carga","ritmo"] },
+  parkour: { id:"parkour", label:"Parkour", programTemplateId:"sport_performance", defaultWeeks:12, focus:["fuerza_relativa","aterrizajes","potencia","movilidad"] },
+  cycling: { id:"cycling", label:"Ciclismo", programTemplateId:"sport_performance", defaultWeeks:12, focus:["fuerza","capacidad_aerobica","cadencia","tolerancia_carga"] },
+  swimming: { id:"swimming", label:"Natación", programTemplateId:"sport_performance", defaultWeeks:12, focus:["fuerza","tecnica","capacidad_aerobica","movilidad"] },
+  combat: { id:"combat", label:"Deportes de combate", programTemplateId:"sport_performance", defaultWeeks:12, focus:["fuerza","potencia","acondicionamiento","movilidad"] },
+  racket: { id:"racket", label:"Raqueta", programTemplateId:"sport_performance", defaultWeeks:12, focus:["fuerza","potencia_rotacional","cambio_direccion","capacidad_repetida"] },
+});
+
+export const PROGRAM_TEST_TYPES = Object.freeze(["performance","strength","capacity","mobility","skill","custom"]);
+
 export const PROGRAM_TEMPLATES = Object.freeze({
   general_adherence: {
     id:"general_adherence",
@@ -80,19 +93,30 @@ function recordSearchText(record={}) {
   };
 }
 
-function queryScore(record,qNorm) {
-  if(!qNorm)return 0;
+function tokenScore(record,token){
   const x=recordSearchText(record);
-  if(x.name===qNorm)return 1000;
-  if(x.name.startsWith(qNorm))return 900;
-  if(x.name.split(/\s+/).some((word)=>word.startsWith(qNorm)))return 820;
-  if(x.name.includes(qNorm))return 740;
-  if(x.muscle.includes(qNorm))return 520;
-  if(x.type.includes(qNorm))return 430;
-  if(x.tags.includes(qNorm))return 340;
-  if(x.resistance.includes(qNorm))return 290;
-  if(x.effort.includes(qNorm))return 260;
+  if(x.name===token)return 1000;
+  if(x.name.startsWith(token))return 900;
+  if(x.name.split(/\s+/).some((word)=>word.startsWith(token)))return 820;
+  if(x.name.includes(token))return 740;
+  if(x.muscle.includes(token))return 520;
+  if(x.type.includes(token))return 430;
+  if(x.tags.includes(token))return 340;
+  if(x.resistance.includes(token))return 290;
+  if(x.effort.includes(token))return 260;
   return -1;
+}
+
+function queryScore(record,qNorm) {
+  const tokens=qNorm.split(/\s+/).filter(Boolean).slice(0,8);
+  if(!tokens.length)return 0;
+  let total=0;
+  for(const token of tokens){
+    const score=tokenScore(record,token);
+    if(score<0)return -1;
+    total+=score;
+  }
+  return total+(tokens.length>1?tokens.length*20:0);
 }
 
 function matchesFilter(record,filters={}) {
@@ -117,6 +141,25 @@ export function searchExercises(records=[],filters={},limit=300) {
       || a.index-b.index)
     .slice(0,max)
     .map((x)=>x.record);
+}
+
+export function exerciseFacets(records=[]){
+  const unique=(key,flat=false)=>[...new Set(arr(records).flatMap((r)=>{
+    const value=r?.[key];
+    return flat?arr(value):[value];
+  }).map((x)=>clean(x,100)).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"es"));
+  return {
+    types:unique("tipo"),
+    muscles:unique("grupo_muscular"),
+    efforts:unique("nivel_esfuerzo",true),
+    resistances:unique("perfil_resistencia",true),
+    tags:unique("etiquetas",true),
+  };
+}
+
+export function resolveSportTemplate(value){
+  const key=normalizeCoachText(value||"general").replace(/\s+/g,"_");
+  return SPORT_TEMPLATES[key]||SPORT_TEMPLATES.general;
 }
 
 export function recommendationGate(context={}) {
@@ -154,8 +197,9 @@ function addDays(dateKey,days){
 }
 
 export function buildProgramDraft(input={}) {
-  const template=PROGRAM_TEMPLATES[input.templateId]||PROGRAM_TEMPLATES.general_adherence;
-  const durationWeeks=Math.round(clamp(input.durationWeeks,4,52,template.defaultWeeks));
+  const sportTemplate=resolveSportTemplate(input.sportTemplateId||input.sport||"general");
+  const template=PROGRAM_TEMPLATES[input.templateId]||PROGRAM_TEMPLATES[sportTemplate.programTemplateId]||PROGRAM_TEMPLATES.general_adherence;
+  const durationWeeks=Math.round(clamp(input.durationWeeks,4,52,input.durationWeeks??sportTemplate.defaultWeeks??template.defaultWeeks));
   const startDate=isoDate(input.startDate)||new Date().toISOString().slice(0,10);
   const mesoWeeks=Math.round(clamp(input.mesocycleWeeks,2,8,4));
   const gate=recommendationGate({flags:input.contextFlags,age:input.age});
@@ -198,7 +242,9 @@ export function buildProgramDraft(input={}) {
     id:clean(input.id||`program_${Date.now()}`,80),
     clientId:clean(input.clientId||"local",80),
     name:clean(input.name||"",100),
-    sport:clean(input.sport||"",80),
+    sport:clean(input.sport||sportTemplate.label,80),
+    sportTemplateId:sportTemplate.id,
+    sportFocus:[...sportTemplate.focus],
     templateId:template.id,
     generalObjective:clean(input.generalObjective||"",180),
     specificObjectives:uniq(input.specificObjectives,12),
@@ -273,6 +319,78 @@ export function addSessionToWeek(program,weekNumber,session={}) {
   return {ok:true,program:copy};
 }
 
+export function setMicrocycleLoad(program,weekNumber,input={}){
+  const copy=structuredClone(program);
+  const week=Math.round(Number(weekNumber)||0);
+  const micro=copy.mesocycles?.flatMap((x)=>x.microcycles||[]).find((x)=>x.week===week);
+  if(!micro)return {ok:false,program,reason:"week_not_found"};
+  const num=(v,min,max)=>{
+    if(v===null||v===undefined||v==="")return null;
+    const n=Number(v); return Number.isFinite(n)?Math.max(min,Math.min(max,n)):null;
+  };
+  micro.loadTarget={
+    volumePct:num(input.volumePct,0,200),
+    intensityPct:num(input.intensityPct,0,100),
+    rpe:num(input.rpe,1,10),
+  };
+  copy.updatedAt=new Date().toISOString();
+  return {ok:true,program:copy,loadTarget:{...micro.loadTarget}};
+}
+
+function normalizeProgramTest(input={},durationWeeks=52){
+  const name=clean(input.name||"",100);
+  if(!name)return null;
+  return {
+    id:clean(input.id||`test_${Date.now()}`,80),
+    name,
+    type:PROGRAM_TEST_TYPES.includes(input.type)?input.type:"custom",
+    metric:clean(input.metric||"",80),
+    unit:clean(input.unit||"",30),
+    scheduledWeek:Math.round(clamp(input.scheduledWeek,1,durationWeeks,1)),
+    target:input.target===null||input.target===undefined||input.target===""?null:Number(input.target),
+    result:input.result===null||input.result===undefined||input.result===""?null:Number(input.result),
+    status:["planned","completed","cancelled"].includes(input.status)?input.status:"planned",
+    note:clean(input.note||"",180),
+  };
+}
+
+export function addProgramTest(program,input={}){
+  const copy=structuredClone(program);
+  const test=normalizeProgramTest(input,copy.durationWeeks||52);
+  if(!test||!Number.isFinite(test.target)&&test.target!==null||!Number.isFinite(test.result)&&test.result!==null){
+    return {ok:false,program,reason:"invalid_test"};
+  }
+  copy.tests=arr(copy.tests);
+  copy.tests.push(test);
+  copy.updatedAt=new Date().toISOString();
+  return {ok:true,program:copy,test};
+}
+
+export function recordProgramTestResult(program,testId,result,note=""){
+  const copy=structuredClone(program);
+  const test=arr(copy.tests).find((x)=>x.id===testId);
+  const n=Number(result);
+  if(!test||!Number.isFinite(n))return {ok:false,program,reason:"test_not_found_or_invalid"};
+  test.result=n;
+  test.status="completed";
+  if(note)test.note=clean(note,180);
+  copy.updatedAt=new Date().toISOString();
+  return {ok:true,program:copy,test:{...test}};
+}
+
+export function programCalendar(program={}){
+  return arr(program.mesocycles).flatMap((meso)=>arr(meso.microcycles).map((micro)=>({
+    week:micro.week,
+    startDate:micro.startDate,
+    endDate:micro.endDate,
+    stageId:meso.stageId,
+    loadStrategy:meso.loadStrategy,
+    loadTarget:{...(micro.loadTarget||{})},
+    sessions:arr(micro.sessions).length,
+    tests:arr(micro.tests).length+arr(program.tests).filter((t)=>t.scheduledWeek===micro.week).length,
+  })));
+}
+
 export function programStats(program={}) {
   const mesos=arr(program.mesocycles);
   const micros=mesos.flatMap((x)=>arr(x.microcycles));
@@ -284,5 +402,6 @@ export function programStats(program={}) {
     sessions:sessions.length,
     tests:arr(program.tests).length+mesos.reduce((a,x)=>a+arr(x.tests).length,0)+micros.reduce((a,x)=>a+arr(x.tests).length,0),
     checkpoints:arr(program.checkpoints).length,
+    loadTargets:micros.filter((x)=>x.loadTarget&&Object.values(x.loadTarget).some((v)=>v!=null)).length,
   };
 }
