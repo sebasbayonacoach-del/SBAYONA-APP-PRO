@@ -11,6 +11,10 @@ import { deleteCycle, readCycle } from "./cycle.js";
 import { resetConsents } from "./consents.js";
 import { defaultProgressReviewAt } from "./hub.js";
 import {
+  nutritionDefaults, normalizeNutritionPreferences, normalizeNutritionGoals,
+  normalizeWeeklyPlan, NUTRITION_FEELINGS,
+} from "./nutrition-calendar.js";
+import {
   setReward, prReward, workoutCompleteReward, mealReward, waterReward,
   stepsReward, mindReward, mobilityReward, healthMapReward, missionReward,
   focusReward, activePauseReward,
@@ -18,7 +22,7 @@ import {
 import { respaldar, guardarSeguro, recuperar } from "./backup.js";
 
 const KEY = "bayona.save.v2";
-export const SCHEMA = 5;
+export const SCHEMA = 6;
 
 /**
  * Recompensa por nivel. Vive fuera del objeto S y en orden: se recorre
@@ -113,6 +117,7 @@ function freshToday() {
     soreness: null,           // 0-10 — null = sin registrar
     energy: null,             // 0-10 — null = sin registrar
     stress: null,             // 0-10 — null = sin registrar
+    nutritionFeeling: null,   // contexto de comida — null = sin registrar
     workoutDone: null,
     xpGained: 0,
     missionKeys: [],       // idempotencia: misiones del día YA reclamadas
@@ -267,6 +272,7 @@ export const S = {
     d.phygital = d.phygital || { redeemed: [], audit: [] };
     d.consents = d.consents || null; // espejo legado; la fuente vive en js/consents.js
     d.healthFlags = d.healthFlags || null;
+    d.nutrition = nutritionDefaults(d.nutrition || {});
     d.plan = d.plan || { week: 1, sessionsDone: {}, custom: {} };
     d.plan.custom = d.plan.custom || {};
     d.activeSession = d.activeSession || null;
@@ -326,6 +332,7 @@ export const S = {
       phygital: { redeemed: [], audit: [] },
       consents: null,
       healthFlags: null,
+      nutrition: nutritionDefaults(),
       activeSession: null,
     };
     if (!silent) this.save();
@@ -361,6 +368,11 @@ export const S = {
       setLog: (d.today.setLog || []).slice(-60), // series reales (kg/reps/ex) para las gráficas de progreso (P14)
       strain: d.today.strain || 0,
       sleep: d.today.sleep, soreness: d.today.soreness, energy: d.today.energy,
+      nutritionFeeling: d.today.nutritionFeeling || null,
+      meals: (d.today.meals || []).slice(-12).map((m) => ({
+        id: m.id, name: m.name, kcal: m.kcal, p: m.p, c: m.c, f: m.f, fib: m.fib || 0,
+        at: m.at || null, slot: m.slot || null, feeling: m.feeling || null,
+      })),
     });
     if (d.history.length > 365) d.history.shift();
     const last = d.lastActiveDay;
@@ -464,21 +476,75 @@ export const S = {
     const t = this.data.today;
     const id = typeof m.id === "string" ? m.id : null;
     if (id && !m.custom && t.meals.some((x) => x.id === id)) return null; // sin doble premio
-    // Macronutrientes saneados: un campo con «mucho» o -3 no puede
-    // dejar los totales del día en NaN (el invariante I2 del plan de QA).
+
     const kcal = enRango(m.kcal, 0, 5000) ?? 0;
     const p = enRango(m.p, 0, 1000) ?? 0;
     const c = enRango(m.c, 0, 1500) ?? 0;
     const f = enRango(m.f, 0, 1000) ?? 0;
     const fib = enRango(m.fib, 0, 200) ?? 0;
     const name = typeof m.name === "string" && m.name.trim() ? m.name.slice(0, 120) : "Comida";
-    t.meals.push({ id: id || `custom_${Date.now()}`, name, kcal, p, c, f, at: new Date().toISOString() });
+
+    // Se permite registrar la hora real de HOY; nunca una comida futura.
+    let at = new Date();
+    if (typeof m.at === "string") {
+      const requested = new Date(m.at);
+      if (!Number.isNaN(requested.getTime()) && todayKey(requested) === t.date && requested.getTime() <= Date.now() + 5 * 60_000) {
+        at = requested;
+      }
+    }
+    const slot = typeof m.slot === "string" ? m.slot.slice(0, 24) : null;
+    const feeling = NUTRITION_FEELINGS.includes(m.feeling) ? m.feeling : null;
+    const note = typeof m.note === "string" ? m.note.trim().slice(0, 180) : "";
+    const qty = enRango(m.qty, 0, 10000);
+    const unit = typeof m.unit === "string" ? m.unit.slice(0, 16) : null;
+
+    t.meals.push({
+      id: id || `custom_${Date.now()}`, name, kcal, p, c, f, fib,
+      at: at.toISOString(), slot, feeling, note, qty, unit,
+    });
     t.kcal += kcal; t.p += p; t.c += c; t.f += f; t.fib += fib;
     const r = mealReward();
     this.addXP(r.xp, r.skill, r.skillGain);
     this.save(); emit("today");
     return r;
   },
+
+  setNutritionFeeling(value) {
+    const next = NUTRITION_FEELINGS.includes(value) ? value : null;
+    this.data.today.nutritionFeeling = next;
+    this.save(); emit("today");
+    return next;
+  },
+
+  updateNutritionPreferences(patch = {}) {
+    const current = this.data.nutrition?.preferences || {};
+    this.data.nutrition = nutritionDefaults(this.data.nutrition || {});
+    this.data.nutrition.preferences = normalizeNutritionPreferences({ ...current, ...patch });
+    this.save(); emit("nutrition");
+    return this.data.nutrition.preferences;
+  },
+
+  updateNutritionGoals(patch = {}, source = "user") {
+    const current = this.data.nutrition?.goals || {};
+    this.data.nutrition = nutritionDefaults(this.data.nutrition || {});
+    this.data.nutrition.goals = normalizeNutritionGoals({
+      ...current, ...patch, configured: true,
+      source: source === "coach" ? "coach" : "user",
+    });
+    this.save(); emit("nutrition");
+    return this.data.nutrition.goals;
+  },
+
+  setNutritionDayPlan(dayIndex, entries = []) {
+    const i = Math.trunc(Number(dayIndex));
+    if (i < 0 || i > 6 || !Number.isFinite(i)) return false;
+    this.data.nutrition = nutritionDefaults(this.data.nutrition || {});
+    const normalized = normalizeWeeklyPlan({ [i]: entries })[i];
+    this.data.nutrition.weeklyPlan[i] = normalized;
+    this.save(); emit("nutrition");
+    return normalized;
+  },
+
   addSteps(n) {
     const v = enRango(n, 0, 100000);
     if (v === null) return null;

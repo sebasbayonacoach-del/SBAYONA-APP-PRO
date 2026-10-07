@@ -309,6 +309,8 @@ Entregables:
 - test de paridad.
 
 ### Sprint 05 · Nutrición Calendar
+Estado: implementado en rama de Sprint; pendiente de certificación CI.
+
 - timeline diaria;
 - calendario semanal;
 - agua;
