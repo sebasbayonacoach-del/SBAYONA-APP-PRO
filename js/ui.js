@@ -26,6 +26,7 @@ import "./ui/mind.js";
 import "./ui/plan.js";
 import "./ui/coachos.js";
 import "./ui/armory.js";
+import "./ui/community.js";
 import "./ui/progress.js";
 import "./ui/core.js";
 import "./ui/more.js";
@@ -260,7 +261,6 @@ function wireHud() {
   document.querySelectorAll(".rail-btn").forEach((b) =>
     b.addEventListener("click", () => {
       const go = b.dataset.go;
-      if (go === "social") return toast("COMUNIDAD", "Fuera de esta versión: sin funciones sociales hasta estabilizar el recorrido principal.");
       openSection(go === "journey" ? "progress" : go);
     })
   );
