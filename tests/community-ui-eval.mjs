@@ -42,6 +42,9 @@ ok(domain.includes('kind:"digital"'),"catálogo FitCoin solo canjea digital");
 ok(ui.includes("S.referralCode()"),"referidos usan código estable");
 ok(ui.includes("S.recordReferralShare"),"solo compartir registra invitación");
 ok(ui.includes("navigator.share")&&ui.includes("navigator.clipboard"),"share usa capacidades reales del dispositivo");
+ok(ui.includes("loadCommunityFeed")&&ui.includes("toggleCommunityReactionCloud"),"feed cloud y reacciones están conectados");
+ok(ui.includes("publishCommunityPost(out.post)"),"publicar intenta nube solo después de guardar local");
+ok(ui.includes("community.cloud.localSafe"),"fallo de nube no elimina progreso local");
 ok(domain.includes("referralsVerified"),"resumen distingue compartidos de verificados");
 ok(!domain.includes("referralsVerified:d.referralInvites.length"),"compartir no equivale a conversión");
 
@@ -55,6 +58,7 @@ ok(css.includes(".community-store-grid")&&css.includes(".community-ledger-row"),
 ok(css.includes("@media(max-width:520px)"),"Comunidad contempla móvil");
 
 ok(sw.includes("./js/community.js")&&sw.includes("./js/ui/community.js"),"Comunidad funciona offline");
+ok(sw.includes("./js/sync/community.js"),"cliente cloud Community está precacheado");
 ok(/CACHE = "bayona-shell-v43"/.test(sw),"shell PWA subió a v43");
 
 console.log(`\n📊 RESULTADO: ${pass} pass · 0 fail\n`);
