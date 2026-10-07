@@ -199,7 +199,10 @@ function addDays(dateKey,days){
 export function buildProgramDraft(input={}) {
   const sportTemplate=resolveSportTemplate(input.sportTemplateId||input.sport||"general");
   const template=PROGRAM_TEMPLATES[input.templateId]||PROGRAM_TEMPLATES[sportTemplate.programTemplateId]||PROGRAM_TEMPLATES.general_adherence;
-  const durationWeeks=Math.round(clamp(input.durationWeeks,4,52,input.durationWeeks??sportTemplate.defaultWeeks??template.defaultWeeks));
+  const requestedWeeks=input.durationWeeks===null||input.durationWeeks===undefined||input.durationWeeks===""
+    ? (sportTemplate.defaultWeeks??template.defaultWeeks)
+    : input.durationWeeks;
+  const durationWeeks=Math.round(clamp(requestedWeeks,4,52,sportTemplate.defaultWeeks??template.defaultWeeks));
   const startDate=isoDate(input.startDate)||new Date().toISOString().slice(0,10);
   const mesoWeeks=Math.round(clamp(input.mesocycleWeeks,2,8,4));
   const gate=recommendationGate({flags:input.contextFlags,age:input.age});
