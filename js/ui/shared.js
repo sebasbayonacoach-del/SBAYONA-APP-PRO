@@ -65,6 +65,7 @@ export const PLACES = {
   armory:    { env: "locker",   action: "idle",     cam: [0, 1.1, 2.7],    tgt: [0, 0.95, 0] },
   core:      { env: "home",     action: "idle",     cam: [0, 1.15, 3.3],   tgt: [0, 0.95, 0] },
   progress:  { env: "home",     action: "idle",     cam: [0.8, 1.2, 3.2],  tgt: [0, 0.95, 0] },
+  social:    { env: "home",     action: "idle",     cam: [-0.8, 1.2, 3.2], tgt: [0, 0.95, 0] },
   appearance:{ env: "locker",   action: "idle",     cam: [0, 1.1, 2.7],    tgt: [0, 0.95, 0] },
   account:   { env: "home",     action: "idle",     cam: [0, 1.15, 3.3],   tgt: [0, 0.95, 0] },
   more:      { env: "home",     action: "idle",     cam: [0, 1.15, 3.3],   tgt: [0, 0.95, 0] },
@@ -186,6 +187,7 @@ export function openSection(name) {
       ? "training"
       : ["nutrition","recovery","mind","rhythm","daily"].includes(name) ? "wellbeing"
       : ["appearance","account","more","armory","core","trabajo","coachos"].includes(name) ? "profile"
+      : name === "social" ? "social"
       : name === "plan" ? "training" : name;
   document.querySelectorAll("#panel-nav [data-go]").forEach(node => {
     const active = node.dataset.go === group; node.classList.toggle("active", active);
@@ -208,6 +210,7 @@ export const TITLES = {
   recovery:  ["RECUPERACIÓN", "LABORATORIO"],
   mind:      ["MENTE", "SILENCIO"],
   progress:  ["Progreso", "CADA SERIE CUENTA"],
+  social:    [t("community.title"), t("community.subtitle")],
   plan:      ["PLAN", "MACROCICLO"],
   coachos:   ["COACH OS", "CENTRO DE MANDO"],
   centro:    ["Centro", "TU GIMNASIO, DE UN VISTAZO"],
