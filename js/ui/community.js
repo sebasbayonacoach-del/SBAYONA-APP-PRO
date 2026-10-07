@@ -8,6 +8,11 @@ import { FITCOIN_REWARDS } from "../community.js";
 import { ITEMS } from "../data.js";
 import { esc, fmtInt, fmtDate, t } from "../i18n.js";
 import { $, el, BUILDERS, showModal, hideModal, toast, openSection } from "./shared.js";
+import { currentSession } from "../sync/supabase.js";
+import {
+  loadCommunityFeed,publishCommunityPost,toggleCommunityReactionCloud,
+  getOrCreateReferralCode,acceptReferralCode,myReferralStats,
+} from "../sync/community.js";
 
 BUILDERS.social = (body) => renderCommunity(body);
 
@@ -40,6 +45,7 @@ function renderCommunity(body){
   body.appendChild(actions);
 
   renderFeed(body);
+  renderCloudFeed(body);
   renderRewards(body);
   renderPhysical(body);
   renderReferrals(body);
@@ -87,6 +93,65 @@ function renderFeed(body){
   body.appendChild(wrap);
 }
 
+function renderCloudFeed(body){
+  body.appendChild(el("div","sec-label",t("community.cloud.label")));
+  const wrap=el("section","community-cloud");
+  if(!currentSession()){
+    wrap.appendChild(el("div","community-empty",t("community.cloud.login")));
+    body.appendChild(wrap);return;
+  }
+  const loading=el("div","community-empty",t("community.cloud.loading"));
+  wrap.appendChild(loading);
+  body.appendChild(wrap);
+  loadCommunityFeed(60).then((posts)=>{
+    wrap.textContent="";
+    if(!posts.length){
+      wrap.appendChild(el("div","community-empty",t("community.cloud.empty")));
+      return;
+    }
+    posts.forEach((post)=>{
+      const card=el("article","community-cloud-post");
+      const head=el("div","community-post-head");
+      head.append(
+        el("span","pill",t(`community.post.${post.type}`)),
+        el("strong","community-author",post.mine?t("community.cloud.you"):post.author_name),
+        el("span","community-verified",post.verification==="server_verified"?t("community.cloud.serverVerified"):t("community.cloud.clientRegistered")),
+        el("small","",fmtDate(post.created_at))
+      );
+      const main=el("div","community-post-main");
+      main.appendChild(el("strong","",post.title));
+      if(post.subtitle)main.appendChild(el("span","",post.subtitle));
+      if(post.metric)main.appendChild(el("b","",post.metric));
+      if(post.caption)main.appendChild(el("p","",post.caption));
+
+      const reactions=el("div","community-reactions");
+      [
+        ["respect","community.reaction.respect"],
+        ["fire","community.reaction.fire"],
+        ["strong","community.reaction.strong"],
+      ].forEach(([type,key])=>{
+        const count=post.reactionCounts?.[type]||0;
+        const b=el("button",post.myReaction===type?"active":"",`${t(key)} · ${count}`);
+        b.type="button";
+        b.onclick=async()=>{
+          try{
+            await toggleCommunityReactionCloud(post.id,type);
+            renderCommunity(body);
+          }catch(e){
+            toast(t("community.cloud.label"),e?.message||t("community.cloud.error"),"danger");
+          }
+        };
+        reactions.appendChild(b);
+      });
+      card.append(head,main,reactions);
+      wrap.appendChild(card);
+    });
+  }).catch(()=>{
+    wrap.textContent="";
+    wrap.appendChild(el("div","community-empty",t("community.cloud.error")));
+  });
+}
+
 function shareProgressModal(body){
   const candidates=S.progressShareCandidates();
   const shared=new Set((S.data.community?.posts||[]).map((p)=>p.evidenceId));
@@ -99,10 +164,19 @@ function shareProgressModal(body){
     <label>${esc(t("community.share.evidence"))}<select id="community-candidate">${options}</select></label>
     <label>${esc(t("community.share.caption"))}<textarea id="community-caption" maxlength="280"></textarea></label>
     <button class="btn btn-primary btn-block" id="community-publish">${esc(t("community.share.publish"))}</button>`,()=>{
-      $("#community-publish").onclick=()=>{
+      $("#community-publish").onclick=async()=>{
         const out=S.createProgressPost($("#community-candidate").value,$("#community-caption").value);
         if(!out.ok)return toast(t("community.share"),t("community.share.none"),"danger");
-        hideModal();renderCommunity(body);
+        hideModal();
+        if(currentSession()){
+          try{
+            await publishCommunityPost(out.post);
+            toast(t("community.cloud.label"),t("community.cloud.published"));
+          }catch{
+            toast(t("community.cloud.label"),t("community.cloud.localSafe"),"danger");
+          }
+        }
+        renderCommunity(body);
       };
     });
 }
@@ -182,28 +256,63 @@ async function shareReferral(code){
 
 function renderReferrals(body){
   body.appendChild(el("div","sec-label",t("community.referral.label")));
-  const code=S.referralCode();
+  let shareCode=S.referralCode();
   const sum=S.communitySummary();
   const card=el("section","community-referrals");
   card.appendChild(el("p","",t("community.referral.body")));
+
   const codeBox=el("div","community-referral-code");
-  codeBox.append(
-    el("small","",t("community.referral.code")),
-    el("strong","",code)
-  );
+  const codeStrong=el("strong","",shareCode);
+  codeBox.append(el("small","",t("community.referral.code")),codeStrong);
   card.appendChild(codeBox);
+
   const stats=el("div","community-referral-stats");
-  stats.innerHTML=`
-    <article><small>${esc(t("community.referral.shared"))}</small><strong>${fmtInt(sum.referralsShared)}</strong></article>
-    <article><small>${esc(t("community.referral.verified"))}</small><strong>${fmtInt(sum.referralsVerified)}</strong></article>`;
+  const sharedStrong=el("strong","",fmtInt(sum.referralsShared));
+  const verifiedStrong=el("strong","",fmtInt(sum.referralsVerified));
+  const sharedArticle=el("article","");
+  sharedArticle.append(el("small","",t("community.referral.shared")),sharedStrong);
+  const verifiedArticle=el("article","");
+  verifiedArticle.append(el("small","",t("community.referral.verified")),verifiedStrong);
+  stats.append(sharedArticle,verifiedArticle);
   card.appendChild(stats);
-  const b=el("button","btn btn-primary btn-block",t("community.referral.share"));
-  b.onclick=async()=>{
-    const ok=await shareReferral(code);
+
+  const share=el("button","btn btn-primary btn-block",t("community.referral.share"));
+  share.onclick=async()=>{
+    const ok=await shareReferral(shareCode);
     if(!ok)toast(t("community.referral.label"),t("community.error.clipboard"),"danger");
     else renderCommunity(body);
   };
-  card.appendChild(b);
+  card.appendChild(share);
+
+  if(currentSession()){
+    const accept=el("section","community-referral-accept");
+    accept.append(
+      el("strong","",t("community.referral.acceptTitle")),
+      el("p","",t("community.referral.acceptBody"))
+    );
+    const input=el("input","");
+    input.maxLength=24;
+    input.placeholder=t("community.referral.acceptPlaceholder");
+    const b=el("button","btn",t("community.referral.accept"));
+    b.onclick=async()=>{
+      try{
+        const ok=await acceptReferralCode(input.value);
+        toast(t("community.referral.label"),ok?t("community.referral.accepted"):t("community.referral.already"),ok?"gold":"");
+        const fresh=await myReferralStats();
+        verifiedStrong.textContent=fmtInt(fresh.verified);
+      }catch{
+        toast(t("community.referral.label"),t("community.referral.invalid"),"danger");
+      }
+    };
+    accept.append(input,b);
+    card.appendChild(accept);
+
+    Promise.all([getOrCreateReferralCode(),myReferralStats()]).then(([code,cloud])=>{
+      if(code){shareCode=code;codeStrong.textContent=code;}
+      verifiedStrong.textContent=fmtInt(cloud.verified);
+    }).catch(()=>{/* el fallback local sigue visible */});
+  }
+
   body.appendChild(card);
 }
 
