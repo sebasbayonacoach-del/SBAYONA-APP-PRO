@@ -362,6 +362,8 @@ Estado: implementado en rama de Sprint; pendiente de certificación CI.
 - alertas.
 
 ### Sprint 10 · Planning Studio
+Estado: implementado en rama de Sprint; pendiente de certificación CI.
+
 - macrociclos;
 - mesociclos;
 - microciclos;

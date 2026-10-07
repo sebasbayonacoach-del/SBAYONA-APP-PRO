@@ -1,6 +1,6 @@
 {
   "_nota": "Línea base del trinquete i18n. Bajarla = progreso. Subirla requiere decisión de Sebastián (objetivo P19: 0).",
-  "fijada": "2026-09-29",
-  "fijada_por": "agente Qoder 25-09-2026 (crea la herramienta que i18n-eval.mjs esperaba) · bajada a 115 tras el plan de QA de 5.000 preguntas",
-  "baseline": 115
+  "fijada": "2026-10-07",
+  "fijada_por": "Sprint 10 Planning Studio · migración de copy visible a i18n (115 → 114)",
+  "baseline": 114
 }
