@@ -7,6 +7,7 @@
 import { t, esc } from "../i18n.js";
 import { loadApp } from "../app-loader.js";
 import { montarLanding } from "./landing.js";
+import { initTheme } from "../theme.js";
 
 function yaDentro() {
   try {
@@ -55,12 +56,17 @@ function showLoadError() {
 async function enterApp(plan = null, role = null) {
   setLoading(true);
   try {
+    const personalPlans = new Set(["free","raiz","performance","elite","atleta","pro"]);
+    if (personalPlans.has(plan)) {
+      try { localStorage.setItem("bayona.plan.intent.v1", plan); } catch { /* opcional */ }
+    }
+
     await loadApp();
     removeLanding();
 
     // Un CTA genérico abre el portal de acceso para que el usuario elija
-    // su espacio. Los planes sí conservan una intención clara.
-    const inferredRole = role || (plan === "centro" ? "coach" : (plan === "atleta" || plan === "pro" ? "affiliate" : null));
+    // su espacio. Los planes personales conservan su intención para onboarding.
+    const inferredRole = role || (plan === "centro" ? "coach" : (personalPlans.has(plan) ? "affiliate" : null));
     if (!inferredRole) {
       document.getElementById("entry")?.focus?.({ preventScroll: true });
       return;
@@ -91,6 +97,7 @@ function directTarget() {
 }
 
 function boot() {
+  initTheme();
   const direct = directTarget();
   const source = new URLSearchParams(globalThis.location?.search || "").get("source");
   const appShell = source === "pwa";
