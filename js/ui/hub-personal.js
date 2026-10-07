@@ -1,7 +1,7 @@
 // BAYONA — Hub Personal UI.
 // Pinta exclusivamente datos del estado canónico; no crea economía ni progreso paralelo.
 import { S } from "../state.js";
-import { t, esc, fmtNum } from "../i18n.js";
+import { t, esc, fmtInt } from "../i18n.js";
 import { PLAN_META, planFromProfile } from "../entitlements.js";
 import { hubSnapshot } from "../hub.js";
 import { el, openSection } from "./shared.js";
@@ -65,8 +65,8 @@ export function characterStage() {
         <i style="width:${m.xp.pct}%"></i>
       </div>
       <div class="fit-character-economy">
-        <span><small>${esc(t("hub.fitcoins"))}</small><b>${fmtNum(m.fitCoins)}</b></span>
-        <span><small>${esc(t("hub.points"))}</small><b>${fmtNum(m.points)}</b></span>
+        <span><small>${esc(t("hub.fitcoins"))}</small><b>${fmtInt(m.fitCoins)}</b></span>
+        <span><small>${esc(t("hub.points"))}</small><b>${fmtInt(m.points)}</b></span>
         <span><small>${esc(t("hub.review"))}</small><b>${esc(reviewLabel)}</b></span>
       </div>
       <div class="fit-character-actions">
@@ -124,10 +124,10 @@ export function progressPeek() {
       <button type="button">${esc(t("hub.progress.open"))}</button>
     </div>
     <div class="fit-progress-peek-grid">
-      <span><b>${fmtNum(m.workouts)}</b><small>${esc(t("hub.progress.sessions"))}</small></span>
-      <span><b>${fmtNum(m.sets)}</b><small>${esc(t("hub.progress.sets"))}</small></span>
-      <span><b>${fmtNum(m.prs)}</b><small>${esc(t("hub.progress.prs"))}</small></span>
-      <span><b>${fmtNum(m.streak)}</b><small>${esc(t("hub.progress.streak"))}</small></span>
+      <span><b>${fmtInt(m.workouts)}</b><small>${esc(t("hub.progress.sessions"))}</small></span>
+      <span><b>${fmtInt(m.sets)}</b><small>${esc(t("hub.progress.sets"))}</small></span>
+      <span><b>${fmtInt(m.prs)}</b><small>${esc(t("hub.progress.prs"))}</small></span>
+      <span><b>${fmtInt(m.streak)}</b><small>${esc(t("hub.progress.streak"))}</small></span>
     </div>
     ${latest?`<button type="button" class="fit-progress-photo"><img src="${esc(latest.dataUrl)}" alt="${esc(t("hub.progress.latestPhoto"))}"><span>${esc(t("hub.progress.privatePhoto"))}</span></button>`:""}`;
   card.querySelector(".fit-progress-peek-head button").onclick=()=>openSection("progress");
