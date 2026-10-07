@@ -5854,3 +5854,42 @@ html[data-surface-theme="light"] body.fitness-app .profile-v2-section{
 html[data-surface-theme="light"] body.fitness-app .profile-v2-section[open] summary{
   border-bottom-color:#ded7cc;
 }
+
+/* ============================================================
+   HUB PERSONAL · accesos secundarios
+   ============================================================ */
+.fit-hub-secondary-title{
+  display:flex;align-items:end;justify-content:space-between;gap:12px;
+  margin:18px 2px 9px
+}
+.fit-hub-secondary-title span{
+  color:var(--ink-soft);font:800 8px/1 var(--sans);letter-spacing:.14em
+}
+.fit-hub-secondary-title small{
+  color:var(--mute);font:500 8px/1 var(--sans)
+}
+.fit-hub-secondary{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px
+}
+.fit-hub-quick{
+  min-height:76px;display:grid;grid-template-columns:30px 1fr auto;align-items:center;gap:8px;
+  padding:10px;border:1px solid var(--hair);border-radius:13px;background:var(--panel);
+  color:var(--ink);text-align:left;cursor:pointer
+}
+.fit-hub-quick:hover,.fit-hub-quick:focus-visible{
+  border-color:var(--hair-strong);background:var(--paper-2);outline:none
+}
+.fit-hub-quick-icon{
+  width:29px;height:29px;display:grid;place-items:center;border:1px solid var(--hair);
+  border-radius:9px;color:var(--orange);background:var(--paper-2)
+}
+.fit-hub-quick-icon svg,.fit-hub-quick>em svg{width:15px;height:15px}
+.fit-hub-quick>span:nth-child(2){display:grid;gap:4px;min-width:0}
+.fit-hub-quick strong{font:650 11px/1.1 var(--sans)}
+.fit-hub-quick small{color:var(--mute);font:500 8px/1.2 var(--sans)}
+.fit-hub-quick>em{color:var(--orange);font:800 7px/1 var(--sans);font-style:normal;letter-spacing:.06em}
+.fit-hub-quick[data-locked="true"]{border-style:dashed}
+@media(max-width:620px){
+  .fit-hub-secondary{grid-template-columns:1fr}
+  .fit-hub-quick{min-height:62px}
+}

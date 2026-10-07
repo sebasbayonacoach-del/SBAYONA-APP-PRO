@@ -169,7 +169,12 @@ export function openSection(name) {
     x.classList.toggle("active", x.dataset.nav === name)
   );
   const title = TITLES[name] || TITLES.more;
-  if (!document.body.classList.contains("fitness-app") || name === "armory") travel(name); // el personaje viaja; la UI se construye YA (sin pisar vistas por carrera)
+  const personalWorldDesktop = document.body.classList.contains("fitness-app")
+    && document.body.dataset.entryRole !== "coach"
+    && (globalThis.matchMedia?.("(min-width: 901px)")?.matches ?? globalThis.innerWidth > 900);
+  if (!document.body.classList.contains("fitness-app") || name === "armory" || personalWorldDesktop) {
+    travel(name); // en escritorio personal, la cámara vuelve a formar parte de la navegación
+  }
   const body = openDrawer(title[0], title[1]);
   const sectionFeature = featureForSection(name);
   const personalLocked = document.body.dataset.entryRole !== "coach"

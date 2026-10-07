@@ -4,7 +4,9 @@ import { S, todayKey } from '../state.js';
 import { esc, t } from '../i18n.js';
 import { BUILDERS, UI, el, openSection, toast } from './shared.js';
 import { renderHoy } from './hoy.js';
-import { PLAN_META, planFromProfile } from '../entitlements.js';
+import {
+  PLAN_META, planFromProfile, featureForSection, hasFeature, featureTier,
+} from '../entitlements.js';
 
 const paths = {
   hoy:'M3 10 12 3l9 7v10H3Z M9 20v-7h6v7',
@@ -86,6 +88,19 @@ function room(key,title,sub,ico=key){
   return b;
 }
 
+function quickRoute(key,title,sub,ico='arrow'){
+  const plan=planFromProfile(S.data.profile);
+  const feature=featureForSection(key);
+  const locked=feature&&!hasFeature(plan,feature);
+  const required=locked?PLAN_META[featureTier(feature)]?.label:null;
+  const b=el('button','fit-hub-quick',`<span class="fit-hub-quick-icon">${icon(ico)}</span><span><strong>${esc(title)}</strong><small>${esc(sub)}</small></span><em>${locked?esc(required):icon('arrow')}</em>`);
+  b.type='button';
+  b.dataset.destination=key;
+  if(locked)b.dataset.locked='true';
+  b.onclick=()=>openSection(key);
+  return b;
+}
+
 function home(body){
   body.textContent='';
   const p=S.data.profile,today=S.data.today,active=S.getActiveSession(),stats=S.data.stats;
@@ -149,6 +164,15 @@ function home(body){
     room('progress','Evolucionar','Historial y cambios','progress')
   );
   body.append(rooms);
+
+  body.append(el('div','fit-hub-secondary-title',`<span>${esc(t('hub.quick.label'))}</span><small>${esc(t('hub.quick.hint'))}</small>`));
+  const quick=el('section','fit-hub-secondary');
+  quick.append(
+    quickRoute('core',t('hub.quick.coach.title'),t('hub.quick.coach.sub'),'profile'),
+    quickRoute('plan',t('hub.quick.plan.title'),t('hub.quick.plan.sub'),'plan'),
+    quickRoute('armory',t('hub.quick.rewards.title'),t('hub.quick.rewards.sub'),'settings')
+  );
+  body.append(quick);
 
   body.append(el('div','fit-week-title','<span>ESTA SEMANA</span>'));
   body.append(weekStrip());
