@@ -43,8 +43,14 @@
     var ap = JSON.parse(localStorage.getItem('bayona.appearance.v1') || '{}');
     var d = document.documentElement;
     var legacy = { marfil: 'cine', noche: 'noche' };
+    var prefTheme = localStorage.getItem('bayona.theme.v1') || 'dark';
+    var resolvedTheme = prefTheme === 'system'
+      ? (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
+      : (prefTheme === 'light' ? 'light' : 'dark');
     d.dataset.theme = 'naranja';
-    d.dataset.mode = 'noche';
+    d.dataset.bayonaTheme = prefTheme;
+    d.dataset.surfaceTheme = resolvedTheme;
+    d.dataset.mode = resolvedTheme === 'light' ? 'cine' : 'noche';
     d.dataset.font = 'claude';
     d.dataset.density = ap.density || 'comoda';
     d.dataset.radius = ap.radius || 'suave';
@@ -52,7 +58,7 @@
     d.dataset.glow = ap.glow || 'bajo';
     d.dataset.scale = ap.scale || '100';
     d.dataset.motion = ap.motion || 'pleno';
-    d.style.colorScheme = 'dark';
+    d.style.colorScheme = resolvedTheme;
   } catch (e) {}
 </script>
 <script type="importmap">

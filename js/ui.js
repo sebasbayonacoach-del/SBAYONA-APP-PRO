@@ -31,6 +31,7 @@ import "./ui/core.js";
 import "./ui/more.js";
 import "./ui/personal.js";
 import "./ui/appearance.js";
+import "./ui/first-run-tour.js";
 import "./sync/account.js";
 // CENTRO · gestión del gimnasio (socios, cuotas, agenda, acceso, portal, informes)
 import "./gym/store.js";

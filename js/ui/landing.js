@@ -7,6 +7,9 @@
 // vive en js/i18n.js (catálogo cmd.* / luxe.*): aquí solo se
 // pinta y se revela con scroll. Sin datos, sin inventar nada.
 // ============================================================
+import { PLANS, PLAN_META, hasFeature, featureTier } from "../entitlements.js";
+import { applyTheme, readTheme } from "../theme.js";
+import { t } from "../i18n.js";
 
 /** Contenido de la landing (todo en es-ES, desde catálogo). */
 export function contenidoLanding(t) {
@@ -26,7 +29,7 @@ export function contenidoLanding(t) {
       proof: [
         { n: "100%", k: t("luxe.proof.local") },
         { n: "0", k: t("luxe.proof.nube") },
-        { n: "38", k: t("luxe.proof.suites") },
+        { n: "41", k: t("luxe.proof.suites") },
       ],
       visualHint: t("luxe.hero.visualHint"),
     },
@@ -38,49 +41,24 @@ export function contenidoLanding(t) {
       { icon: "🎥", titulo: t("luxe.f5.titulo"), texto: t("luxe.f5.texto"), meta: t("luxe.f5.meta") },
       { icon: "🛡️", titulo: t("luxe.f6.titulo"), texto: t("luxe.f6.texto"), meta: t("luxe.f6.meta") },
     ],
-    planes: [
-      {
-        id: "atleta",
-        nombre: t("luxe.plan.atleta.nombre"),
-        precio: "0",
-        periodo: t("luxe.plan.periodo"),
-        cta: t("luxe.plan.atleta.cta"),
-        destacado: false,
-        perks: [
-          t("luxe.plan.atleta.p1"),
-          t("luxe.plan.atleta.p2"),
-          t("luxe.plan.atleta.p3"),
-        ],
-      },
-      {
-        id: "pro",
-        nombre: t("luxe.plan.pro.nombre"),
-        precio: "9",
-        periodo: t("luxe.plan.periodo"),
-        cta: t("luxe.plan.pro.cta"),
-        destacado: true,
-        perks: [
-          t("luxe.plan.pro.p1"),
-          t("luxe.plan.pro.p2"),
-          t("luxe.plan.pro.p3"),
-          t("luxe.plan.pro.p4"),
-        ],
-      },
-      {
-        id: "centro",
-        nombre: t("luxe.plan.centro.nombre"),
-        precio: "29",
-        periodo: t("luxe.plan.periodo"),
-        cta: t("luxe.plan.centro.cta"),
-        destacado: false,
-        perks: [
-          t("luxe.plan.centro.p1"),
-          t("luxe.plan.centro.p2"),
-          t("luxe.plan.centro.p3"),
-          t("luxe.plan.centro.p4"),
-        ],
-      },
-    ],
+    planes: PLANS.map((id) => {
+      const meta = PLAN_META[id];
+      const perks = {
+        free: ["Inicio y registro", "Entrenamiento básico", "Progreso esencial"],
+        raiz: ["Plan mensual", "Seguimiento", "Comunidad y personalización"],
+        performance: ["IA adaptativa", "Analítica avanzada", "Planificación profesional"],
+        elite: ["Prioridad humana", "Sesiones privadas según plan", "Acceso completo"],
+      }[id];
+      return {
+        id,
+        nombre: meta.label,
+        precio: String(meta.priceEur),
+        periodo: "mes",
+        cta: id === "free" ? "EMPEZAR" : `VER ${meta.label}`,
+        destacado: id === "performance",
+        perks,
+      };
+    }),
     faqTitulo: t("luxe.faq.titulo"),
     faq: [
       { q: t("luxe.faq1.q"), a: t("luxe.faq1.a") },
@@ -219,6 +197,7 @@ export function montarLanding({ t, esc, onEntrar } = {}) {
         ${c.nav.map((n) => `<a href="${e(n.href)}">${e(n.label)}</a>`).join("")}
       </div>
       <div class="luxe-nav-cta">
+        <button class="luxe-theme-toggle" id="luxe-theme-toggle" type="button" aria-label="${t("theme.toggle.aria")}">◐</button>
         <button class="luxe-cta" id="luxe-nav-entrar">${e(c.hero.cta)}</button>
       </div>
     </nav>
@@ -226,6 +205,9 @@ export function montarLanding({ t, esc, onEntrar } = {}) {
     <header class="luxe-hero">
       ${heroHTML(c)}
     </header>
+    <section class="luxe-section luxe-demo-section" id="luxe-demo">
+      ${demoHTML("free")}
+    </section>
     <section class="luxe-section" id="luxe-features">
       ${featuresHTML(c)}
     </section>
@@ -246,8 +228,112 @@ export function montarLanding({ t, esc, onEntrar } = {}) {
   const navEntrar = document.getElementById("luxe-nav-entrar");
   if (navEntrar) navEntrar.addEventListener("click", () => onEntrar && onEntrar(null));
   const demo = document.getElementById("luxe-cta-demo");
-  if (demo) demo.addEventListener("click", () => onEntrar && onEntrar("demo"));
+  if (demo) demo.addEventListener("click", () => root.querySelector("#luxe-demo")?.scrollIntoView({ behavior:"smooth", block:"start" }));
 
+  const themeToggle = document.getElementById("luxe-theme-toggle");
+  if (themeToggle) themeToggle.addEventListener("click", () => {
+    const next = readTheme() === "light" ? "dark" : "light";
+    applyTheme(next);
+  });
+
+  installDemo(root);
   instalarReveal(root);
   return root;
+}
+
+const DEMO_SURFACES = [
+  ["home",t("demo.nav.home")],
+  ["training",t("demo.nav.training")],
+  ["nutrition",t("demo.nav.nutrition")],
+  ["progress",t("demo.nav.progress")],
+  ["coach",t("demo.nav.coach")],
+];
+
+function lockMark(plan, feature) {
+  if (hasFeature(plan, feature)) return '<span class="luxe-demo-ok">INCLUIDO</span>';
+  return `<span class="luxe-demo-lock">BLOQUEADO · ${PLAN_META[featureTier(feature)].label}</span>`;
+}
+
+export function demoHTML(plan = "free") {
+  const meta = PLAN_META[plan] || PLAN_META.free;
+  return `
+    <section class="luxe-demo-shell" id="luxe-demo-shell" aria-label="${t("demo.aria")}">
+      <div class="luxe-demo-copy">
+        <div class="luxe-label">VER CÓMO FUNCIONA</div>
+        <h2>Prueba BAYONA antes de entrar.</h2>
+        <p>Cambia de plan, luz y zona. El teléfono te enseña qué puedes usar y qué puedes desbloquear.</p>
+        <div class="luxe-demo-plan-tabs" role="group" aria-label="${t("demo.plan.aria")}">
+          ${PLANS.map((id)=>`<button type="button" data-demo-plan="${id}" class="${id===plan?"on":""}">${PLAN_META[id].label}</button>`).join("")}
+        </div>
+        <div class="luxe-demo-theme">
+          <span>${t("demo.theme.aria")}</span>
+          <button type="button" data-demo-theme="dark">NOCHE</button>
+          <button type="button" data-demo-theme="light">DÍA</button>
+        </div>
+        <div class="luxe-demo-meta"><strong>${meta.label}</strong><span>${meta.tagline}</span></div>
+      </div>
+      <div class="luxe-device-stage">
+        <div class="luxe-device">
+          <div class="luxe-device-top"><i></i><span>9:41</span><b>BAYONA</b><em>●●●</em></div>
+          <div class="luxe-device-screen" data-demo-surface="home"></div>
+          <nav class="luxe-device-nav" aria-label="${t("demo.surfaces.aria")}">
+            ${DEMO_SURFACES.map(([id,label])=>`<button type="button" data-demo-surface-btn="${id}" class="${id==="home"?"on":""}">${label}</button>`).join("")}
+          </nav>
+        </div>
+      </div>
+    </section>`;
+}
+
+function paintDemoSurface(root, plan, surface) {
+  const meta = PLAN_META[plan] || PLAN_META.free;
+  const screen = root.querySelector(".luxe-device-screen");
+  if (!screen) return;
+  screen.dataset.demoSurface = surface;
+  const cards = {
+    home:["TU HUB","Tu personaje, tu día y lo que toca ahora.","training.basic"],
+    training:["ENTRENAMIENTO","Preparación · trabajo principal · cierre.","training.custom"],
+    nutrition:["NUTRICIÓN","Hora, última comida, agua y plan semanal.","nutrition.advanced"],
+    progress:["PROGRESO","Fotos, fuerza, volumen y constancia.","progress.advanced"],
+    coach:["COACH","Chat contextual dentro de la sesión.","coach.chat"],
+  };
+  const [kicker,title,feature]=cards[surface]||cards.home;
+  screen.innerHTML=`
+    <div class="luxe-demo-user"><span class="luxe-demo-avatar">B</span><span><small>${kicker}</small><strong>${title}</strong></span><i>${meta.label}</i></div>
+    <div class="luxe-demo-focus">
+      <div class="luxe-demo-orbit"><i></i><span>PERSONAJE</span></div>
+      <div><small>${surface==="home"?"MARTES · 6 OCT":t("demo.view.label")}</small><h3>${title}</h3><p>${meta.tagline}</p>${lockMark(plan,feature)}</div>
+    </div>
+    <div class="luxe-demo-grid">
+      <article><small>HOY</small><strong>${surface==="training"?"3 bloques":"Tu siguiente acción"}</strong><span>Datos reales</span></article>
+      <article><small>COACH</small><strong>${hasFeature(plan,"ai.adaptive")?"IA adaptativa":"Guía esencial"}</strong>${lockMark(plan,"ai.adaptive")}</article>
+      <article><small>BACKUP</small><strong>Copia segura</strong>${lockMark(plan,"backup.cloud")}</article>
+      <article><small>ANALÍTICA</small><strong>Progreso avanzado</strong>${lockMark(plan,"progress.advanced")}</article>
+    </div>`;
+}
+
+function installDemo(root) {
+  const shell=root.querySelector("#luxe-demo-shell");
+  if (!shell) return;
+  let plan="free",surface="home";
+  const redraw=()=>{
+    shell.querySelectorAll("[data-demo-plan]").forEach((b)=>b.classList.toggle("on",b.dataset.demoPlan===plan));
+    shell.querySelectorAll("[data-demo-surface-btn]").forEach((b)=>b.classList.toggle("on",b.dataset.demoSurfaceBtn===surface));
+    const meta=shell.querySelector(".luxe-demo-meta");
+    if(meta) {
+      meta.textContent="";
+      const strong=document.createElement("strong"), span=document.createElement("span");
+      strong.textContent=PLAN_META[plan].label;
+      span.textContent=PLAN_META[plan].tagline;
+      meta.append(strong,span);
+    }
+    paintDemoSurface(shell,plan,surface);
+  };
+  shell.querySelectorAll("[data-demo-plan]").forEach((b)=>b.addEventListener("click",()=>{plan=b.dataset.demoPlan;redraw();}));
+  shell.querySelectorAll("[data-demo-surface-btn]").forEach((b)=>b.addEventListener("click",()=>{surface=b.dataset.demoSurfaceBtn;redraw();}));
+  shell.querySelectorAll("[data-demo-theme]").forEach((b)=>b.addEventListener("click",()=>{
+    const theme=b.dataset.demoTheme; applyTheme(theme);
+    shell.querySelectorAll("[data-demo-theme]").forEach((x)=>x.classList.toggle("on",x.dataset.demoTheme===theme));
+  }));
+  shell.querySelector(`[data-demo-theme="${readTheme()}"]`)?.classList.add("on");
+  redraw();
 }

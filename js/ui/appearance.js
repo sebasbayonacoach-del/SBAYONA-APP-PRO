@@ -9,6 +9,7 @@
 import { S } from "../state.js";
 import { processFace } from "../face.js";
 import { setConsent, isGranted } from "../consents.js";
+import { applyTheme, readTheme } from "../theme.js";
 import { UI, $, el, elT, toast, BUILDERS, TITLES, openSection, closeDrawer } from "./shared.js";
 
 const KEY = "bayona.appearance.v1";
@@ -20,7 +21,7 @@ export const THEMES = [
 
 const DEFAULTS = {
   theme: "naranja",
-  mode: "noche",        // BAYONA ONE = negro + naranja
+  mode: "noche",        // noche / cine (día)
   font: "claude",       // firma tipográfica CLAUDE (Styrene B / Tiempos Text)
   density: "comoda",
   radius: "suave",
@@ -40,9 +41,9 @@ function load() {
   } catch (e) { /* almacenamiento no disponible */ }
   ap.theme = "naranja"; // paleta estricta: nunca se desvía
   ap.font = "claude";
-  // BAYONA ONE v12: firma visual única. Cualquier preferencia antigua
-  // se migra a negro + naranja para que escena y software compartan identidad.
-  ap.mode = "noche";
+  // Theme v1 es la fuente de verdad de luz. La apariencia conserva "cine/noche"
+  // porque el mundo 3D ya usa esos nombres.
+  ap.mode = readTheme() === "light" ? "cine" : "noche";
   return ap;
 }
 
@@ -56,6 +57,7 @@ export function applyAppearance() {
   const r = document.documentElement;
   r.dataset.theme = AP.theme;
   r.dataset.mode = AP.mode;
+  applyTheme(AP.mode === "cine" ? "light" : "dark", { root:r, persist:true });
   r.dataset.font = AP.font;
   r.dataset.density = AP.density;
   r.dataset.radius = AP.radius;
@@ -79,14 +81,16 @@ export function applyAppearance() {
 }
 
 /** interruptor rápido CINE / NOCHE (HUD y portada) */
-export function setMode() {
-  setAppearance({ mode: "noche" }, true);
+export function setMode(mode) {
+  const next = mode === "cine" ? "cine" : "noche";
+  setAppearance({ mode: next }, true);
 }
 
 export function getAppearance() { return { ...AP }; }
 
 export function setAppearance(patch, silent) {
-  AP = { ...AP, ...patch, mode: "noche", theme: "naranja" };
+  AP = { ...AP, ...patch, theme: "naranja" };
+  AP.mode = AP.mode === "cine" ? "cine" : "noche";
   save();
   applyAppearance();
   if (!silent) {

@@ -4,6 +4,7 @@ import { S, todayKey } from '../state.js';
 import { esc, t } from '../i18n.js';
 import { BUILDERS, UI, el, openSection, toast } from './shared.js';
 import { renderHoy } from './hoy.js';
+import { PLAN_META, planFromProfile } from '../entitlements.js';
 
 const paths = {
   hoy:'M3 10 12 3l9 7v10H3Z M9 20v-7h6v7',
@@ -66,8 +67,10 @@ function moodStrip(today,rerender){
     b.setAttribute('aria-label',`Energía: ${label}`);
     b.setAttribute('aria-pressed',String(today.energy!=null&&Math.abs(today.energy-value)<=1));
     b.onclick=()=>{
+      const wasEmpty = today.energy == null;
       S.logEnergy(value);
       toast('GUARDADO',label);
+      if (wasEmpty) window.dispatchEvent(new CustomEvent('bayona:first-mood-recorded', { detail:{ value, label } }));
       rerender();
     };
     row.append(b);
@@ -93,11 +96,12 @@ function home(body){
     ? `<img src="${esc(p.face)}" alt="">`
     : `<span>${esc((p.name&&p.name!=='TÚ'?p.name:'B').slice(0,1).toUpperCase())}</span>`;
   const greeting=p.name&&p.name!=='TÚ'?`Hola, ${esc(p.name)}.`:'Tu día.';
+  const membership=PLAN_META[planFromProfile(p)]?.label || 'FREE';
   const head=el('section','fit-app-head',`
     <div>
       <small>${esc(new Date().toLocaleDateString('es',{weekday:'long',day:'numeric',month:'long'}))}</small>
       <h2>${greeting}</h2>
-      <span>BAYONA ONE · ${esc(String(p.goal||'TU OBJETIVO').replace(' Y ',' · '))}</span>
+      <span>BAYONA ONE · ${esc(String(p.goal||'TU OBJETIVO').replace(' Y ',' · '))} · ${esc(membership)}</span>
     </div>
     <button class="fit-profile-chip" type="button" aria-label="Abrir mi perfil">${avatar}</button>`);
   head.querySelector('.fit-profile-chip').onclick=()=>openSection('profile');
