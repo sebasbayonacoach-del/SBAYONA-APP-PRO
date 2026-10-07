@@ -71,12 +71,12 @@ assert(css.includes("BLACK / ORANGE SIGNATURE"),
   "la capa PRO declara explícitamente la firma BAYONA BLACK / ORANGE");
 assert(/--fit-bg:\s*#050505/i.test(css),
   "el fondo final de BAYONA ONE es negro profundo");
-assert(/--fit-surface:\s*#0d0e10/i.test(css),
-  "las superficies finales son grafito oscuro");
-assert(/--fit-accent:\s*#ff6a00/i.test(css),
-  "el acento final es naranja BAYONA");
-assert(/--orange:\s*#ff6a00/i.test(css),
-  "el alias naranja de la app apunta al naranja BAYONA");
+assert(/--brand-black-2:\s*#0c0c0d/i.test(css) && /--fit-surface:\s*var\(--brand-black-2\)/i.test(css),
+  "las superficies finales usan el grafito de la web");
+assert(/--brand-orange:\s*#f4a261/i.test(css) && /--fit-accent:\s*var\(--brand-orange\)/i.test(css),
+  "el acento final usa el naranja exacto de la web");
+assert(/--orange:\s*var\(--brand-orange\)/i.test(css),
+  "el alias naranja de la app apunta al token BAYONA");
 assert(/color-scheme:\s*dark/i.test(css),
   "la interfaz final declara esquema oscuro");
 
@@ -218,10 +218,10 @@ assert((index.match(/data-entry-role=/g) || []).length === 2, "la portada tiene 
 assert(/js\/ui\/appearance\.js/.test(leer("js/main.js")) === false,
   "main.js ya no arrastra el interruptor de la portada (vive en Apariencia y el HUD)");
 const apariencia = leer("js/ui/appearance.js");
-assert(/mode:\s*"noche"/.test(apariencia) && /NOCHE · NEGRO/.test(apariencia),
-  "BAYONA ONE fija NOCHE · NEGRO como firma visual única");
-assert(!/CINE · BLANCO/.test(apariencia),
-  "Apariencia ya no ofrece el modo blanco en BAYONA ONE");
+assert(/mode:\s*"noche"/.test(apariencia) && /NOCHE · MARCA/.test(apariencia),
+  "BAYONA ONE inicia en Noche con la firma web");
+assert(/DÍA · CLARO/.test(apariencia),
+  "Apariencia conserva un modo Día accesible sin abandonar el naranja BAYONA");
 
 /* ============================================================
    9 · NO ROMPE LA CAPA ANTERIOR
