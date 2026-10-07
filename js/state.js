@@ -24,9 +24,10 @@ import {
   focusReward, activePauseReward,
 } from "./rewards.js";
 import { respaldar, guardarSeguro, recuperar } from "./backup.js";
+import { memoryDefaults, addMemoryEvent, updateMemoryStatus } from "./coach/memory.js";
 
 const KEY = "bayona.save.v2";
-export const SCHEMA = 7;
+export const SCHEMA = 8;
 
 /**
  * Recompensa por nivel. Vive fuera del objeto S y en orden: se recorre
@@ -286,6 +287,7 @@ export const S = {
     d.recovery = recoveryDefaults(d.recovery || {});
     d.integrations = d.integrations && typeof d.integrations === "object" ? d.integrations : {};
     d.integrations.health = wearableSnapshot(d.integrations);
+    d.coachMemory = memoryDefaults(d.coachMemory || {});
     d.today.recoveryPractices = Array.isArray(d.today.recoveryPractices) ? d.today.recoveryPractices : [];
     d.today.otherActivities = Array.isArray(d.today.otherActivities) ? d.today.otherActivities : [];
     d.today.recoveryNote = typeof d.today.recoveryNote === "string" ? d.today.recoveryNote.slice(0, 240) : "";
@@ -354,6 +356,7 @@ export const S = {
       nutrition: nutritionDefaults(),
       recovery: recoveryDefaults(),
       integrations: { health: wearableSnapshot({}) },
+      coachMemory: memoryDefaults(),
       activeSession: null,
     };
     if (!silent) this.save();
@@ -671,6 +674,25 @@ export const S = {
     };
     this.save(); emit("recovery");
     return this.data.integrations.health;
+  },
+
+  rememberCoachEvent(event = {}) {
+    const before = this.data.coachMemory?.events?.length || 0;
+    this.data.coachMemory = addMemoryEvent(this.data.coachMemory || {}, event);
+    const rec = this.data.coachMemory.events.at(-1) || null;
+    if ((this.data.coachMemory.events.length || 0) !== before || rec?.id === event.id) {
+      this.save(); emit("coach-memory", rec);
+    }
+    return rec;
+  },
+
+  updateCoachMemoryStatus(id, status) {
+    const before = this.data.coachMemory || memoryDefaults();
+    const next = updateMemoryStatus(before, id, status);
+    const changed = JSON.stringify(before) !== JSON.stringify(next);
+    this.data.coachMemory = next;
+    if (changed) { this.save(); emit("coach-memory", { id, status }); }
+    return changed;
   },
 
   /** Escala 0-10 redondeada; fuera de rango o no numérico → se ignora. */
