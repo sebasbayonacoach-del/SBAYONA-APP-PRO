@@ -23,7 +23,7 @@ ok(sleepRecordFromTimes("2026-10-07","99:00","07:00")===null,"registro con hora 
 
 const tl=sleepTimeline(prefs);
 ok(tl.length===3&&tl[0].time==="22:15"&&tl[2].time==="07:15","timeline calcula desaceleración y despertar");
-const next=nextSleepEvent(prefs,new Date("2026-10-07T22:00:00+02:00"));
+const next=nextSleepEvent(prefs,new Date(2026,9,7,22,0,0));
 ok(next.id==="windDown"&&next.minutes===15,"siguiente evento usa hora local real");
 
 const activity=normalizeOtherActivity({name:"Fútbol",minutes:75,intensity:"hard",at:"2026-10-07T18:00:00Z"});
