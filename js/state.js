@@ -28,9 +28,10 @@ import { memoryDefaults, addMemoryEvent, updateMemoryStatus } from "./coach/memo
 import {
   coachCrmDefaults, upsertCrmClient, addCrmRecord, updateCrmRecordStatus,
 } from "./coach/crm.js";
+import { validateProgram } from "./coach-lab.js";
 
 const KEY = "bayona.save.v2";
-export const SCHEMA = 9;
+export const SCHEMA = 10;
 
 /**
  * Recompensa por nivel. Vive fuera del objeto S y en orden: se recorre
@@ -292,6 +293,11 @@ export const S = {
     d.integrations.health = wearableSnapshot(d.integrations);
     d.coachMemory = memoryDefaults(d.coachMemory || {});
     d.coachCrm = coachCrmDefaults(d.coachCrm || {});
+    d.coachPrograms = Array.isArray(d.coachPrograms)
+      ? d.coachPrograms.filter((p) => validateProgram(p).ok).slice(-100)
+      : [];
+    d.activeCoachProgramId = d.coachPrograms.some((p) => p.id === d.activeCoachProgramId)
+      ? d.activeCoachProgramId : null;
     d.today.recoveryPractices = Array.isArray(d.today.recoveryPractices) ? d.today.recoveryPractices : [];
     d.today.otherActivities = Array.isArray(d.today.otherActivities) ? d.today.otherActivities : [];
     d.today.recoveryNote = typeof d.today.recoveryNote === "string" ? d.today.recoveryNote.slice(0, 240) : "";
@@ -362,6 +368,8 @@ export const S = {
       integrations: { health: wearableSnapshot({}) },
       coachMemory: memoryDefaults(),
       coachCrm: coachCrmDefaults(),
+      coachPrograms: [],
+      activeCoachProgramId: null,
       activeSession: null,
     };
     if (!silent) this.save();
@@ -679,6 +687,41 @@ export const S = {
     };
     this.save(); emit("recovery");
     return this.data.integrations.health;
+  },
+
+  saveCoachProgram(program = {}) {
+    const valid = validateProgram(program);
+    if (!valid.ok) return { ok: false, errors: valid.errors };
+    const copy = structuredClone(program);
+    copy.updatedAt = new Date().toISOString();
+    this.data.coachPrograms = Array.isArray(this.data.coachPrograms) ? this.data.coachPrograms : [];
+    const i = this.data.coachPrograms.findIndex((p) => p.id === copy.id);
+    if (i >= 0) this.data.coachPrograms[i] = copy;
+    else this.data.coachPrograms.push(copy);
+    this.data.coachPrograms = this.data.coachPrograms.slice(-100);
+    this.data.activeCoachProgramId = copy.id;
+    this.save(); emit("coach-planning", { action: "save", id: copy.id });
+    return { ok: true, program: copy };
+  },
+
+  coachProgram(id = this.data.activeCoachProgramId) {
+    return (this.data.coachPrograms || []).find((p) => p.id === id) || null;
+  },
+
+  setActiveCoachProgram(id) {
+    if (!(this.data.coachPrograms || []).some((p) => p.id === id)) return false;
+    this.data.activeCoachProgramId = id;
+    this.save(); emit("coach-planning", { action: "activate", id });
+    return true;
+  },
+
+  deleteCoachProgram(id) {
+    const before = (this.data.coachPrograms || []).length;
+    this.data.coachPrograms = (this.data.coachPrograms || []).filter((p) => p.id !== id);
+    if (this.data.coachPrograms.length === before) return false;
+    if (this.data.activeCoachProgramId === id) this.data.activeCoachProgramId = this.data.coachPrograms.at(-1)?.id || null;
+    this.save(); emit("coach-planning", { action: "delete", id });
+    return true;
   },
 
   upsertCoachCrmClient(input = {}) {
