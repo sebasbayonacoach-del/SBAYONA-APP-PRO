@@ -13,6 +13,7 @@ const LEGACY = {
   health: ["bayona.consent.health", "bayona.health.consent", "***"],
   voice:  ["bayona.consent.voice"],
   photos: ["bayona.consent.photos"],
+  recordings: ["bayona.consent.recordings"],
   avatar_3d: ["bayona.consent.avatar_3d"], // avatar 3D (Avaturn): la selfie se procesa en sus servidores
 };
 
@@ -26,6 +27,7 @@ function blank() {
     health: { granted: false, at: null, revokedAt: null, version: CONSENT_VERSION },
     voice:  { granted: false, at: null, revokedAt: null, version: CONSENT_VERSION },
     photos: { granted: false, at: null, revokedAt: null, version: CONSENT_VERSION },
+    recordings: { granted: false, at: null, revokedAt: null, version: CONSENT_VERSION },
     avatar_3d: { granted: false, at: null, revokedAt: null, version: CONSENT_VERSION },
   };
 }
