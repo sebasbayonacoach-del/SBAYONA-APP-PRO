@@ -164,8 +164,12 @@ export function resolveSportTemplate(value){
 
 export function recommendationGate(context={}) {
   const flags=new Set(uniq(context.flags,CONTEXT_FLAGS.length));
-  const age=Number(context.age);
-  if(Number.isFinite(age)){
+  // Una edad no declarada no equivale a cero años: tampoco inferirla
+  // a partir de booleanos ni de entradas fuera de un rango plausible.
+  const rawAge=context.age;
+  const age=(typeof rawAge==="number" || (typeof rawAge==="string" && rawAge.trim()))
+    ? Number(rawAge) : NaN;
+  if(Number.isFinite(age) && age>=1 && age<=120){
     if(age<18)flags.add("youth_adolescent");
     if(age>=65)flags.add("older_adult");
   }
@@ -186,13 +190,16 @@ export function recommendationGate(context={}) {
 }
 
 function isoDate(value){
-  if(!value)return null;
-  const d=value instanceof Date?new Date(value):new Date(String(value)+"T12:00:00");
-  return Number.isNaN(d.getTime())?null:d.toISOString().slice(0,10);
+  if(value instanceof Date)return Number.isNaN(value.getTime())?null:value.toISOString().slice(0,10);
+  if(typeof value!=="string"||!/^\d{4}-\d{2}-\d{2}$/.test(value))return null;
+  // UTC y comprobación de vuelta: Date normaliza 30/02 en vez de rechazarlo.
+  const d=new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(d.getTime())&&d.toISOString().slice(0,10)===value?value:null;
 }
 function addDays(dateKey,days){
-  const d=new Date(dateKey+"T12:00:00");
-  d.setDate(d.getDate()+days);
+  // Aritmética de fecha calendario en UTC, sin saltos por DST ni zonas +14.
+  const d=new Date(`${dateKey}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate()+days);
   return d.toISOString().slice(0,10);
 }
 
