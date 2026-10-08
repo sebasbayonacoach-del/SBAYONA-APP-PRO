@@ -69,10 +69,23 @@ export async function runSessionLifecycle(browser,base,check,errors){
     "recargar preserva id y serie de sesión pausada");
   // Returning accounts load the full app asynchronously after the landing boot.
   await page.waitForFunction(()=>Boolean(window.BAYONA?.world),null,{timeout:20000});
-  const resumeEntry=page.locator("#entry-resume");
-  if(await resumeEntry.isVisible().catch(()=>false)) await resumeEntry.click();
-  else if(await page.locator("#entry-go").isVisible().catch(()=>false)) await page.locator("#entry-go").click();
-  await page.waitForFunction(()=>document.body.classList.contains("entered"),null,{timeout:15000});
+  // Para este caso E2E usamos la entrada Cliente explícita: «Continuar»
+  // es un atajo opcional cuyo estado depende del rol previo del navegador.
+  // La recuperación debe funcionar sin depender de ese atajo ni de su foco.
+  await page.locator("#entry-go").waitFor({state:"visible",timeout:15000});
+  await page.locator("#entry-go").click();
+  try {
+    await page.waitForFunction(()=>document.body.classList.contains("entered"),null,{timeout:20000});
+  } catch (error) {
+    const details=await page.evaluate(()=>({
+      pending:document.body.classList.contains("bayona-boot-pending"),
+      entryRole:document.body.dataset.entryRole||null,
+      lastRole:localStorage.getItem("bayona.entry.role.v1"),
+      appReady:Boolean(window.BAYONA?.world),
+      buttonVisible:Boolean(document.querySelector("#entry-go")?.getClientRects().length),
+    }));
+    throw new Error("La entrada Cliente no se activó tras recargar: "+JSON.stringify(details)+" · "+String(error));
+  }
   await page.evaluate(async()=>{
     const {UI}=await import("./js/ui/shared.js");
     UI.actions.resumeSession();
