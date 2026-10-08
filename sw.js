@@ -1,10 +1,12 @@
 // ============================================================
 // BAYONA — Service Worker (PWA offline)
 // Shell precacheado + cache con revalidación para el resto (media, wasm…).
+// Recursos pesados (Three, catálogo PROPLAYER, MediaPipe) se cachean al primer uso,
+// no durante install: la PWA debe quedar lista rápido incluso en red lenta.
 // Con esto la app abre sin red y el registro de series funciona offline
 // (los datos viven en el dispositivo y se sincronizan después).
 // ============================================================
-const CACHE = "bayona-shell-v43";
+const CACHE = "bayona-shell-v44";
 const SHELL = [
   "./css/pro.css",
   "./css/luxe.css",
@@ -28,7 +30,7 @@ const SHELL = [
   "./js/main.js", "./js/move.js", "./js/state.js", "./js/data.js", "./js/engine.js", "./js/rewards.js",
   "./js/i18n.js", "./js/consents.js", "./js/phygital.js", "./js/media.js", "./js/bridge.js",
   "./js/onboarding.js", "./js/face.js", "./js/avatar3d.js", "./js/ui.js", "./js/avatar.js", "./js/world.js", "./js/fallback2d.js",
-  "./js/ui/shared.js", "./js/ui/one.js", "./js/ui/affiliate-v12.js", "./js/ui/cinematics.js", "./js/ui/training.js", "./js/ui/proplayer-library.js", "./trainingym/catalog.json", "./js/ui/nutrition.js",
+  "./js/ui/shared.js", "./js/ui/one.js", "./js/ui/affiliate-v12.js", "./js/ui/cinematics.js", "./js/ui/training.js", "./js/ui/proplayer-library.js", "./js/ui/nutrition.js",
   "./js/ui/recovery.js", "./js/ui/mind.js", "./js/ui/plan.js", "./js/ui/armory.js",
   "./js/ui/progress.js", "./js/ui/core.js", "./js/ui/more.js",
   "./js/ui/hoy.js", "./js/ui/trabajo.js", "./js/ui/coachos.js", "./js/ui/appearance.js", "./js/ui/first-run-tour.js", "./js/ui/motion.js",
@@ -38,7 +40,6 @@ const SHELL = [
   "./js/diary/sessionDiary.js", "./js/health/healthMap.js", "./js/health/healthUI.js",
   "./js/vision/boot.js", "./js/vision/pose.js", "./js/vision/repCounter.js", "./js/vision/angles.js",
   "./js/vision/formScore.js", "./js/vision/retarget.js",
-  "./vendor/three.module.js",
   "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png",
 ];
 
