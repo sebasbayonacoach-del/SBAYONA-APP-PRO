@@ -1,0 +1,52 @@
+name: e2e
+
+on:
+  pull_request:
+  push:
+    branches: [main, bayona-one/visual-integration-v6]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  browser-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Playwright runner
+        run: npm install --no-save playwright@1.52.0
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Start BAYONA
+        run: |
+          PORT=8094 node tools/serve.mjs > /tmp/bayona-server.log 2>&1 &
+          echo $! > /tmp/bayona-server.pid
+          for i in {1..40}; do
+            if curl -fsS http://127.0.0.1:8094/ >/dev/null; then exit 0; fi
+            sleep 0.5
+          done
+          cat /tmp/bayona-server.log
+          exit 1
+
+      - name: Production E2E
+        run: node tests/e2e-production.mjs
+
+      - name: Upload E2E artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bayona-e2e
+          path: artifacts/e2e
+          if-no-files-found: ignore
+          retention-days: 7
