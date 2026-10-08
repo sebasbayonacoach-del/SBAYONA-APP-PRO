@@ -87,11 +87,46 @@ try{
   await page.waitForSelector("#ob-name",{state:"visible",timeout:15000});
   await page.locator("#ob-name").fill("Persona de prueba");
   for(let step=0;step<8;step++){
+    if(step===1){
+      await page.locator("#ob-custom-goal").fill("Preparar carrera de 10 km");
+      await page.locator('[data-toggle="goals"]').nth(1).click();
+      check(await page.locator("#ob-custom-goal").inputValue()==="Preparar carrera de 10 km",
+        "Onboarding: objetivo propio sobrevive a selección múltiple");
+      check(await page.locator('[data-toggle="goals"]').nth(1).evaluate(el=>el===document.activeElement),
+        "Onboarding: foco permanece sobre la opción seleccionada");
+    }
+    if(step===2){
+      await page.locator("#ob-custom-place").fill("Garaje con barra y discos");
+      await page.locator('[data-toggle="trainingPlaces"]').nth(2).click();
+      check(await page.locator("#ob-custom-place").inputValue()==="Garaje con barra y discos",
+        "Onboarding: material escrito sobrevive a selección de entorno");
+      check(await page.locator('[data-toggle="trainingPlaces"]').nth(2).evaluate(el=>el===document.activeElement),
+        "Onboarding: foco permanece en el entorno elegido");
+    }
+    if(step===5){
+      check(await page.locator("#ob-next").count()===0,
+        "Screening: no se presupone NO ni permite avanzar sin responder");
+      for(let i=0;i<7;i++) await page.locator('[data-safety][data-value="false"]').nth(i).click();
+      check((await page.locator(".ob-safety-result").innerText()).includes("Sin alertas"),
+        "Screening: siete respuestas explícitas sin alerta");
+    }
     await page.locator("#ob-next").click();
   }
   check(await page.locator("#ob-done").isVisible(),"onboarding de nueve etapas completo");
   await page.locator("#ob-done").click();
   await page.waitForFunction(()=>!document.querySelector("#ob-layer"),null,{timeout:15000});
+  const completedProfile=await page.evaluate(async()=>{
+    const {S}=await import("./js/state.js");return S.data.profile;
+  });
+  check(completedProfile.customGoals?.includes("Preparar carrera de 10 km"),
+    "Onboarding: objetivo propio persiste tras terminar");
+  check(completedProfile.customPlaces?.includes("Garaje con barra y discos"),
+    "Onboarding: entorno/material propio persiste tras terminar");
+  check(completedProfile.healthScreening?.clearance==="cleared" ||
+    (await page.evaluate(async()=>{const {S}=await import("./js/state.js");return S.data.healthScreening?.clearance}))==="cleared",
+    "Onboarding: cribado completado sin presuponer respuestas");
+  check(completedProfile.membershipPlan==="free",
+    "Onboarding: ninguna preferencia concede membresía premium");
   await page.locator('[data-tour="skip"]').click({timeout:7000}).catch(()=>{});
   await page.locator('[data-checkin-action="skip"]').click({timeout:1500}).catch(()=>{});
 

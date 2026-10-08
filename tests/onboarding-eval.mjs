@@ -71,7 +71,8 @@ const age=__obAgeInfo();
 assert(age.minor===true&&age.ageBand==="adolescent","menor entra en ruta de desarrollo juvenil");
 __obState.birthDate=oldBirth;
 const safe=__obSafetyResult();
-assert(["cleared","conditional","refer_required"].includes(safe.clearance),"screening devuelve estado conocido");
+assert(safe.clearance==="pending"&&safe.answered===0,"el cribado no atribuye siete NO por defecto");
+assert(!html[5].includes('id="ob-next"'),"no permite avanzar sin responder las siete preguntas");
 
 const saved=__obState.name;
 __obState.name='<script>alert(1)</script>';
