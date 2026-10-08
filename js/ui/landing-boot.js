@@ -9,6 +9,27 @@ import { loadApp } from "../app-loader.js";
 import { montarLanding } from "./landing.js";
 import { initTheme } from "../theme.js";
 
+// Solo liberar el primer pintado cuando se ha montado el destino real.
+// Antes, la plantilla contiene un selector estático que NO es la portada.
+function releaseFirstPaint() {
+  document.body.classList.remove("bayona-boot-pending");
+  document.getElementById("bayona-initial-load")?.remove();
+}
+
+function firstPaintFailure(error) {
+  console.error("BAYONA: no pudo iniciarse la experiencia", error);
+  const root = document.getElementById("bayona-initial-load");
+  const label = document.getElementById("bayona-initial-load-label");
+  if(label) label.textContent = t("luxe.load.error");
+  if(root && !root.querySelector("button")) {
+    const retry = document.createElement("button");
+    retry.type = "button";
+    retry.textContent = t("luxe.load.retry");
+    retry.addEventListener("click", () => location.reload());
+    root.append(retry);
+  }
+}
+
 function yaDentro() {
   try {
     const save = localStorage.getItem("bayona.save.v2");
@@ -112,24 +133,28 @@ function boot() {
       : (localStorage.getItem("bayona.entry.role.v1") || "affiliate");
     loadApp()
       .then(() => {
+        releaseFirstPaint();
         if (direct && !document.body.classList.contains("entered")) {
           document.getElementById(role === "coach" ? "entry-coach" : "entry-go")?.click();
         }
       })
-      .catch((error) => {
-        console.error("BAYONA: arranque diferido falló", error);
-      });
+      .catch(firstPaintFailure);
     return;
   }
 
   document.body.classList.add("luxe-activo");
   addEventListener("bayona:entered", removeLanding, { once: true });
 
-  montarLanding({
-    t,
-    esc,
-    onEntrar: (plan) => enterApp(plan),
-  });
+  try {
+    montarLanding({
+      t,
+      esc,
+      onEntrar: (plan) => enterApp(plan),
+    });
+    releaseFirstPaint();
+  } catch (error) {
+    firstPaintFailure(error);
+  }
 }
 
 if (document.readyState === "loading") {

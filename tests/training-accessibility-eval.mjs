@@ -33,6 +33,6 @@ ok(css.includes("min-height: 44px"),"objetivos táctiles mínimos");
 ok(library.includes('const CATALOG_URL = "./trainingym/catalog.json"'),"catálogo no sustituido por datos inventados");
 ok(library.includes("function mediaUrl(record)"),"reproducción original a demanda intacta");
 ok(library.includes("async function openRoutineBuilder("),"editor de rutinas intacto");
-ok(sw.includes("bayona-shell-v55"),"cache PWA invalidada");
+ok(sw.includes("bayona-shell-v56"),"cache PWA invalidada");
 ok(index.includes("css/bayona-brand.css?v=5"),"estilos nuevos no usan caché obsoleta");
 console.log("\nRESULTADO "+n+" verificaciones \u00b7 0 fallos");
