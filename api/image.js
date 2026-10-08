@@ -22,23 +22,12 @@
 import { createServer } from "node:http";
 import { fileURLToPath } from "node:url";
 import { RECETAS } from "../js/nutricion.js";
+import { applyCors, clientIp, json, rateLimited, verifySupabaseUser } from "./_security.js";
 
 const IMAGEN_URL = process.env.BAYONA_IMAGE_UPSTREAM || "https://api.openai.com/v1/images/generations";
 const API_KEY = process.env.BAYONA_IMAGE_API_KEY || process.env.OPENAI_API_KEY;
 const MODEL = process.env.BAYONA_IMAGE_MODEL || "gpt-image-1";
 const SIZE = process.env.BAYONA_IMAGE_SIZE || "1024x1024";
-
-/* ---------- rate limit: generar imágenes cuesta dinero ---------- */
-const hits = new Map();
-function rateLimited(ip, max = 6, windowMs = 60_000) {
-  const now = Date.now();
-  const rec = hits.get(ip) || { n: 0, t0: now };
-  if (now - rec.t0 > windowMs) { rec.n = 0; rec.t0 = now; }
-  rec.n += 1;
-  hits.set(ip, rec);
-  if (hits.size > 5000) hits.clear();
-  return rec.n > max;
-}
 
 /* ---------- catálogo: única fuente de la verdad ---------- */
 const porId = new Map(RECETAS.map((r) => [r.id, r]));
@@ -58,21 +47,8 @@ export function promptDeReceta(r) {
   ].join(" ");
 }
 
-function cors(res) {
-  res.setHeader("access-control-allow-origin", "*");
-  res.setHeader("access-control-allow-headers", "content-type");
-  res.setHeader("access-control-allow-methods", "GET,OPTIONS");
-  res.setHeader("access-control-max-age", "86400");
-}
-const json = (res, code, obj) => {
-  cors(res);
-  res.statusCode = code;
-  res.setHeader("content-type", "application/json; charset=utf-8");
-  res.end(JSON.stringify(obj));
-};
-
 export default async function handler(req, res) {
-  cors(res);
+  if (!applyCors(req, res, "GET,OPTIONS")) return json(res, 403, { ok: false, error: "origen no permitido" });
   if (req.method === "OPTIONS") { res.statusCode = 204; return res.end(); }
   if (req.method !== "GET") return json(res, 405, { ok: false, error: "método no permitido" });
 
@@ -89,8 +65,15 @@ export default async function handler(req, res) {
     return json(res, 503, { ok: false, error: "imágenes sin configurar", fallback: "ilustración" });
   }
 
-  const ip = req.headers["x-forwarded-for"]?.split(",")[0]?.trim() || req.socket?.remoteAddress || "?";
-  if (rateLimited(ip)) return json(res, 429, { ok: false, error: "demasiadas imágenes seguidas" });
+  if (process.env.BAYONA_IMAGE_REQUIRE_AUTH !== "0") {
+    const auth = await verifySupabaseUser(req);
+    if (!auth.ok) return json(res, auth.status, { ok: false, error: "sesión requerida", fallback: "ilustración" });
+  }
+
+  const ip = clientIp(req);
+  if (rateLimited(`meal-image:${ip}`, { max: 6, windowMs: 60_000 })) {
+    return json(res, 429, { ok: false, error: "demasiadas imágenes seguidas" });
+  }
 
   try {
     const r = await fetch(IMAGEN_URL, {
