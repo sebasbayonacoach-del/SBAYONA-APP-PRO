@@ -17,9 +17,15 @@ export async function runSessionLifecycle(browser,base,check,errors){
     },id);
     await page.locator("#sf-ok").waitFor({state:"visible"});
   };
+  // En runners lentos el descanso puede terminar mientras Playwright espera
+  // que el botón sea "estable". Disparar el click DOM ejecuta exactamente el
+  // handler real sin esperar a una animación ni a un nodo que desaparece.
+  const skipTransientRest=async()=>{
+    await page.evaluate(()=>document.querySelector("#rest-skip")?.click());
+  };
   const log=async()=>{
     await page.locator("#sf-ok").click();
-    if(await page.locator("#rest-skip").count())await page.locator("#rest-skip").click();
+    await skipTransientRest();
   };
   try {
   await page.goto(base);
@@ -75,7 +81,7 @@ export async function runSessionLifecycle(browser,base,check,errors){
   let restored=await state();
   check(restored.active?.id===id&&restored.active.logged===1,"reanudar mantiene el mismo identificador");
   await page.locator("#sf-ok").click();
-  if(await page.locator("#rest-skip").count())await page.locator("#rest-skip").click();
+  await skipTransientRest();
   restored=await state();
   check(restored.active?.logged===2,"segunda serie se suma tras recuperación");
   await page.locator("button").filter({hasText:"FINALIZAR SESIÓN"}).click();
@@ -96,7 +102,7 @@ export async function runSessionLifecycle(browser,base,check,errors){
   let completed=0;
   for(let i=0;i<5;i++){
     await page.locator("#sf-ok").click();
-    if(await page.locator("#rest-skip").count())await page.locator("#rest-skip").click();
+    await skipTransientRest();
     completed++;
     const value=await state();
     check(value.active?.logged===completed,"sesión completa: serie "+completed+" registrada");
