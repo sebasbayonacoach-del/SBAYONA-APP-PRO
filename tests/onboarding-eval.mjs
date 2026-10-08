@@ -20,7 +20,7 @@ const main=readFileSync(new URL("../js/main.js",import.meta.url),"utf8");
 const i18n=readFileSync(new URL("../js/i18n.js",import.meta.url),"utf8");
 
 console.log("— entrada —");
-assert(index.includes("BAYONA · MOVIMIENTO CON DIRECCIÓN")&&index.includes("Entrena con un plan"),"la entrada comunica entrenamiento con propósito");
+assert(index.includes("ACCESO A BAYONA")&&index.includes("Tu entrenamiento y tu espacio profesional"),"la entrada comunica espacios de cliente y entrenador");
 assert(index.includes("01 · PARA TI")&&index.includes("02 · ESPACIO PROFESIONAL"),"entrada diferencia Cliente y Coach OS");
 assert(!index.includes("01 · ATLETA"),"la persona no se etiqueta como atleta");
 assert(!i18n.includes('"one.entry.resumeAthlete": "CONTINUAR COMO ATLETA"'),"el acceso rápido tampoco llama atleta a la persona");

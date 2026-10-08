@@ -6,13 +6,14 @@
 // Con esto la app abre sin red y el registro de series funciona offline
 // (los datos viven en el dispositivo y se sincronizan después).
 // ============================================================
-const CACHE = "bayona-shell-v54";
+const CACHE = "bayona-shell-v55";
 const SHELL = [
   "./css/pro.css",
   "./css/luxe.css",
   // Marca + tres fuentes críticas precacheadas; otros pesos se guardan al usarlos.
   "./css/bayona-brand.css",
   "./css/bayona-experience.css",
+  "./css/bayona-single-entry.css",
   "./fonts/montserrat-normal-800-latin.woff2",
   "./fonts/inter-normal-400-latin.woff2",
   "./fonts/dm-mono-normal-400-latin.woff2",

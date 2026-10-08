@@ -37,7 +37,8 @@
      (Montserrat / Inter / DM Mono + #050505 / #F4A261). Se carga después de
      pro.css para ganar la cascada. Para volver atrás, borrar esta línea. -->
 <link rel="stylesheet" href="css/bayona-brand.css?v=5" />
-<link rel="stylesheet" href="css/bayona-experience.css?v=1" />
+<link rel="stylesheet" href="css/bayona-experience.css?v=2" />
+<link rel="stylesheet" href="css/bayona-single-entry.css?v=1" />
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="icon" href="icon-192.png" sizes="192x192" type="image/png" />
 <link rel="apple-touch-icon" href="icon-192.png" />
@@ -90,7 +91,7 @@
 
   <!-- ============ INGRESO · dos experiencias, un solo sistema ============ -->
   <div id="entry" role="dialog" aria-label="Elegir espacio de trabajo en BAYONA">
-    <div class="e-app-shell">
+    <div class="e-app-shell e-single-access">
       <div class="e-appbar">
         <div class="e-corner">
           <span class="brand-mark">◈</span>
@@ -106,28 +107,14 @@
       </div>
 
       <div class="e-entry-layout">
-        <section class="e-entry-intro" aria-labelledby="entry-title">
-          <div class="e-kicker"><span class="e-kicker-pulse"></span> BAYONA · MOVIMIENTO CON DIRECCIÓN</div>
-          <h1 class="e-title" id="entry-title">Tu siguiente<br /><em>gran versión.</em></h1>
-          <div class="e-sub">Entrena con un plan. Entiende tu progreso. Construye hábitos que permanecen.</div>
-          <div class="e-system-pills" aria-label="Funciones principales">
-            <span>ENTRENAR</span><span>RECUPERAR</span><span>EVOLUCIONAR</span>
+        <section class="e-role-panel" aria-labelledby="entry-title">
+          <div class="e-access-intro">
+            <span class="e-access-kicker"><i aria-hidden="true"></i> ACCESO A BAYONA</span>
+            <h1 id="entry-title">¿Cómo quieres entrar?</h1>
+            <p class="e-sub e-access-description">Tu entrenamiento y tu espacio profesional, claramente separados.</p>
           </div>
-          <div class="e-journey-visual" role="img" aria-label="Vista ilustrativa de la experiencia cliente: plan de entrenamiento, recuperación y progreso">
-            <div class="e-visual-header"><span><i></i> TU CAMINO</span><small>VISTA ILUSTRATIVA</small></div>
-            <div class="e-visual-body">
-              <div class="e-visual-symbol" aria-hidden="true"><span>B</span><i></i></div>
-              <div class="e-visual-text"><span>EL PLAN SE ADAPTA A TI</span><strong>Entrena hoy.<br>Avanza mañana.</strong><small>Sesiones · hábitos · seguimiento</small></div>
-            </div>
-            <div class="e-visual-steps" aria-hidden="true"><span><i>01</i> PLAN</span><span><i>02</i> ACCIÓN</span><span><i>03</i> EVOLUCIÓN</span></div>
-            <div class="e-visual-progress" aria-hidden="true"><i></i></div>
-          </div>
-        </section>
-
-        <section class="e-role-panel" aria-label="Selecciona cómo entrar">
           <div class="e-role-panel-head">
-            <div><small>ELIGE TU EXPERIENCIA</small><strong>Un sistema. Dos espacios.</strong></div>
-            <span>EMPIEZA AQUÍ</span>
+            <div><small>SELECCIONA TU ESPACIO</small><strong>Continuar como</strong></div>
           </div>
 
           <button class="e-quick-resume" id="entry-resume" type="button" hidden>
@@ -174,8 +161,7 @@
 
       <div class="e-entry-foot">
         <span>BAYONA ONE</span>
-        <span>DONDE LA CIENCIA SE ENCUENTRA CON EL MOVIMIENTO</span>
-        <span>DISEÑADO PARA TI</span>
+        <span>CLIENTES · COACH OS</span>
       </div>
     </div>
   </div>

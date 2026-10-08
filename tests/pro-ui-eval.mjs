@@ -60,8 +60,8 @@ assert(css.length > 0, "css/pro.css existe");
 const hojas = [...index.matchAll(/<link[^>]+href="(css\/[^"]+)"/g)].map((m) => m[1].split("?")[0]);
 // pro.css manda sobre el resto del producto. La única hoja que puede ir por
 // detrás es la capa de marca, que impone la tipografía y la paleta de la web.
-assert(hojas.slice(-3).join("|") === ["css/pro.css","css/bayona-brand.css","css/bayona-experience.css"].join("|"),
-  "PRO conserva primitivos; marca y experiencia de Cliente/Coach se aplican después", hojas.join(" → "));
+assert(hojas.slice(-4).join("|") === ["css/pro.css","css/bayona-brand.css","css/bayona-experience.css","css/bayona-single-entry.css"].join("|"),
+  "PRO conserva primitivos y selector final evita segunda portada", hojas.join(" → "));
 const sw = leer("sw.js");
 assert(sw.includes("./css/pro.css"), "el service worker precachea pro.css (funciona sin red)");
 

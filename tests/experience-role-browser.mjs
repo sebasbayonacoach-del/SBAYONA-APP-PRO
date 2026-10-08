@@ -12,8 +12,11 @@ export async function runExperience(browser,base,check,errors){
         'Acceso '+width+': espacio cliente diferenciado');
       check(await page.locator('#entry-coach .e-role-copy strong').innerText()==='Soy entrenador',
         'Acceso '+width+': espacio Coach diferenciado');
-      check(await page.locator('.e-journey-visual').count()===1,
-        'Acceso '+width+': presenta recorrido de cliente ilustrativo');
+      check(await page.locator('#entry .e-entry-intro').count()===0 &&
+        await page.locator('#entry .e-access-intro').isVisible(),
+        'Acceso '+width+': sin segunda portada de marketing');
+      check(!await page.locator('#luxe-landing').isVisible().catch(()=>false),
+        'Acceso '+width+': landing pública no se superpone al selector');
       check((await page.locator('.e-role-note').innerText()).includes('requiere una cuenta'),
         'Acceso '+width+': no confunde selector con autorización Coach');
       for(const theme of ['light','dark']){
