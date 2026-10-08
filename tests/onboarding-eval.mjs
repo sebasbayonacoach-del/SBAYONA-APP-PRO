@@ -20,8 +20,8 @@ const main=readFileSync(new URL("../js/main.js",import.meta.url),"utf8");
 const i18n=readFileSync(new URL("../js/i18n.js",import.meta.url),"utf8");
 
 console.log("— entrada —");
-assert(index.includes("BAYONA · TU APP DE SALUD Y ENTRENAMIENTO"),"la entrada comunica salud + entrenamiento");
-assert(index.includes("01 · MI APP")&&index.includes("02 · COACH"),"la entrada separa MI APP y COACH");
+assert(index.includes("BAYONA · MOVIMIENTO CON DIRECCIÓN")&&index.includes("Entrena con un plan"),"la entrada comunica entrenamiento con propósito");
+assert(index.includes("01 · PARA TI")&&index.includes("02 · ESPACIO PROFESIONAL"),"entrada diferencia Cliente y Coach OS");
 assert(!index.includes("01 · ATLETA"),"la persona no se etiqueta como atleta");
 assert(!i18n.includes('"one.entry.resumeAthlete": "CONTINUAR COMO ATLETA"'),"el acceso rápido tampoco llama atleta a la persona");
 assert(main.includes('rawName.toUpperCase() !== "TÚ"'),"el saludo no muestra Hola, TÚ");

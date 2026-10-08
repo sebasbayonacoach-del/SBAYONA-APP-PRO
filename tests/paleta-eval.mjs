@@ -316,8 +316,8 @@ const hojas = [...index.matchAll(/<link[^>]+href="(css\/[^"]+)"/g)].map((m) => m
 // de marca (css/bayona-brand.css), que existe para imponer la tipografía y la
 // paleta de la web; cualquier otra hoja después de ella sigue siendo un fallo.
 const CAPA_MARCA = "css/bayona-brand.css";
-assert(hojas[hojas.length - 2] === "css/pro.css" && hojas[hojas.length - 1] === CAPA_MARCA,
-  "pro.css es la última hoja de producto y solo la capa de marca va encima", hojas.join(" → "));
+assert(hojas.slice(-3).join("|") === ["css/pro.css",CAPA_MARCA,"css/bayona-experience.css"].join("|"),
+  "cascada: pro → marca → experiencia de roles, sin interferir con paleta", hojas.join(" → "));
 for (const sel of [".cmd-chip", "#cmd-layer", "#cmd-box", ".cmd-fila", ".cmd-fila-g", ".cmd-pie", "kbd", ".cmd-vacio", ".cmd-atajos"]) {
   assert(pro.includes(sel), `pro.css da estilo a ${sel}`);
 }

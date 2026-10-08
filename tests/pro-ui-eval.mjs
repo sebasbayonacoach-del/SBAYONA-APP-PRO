@@ -60,8 +60,8 @@ assert(css.length > 0, "css/pro.css existe");
 const hojas = [...index.matchAll(/<link[^>]+href="(css\/[^"]+)"/g)].map((m) => m[1].split("?")[0]);
 // pro.css manda sobre el resto del producto. La única hoja que puede ir por
 // detrás es la capa de marca, que impone la tipografía y la paleta de la web.
-assert(hojas[hojas.length - 2] === "css/pro.css" && hojas[hojas.length - 1] === "css/bayona-brand.css",
-  "pro.css es la ÚLTIMA hoja de producto; encima solo la capa de marca", hojas.join(" → "));
+assert(hojas.slice(-3).join("|") === ["css/pro.css","css/bayona-brand.css","css/bayona-experience.css"].join("|"),
+  "PRO conserva primitivos; marca y experiencia de Cliente/Coach se aplican después", hojas.join(" → "));
 const sw = leer("sw.js");
 assert(sw.includes("./css/pro.css"), "el service worker precachea pro.css (funciona sin red)");
 
@@ -201,7 +201,8 @@ const DEBE_GANAR_PRO = [
 ];
 for (const [elemento, propiedad, que] of DEBE_GANAR_PRO) {
   const g = ganaDe(elemento, propiedad);
-  assert(g && g.hoja === "css/pro.css",
+  const expected = elemento === ".e-title" ? "css/bayona-experience.css" : "css/pro.css";
+  assert(g && g.hoja === expected,
     `${que}: gana ${g ? g.hoja + " (" + (g.valor || "").slice(0, 28) + ")" : "nadie"}`,
     g ? `gana ${g.hoja} con «${g.sel}»` : "no hay ninguna regla");
 }
@@ -214,7 +215,7 @@ for (const [elemento, propiedad, que] of DEBE_GANAR_PRO) {
    ============================================================ */
 console.log("— la entrada: una acción y ya —");
 const splash = (index.match(/<div id="entry"[\s\S]*?<\/div>\s*<!--/)?.[0]) || index;
-assert(!/e-modes|class="e-mode"/.test(index), "la portada ya no ofrece el selector de luz");
+assert(index.includes('data-entry-theme="dark"')&&index.includes('data-entry-theme="light"'), "la portada incluye selector Día/Noche real");
 assert(/id="entry-go"/.test(index) && /id="entry-coach"/.test(index), "la portada separa acceso AFILIADO y COACH");
 assert((index.match(/data-entry-role=/g) || []).length === 2, "la portada tiene exactamente dos accesos de rol: afiliado y coach");
 assert(/js\/ui\/appearance\.js/.test(leer("js/main.js")) === false,

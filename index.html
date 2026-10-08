@@ -37,6 +37,7 @@
      (Montserrat / Inter / DM Mono + #050505 / #F4A261). Se carga después de
      pro.css para ganar la cascada. Para volver atrás, borrar esta línea. -->
 <link rel="stylesheet" href="css/bayona-brand.css?v=5" />
+<link rel="stylesheet" href="css/bayona-experience.css?v=1" />
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="icon" href="icon-192.png" sizes="192x192" type="image/png" />
 <link rel="apple-touch-icon" href="icon-192.png" />
@@ -95,28 +96,38 @@
           <span class="brand-mark">◈</span>
           <span class="brand-name">BAYONA</span>
         </div>
-        <div class="e-app-status"><i></i><span>TRAINING OS</span><b>READY</b></div>
+        <div class="e-app-tools">
+          <span class="e-platform-label">ENTRENAMIENTO · COACHING</span>
+          <div class="e-theme-switch" role="group" aria-label="Apariencia de BAYONA">
+            <button type="button" data-entry-theme="dark" aria-pressed="true">Noche</button>
+            <button type="button" data-entry-theme="light" aria-pressed="false">Día</button>
+          </div>
+        </div>
       </div>
 
       <div class="e-entry-layout">
         <section class="e-entry-intro" aria-labelledby="entry-title">
-          <div class="e-kicker">BAYONA · TU APP DE SALUD Y ENTRENAMIENTO</div>
-          <h1 class="e-title" id="entry-title">Tu salud.<br /><em>Tu progreso.</em></h1>
-          <div class="e-sub">Entrena, come, registra y mejora. Desde cualquier lugar.</div>
+          <div class="e-kicker"><span class="e-kicker-pulse"></span> BAYONA · MOVIMIENTO CON DIRECCIÓN</div>
+          <h1 class="e-title" id="entry-title">Tu siguiente<br /><em>gran versión.</em></h1>
+          <div class="e-sub">Entrena con un plan. Entiende tu progreso. Construye hábitos que permanecen.</div>
           <div class="e-system-pills" aria-label="Funciones principales">
-            <span>PROPLAYER</span><span>RUTINAS</span><span>PROGRESO</span><span>CLIENTES</span>
+            <span>ENTRENAR</span><span>RECUPERAR</span><span>EVOLUCIONAR</span>
           </div>
-          <div class="e-entry-proof">
-            <span><b>01</b> SIMPLE</span>
-            <span><b>02</b> PERSONAL</span>
-            <span><b>03</b> DIARIO</span>
+          <div class="e-journey-visual" role="img" aria-label="Vista ilustrativa de la experiencia cliente: plan de entrenamiento, recuperación y progreso">
+            <div class="e-visual-header"><span><i></i> TU CAMINO</span><small>VISTA ILUSTRATIVA</small></div>
+            <div class="e-visual-body">
+              <div class="e-visual-symbol" aria-hidden="true"><span>B</span><i></i></div>
+              <div class="e-visual-text"><span>EL PLAN SE ADAPTA A TI</span><strong>Entrena hoy.<br>Avanza mañana.</strong><small>Sesiones · hábitos · seguimiento</small></div>
+            </div>
+            <div class="e-visual-steps" aria-hidden="true"><span><i>01</i> PLAN</span><span><i>02</i> ACCIÓN</span><span><i>03</i> EVOLUCIÓN</span></div>
+            <div class="e-visual-progress" aria-hidden="true"><i></i></div>
           </div>
         </section>
 
         <section class="e-role-panel" aria-label="Selecciona cómo entrar">
           <div class="e-role-panel-head">
-            <div><small>ACCESO</small><strong>¿Dónde quieres entrar?</strong></div>
-            <span>ELIGE UN PERFIL</span>
+            <div><small>ELIGE TU EXPERIENCIA</small><strong>Un sistema. Dos espacios.</strong></div>
+            <span>EMPIEZA AQUÍ</span>
           </div>
 
           <button class="e-quick-resume" id="entry-resume" type="button" hidden>
@@ -126,15 +137,15 @@
 
           <div class="e-role-grid" role="group" aria-label="Tipo de acceso">
             <button class="e-role-card affiliate" id="entry-go" data-entry-role="affiliate">
-              <span class="e-role-topline"><small>01 · MI APP</small><span><kbd>1</kbd><em>PERSONAL</em></span></span>
+              <span class="e-role-topline"><small>01 · PARA TI</small><span><kbd>1</kbd><em>RECOMENDADO</em></span></span>
               <span class="e-role-body">
                 <span class="e-role-media" aria-hidden="true">
                   <video data-src="media/squat.mp4" data-poster="media/squat.jpg" muted loop playsinline preload="none"></video>
                   <i></i>
                 </span>
                 <span class="e-role-copy">
-                  <strong>Entrar a BAYONA</strong>
-                  <span>Hoy · entrenar · comer · progreso</span>
+                  <strong>Soy cliente</strong>
+                  <span>Mi entrenamiento, recuperación y evolución.</span>
                   <span class="e-role-tags"><i>SALUD</i><i>ENTRENO</i><i>PROGRESO</i></span>
                 </span>
                 <b aria-hidden="true">→</b>
@@ -142,14 +153,14 @@
             </button>
 
             <button class="e-role-card coach" id="entry-coach" data-entry-role="coach">
-              <span class="e-role-topline"><small>02 · COACH</small><span><kbd>2</kbd><em>STUDIO PRO</em></span></span>
+              <span class="e-role-topline"><small>02 · ESPACIO PROFESIONAL</small><span><kbd>2</kbd><em>ACCESO PROFESIONAL</em></span></span>
               <span class="e-role-body">
                 <span class="e-role-dashboard" aria-hidden="true">
                   <i></i><i></i><i></i><i></i><i></i>
                 </span>
                 <span class="e-role-copy">
-                  <strong>Abrir Coach Studio</strong>
-                  <span>Clientes · planificación · agenda · informes</span>
+                  <strong>Soy entrenador</strong>
+                  <span>Coach OS · planificación y seguimiento de clientes.</span>
                   <span class="e-role-tags"><i>CRM</i><i>PROGRAMACIÓN</i><i>CONTROL</i></span>
                 </span>
                 <b aria-hidden="true">→</b>
@@ -157,14 +168,14 @@
             </button>
           </div>
 
-          <div class="e-role-note"><span>◉</span> Tu último acceso queda preparado para entrar más rápido.</div>
+          <div class="e-role-note"><span>◈</span> El espacio profesional requiere una cuenta de entrenador autorizada. Elegirlo no concede permisos.</div>
         </section>
       </div>
 
       <div class="e-entry-foot">
         <span>BAYONA ONE</span>
-        <span>ENTRENAMIENTO · COACHING · GESTIÓN</span>
-        <span>ESPAÑOL · PWA</span>
+        <span>DONDE LA CIENCIA SE ENCUENTRA CON EL MOVIMIENTO</span>
+        <span>DISEÑADO PARA TI</span>
       </div>
     </div>
   </div>
@@ -182,6 +193,7 @@
       <button id="cmd-chip" class="chip cmd-chip" aria-keyshortcuts="Meta+K Control+K"></button>
       <div class="top-right">
         <button id="mode-chip" class="chip" title="Cine / Noche">◐ <b id="mode-name">CINE</b></button>
+        <button id="global-theme-switch" class="chip bx-global-theme" type="button" aria-label="Activar modo día" title="Cambiar entre modo día y noche"><span aria-hidden="true">◐</span><span id="global-theme-label">DÍA</span></button>
         <button id="level-chip" class="chip chip-level" title="Progreso">
           <span class="lvl">NIVEL <b id="lvl-num">1</b></span>
           <span class="rank" id="rank-name">INICIADO</span>
