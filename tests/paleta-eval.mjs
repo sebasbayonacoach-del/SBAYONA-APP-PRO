@@ -312,7 +312,12 @@ assert(sw.includes("./js/comandos.js") && sw.includes("./js/ui/command.js"), "el
 const shellVersion = Number((sw.match(/bayona-shell-v(\d+)/) || [])[1]);
 assert(shellVersion >= 22, `y la versión del precache ha subido (actual v${shellVersion || "?"})`);
 const hojas = [...index.matchAll(/<link[^>]+href="(css\/[^"]+)"/g)].map((m) => m[1].split("?")[0]);
-assert(hojas[hojas.length - 1] === "css/pro.css", "pro.css sigue siendo la última hoja");
+// pro.css sigue siendo la última hoja DE PRODUCTO. Encima solo puede ir la capa
+// de marca (css/bayona-brand.css), que existe para imponer la tipografía y la
+// paleta de la web; cualquier otra hoja después de ella sigue siendo un fallo.
+const CAPA_MARCA = "css/bayona-brand.css";
+assert(hojas[hojas.length - 2] === "css/pro.css" && hojas[hojas.length - 1] === CAPA_MARCA,
+  "pro.css es la última hoja de producto y solo la capa de marca va encima", hojas.join(" → "));
 for (const sel of [".cmd-chip", "#cmd-layer", "#cmd-box", ".cmd-fila", ".cmd-fila-g", ".cmd-pie", "kbd", ".cmd-vacio", ".cmd-atajos"]) {
   assert(pro.includes(sel), `pro.css da estilo a ${sel}`);
 }

@@ -1,0 +1,528 @@
+/* ===========================================================================
+   BAYONA · UNIFICACIÓN DE MARCA — la APP adopta el sistema de la WEB
+   ===========================================================================
+   Capa ADITIVA. No edita ninguna regla existente: solo (a) declara las
+   @font-face de la web y (b) reasigna los tokens de marca al final de la
+   cascada, de modo que gana sobre style/aurum/luxe/motion/personal/fitness/
+   coach/dashboard/pro.
+
+   Origen de verdad (copiado literalmente de SBAYONA-WEB-PRIME-20261004):
+     src/styles.css      → --black #050505 · --deep-blue #0B0B0C · --black-2
+                           #0c0c0d · --mediterranean #111111 · --black-3 #141416
+                           · --white #FFFFFF · --muted #C4C4C4 · --gray-dim #949494
+                           · --orange #F4A261 · --orange-fire #E76F51
+                           · --orange-deep #D45D38 · --orange-on-dark #ffc08a
+                           · --orange-on-light #9c4f1f
+     src/styles/ds-tokens.css → --ds-font-heading Montserrat · --ds-font-body Inter
+                           · --ds-font-mono DM Mono
+
+   REVERTIR: borrar este <link> en index.html y los .woff2 de fonts/.
+   =========================================================================== */
+
+/* ---------------------------------------------------------------------------
+   1. TIPOGRAFÍA — mismos archivos .woff2 que sirve la web (OFL).
+      El prefijo `bayona-` aísla las familias para que no choquen con las
+      declarations heredadas de fonts/fonts.css (Instrument Sans, Newsreader,
+      Space Mono), que se quedan ahí por si hay que volver atrás.
+   --------------------------------------------------------------------------- */
+
+/* Montserrat — display / titulares (la web precarga 800 y 900) */
+@font-face {
+  font-family: "Bayona Display";
+  font-style: normal;
+  font-weight: 400;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(../fonts/montserrat-normal-400-latin.woff2) format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Bayona Display";
+  font-style: normal;
+  font-weight: 400;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(../fonts/montserrat-normal-400-latin-ext.woff2) format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Bayona Display";
+  font-style: normal;
+  font-weight: 700;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(../fonts/montserrat-normal-700-latin.woff2) format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Bayona Display";
+  font-style: normal;
+  font-weight: 700;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(../fonts/montserrat-normal-700-latin-ext.woff2) format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Bayona Display";
+  font-style: normal;
+  font-weight: 800;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(../fonts/montserrat-normal-800-latin.woff2) format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Bayona Display";
+  font-style: normal;
+  font-weight: 800;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(../fonts/montserrat-normal-800-latin-ext.woff2) format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Bayona Display";
+  font-style: normal;
+  font-weight: 900;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(../fonts/montserrat-normal-900-latin.woff2) format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Bayona Display";
+  font-style: normal;
+  font-weight: 900;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(../fonts/montserrat-normal-900-latin-ext.woff2) format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Bayona Display";
+  font-style: italic;
+  font-weight: 700;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(../fonts/montserrat-italic-700-latin.woff2) format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Bayona Display";
+  font-style: italic;
+  font-weight: 800;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(../fonts/montserrat-italic-800-latin.woff2) format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Bayona Display";
+  font-style: italic;
+  font-weight: 900;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(../fonts/montserrat-italic-900-latin.woff2) format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* Inter — texto / lectura */
+@font-face {
+  font-family: "Bayona Text";
+  font-style: normal;
+  font-weight: 300;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(../fonts/inter-normal-300-latin.woff2) format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Bayona Text";
+  font-style: normal;
+  font-weight: 400;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(../fonts/inter-normal-400-latin.woff2) format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Bayona Text";
+  font-style: normal;
+  font-weight: 400;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(../fonts/inter-normal-400-latin-ext.woff2) format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Bayona Text";
+  font-style: normal;
+  font-weight: 500;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(../fonts/inter-normal-500-latin.woff2) format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Bayona Text";
+  font-style: normal;
+  font-weight: 600;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(../fonts/inter-normal-600-latin.woff2) format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Bayona Text";
+  font-style: normal;
+  font-weight: 700;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(../fonts/inter-normal-700-latin.woff2) format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Bayona Text";
+  font-style: normal;
+  font-weight: 800;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(../fonts/inter-normal-800-latin.woff2) format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* Inter — itálica. La web no la empaqueta porque no la usa, pero la app sí
+   (p. ej. <em>Más tú.</em> en el hero). Sin este archivo el navegador
+   falsea la inclinación; con él la letra es la misma de la web. Eje variable
+   300–800 en un solo archivo, licencia OFL. */
+@font-face {
+  font-family: "Bayona Text";
+  font-style: italic;
+  font-weight: 300 800;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(../fonts/inter-italic-latin.woff2) format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Bayona Text";
+  font-style: italic;
+  font-weight: 300 800;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(../fonts/inter-italic-latin-ext.woff2) format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+/* DM Mono — rótulos, cifras y dato (la web lo usa con ls 0.18em) */
+@font-face {
+  font-family: "Bayona Label";
+  font-style: normal;
+  font-weight: 400;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(../fonts/dm-mono-normal-400-latin.woff2) format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Bayona Label";
+  font-style: normal;
+  font-weight: 400;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(../fonts/dm-mono-normal-400-latin-ext.woff2) format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Bayona Label";
+  font-style: normal;
+  font-weight: 500;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(../fonts/dm-mono-normal-500-latin.woff2) format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* ---------------------------------------------------------------------------
+   2. FAMILIAS + PALETA
+
+   Los tokens de la app NO viven solo en `:root`: fitness.css y pro.css los
+   redefinen en `body.fitness-app` y en `html[data-mode="noche"] body.fitness-app`,
+   que tienen más especificidad. Por eso cada bloque de aquí replica el
+   selector exacto que gana hoy, con la misma especificidad y más abajo en la
+   cascada. Los selectores, en orden de especificidad creciente:
+
+     :root                                        (0,0,0)
+     html[data-mode="noche"]                      (0,1,1)
+     body.fitness-app                             (0,1,1)
+     html[data-mode="noche"] body.fitness-app     (0,2,2)
+     body.fitness-app.one-coach-mode              (0,2,1)
+     html[data-surface-theme="light"] body.…      (0,2,2)
+   --------------------------------------------------------------------------- */
+
+/* --- 2.1 base (cubre :root, aurum y cualquier superficie sin .fitness-app) --- */
+:root,
+html[data-mode="noche"],
+html[data-theme] {
+  /* tipografía: la web usa Montserrat + Inter + DM Mono */
+  --display: "Bayona Display", "Montserrat", Arial, sans-serif;
+  --sans: "Bayona Text", "Inter", "Montserrat", Arial, sans-serif;
+  --serif: "Bayona Text", "Inter", Arial, sans-serif;
+  --mono: "Bayona Label", "DM Mono", ui-monospace, monospace;
+  --mono2: "Bayona Label", "DM Mono", ui-monospace, monospace;
+
+  --bayona-font-display: var(--display);
+  --bayona-font-body: var(--sans);
+  --bayona-font-label: var(--mono2);
+
+  /* primitivas de la web */
+  --black: #050505;
+  --white: #ffffff;
+  --cream: #141416;
+  --metal: #e76f51;
+  --orange: #f4a261;
+  --orange-deep: #d45d38;
+  --orange-soft: #ffc08a;
+  --orange-on-dark: #ffc08a;
+  --orange-on-light: #9c4f1f;
+  --acc-1: #ffc08a;
+  --acc-2: #f4a261;
+  --acc-deep: #d45d38;
+  --acc-ink: #050505;
+  --gold: #f4a261;
+
+  /* escalera de superficies: fondo → hundido → elevado → contenido → capa */
+  --fit-bg: #050505;
+  --fit-deep: #0b0b0c;
+  --fit-surface: #111111;
+  --fit-surface-2: #141416;
+  --fit-dark: #0b0b0c;
+  --paper: #050505;
+  --paper-2: #111111;
+  --panel: #141416;
+
+  /* tinta */
+  --fit-ink: #ffffff;
+  --fit-muted: #c4c4c4;
+  --ink: #ffffff;
+  --ink-2: #c4c4c4;
+  --mute: #c4c4c4;
+  --ink-soft: #949494;
+  --ink-mute: #949494;
+
+  /* filetes */
+  --fit-line: #1f1f22;
+  --line: #1f1f22;
+  --hair: #1f1f22;
+  --hair-strong: #3a3a3f;
+  --line-strong: #3a3a3f;
+
+  --fit-accent: #f4a261;
+  --one-copper: #f4a261;
+  --one-copper-soft: #ffc08a;
+  --one-coach-bg: #050505;
+  --one-coach-surface: #111111;
+  --one-coach-surface-2: #141416;
+  --one-coach-line: #1f1f22;
+  --one-coach-ink: #ffffff;
+  --one-coach-muted: #c4c4c4;
+
+  --luxe-bg: #050505;
+  --luxe-surface: #111111;
+  --luxe-surface-2: #141416;
+  --luxe-ink: #ffffff;
+  --luxe-muted: #c4c4c4;
+  --luxe-muted-2: #949494;
+  --luxe-line: #1f1f22;
+  --luxe-line-2: #3a3a3f;
+  --luxe-accent: #f4a261;
+  /* Estos dos los consumía luxe.css para los brillos y los tintes suaves del
+     acento (glow del CTA, píldoras, aura del móvil de demo) y seguían
+     congelados en rgba(255,106,0,…) — el naranja anterior. Sin ellos, el
+     resplandor de los botones era del otro color que el botón. */
+  --luxe-accent-soft: rgba(244, 162, 97, 0.12);
+  --luxe-accent-glow: rgba(244, 162, 97, 0.22);
+
+  /* cristal y sombra, recalibrados al negro de la web */
+  --glass-bg: rgba(17, 17, 17, 0.66);
+  --glass-hi: rgba(255, 255, 255, 0.06);
+  --shadow-lift: 0 34px 80px -34px rgba(0, 0, 0, 0.9),
+    0 0 0 1px rgba(244, 162, 97, 0.3);
+
+  /* estado: NO se tocan. Son funcionales (peligro / bien / aviso) y la web
+     no define semántica de estado; se conservan los de la app. */
+}
+
+/* --- 2.2 cuerpo de la app (gana a fitness.css, misma especificidad) --- */
+body.fitness-app {
+  --display: "Bayona Display", "Montserrat", Arial, sans-serif;
+  --sans: "Bayona Text", "Inter", "Montserrat", Arial, sans-serif;
+  --serif: "Bayona Text", "Inter", Arial, sans-serif;
+  --mono: "Bayona Label", "DM Mono", ui-monospace, monospace;
+  --mono2: "Bayona Label", "DM Mono", ui-monospace, monospace;
+
+  --fit-bg: #050505;
+  --fit-surface: #111111;
+  --fit-ink: #ffffff;
+  --fit-muted: #c4c4c4;
+  --fit-line: #1f1f22;
+  --fit-dark: #0b0b0c;
+  --fit-accent: #f4a261;
+  --paper: #050505;
+  --paper-2: #111111;
+  --panel: #111111;
+  --ink: #ffffff;
+  --ink-soft: #c4c4c4;
+  --mute: #c4c4c4;
+  --hair: #1f1f22;
+  --hair-strong: #3a3a3f;
+  --orange: #f4a261;
+  --acc-2: #f4a261;
+  --acc-ink: #050505;
+
+  --one-copper: #f4a261;
+  --one-copper-soft: #ffc08a;
+  --one-coach-bg: #050505;
+  --one-coach-surface: #111111;
+  --one-coach-surface-2: #141416;
+  --one-coach-line: #1f1f22;
+  --one-coach-ink: #ffffff;
+  --one-coach-muted: #c4c4c4;
+}
+
+/* --- 2.3 modo noche (el que la app escribe por defecto) --- */
+html[data-mode="noche"] body.fitness-app {
+  --fit-bg: #050505;
+  --fit-surface: #111111;
+  --fit-ink: #ffffff;
+  --fit-muted: #c4c4c4;
+  --fit-line: #1f1f22;
+  --fit-dark: #0b0b0c;
+  --fit-accent: #f4a261;
+
+  --paper: #050505;
+  --paper-2: #111111;
+  --panel: #111111;
+  --ink: #ffffff;
+  --ink-soft: #c4c4c4;
+  --mute: #c4c4c4;
+  --hair: #1f1f22;
+  --hair-strong: #3a3a3f;
+  --orange: #f4a261;
+  --acc-2: #f4a261;
+  --acc-ink: #050505;
+
+  --one-copper: #f4a261;
+  --one-copper-soft: #ffc08a;
+  --one-coach-bg: #050505;
+  --one-coach-surface: #111111;
+  --one-coach-surface-2: #141416;
+  --one-coach-line: #1f1f22;
+  --one-coach-ink: #ffffff;
+  --one-coach-muted: #c4c4c4;
+}
+
+/* --- 2.4 modo Coach: aquí --fit-* se re-derivan de --one-coach-* --- */
+body.fitness-app.one-coach-mode {
+  --fit-dark: #0b0b0c;
+  --hair-strong: #3a3a3f;
+  --acc-ink: #050505;
+}
+
+/* ---------------------------------------------------------------------------
+   3. TEMA CLARO — la capacidad se conserva (el motor de tema sigue escribiendo
+      data-surface-theme), pero con los cremas de la web en lugar de los tonos
+      cálidos propios de la app, y el acento oscuro de la web sobre crema.
+   --------------------------------------------------------------------------- */
+html[data-surface-theme="light"] {
+  --luxe-bg: #f2efe8;
+  --luxe-surface: #ffffff;
+  --luxe-surface-2: #ede7dc;
+  --luxe-line: #ddd7cc;
+  --luxe-line-2: #c8c0b4;
+  --luxe-ink: #0a0a0a;
+  --luxe-muted: #55504a;
+  --luxe-muted-2: #6f6963;
+  --luxe-accent: #9c4f1f;
+  --luxe-accent-soft: rgba(156, 79, 31, 0.1);
+  --luxe-accent-glow: rgba(156, 79, 31, 0.18);
+  --cream: #f2efe8;
+}
+
+html[data-surface-theme="light"] body.fitness-app {
+  --fit-bg: #f1ece3;
+  --fit-surface: #fffdf9;
+  --fit-ink: #0a0a0a;
+  --fit-muted: #6f6963;
+  --fit-line: #ddd7cc;
+  --fit-dark: #f2efe8;
+  --fit-accent: #9c4f1f;
+
+  --paper: #f1ece3;
+  --paper-2: #fffdf9;
+  --panel: #fffdf9;
+  --ink: #0a0a0a;
+  --ink-soft: #6f6963;
+  --mute: #6f6963;
+  --hair: #ddd7cc;
+  --hair-strong: #c8c0b4;
+  --orange: #9c4f1f;
+  --acc-2: #9c4f1f;
+  --acc-ink: #fff8ef;
+
+  --one-copper: #9c4f1f;
+  --one-copper-soft: #d45d38;
+  --one-coach-bg: #f1ece3;
+  --one-coach-surface: #fffdf9;
+  --one-coach-surface-2: #ffffff;
+  --one-coach-line: #ddd7cc;
+  --one-coach-ink: #0a0a0a;
+  --one-coach-muted: #6f6963;
+}
