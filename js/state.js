@@ -7,6 +7,7 @@
 // ============================================================
 import { RANKS, ITEMS, WORKOUTS, MACRO, MEALS, EXERCISES, phaseOfWeek } from "./data.js";
 import { profileWeek, personalizeWorkout } from "./personalization.js";
+import { recordedSessionStrain } from "./session-live.js";
 import { deleteCycle, readCycle } from "./cycle.js";
 import { resetConsents } from "./consents.js";
 import { defaultProgressReviewAt } from "./hub.js";
@@ -815,18 +816,21 @@ export const S = {
   undoSet(r) {
     if (!r) return false;
     const t = this.data.today;
+    // Un reintento de «deshacer» nunca sustrae XP de otras sesiones.
+    if (r.idKey && !(t.setKeys || []).includes(r.idKey)) return false;
     t.setKeys = (t.setKeys || []).filter((k) => k !== r.idKey);
     t.trainingSets = Math.max(0, t.trainingSets - 1);
     this.data.stats.sets = Math.max(0, this.data.stats.sets - 1);
     this.data.xp = Math.max(0, this.data.xp - (r.xp || 0));
     t.xpGained = Math.max(0, t.xpGained - (r.xp || 0));
-    if (r.skill && this.data.skills[r.skill]) this.data.skills[r.skill] = Math.max(0, this.data.skills[r.skill] - 1);
+    if (r.skill && this.data.skills[r.skill]) this.data.skills[r.skill] = Math.max(0, this.data.skills[r.skill] - Math.max(0, Number(r.skillGain) || 1));
     if (r.pr) {
       const p = this.data.prs[r.exKey];
       if (p && p.kg === r.kg && p.reps === r.reps && p.date === todayKey()) {
-        delete this.data.prs[r.exKey];
+        if (r.previousPR) this.data.prs[r.exKey] = { ...r.previousPR };
+        else delete this.data.prs[r.exKey];
         this.data.stats.prs = Math.max(0, this.data.stats.prs - 1);
-        this.data.points = Math.max(0, this.data.points - 60);
+        this.data.points = Math.max(0, this.data.points - prReward().points);
       }
     }
     if (t.muscleSets) {
@@ -836,7 +840,17 @@ export const S = {
         if (!t.muscleSets[muscle]) delete t.muscleSets[muscle];
       }
     }
-    if (Array.isArray(t.setLog) && t.setLog.length) t.setLog.pop();
+    if (Array.isArray(t.setLog) && t.setLog.length) {
+      const index = t.setLog.findLastIndex((set) => set.idKey === r.idKey);
+      if (index >= 0) t.setLog.splice(index, 1);
+      else if (!t.setLog.some((set) => set.idKey)) t.setLog.pop(); // partidas antiguas
+      t.strain = recordedSessionStrain(t.setLog);
+    }
+    if (Array.isArray(t.prPoints) && r.kg > 0) {
+      const estimated = Math.round(r.kg * (1 + r.reps / 30));
+      const index = t.prPoints.findLastIndex((point) => point.ex === r.exKey && point.e1 === estimated);
+      if (index >= 0) t.prPoints.splice(index, 1);
+    }
     this.save(); emit("today");
     return true;
   },
@@ -1107,11 +1121,15 @@ export const S = {
       formScore: opts.formScore ?? null,
       exercise: exKey,
     });
-    this.addXP(rw.xp + (pr ? prReward().xp : 0), rw.skill, pr ? prReward().skillGain : rw.skillGain);
+    const earnedXp = rw.xp + (pr ? prReward().xp : 0);
+    // addXP aumenta la habilidad al mayor entre skillGain y XP/80.
+    // Guardamos el aumento EFECTIVO para que Deshacer lo revierta exacto.
+    const effectiveSkillGain = Math.max(pr ? prReward().skillGain : rw.skillGain, Math.round(earnedXp / 80));
+    this.addXP(earnedXp, rw.skill, effectiveSkillGain);
     if (pr) this.addPoints(prReward().points);
     this.save();
     emit("set", { exKey, setIdx, kg, reps, rir, pr, xp: rw.xp + (pr ? prReward().xp : 0) });
-    return { pr, xp: rw.xp + (pr ? prReward().xp : 0), skill: rw.skill, text: rw.text };
+    return { pr, xp: earnedXp, skill: rw.skill, skillGain: effectiveSkillGain, text: rw.text };
   },
 
   /**
@@ -1119,7 +1137,8 @@ export const S = {
    * El bono es SOLO de finalización (las series ya se premiaron al registrarse).
    */
   completeWorkout(workoutId, { loggedSets = 0, plannedSets = 0, minutes = null } = {}) {
-    if (plannedSets > 0 && loggedSets < plannedSets) {
+    if (!(Number.isSafeInteger(plannedSets) && plannedSets > 0 && Number.isSafeInteger(loggedSets))
+      || loggedSets < plannedSets) {
       return this.closePartialWorkout(workoutId, { loggedSets, plannedSets, minutes });
     }
     const t = this.data.today;

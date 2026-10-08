@@ -75,8 +75,8 @@ function ensureRecordingConsent() {
         $("#m-rec-yes").onclick=()=>{
           const saved=setConsent("recordings",true);
           hideModal();
-          if(!saved) toast("PRIVACIDAD","No pudimos guardar tu preferencia; te la volveremos a pedir.","danger");
-          resolve(true);
+          if(!saved) toast("PRIVACIDAD","No se pudo guardar el consentimiento. No se abrirá la cámara.","danger");
+          resolve(Boolean(saved));
         };
       });
   });
@@ -105,14 +105,15 @@ async function recordExerciseVideo(exKey) {
       video.srcObject=stream;
       const mime=preferredVideoMime();
       const chunks=[];
-      let recorder=null,startedAt=0,timer=0;
+      let recorder=null,startedAt=0,timer=0,discarded=false;
 
       const stopTracks=()=>stream?.getTracks().forEach((track)=>track.stop());
       const close=()=>{clearTimeout(timer);stopTracks();hideModal();};
 
       cancel.onclick=()=>{
+        discarded=true; // CANCELAR nunca significa guardar la grabación.
         if(recorder?.state==="recording") recorder.stop();
-        else close();
+        close();
       };
       toggle.onclick=()=>{
         if(recorder?.state==="recording"){recorder.stop();return;}
@@ -121,16 +122,21 @@ async function recordExerciseVideo(exKey) {
         }catch{
           close();toast("VÍDEO",t("session.video.unsupported"),"danger");return;
         }
+        discarded=false;
         chunks.length=0;
         recorder.ondataavailable=(event)=>{if(event.data?.size)chunks.push(event.data);};
         recorder.onstop=async()=>{
           clearTimeout(timer);
+          if(discarded){stopTracks();return;}
           const durationMs=Date.now()-startedAt;
           const blob=new Blob(chunks,{type:recorder.mimeType||"video/webm"});
           stopTracks();
           try{
             const meta=await putExerciseVideo(exKey,blob,{durationMs});
-            if(UI.session) UI.session.pendingEvidence={exKey,evidenceId:`local:${exKey}`,createdAt:meta.createdAt};
+            if(UI.session){
+              UI.session.pendingEvidence={exKey,evidenceId:`local:${exKey}`,createdAt:meta.createdAt};
+              persist(); // la referencia de vídeo también sobrevive a recargar
+            }
             hideModal();
             toast("VÍDEO",t("session.video.saved"),"gold");
             if(UI.session) renderSession();
@@ -471,6 +477,13 @@ function workoutCard(w, featured = false) {
 
 // ---------------- MOTOR DE SESIÓN ----------------
 function startWorkout(w) {
+  // Entradas desde Coach, catálogo y accesos directos no pueden pisar un
+  // entrenamiento persistido (ni sus series ni sus puntos).
+  const active = UI.session || S.getActiveSession();
+  if (active && active.status !== "completada" && active.status !== "abandonada") {
+    toast("SESIÓN YA GUARDADA", "Reanuda o abandona explícitamente la sesión pendiente antes de empezar otra.");
+    return resumeSession();
+  }
   // el volumen autoregulado anunciado se APLICA de verdad
   const auto = todaysSession();
   const plan = auto && auto.workout.id === w.id ? auto.workout : w;
@@ -732,6 +745,7 @@ function logCurrentSet({ kg, reps, rir, feeling = null, effort = null, note = ""
   const s = session.exercises[session.exIdx];
   const timed = timedOf(s);
   const idKey = `${session.id}:${session.exIdx}:${session.setIdx}`;
+  const previousPR = S.data.prs[s.ex] ? { ...S.data.prs[s.ex] } : null;
   const res = S.logSet(s.ex, session.setIdx, kg, reps, rir, {
     idKey,
     seconds: timed ? reps : 0,
@@ -740,11 +754,12 @@ function logCurrentSet({ kg, reps, rir, feeling = null, effort = null, note = ""
   if (!res) return toast("SERIE YA REGISTRADA", "Esa serie ya estaba guardada (sin XP duplicado).");
   const E = exerciseDef(s);
   const restSec = Math.max(0, Math.round(Number(s.rest ?? 90)));
-  const meta={feeling,effort,note,evidenceId};
+  const meta={feeling,effort,note,evidenceId,idKey};
   archiveSet(s.ex, kg, reps, rir, E.muscle, meta);
   session.setsDone.push({
     idKey, exKey:s.ex, exIdx:session.exIdx, setIdx:session.setIdx,
     kg,reps,rir,seconds:timed?reps:0,xp:res.xp,pr:res.pr,skill:res.skill,
+    skillGain:res.skillGain,previousPR,
     feeling,effort,note,evidenceId,ts:Date.now(),
   });
   session.logged++;
@@ -767,7 +782,10 @@ function undoLastSet() {
   const session = UI.session;
   const r = session.setsDone.pop();
   if (!r) return;
-  S.undoSet(r);
+  if (!S.undoSet(r)) {
+    session.setsDone.push(r);
+    return toast("CORRECCIÓN NO DISPONIBLE", "El registro ya fue corregido o no coincide con esta sesión.", "danger");
+  }
   session.logged = Math.max(0, session.logged - 1);
   session.xpAcc = Math.max(0, (session.xpAcc || 0) - r.xp);
   session.exIdx = r.exIdx;
