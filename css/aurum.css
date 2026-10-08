@@ -222,7 +222,7 @@ body::after { content: none; }
 }
 html[data-mode="noche"] #entry {
   background:
-    radial-gradient(120% 90% at 78% 12%, rgba(255, 106, 0, 0.12), transparent 55%),
+    radial-gradient(120% 90% at 78% 12%, rgba(244,162,97, 0.12), transparent 55%),
     linear-gradient(180deg, rgba(10, 8, 6, 0.88) 0%, #0a0806 62%);
 }
 #entry.gone { opacity: 0; transform: scale(1.04); visibility: hidden; pointer-events: none; }
@@ -260,10 +260,10 @@ html[data-mode="noche"] #entry {
   font-family: var(--display); font-weight: 700; font-size: 13px; letter-spacing: 0.32em;
   background: var(--acc-2); color: var(--acc-ink); border: none; cursor: pointer;
   padding: 20px 46px; border-radius: 999px;
-  box-shadow: 0 18px 44px -18px rgba(255, 106, 0, 0.7);
+  box-shadow: 0 18px 44px -18px rgba(244,162,97, 0.7);
   transition: transform 0.35s var(--spring), box-shadow 0.35s var(--ease);
 }
-#entry .e-enter:hover { transform: translateY(-3px); box-shadow: 0 26px 54px -20px rgba(255, 106, 0, 0.8); }
+#entry .e-enter:hover { transform: translateY(-3px); box-shadow: 0 26px 54px -20px rgba(244,162,97, 0.8); }
 #entry .e-enter:active { transform: scale(0.97); }
 #entry .e-modes { display: flex; gap: 6px; margin-left: 6px; }
 #entry .e-mode {
@@ -385,7 +385,7 @@ html[data-mode="noche"] #entry {
 #stick i {
   position: absolute; left: 50%; top: 50%; width: 44px; height: 44px;
   transform: translate(-50%, -50%); border-radius: 50%;
-  background: var(--acc-2); box-shadow: 0 8px 22px -8px rgba(255, 106, 0, 0.8);
+  background: var(--acc-2); box-shadow: 0 8px 22px -8px rgba(244,162,97, 0.8);
 }
 /* el joystick ES movimiento del mundo: nunca se oculta;
    solo se apaga la pista de texto en modo sesión */
