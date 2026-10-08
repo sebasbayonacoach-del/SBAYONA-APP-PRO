@@ -44,11 +44,18 @@ function readRaw() {
 }
 
 function write(data) {
-  cache = data;
   const s = store();
-  if (!s) return false;
-  try { s.setItem(KEY, JSON.stringify(data)); return true; }
-  catch { return false; } // almacenamiento lleno/bloqueado: el aviso lo hace el llamador
+  if (!s) {
+    // Test de dominio sin DOM: permite cache en memoria, pero en un navegador
+    // la falta de almacenamiento impide conceder permiso de grabación.
+    if (typeof window === "undefined") { cache = data; return true; }
+    return false;
+  }
+  try {
+    s.setItem(KEY, JSON.stringify(data));
+    cache = data; // Nunca conservar un consentimiento concedido que no pudo guardarse.
+    return true;
+  } catch { return false; }
 }
 
 /** Migra claves antiguas (incluida la clave rota '***') sin perder consentimientos ya dados. */
@@ -87,13 +94,18 @@ export function isGranted(domain) {
 
 /** Devuelve false si el almacenamiento rechazó el guardado (llamador debe avisar). */
 export function setConsent(domain, granted = true) {
-  const data = getConsents();
-  if (!data[domain]) data[domain] = { granted: false, at: null, revokedAt: null, version: CONSENT_VERSION };
+  // Copia aislada: si Storage falla, no mutamos el cache del consentimiento.
+  const current = getConsents();
+  const data = { ...current, [domain]: { ...(current[domain] || {
+    granted: false, at: null, revokedAt: null, version: CONSENT_VERSION,
+  }) } };
   data[domain].granted = granted;
   data[domain].at = granted ? new Date().toISOString() : data[domain].at;
   data[domain].revokedAt = granted ? null : new Date().toISOString();
   data[domain].version = CONSENT_VERSION;
-  return write(data);
+  const saved = write(data);
+  if (!saved && !granted) cache = data; // revocar en memoria es seguro incluso si Storage falla
+  return saved;
 }
 
 export function revokeConsent(domain) {

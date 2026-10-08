@@ -18,11 +18,14 @@ export const SET_FEELINGS = Object.freeze([
 export function normalizeSetFeedback(input = {}) {
   const feeling = SET_FEELINGS.some((x)=>x.id===input.feeling) ? input.feeling : null;
   const note = String(input.note || "").trim().replace(/\s+/g," ").slice(0,180);
-  const effort = Number(input.effort);
+  // Vacío significa «sin evaluación», nunca esfuerzo 1/5 inventado.
+  const raw = input.effort;
+  const effort = raw == null || typeof raw === "boolean" || String(raw).trim() === ""
+    ? null : Number(raw);
   return {
     feeling,
     note,
-    effort: Number.isFinite(effort) ? Math.max(1,Math.min(5,Math.round(effort))) : null,
+    effort: effort !== null && Number.isFinite(effort) ? Math.max(1,Math.min(5,Math.round(effort))) : null,
   };
 }
 
@@ -81,4 +84,17 @@ export function sessionPath(session = {}) {
     exercise:ex,
     canComplete:completion.complete,
   };
+}
+
+/** Carga de esfuerzo calculada exclusivamente a partir de series archivadas. */
+export function recordedSessionStrain(sets = []) {
+  let load = 0;
+  for (const s of Array.isArray(sets) ? sets : []) {
+    const kg = Number(s.kg) || 0, reps = Number(s.reps) || 0;
+    const e1 = kg > 0 ? Math.round(kg * (1 + reps / 30)) : 0;
+    const base = Number(s.e1Base) || 0;
+    const intensity = base > 0 ? Math.min(1, e1 / base) : 0.7;
+    load += (kg > 0 ? kg * reps : reps * 0.4) * intensity * (1 + (2 - (s.rir ?? 2)) * 0.08);
+  }
+  return Math.min(21, +(Math.log10(1 + Math.max(0,load)) * 3.4).toFixed(1));
 }

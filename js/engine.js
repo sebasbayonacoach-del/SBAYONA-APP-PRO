@@ -6,6 +6,7 @@
 // ============================================================
 import { readCycle, cycleSummary } from "./cycle.js";
 import { S } from "./state.js";
+import { recordedSessionStrain } from "./session-live.js";
 import { EXERCISES, WORKOUTS, MACRO, phaseOfWeek } from "./data.js";
 
 const epley1RM = (kg, reps) => (kg <= 0 ? 0 : Math.round(kg * (1 + reps / 30)));
@@ -57,16 +58,7 @@ export function plateMath(total, bar = 20) {
 
 // ---------- CARGA (strain 0–21, escala de esfuerzo diario) ----------
 // Carga de la sesión = series efectivas × intensidad relativa × RIR penalty
-export function sessionStrain(sets) {
-  // sets: [{kg, reps, rir, e1Base}]
-  let load = 0;
-  for (const s of sets) {
-    const int = s.e1Base ? Math.min(1, epley1RM(s.kg, s.reps) / s.e1Base) : 0.7;
-    load += (s.kg > 0 ? s.kg * s.reps : s.reps * 0.4) * int * (1 + (2 - (s.rir ?? 2)) * 0.08);
-  }
-  const strain = Math.min(21, +(Math.log10(1 + load) * 3.4).toFixed(1));
-  return strain;
-}
+export function sessionStrain(sets) { return recordedSessionStrain(sets); }
 
 // ---------- RECUPERACIÓN (%) ----------
 // Basado SOLO en datos registrados por el usuario (ver state.readinessDetail).
@@ -222,12 +214,14 @@ export function archiveSet(exKey, kg, reps, rir, muscleOverride = null, meta = {
   const record = {
     ex: exKey, kg, reps, rir,
     feeling: meta.feeling || null,
-    effort: Number.isFinite(Number(meta.effort)) ? Number(meta.effort) : null,
+    effort: meta.effort === null || meta.effort === undefined || meta.effort === ""
+      ? null : Number.isFinite(Number(meta.effort)) ? Number(meta.effort) : null,
     note: String(meta.note || "").slice(0, 180),
     evidenceId: meta.evidenceId || null,
+    idKey: meta.idKey || null,
+    e1Base: S.data.prs[exKey]?.e1 || e1,
   };
-  t.strain = sessionStrain(
-    (t.setLog = t.setLog || []).concat([{ ...record, e1Base: S.data.prs[exKey]?.e1 || e1 }])
-  );
-  t.setLog.push(record); // ex + feedback real para progreso y aprendizaje futuro
+  t.setLog = t.setLog || [];
+  t.setLog.push(record);
+  t.strain = sessionStrain(t.setLog); // auditable y reversible al corregir la última serie
 }
