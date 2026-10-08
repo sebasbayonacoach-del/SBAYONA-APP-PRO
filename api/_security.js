@@ -148,13 +148,15 @@ export async function readRaw(req, limit = 64 * 1024) {
     const chunks = [];
     let total = 0;
     req.on("data", (chunk) => {
-      total += chunk.length;
+      // Node's IncomingMessage emits Buffers; test adapters can emit strings.
+      const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+      total += bytes.length;
       if (total > limit) {
         reject(new Error("body_too_large"));
         req.destroy();
         return;
       }
-      chunks.push(chunk);
+      chunks.push(bytes);
     });
     req.on("end", () => resolve(Buffer.concat(chunks).toString("utf8")));
     req.on("error", reject);

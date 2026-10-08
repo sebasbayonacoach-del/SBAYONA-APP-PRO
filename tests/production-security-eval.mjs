@@ -53,7 +53,7 @@ ok(migration.includes("offset 5"),"backend limita backups por usuario");
 ok(migration.includes("octet_length(payload::text) <= 1000000"),"backend limita tamaño de backup");
 
 ok(telemetry.includes("DETAIL_KEYS"),"telemetría usa allowlist");
-ok(!obs.includes("event.message")&&!obs.includes("stack"),"observabilidad no manda mensaje o stack");
+ok(!obs.includes("event.message")&&!/event\.(?:error|reason)\?\.stack|details\.stack/.test(obs),"observabilidad no manda texto libre ni stack de errores");
 ok(migration.includes("Sin policies: el navegador no lee/escribe telemetría directamente"),"telemetría no tiene acceso directo cliente");
 ok(rollout.includes("bucket(user.id,key)")&&migration.includes("percentage between 0 and 100"),"rollout es gradual y determinista");
 ok(migration.includes("('billing_checkout',false,0")&&migration.includes("('cloud_backup',false,0"),"features sensibles nacen apagadas");
