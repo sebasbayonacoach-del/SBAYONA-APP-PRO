@@ -188,8 +188,8 @@ const DEMO_SURFACES = [
 ];
 
 function lockMark(plan, feature) {
-  if (hasFeature(plan, feature)) return '<span class="luxe-demo-ok">INCLUIDO</span>';
-  return `<span class="luxe-demo-lock">BLOQUEADO · ${PLAN_META[featureTier(feature)].label}</span>`;
+  if (hasFeature(plan, feature)) return `<span class="luxe-demo-ok">${t("demo.preview.included")}</span>`;
+  return `<span class="luxe-demo-lock">${t("demo.preview.locked", {plan:PLAN_META[featureTier(feature)].label})}</span>`;
 }
 
 export function demoHTML(plan = "free") {
@@ -197,25 +197,26 @@ export function demoHTML(plan = "free") {
   return `
     <section class="luxe-demo-shell" id="luxe-demo-shell" aria-label="${t("demo.aria")}">
       <div class="luxe-demo-copy">
-        <div class="luxe-label">VER CÓMO FUNCIONA</div>
-        <h2>Prueba BAYONA antes de entrar.</h2>
-        <p>Cambia de plan, luz y zona. El teléfono te enseña qué puedes usar y qué puedes desbloquear.</p>
+        <div class="luxe-label">${t("demo.preview.kicker")}</div>
+        <h2>${t("demo.preview.title")}</h2>
+        <p>${t("demo.preview.desc")}</p>
+        <p class="luxe-demo-disclaimer">${t("demo.preview.disclaimer")}</p>
         <div class="luxe-demo-plan-tabs" role="group" aria-label="${t("demo.plan.aria")}">
-          ${PLANS.map((id)=>`<button type="button" data-demo-plan="${id}" class="${id===plan?"on":""}">${PLAN_META[id].label}</button>`).join("")}
+          ${PLANS.map((id)=>`<button type="button" data-demo-plan="${id}" aria-pressed="${id===plan}" class="${id===plan?"on":""}">${PLAN_META[id].label}</button>`).join("")}
         </div>
         <div class="luxe-demo-theme">
           <span>${t("demo.theme.aria")}</span>
-          <button type="button" data-demo-theme="dark">NOCHE</button>
-          <button type="button" data-demo-theme="light">DÍA</button>
+          <button type="button" data-demo-theme="dark" aria-pressed="false">${t("demo.theme.dark")}</button>
+          <button type="button" data-demo-theme="light" aria-pressed="false">${t("demo.theme.light")}</button>
         </div>
         <div class="luxe-demo-meta"><strong>${meta.label}</strong><span>${meta.tagline}</span></div>
       </div>
       <div class="luxe-device-stage">
         <div class="luxe-device">
           <div class="luxe-device-top"><i></i><span>9:41</span><b>BAYONA</b><em>●●●</em></div>
-          <div class="luxe-device-screen" data-demo-surface="home"></div>
+          <div class="luxe-device-screen" data-demo-surface="home" role="region" aria-live="polite" aria-label="${t("demo.view.label")}"></div>
           <nav class="luxe-device-nav" aria-label="${t("demo.surfaces.aria")}">
-            ${DEMO_SURFACES.map(([id,label])=>`<button type="button" data-demo-surface-btn="${id}" class="${id==="home"?"on":""}">${label}</button>`).join("")}
+            ${DEMO_SURFACES.map(([id,label])=>`<button type="button" data-demo-surface-btn="${id}" aria-pressed="${id==="home"}" class="${id==="home"?"on":""}">${label}</button>`).join("")}
           </nav>
         </div>
       </div>
@@ -236,16 +237,17 @@ function paintDemoSurface(root, plan, surface) {
   };
   const [kicker,title,feature]=cards[surface]||cards.home;
   screen.innerHTML=`
+    <div class="luxe-demo-sample">${t("demo.preview.sample")}</div>
     <div class="luxe-demo-user"><span class="luxe-demo-avatar">B</span><span><small>${kicker}</small><strong>${title}</strong></span><i>${meta.label}</i></div>
     <div class="luxe-demo-focus">
       <div class="luxe-demo-orbit"><i></i><span>PERSONAJE</span></div>
-      <div><small>${surface==="home"?"MARTES · 6 OCT":t("demo.view.label")}</small><h3>${title}</h3><p>${meta.tagline}</p>${lockMark(plan,feature)}</div>
+      <div><small>${t("demo.view.label")}</small><h3>${title}</h3><p>${meta.tagline}</p>${lockMark(plan,feature)}</div>
     </div>
     <div class="luxe-demo-grid">
-      <article><small>HOY</small><strong>${surface==="training"?"3 bloques":"Tu siguiente acción"}</strong><span>Datos reales</span></article>
-      <article><small>COACH</small><strong>${hasFeature(plan,"ai.adaptive")?"IA adaptativa":"Guía esencial"}</strong>${lockMark(plan,"ai.adaptive")}</article>
-      <article><small>BACKUP</small><strong>Copia segura</strong>${lockMark(plan,"backup.cloud")}</article>
-      <article><small>ANALÍTICA</small><strong>Progreso avanzado</strong>${lockMark(plan,"progress.advanced")}</article>
+      <article><small>${t("demo.tile.today")}</small><strong>${surface==="training"?t("demo.preview.blocks"):t("demo.preview.next")}</strong><span>${t("demo.preview.data")}</span></article>
+      <article><small>${t("demo.tile.coach")}</small><strong>${hasFeature(plan,"ai.adaptive")?t("demo.tile.ai"):t("demo.tile.basic")}</strong>${lockMark(plan,"ai.adaptive")}</article>
+      <article><small>${t("demo.tile.backup")}</small><strong>${t("demo.tile.backupText")}</strong>${lockMark(plan,"backup.cloud")}</article>
+      <article><small>${t("demo.tile.analytics")}</small><strong>${t("demo.tile.progress")}</strong>${lockMark(plan,"progress.advanced")}</article>
     </div>`;
 }
 
@@ -253,9 +255,16 @@ function installDemo(root) {
   const shell=root.querySelector("#luxe-demo-shell");
   if (!shell) return;
   let plan="free",surface="home";
+  const setSelection=(selector,key,active)=>shell.querySelectorAll(selector).forEach((b)=>{
+    const selected=b.dataset[key]===active;
+    b.classList.toggle("on",selected);
+    b.setAttribute("aria-pressed",String(selected));
+  });
+  const syncTheme=()=>setSelection("[data-demo-theme]","demoTheme",
+    document.documentElement.dataset.surfaceTheme||readTheme());
   const redraw=()=>{
-    shell.querySelectorAll("[data-demo-plan]").forEach((b)=>b.classList.toggle("on",b.dataset.demoPlan===plan));
-    shell.querySelectorAll("[data-demo-surface-btn]").forEach((b)=>b.classList.toggle("on",b.dataset.demoSurfaceBtn===surface));
+    setSelection("[data-demo-plan]","demoPlan",plan);
+    setSelection("[data-demo-surface-btn]","demoSurfaceBtn",surface);
     const meta=shell.querySelector(".luxe-demo-meta");
     if(meta) {
       meta.textContent="";
@@ -269,10 +278,11 @@ function installDemo(root) {
   shell.querySelectorAll("[data-demo-plan]").forEach((b)=>b.addEventListener("click",()=>{plan=b.dataset.demoPlan;redraw();}));
   shell.querySelectorAll("[data-demo-surface-btn]").forEach((b)=>b.addEventListener("click",()=>{surface=b.dataset.demoSurfaceBtn;redraw();}));
   shell.querySelectorAll("[data-demo-theme]").forEach((b)=>b.addEventListener("click",()=>{
-    const theme=b.dataset.demoTheme; applyTheme(theme);
-    shell.querySelectorAll("[data-demo-theme]").forEach((x)=>x.classList.toggle("on",x.dataset.demoTheme===theme));
+    applyTheme(b.dataset.demoTheme);
+    syncTheme();
   }));
-  shell.querySelector(`[data-demo-theme="${readTheme()}"]`)?.classList.add("on");
+  window.addEventListener("bayona:theme",()=>{if(shell.isConnected)syncTheme();});
+  syncTheme();
   redraw();
 }
 

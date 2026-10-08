@@ -37,6 +37,47 @@ try{
   check(await page.locator("#luxe-landing").isVisible(),"landing pública visible");
   await noOverflow(page,"Landing desktop");
   await page.screenshot({path:"artifacts/e2e/landing-desktop.png",fullPage:false});
+  // Sprint 16A · plan-preview is a real interactive simulation, never fake user data.
+  await page.locator("#luxe-demo").scrollIntoViewIfNeeded();
+  check(await page.locator("[data-demo-plan]").count()===4,"Demo: cuatro planes comparables");
+  check(await page.locator("[data-demo-surface-btn]").count()===5,"Demo: cinco pantallas navegables");
+  const planList=["free","raiz","performance","elite"];
+  for(const demoPlan of planList){
+    await page.locator('[data-demo-plan="'+demoPlan+'"]').click();
+    check((await page.locator('[data-demo-plan="'+demoPlan+'"]').getAttribute("aria-pressed"))==="true",
+      "Demo: selección accesible "+demoPlan);
+    check(await page.locator('[data-demo-plan][aria-pressed="true"]').count()===1,
+      "Demo: un solo plan activo "+demoPlan);
+    check(await page.locator(".luxe-device-screen .luxe-demo-sample").count()===1,
+      "Demo: vista se declara simulación "+demoPlan);
+    await page.locator('[data-demo-surface-btn="training"]').click();
+    check((await page.locator(".luxe-device-screen").getAttribute("data-demo-surface"))==="training",
+      "Demo: cambia contenido entrenar "+demoPlan);
+    const trainingLocked=await page.locator(".luxe-demo-focus .luxe-demo-lock").count();
+    check(trainingLocked===(demoPlan==="free"?1:0),"Demo: acceso entrenar según membresía "+demoPlan);
+  }
+  await page.locator('[data-demo-plan="free"]').click();
+  await page.locator('[data-demo-surface-btn="progress"]').click();
+  check(await page.locator(".luxe-demo-focus .luxe-demo-lock").count()===1,
+    "Demo: analítica de FREE se muestra bloqueada");
+  await page.locator('[data-demo-plan="performance"]').click();
+  check(await page.locator(".luxe-demo-focus .luxe-demo-ok").count()===1,
+    "Demo: analítica incluida desde PERFORMANCE");
+  await page.locator('[data-demo-surface-btn="home"]').click();
+  const fakeCopy=await page.locator(".luxe-device-screen").innerText();
+  check(!fakeCopy.includes("Datos reales")&&!fakeCopy.includes("MARTES · 6 OCT"),
+    "Demo: sin fecha inventada ni afirmación de datos reales");
+  check(await page.locator(".luxe-demo-disclaimer").count()===1,
+    "Demo: advertencia de simulación visible");
+  const plansTouch=await page.locator("[data-demo-plan]").first().evaluate(el=>el.getBoundingClientRect().height);
+  check(plansTouch>=44,"Demo: pestañas de plan tienen 44px táctiles");
+  await page.evaluate(async()=>{const{applyTheme}=await import("./js/theme.js");applyTheme("light");});
+  check(await page.locator('[data-demo-theme="light"]').getAttribute("aria-pressed")==="true",
+    "Demo: selector día se sincroniza con tema global");
+  await page.evaluate(async()=>{const{applyTheme}=await import("./js/theme.js");applyTheme("dark");});
+  check(await page.locator('[data-demo-theme="dark"]').getAttribute("aria-pressed")==="true",
+    "Demo: selector noche se sincroniza con tema global");
+  await noOverflow(page,"Demo interactiva desktop");
   await page.locator("#luxe-nav-entrar").click();
   await page.waitForSelector("#entry-go",{state:"visible",timeout:20000});
   check(await page.locator("#entry-go").isVisible(),"puerta afiliado visible");
