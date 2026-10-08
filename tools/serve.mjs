@@ -15,15 +15,30 @@
 // En Vercel eso lo resuelve solo la convención api/.
 // ============================================================
 import { createServer } from "node:http";
-import { createReadStream, statSync } from "node:fs";
-import { extname, join, normalize, resolve } from "node:path";
+import { createReadStream, realpathSync, statSync } from "node:fs";
+import { extname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import coachHandler from "../api/coach.js";
 import imageHandler from "../api/image.js";
 
 const ROOT = resolve(join(fileURLToPath(import.meta.url), "..", ".."));
+const REAL_ROOT = realpathSync(ROOT);
 const PORT = Number(process.env.PORT || 8080);
-const HOST = "0.0.0.0";
+// Por defecto, la vista local solo escucha en el propio dispositivo.
+// Para probar en una red de confianza: BAYONA_HOST=0.0.0.0 npm start
+const HOST = process.env.BAYONA_HOST || "127.0.0.1";
+
+const STATIC_ROOT_FILES = new Set([
+  "index.html", "sw.js", "manifest.webmanifest", "robots.txt", "sitemap.xml",
+  "icon-192.png", "icon-512.png", "icon-maskable-512.png", "BAYONA-preview.html",
+]);
+const STATIC_DIRECTORIES = new Set(["css", "js", "fonts", "media", "vendor", "trainingym", "ml", "mobile"]);
+function publicFile(relativePath){
+  if(!relativePath || relativePath===".." || relativePath.startsWith(`..${sep}`) || isAbsolute(relativePath))return false;
+  const parts=relativePath.split(sep);
+  if(parts.some((part)=>!part || part.startsWith(".")))return false;
+  return parts.length===1 ? STATIC_ROOT_FILES.has(parts[0]) : STATIC_DIRECTORIES.has(parts[0]);
+}
 
 /** Rutas que no son ficheros estáticos. Se comparan por prefijo para
  *  que las comprobaciones de salud (/api/meal-image/health) lleguen también. */
@@ -57,7 +72,9 @@ const MIME = {
 };
 
 const server = createServer((req, res) => {
-  const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
+  let url;
+  try { url = new URL(req.url, "http://localhost"); }
+  catch { res.statusCode=400; return res.end("Solicitud inválida"); }
   const pathname = url.pathname;
 
   // ---- el coach y las imágenes viven aquí, no en el disco ----
@@ -76,26 +93,35 @@ const server = createServer((req, res) => {
     return;
   }
 
-  let path = decodeURIComponent(pathname);
-  if (path.endsWith("/")) path += "index.html";
+  let path;
+  try { path=decodeURIComponent(pathname); }
+  catch { res.statusCode=400; return res.end("Ruta inválida"); }
+  if(path.includes("\\") || path.includes("\0")){
+    res.statusCode=403; return res.end("Prohibido");
+  }
+  if(path.endsWith("/"))path+="index.html";
 
-  // nunca salir del directorio del proyecto
-  const target = join(ROOT, normalize(path).replace(/^(\.\.[/\\])+/, ""));
-  if (!target.startsWith(ROOT)) {
-    res.statusCode = 403;
-    return res.end("Prohibido");
+  // Lista positiva: jamás exponer .env, .git, API fuente ni carpetas internas.
+  const target=resolve(ROOT,"."+path);
+  if(!publicFile(relative(ROOT,target))){
+    res.statusCode=403;return res.end("Prohibido");
   }
 
-  let stat;
-  try { stat = statSync(target); } catch { stat = null; }
-  if (!stat || stat.isDirectory()) return notFound(res);
+  let stat,actual;
+  try { actual=realpathSync(target);stat=statSync(actual); }
+  catch { return notFound(res); }
+  // Tampoco permitir symlinks que escapen o apunten a un archivo reservado.
+  if(!publicFile(relative(REAL_ROOT,actual))){
+    res.statusCode=403;return res.end("Prohibido");
+  }
+  if(!stat.isFile())return notFound(res);
 
   res.statusCode = 200;
   res.setHeader("content-type", MIME[extname(target).toLowerCase()] || "application/octet-stream");
   res.setHeader("content-length", stat.size);
   // el service worker no debe quedar cacheado en el navegador
   if (target.endsWith("sw.js")) res.setHeader("cache-control", "no-cache");
-  createReadStream(target).pipe(res);
+  createReadStream(actual).pipe(res);
 });
 
 server.listen(PORT, HOST, () => {
