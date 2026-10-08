@@ -4,6 +4,18 @@
 import { currentSession } from "./sync/supabase.js";
 
 let installed=false;
+const TELEMETRY_CONSENT_KEY="bayona.telemetry.optin.v1";
+export function telemetryEnabled(){
+  try {
+    return globalThis.localStorage?.getItem(TELEMETRY_CONSENT_KEY)==="true"
+      && globalThis.navigator?.doNotTrack!=="1";
+  } catch { return false; }
+}
+export function setTelemetryEnabled(enabled){
+  try { globalThis.localStorage?.setItem(TELEMETRY_CONSENT_KEY,enabled?"true":"false"); }
+  catch { return false; }
+  return telemetryEnabled();
+}
 const release=()=>String(globalThis.window?.BAYONA_RELEASE||document.documentElement?.dataset?.release||"web").slice(0,80);
 
 function safeDetails(input={}){
@@ -18,7 +30,8 @@ function safeDetails(input={}){
 }
 
 export async function captureTelemetry(kind,details={},severity="info"){
-  if(typeof navigator!=="undefined"&&navigator.doNotTrack==="1")return false;
+  // Telemetría desactivada por defecto. Requiere elección expresa en Más.
+  if(!telemetryEnabled())return false;
   const token=currentSession()?.access_token;
   const body={
     kind,severity,

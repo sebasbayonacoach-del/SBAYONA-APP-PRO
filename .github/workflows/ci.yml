@@ -36,22 +36,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Ejecutar tests Node nativos
-        run: |
-          set -euo pipefail
-          shopt -s nullglob
-          tests=(tests/*.mjs)
-          if [ ${#tests[@]} -eq 0 ]; then
-            echo "No hay tests/*.mjs."
-            exit 1
-          fi
-          status=0
-          for t in "${tests[@]}"; do
-            echo "::group::node $t"
-            node "$t" || status=1
-            echo "::endgroup::"
-          done
-          exit $status
+      - name: Ejecutar batería de contratos y golden biomecánica
+        run: node tests/run.mjs
 
   build-check:
     name: build-check (index.html → recursos existentes)
