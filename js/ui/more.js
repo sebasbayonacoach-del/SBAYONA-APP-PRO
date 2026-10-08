@@ -16,6 +16,7 @@ import { currentSession, isConfigured } from "../sync/supabase.js";
 import { installState, requestInstall, onInstallState } from "../pwa.js";
 import { openAccount } from "../sync/account.js";
 import { showDayRecap } from "./cinematics.js";
+import { renderProductionControls } from "./production.js";
 
 BUILDERS.more = (body) => {
   body = body || $("#drawer-body");
@@ -69,9 +70,11 @@ BUILDERS.more = (body) => {
     <div class="sub">CORE avanzado, plan adaptativo, macrociclo profesional, analítica profunda, nutrición avanzada, recuperación, contador de reps con cámara.<br>
     <b>PAGAR NO COMPRA NIVEL:</b> no compra fuerza, récords ni disciplina. Compra herramientas, personalización, analítica y acompañamiento.</div>`));
   body.appendChild(el("div", "card", `
-    <div class="card-row"><h4>ÉLITE</h4><span class="pill">PRÓXIMAMENTE</span></div>
+    <div class="card-row"><h4>ÉLITE</h4><span class="pill">ACCESO PREMIUM</span></div>
     <div class="sub">Todo lo de PRO + acompañamiento humano, revisiones y servicios premium.<br>
-    <em>La facturación requiere backend: esta versión local no procesa pagos ni habla de planes como si estuvieran activos.</em></div>`));
+    <em>El acceso de pago solo se considera activo después de verificación del servidor.</em></div>`));
+
+  renderProductionControls(body);
 
   // ---------- CUENTA / NUBE ----------
   body.appendChild(el("div", "sec-label", "CUENTA"));
