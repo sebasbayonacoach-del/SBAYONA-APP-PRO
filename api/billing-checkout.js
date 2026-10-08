@@ -2,6 +2,7 @@ import {
   applyCors, clientIp, json, rateLimited, readJson, sameOrigin, verifySupabaseUser,
 } from "./_security.js";
 import { PAID_PLANS, priceForPlan, stripeConfig, stripeRequest } from "./_billing.js";
+import { serverRolloutAllowed } from "./_rollout.js";
 
 function appOrigin(req){
   const env=String(process.env.BAYONA_PUBLIC_URL||"").trim();
@@ -29,6 +30,9 @@ export default async function handler(req,res){
   try{body=await readJson(req,8*1024);}catch{return json(res,400,{ok:false,error:"invalid_request"});}
   const plan=String(body.plan||"").toLowerCase();
   if(!PAID_PLANS.includes(plan))return json(res,400,{ok:false,error:"invalid_plan"});
+  if(!(await serverRolloutAllowed("billing_checkout",auth.user.id,plan))){
+    return json(res,403,{ok:false,error:"feature_not_enabled"});
+  }
 
   const cfg=stripeConfig();
   const price=priceForPlan(plan);
