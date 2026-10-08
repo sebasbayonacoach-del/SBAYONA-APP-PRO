@@ -36,6 +36,9 @@ import {
   derivacionATexto, toolSchema, normalizeToolCall, buildSystemPrompt, trimHistory,
 } from "../js/coach/ai-core.js";
 import { protegerDialogo } from "../js/seguridad-guion.js";
+import {
+  applyCors, securityHeaders, rateLimited, clientIp, readJson, verifySupabaseUser,
+} from "./_security.js";
 
 const OPENAI_URL = process.env.BAYONA_COACH_UPSTREAM || "https://api.openai.com/v1/chat/completions";
 const API_KEY = process.env.BAYONA_COACH_API_KEY || process.env.OPENAI_API_KEY;
@@ -43,41 +46,21 @@ const MODEL = process.env.BAYONA_COACH_MODEL || "gpt-4o-mini";
 const MAX_HISTORY = 6;
 const BODY_LIMIT = 24 * 1024;
 
-/* ---------- rate limit en memoria (por IP) ---------- */
-const hits = new Map();
-function rateLimited(ip, max = 30, windowMs = 60_000) {
-  const now = Date.now();
-  const rec = hits.get(ip) || { n: 0, t0: now };
-  if (now - rec.t0 > windowMs) { rec.n = 0; rec.t0 = now; }
-  rec.n += 1;
-  hits.set(ip, rec);
-  if (hits.size > 5000) hits.clear();
-  return rec.n > max;
-}
-
-/* ---------- CORS ---------- */
-function cors(res) {
-  res.setHeader("access-control-allow-origin", "*");
-  res.setHeader("access-control-allow-headers", "content-type");
-  res.setHeader("access-control-allow-methods", "GET,POST,OPTIONS");
-  res.setHeader("access-control-max-age", "86400");
-}
-
+/* ---------- respuesta + SSE ---------- */
 const json = (res, code, obj) => {
-  cors(res);
+  securityHeaders(res);
   res.statusCode = code;
   res.setHeader("content-type", "application/json; charset=utf-8");
   res.end(JSON.stringify(obj));
 };
 
-/* ---------- SSE ---------- */
 function openSse(res) {
-  cors(res);
+  securityHeaders(res);
   res.statusCode = 200;
   res.setHeader("content-type", "text/event-stream; charset=utf-8");
   res.setHeader("cache-control", "no-cache, no-transform");
   res.setHeader("connection", "keep-alive");
-  res.setHeader("x-accel-buffering", "no"); // nginx: no bufferear
+  res.setHeader("x-accel-buffering", "no");
   res.flushHeaders?.();
 }
 const sse = (res, ev) => res.write(`data: ${JSON.stringify(ev)}\n\n`);
@@ -86,24 +69,9 @@ const sseEnd = (res) => {
   res.end();
 };
 
-/* ---------- cuerpo ---------- */
-function readBody(req) {
-  return new Promise((resolve, reject) => {
-    let raw = "";
-    req.on("data", (c) => {
-      raw += c;
-      if (raw.length > BODY_LIMIT) { reject(new Error("cuerpo demasiado grande")); req.destroy(); }
-    });
-    req.on("end", () => {
-      try { resolve(raw ? JSON.parse(raw) : {}); } catch (e) { reject(e); }
-    });
-    req.on("error", reject);
-  });
-}
-
 /* ---------- handler (compatible Vercel y Node puro) ---------- */
 export default async function handler(req, res) {
-  cors(res);
+  if (!applyCors(req, res)) return json(res, 403, { ok: false, error: "origen no permitido" });
   if (req.method === "OPTIONS") { res.statusCode = 204; return res.end(); }
 
   // health: la app lo llama para saber si la IA está montada
@@ -118,7 +86,7 @@ export default async function handler(req, res) {
   if (req.method !== "POST") return json(res, 405, { ok: false, error: "método no permitido" });
 
   let body;
-  try { body = await readBody(req); }
+  try { body = await readJson(req, BODY_LIMIT); }
   catch { return json(res, 400, { ok: false, error: "petición inválida" }); }
 
   const message = String(body.message || "").slice(0, 4000).trim();
@@ -138,8 +106,17 @@ export default async function handler(req, res) {
     return json(res, 503, { ok: false, error: "coach sin configurar", fallback: "local" });
   }
 
-  const ip = req.headers["x-forwarded-for"]?.split(",")[0]?.trim() || req.socket?.remoteAddress || "?";
-  if (rateLimited(ip)) return json(res, 429, { ok: false, error: "demasiadas peticiones, espera un momento" });
+  // En producción, la IA cloud requiere una sesión BAYONA válida.
+  // Se puede desactivar explícitamente solo para entornos de desarrollo.
+  if (process.env.BAYONA_COACH_REQUIRE_AUTH !== "0") {
+    const auth = await verifySupabaseUser(req);
+    if (!auth.ok) return json(res, auth.status, { ok: false, error: "sesión requerida", fallback: "local" });
+  }
+
+  const ip = clientIp(req);
+  if (rateLimited(`coach:${ip}`, { max: 30, windowMs: 60_000 })) {
+    return json(res, 429, { ok: false, error: "demasiadas peticiones, espera un momento" });
+  }
 
   const history = trimHistory(body.history, MAX_HISTORY).map((m) => ({
     role: m.role,

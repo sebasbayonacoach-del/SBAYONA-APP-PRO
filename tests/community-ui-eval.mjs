@@ -59,6 +59,9 @@ ok(css.includes("@media(max-width:520px)"),"Comunidad contempla móvil");
 
 ok(sw.includes("./js/community.js")&&sw.includes("./js/ui/community.js"),"Comunidad funciona offline");
 ok(sw.includes("./js/sync/community.js"),"cliente cloud Community está precacheado");
-ok(/CACHE = "bayona-shell-v43"/.test(sw),"shell PWA subió a v43");
+{
+  const version=Number((sw.match(/bayona-shell-v(\d+)/)||[])[1]||0);
+  ok(version>=43,`shell PWA conserva Community (v${version} >= v43)`);
+}
 
 console.log(`\n📊 RESULTADO: ${pass} pass · 0 fail\n`);

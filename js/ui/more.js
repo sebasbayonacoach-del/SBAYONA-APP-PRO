@@ -16,6 +16,8 @@ import { currentSession, isConfigured } from "../sync/supabase.js";
 import { installState, requestInstall, onInstallState } from "../pwa.js";
 import { openAccount } from "../sync/account.js";
 import { showDayRecap } from "./cinematics.js";
+import { renderProductionControls } from "./production.js";
+import { telemetryEnabled, setTelemetryEnabled } from "../observability.js";
 
 BUILDERS.more = (body) => {
   body = body || $("#drawer-body");
@@ -36,7 +38,7 @@ BUILDERS.more = (body) => {
 
   // ---------- RESUMEN DEL DÍA ----------
   body.appendChild(el("div", "sec-label", "MUNDOS Y HERRAMIENTAS"));
-  const wgrid = el("div", "opt-row");
+  const wgrid = el("div", "more-tools");
   [
     ["profile", "EDITAR MI PERFIL"], ["rhythm", "MI RITMO Y CICLO"],
     ["training", "ENTRENAMIENTO"], ["nutrition", "NUTRICIÓN"], ["recovery", "RECUPERACIÓN"],
@@ -69,9 +71,11 @@ BUILDERS.more = (body) => {
     <div class="sub">CORE avanzado, plan adaptativo, macrociclo profesional, analítica profunda, nutrición avanzada, recuperación, contador de reps con cámara.<br>
     <b>PAGAR NO COMPRA NIVEL:</b> no compra fuerza, récords ni disciplina. Compra herramientas, personalización, analítica y acompañamiento.</div>`));
   body.appendChild(el("div", "card", `
-    <div class="card-row"><h4>ÉLITE</h4><span class="pill">PRÓXIMAMENTE</span></div>
+    <div class="card-row"><h4>ÉLITE</h4><span class="pill">ACCESO PREMIUM</span></div>
     <div class="sub">Todo lo de PRO + acompañamiento humano, revisiones y servicios premium.<br>
-    <em>La facturación requiere backend: esta versión local no procesa pagos ni habla de planes como si estuvieran activos.</em></div>`));
+    <em>El acceso de pago solo se considera activo después de verificación del servidor.</em></div>`));
+
+  renderProductionControls(body);
 
   // ---------- CUENTA / NUBE ----------
   body.appendChild(el("div", "sec-label", "CUENTA"));
@@ -192,6 +196,23 @@ BUILDERS.more = (body) => {
     b.onclick = () => { revokeConsent(b.dataset.revoke); toast("CONSENTIMIENTO REVOCADO", `${domainName(b.dataset.revoke)}: revocado.`); BUILDERS.more(); };
   });
   body.appendChild(pv);
+
+  const diagnostics=el("div","card");
+  diagnostics.appendChild(el("h4","","DIAGNÓSTICO TÉCNICO · OPCIONAL"));
+  diagnostics.appendChild(el("div","sub",
+    "Desactivado por defecto. Solo comparte códigos de error y métricas básicas; " +
+    "no envía mensajes, notas de salud, fotos ni vídeos. Puedes retirar el permiso cuando quieras."));
+  const diagToggle=el("button","btn btn-block",
+    telemetryEnabled()?"DESACTIVAR DIAGNÓSTICOS":"ACTIVAR DIAGNÓSTICOS");
+  diagToggle.type="button";
+  diagToggle.style.marginTop="10px";
+  diagToggle.onclick=()=>{
+    const enabled=setTelemetryEnabled(!telemetryEnabled());
+    diagToggle.textContent=enabled?"DESACTIVAR DIAGNÓSTICOS":"ACTIVAR DIAGNÓSTICOS";
+    toast("PRIVACIDAD",enabled?"Diagnóstico técnico activado.":"Diagnóstico técnico desactivado.");
+  };
+  diagnostics.appendChild(diagToggle);
+  body.appendChild(diagnostics);
 
   const notes = S.voiceNotes();
   const vn = el("div", "card");

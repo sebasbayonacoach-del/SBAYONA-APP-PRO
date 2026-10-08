@@ -379,6 +379,10 @@ console.log("\n— el proxy no pierde herramientas al cerrar —");
   };
 
   const keyPrevio = process.env.OPENAI_API_KEY;
+  const authPrevio = process.env.BAYONA_COACH_REQUIRE_AUTH;
+  // The upstream mock does not provide a Supabase session; only unit tests
+  // disable the production authentication gate.
+  process.env.BAYONA_COACH_REQUIRE_AUTH = "0";
   process.env.OPENAI_API_KEY = "clave-de-prueba";
   // instancia fresca: el módulo lee la clave al cargarse
   const { default: fresh } = await import(`../api/coach.js?k=${Date.now()}`);
@@ -403,6 +407,8 @@ console.log("\n— el proxy no pierde herramientas al cerrar —");
   globalThis.fetch = real;
   if (keyPrevio === undefined) delete process.env.OPENAI_API_KEY;
   else process.env.OPENAI_API_KEY = keyPrevio;
+  if (authPrevio === undefined) delete process.env.BAYONA_COACH_REQUIRE_AUTH;
+  else process.env.BAYONA_COACH_REQUIRE_AUTH = authPrevio;
 
   const eventos = res.body.split("\n").filter(Boolean)
     .map((l) => l.slice(5).trim())

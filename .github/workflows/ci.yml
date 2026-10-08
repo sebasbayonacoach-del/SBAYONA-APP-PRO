@@ -1,106 +1,62 @@
-# BAYONA — CI (Sprint 0, tarea 0.2)
-# Filosofía: el juego funciona SIEMPRE. La CI se refuerza incrementalmente:
-# mientras no exista tooling (ESLint/tsc/Vitest), lint+typecheck no bloquean.
-# Al activar el tooling en app/src (Vite+TS), poner continue-on-error: false.
 name: ci
 
 on:
   push:
-    branches: [main]
+    branches: [main, bayona-one/visual-integration-v6]
   pull_request:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  lint-typecheck:
-    name: lint + typecheck
+  static-checks:
+    name: static security + syntax + performance
     runs-on: ubuntu-latest
-    continue-on-error: true   # TODO(Sprint 0.2): false cuando existan ESLint + tsconfig
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: package.json
-
-      - name: Instalar dependencias (si hay package.json)
-        run: |
-          if [ -f package.json ]; then npm ci || npm install; else echo "Sin package.json todavía — se omite."; fi
-
-      - name: Lint (ESLint + Prettier)
-        run: |
-          if [ -f package.json ] && npm run | grep -q " lint"; then
-            npm run lint
-          else
-            echo "Lint no configurado todavía (continue-on-error)."
-          fi
-
-      - name: Typecheck (tsc --noEmit, strict)
-        run: |
-          if [ -f tsconfig.json ]; then
-            npx tsc --noEmit
-          else
-            echo "Typecheck no configurado todavía (continue-on-error)."
-          fi
+      - name: Production verifier
+        run: node tools/verify-production.mjs
+      - name: Performance budgets
+        run: node tools/perf-budget.mjs
 
   test:
     name: test (tests/*.mjs)
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: package.json
-
-      - name: Ejecutar tests Node nativos
-        run: |
-          shopt -s nullglob
-          tests=(tests/*.mjs)
-          if [ ${#tests[@]} -eq 0 ]; then
-            echo "No hay tests/*.mjs todavía — OK."
-            exit 0
-          fi
-          status=0
-          for t in "${tests[@]}"; do
-            echo "::group::node $t"
-            node "$t" || status=1
-            echo "::endgroup::"
-          done
-          exit $status
+      - name: Ejecutar batería de contratos y golden biomecánica
+        run: node tests/run.mjs
 
   build-check:
     name: build-check (index.html → recursos existentes)
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-
-      - name: Validar que index.html solo referencia archivos existentes
+      - name: Validar referencias locales de index.html
         run: |
           set -euo pipefail
           html=index.html
-          if [ ! -f "$html" ]; then
-            echo "No existe $html — nada que validar."
-            exit 0
-          fi
-          # Extrae referencias locales (src/href) ignorando URLs externas, data:, #anchors y plantillas
-          refs=$(grep -oE '(src|href)="[^"]+"' "$html" \
-            | sed -E 's/^(src|href)="//; s/"$//' \
-            | grep -vE '^(https?:|//|data:|#|mailto:|tel:|\{)' || true)
+          test -f "$html"
+          refs=$(grep -oE '(src|href)="[^"]+"' "$html"             | sed -E 's/^(src|href)="//; s/"$//'             | grep -vE '^(https?:|//|data:|#|mailto:|tel:|\{)' || true)
           missing=0
           for r in $refs; do
-            path=${r%%[\?\#]*}   # quita query string / fragmento
+            path=${r%%[\?\#]*}
             if [ ! -e "$path" ]; then
               echo "::error file=$html::Referencia rota: $r"
               missing=1
-            else
-              echo "OK  $path"
             fi
           done
-          if [ "$missing" -ne 0 ]; then
-            echo "❌ index.html referencia archivos que no existen."
-            exit 1
-          fi
-          echo "✅ Todas las referencias locales de index.html existen."
+          test "$missing" -eq 0

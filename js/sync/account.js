@@ -26,6 +26,7 @@ import {
   signOut, ensureFreshSession, refreshUser, completeAuthFromHash,
   select, insert, upsert, remove,
 } from "./supabase.js";
+import { captureTelemetry } from "../observability.js";
 
 TITLES.account = ["CUENTA", "BAYONA EN LA NUBE · TUS DATOS, TUS REGLAS"];
 
@@ -191,6 +192,11 @@ export async function syncNow(opts = {}) {
   } catch (e) {
     STATE.error = e.message || String(e);
     outbox.registrarFallo(STATE.error);
+    captureTelemetry("sync_error", {
+      code: "sync_failed",
+      online: typeof navigator === "undefined" ? true : navigator.onLine !== false,
+      status: e?.status ? String(e.status) : "unknown",
+    }, "warn").catch(() => {});
     if (!opts.silent) toast("SIN PA CONEXIÓN", `No se pudo sincronizar: ${STATE.error}`, "danger");
   } finally {
     STATE.busy = false;

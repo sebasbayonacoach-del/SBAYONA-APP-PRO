@@ -29,7 +29,7 @@ export function contenidoLanding(t) {
       proof: [
         { n: "100%", k: t("luxe.proof.local") },
         { n: "0", k: t("luxe.proof.nube") },
-        { n: "44", k: t("luxe.proof.suites") },
+        { n: "✓", k: t("luxe.proof.suites") },
       ],
       visualHint: t("luxe.hero.visualHint"),
     },

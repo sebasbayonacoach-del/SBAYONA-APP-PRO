@@ -29,6 +29,12 @@ export function loadApp() {
     // En local puede no existir como runtime JS; el cliente tiene fallback seguro.
     try { await import("/api/runtime-config.js"); } catch { /* local/offline */ }
 
+    // Observabilidad técnica: códigos y métricas, nunca contenido del usuario.
+    try {
+      const { installObservability } = await import("./observability.js");
+      installObservability();
+    } catch { /* observabilidad nunca bloquea la app */ }
+
     // main crea estado, mundo, UI y cablea la puerta de entrada.
     await import("./main.js");
 

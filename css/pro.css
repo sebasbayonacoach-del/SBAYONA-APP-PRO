@@ -7103,3 +7103,59 @@ html[data-surface-theme="light"] body.fitness-app .community-cloud{background-co
   .community-referral-accept{grid-template-columns:1fr}
   .community-referral-accept>strong,.community-referral-accept>p{grid-column:1}
 }
+
+
+/* SPRINT 12 · Más: herramientas táctiles legibles en móvil y escritorio.
+   Se separan de .opt-row (chips de elección) para evitar botones pegados. */
+body.fitness-app .more-tools {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 10px 0 18px;
+}
+body.fitness-app .more-tools .opt {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-width: 0;
+  min-height: 46px;
+  height: auto;
+  padding: 11px 13px;
+  border: 1px solid var(--fit-line);
+  border-radius: 5px;
+  background: var(--fit-surface);
+  color: var(--fit-ink);
+  font: 650 12px/1.35 var(--sans);
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .18s ease, background .18s ease;
+}
+body.fitness-app .more-tools .opt:hover,
+body.fitness-app .more-tools .opt:focus-visible {
+  border-color: var(--brand-orange, #f4a261);
+  background: color-mix(in srgb, var(--brand-orange, #f4a261) 9%, var(--fit-surface));
+}
+body.fitness-app .more-tools .opt:focus-visible {
+  outline: 2px solid var(--brand-orange, #f4a261);
+  outline-offset: 2px;
+}
+@media (max-width: 350px) {
+  body.fitness-app .more-tools { grid-template-columns: 1fr; }
+}
+
+
+/* SPRINT 12 · Corrección AA de contraste en tarjetas del modo día.
+   Había tarjetas heredadas con fondo negro y texto oscuro en Más. */
+html[data-surface-theme="light"] body.fitness-app #drawer-body .card {
+  background-color: #ffffff !important;
+  color: #151515 !important;
+  border-color: #d9d1ca !important;
+}
+html[data-surface-theme="light"] body.fitness-app #drawer-body .card .kv .k {
+  color: #525252 !important;
+}
+html[data-surface-theme="light"] body.fitness-app #drawer-body .card .kv .v {
+  color: #151515 !important;
+}
