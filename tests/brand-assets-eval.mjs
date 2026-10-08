@@ -28,5 +28,5 @@ ok(sw.includes('"./css/bayona-brand.css"'),"estilos de marca disponibles offline
 for(const file of ["montserrat-normal-800-latin.woff2","inter-normal-400-latin.woff2","dm-mono-normal-400-latin.woff2"]){
   ok(sw.includes('"./fonts/'+file+'"'),"fuente esencial precacheada: "+file);
 }
-ok(/bayona-shell-v55/.test(sw),"service worker versionado tras el cambio visual");
+ok(/bayona-shell-v56/.test(sw),"service worker versionado tras el cambio visual");
 console.log("\nRESULTADO: "+pass+" verificaciones · 0 fallos\n");

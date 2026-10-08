@@ -1144,6 +1144,7 @@ const es = {
   "luxe.footer.nota": "Cuidar a tu personaje es cuidarte a ti. Todo lo que ves está en español y corre en tu dispositivo.",
   "luxe.load.loading": "CARGANDO BAYONA…",
   "luxe.load.error": "No se pudo cargar la app completa. Revisa la conexión y vuelve a intentarlo.",
+  "luxe.load.retry": "Reintentar",
 };
 
 const CATS = { "es-ES": es };

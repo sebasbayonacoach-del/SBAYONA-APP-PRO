@@ -2,6 +2,7 @@ import { chromium } from "playwright";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { runSessionLifecycle } from "./session-lifecycle-browser.mjs";
 import { runExperience } from "./experience-role-browser.mjs";
+import { runFirstPaint } from "./firstpaint-browser.mjs";
 
 const base=process.env.BAYONA_E2E_URL||"http://127.0.0.1:8094/?nosw=1";
 const coachUrl=new URL(base);coachUrl.searchParams.set("source","pwa");
@@ -30,6 +31,7 @@ async function noOverflow(page,label){
 
 const browser=await chromium.launch({headless:true,...(process.env.BAYONA_E2E_CHROME?{executablePath:process.env.BAYONA_E2E_CHROME,args:["--no-sandbox"]}:{})});
 try{
+  await runFirstPaint(browser,base,check,errors);
   // ---------- affiliate ----------
   const ctx=await browser.newContext({viewport:{width:1440,height:960},reducedMotion:"reduce"});
   const page=await ctx.newPage();

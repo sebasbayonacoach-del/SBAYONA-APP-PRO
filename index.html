@@ -39,6 +39,34 @@
 <link rel="stylesheet" href="css/bayona-brand.css?v=5" />
 <link rel="stylesheet" href="css/bayona-experience.css?v=2" />
 <link rel="stylesheet" href="css/bayona-single-entry.css?v=1" />
+<!-- Critical first paint: no mostrar el selector ni el HUD antes de decidir
+     entre portada pública, acceso de cliente y entrada de usuario recurrente. -->
+<style>
+  body.bayona-boot-pending #entry,
+  body.bayona-boot-pending #hud,
+  body.bayona-boot-pending #drawer,
+  body.bayona-boot-pending #scene-wrap { display:none!important; }
+  #bayona-initial-load {display:none}
+  body.bayona-boot-pending #bayona-initial-load {
+    position:fixed;inset:0;z-index:900;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:15px;
+    background:#050505;color:#f6eee4;
+    font-family:Inter,Arial,sans-serif;
+  }
+  html[data-surface-theme="light"] body.bayona-boot-pending #bayona-initial-load {
+    background:#f7f3ec;color:#171512;
+  }
+  #bayona-initial-load .bayona-loading-brand {
+    font-size:19px;font-weight:850;letter-spacing:.18em;
+  }
+  #bayona-initial-load .bayona-loading-brand b {color:#f4a261;font-weight:900}
+  #bayona-initial-load small {font-size:12px;letter-spacing:.045em;opacity:.7}
+  #bayona-initial-load button {
+    margin-top:12px;padding:11px 20px;min-height:44px;
+    background:#f4a261;color:#17110b;border:0;border-radius:10px;
+    font-size:13px;font-weight:800;cursor:pointer;
+  }
+</style>
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="icon" href="icon-192.png" sizes="192x192" type="image/png" />
 <link rel="apple-touch-icon" href="icon-192.png" />
@@ -71,7 +99,11 @@
   { "imports": { "three": "./vendor/three.module.js" } }
 </script>
 </head>
-<body class="fitness-app">
+<body class="fitness-app bayona-boot-pending">
+  <div id="bayona-initial-load" role="status" aria-live="polite" aria-label="Cargando BAYONA">
+    <span class="bayona-loading-brand"><b aria-hidden="true">◈</b> BAYONA</span>
+    <small id="bayona-initial-load-label">Preparando tu experiencia…</small>
+  </div>
   <!-- ============ WORLD LAYER (3D) ============ -->
   <div id="scene-wrap">
     <canvas id="scene"></canvas>
