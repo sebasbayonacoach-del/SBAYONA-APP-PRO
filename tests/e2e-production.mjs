@@ -1,6 +1,7 @@
 import { chromium } from "playwright";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { runSessionLifecycle } from "./session-lifecycle-browser.mjs";
+import { runExperience } from "./experience-role-browser.mjs";
 
 const base=process.env.BAYONA_E2E_URL||"http://127.0.0.1:8094/?nosw=1";
 const coachUrl=new URL(base);coachUrl.searchParams.set("source","pwa");
@@ -116,6 +117,12 @@ try{
   check(await page.locator("#ob-done").isVisible(),"onboarding de nueve etapas completo");
   await page.locator("#ob-done").click();
   await page.waitForFunction(()=>!document.querySelector("#ob-layer"),null,{timeout:15000});
+  await openSection(page,"hoy");
+  const firstClientFocus=await page.locator("#drawer-body .fit-today-hero").first().evaluate(el=>{
+    const identity=el.parentElement.querySelector(".fit-hub-identity");
+    return Boolean(identity && (el.compareDocumentPosition(identity)&Node.DOCUMENT_POSITION_FOLLOWING));
+  });
+  check(firstClientFocus,"Cliente: sesión de hoy aparece antes de métricas secundarias");
   const completedProfile=await page.evaluate(async()=>{
     const {S}=await import("./js/state.js");return S.data.profile;
   });
@@ -335,6 +342,7 @@ try{
   check(await cp.locator("html").getAttribute("data-surface-theme")==="dark","Coach conserva modo noche");
   await coach.close();
 
+  await runExperience(browser,base,check,errors);
   await runSessionLifecycle(browser,base,check,errors);
   check(errors.filter((x)=>x.startsWith("PAGE ")||x.startsWith("COACH ")).length===0,"sin pageerror en recorridos");
 } catch(e){

@@ -26,7 +26,7 @@ ok(landing.includes("setAttribute(\"aria-pressed\""),"estado de interacción acc
 ok(landing.includes("bayona:theme"),"sincroniza el cambio externo de apariencia");
 ok(css.includes("luxe-demo-sample")&&css.includes("min-height: 44px"),"identificación visual y controles de 44px");
 ok(index.includes("css/luxe.css?v=2"),"cambio de CSS invalida caché");
-ok(sw.includes("bayona-shell-v53"),"service worker invalida shell");
+ok(sw.includes("bayona-shell-v54"),"service worker invalida shell");
 for(const plan of PLANS){
  for(const [feature,required] of Object.entries(FEATURES)){
   const expected=PLAN_META[plan].rank>=PLAN_META[required].rank;

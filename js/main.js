@@ -13,6 +13,7 @@ import { installDashboard, dashboardActivo } from "./ui/dashboard.js";
 import { installOneShell } from "./ui/one.js";
 import { ITEMS } from "./data.js";
 import { t } from "./i18n.js";
+import { applyTheme } from "./theme.js";
 import { loadFaceImage } from "./face.js";
 
 function boot() {
@@ -123,6 +124,33 @@ function wireEntry(world) {
     }
   }
 
+  // El selector aplica realmente los dos temas a la app, no solo a la portada.
+  const themeButtons=[...entry.querySelectorAll("[data-entry-theme]")];
+  const syncEntryTheme=()=>{
+    const active=document.documentElement.dataset.surfaceTheme||"dark";
+    themeButtons.forEach(button=>button.setAttribute("aria-pressed",String(button.dataset.entryTheme===active)));
+  };
+  themeButtons.forEach(button=>button.addEventListener("click",()=>applyTheme(button.dataset.entryTheme)));
+  addEventListener("bayona:theme",syncEntryTheme);
+  syncEntryTheme();
+
+  // Tema siempre disponible también dentro del dashboard Cliente y Coach.
+  const appThemeToggle=document.getElementById("global-theme-switch");
+  const appThemeLabel=document.getElementById("global-theme-label");
+  const syncAppTheme=()=>{
+    const isLight=document.documentElement.dataset.surfaceTheme==="light";
+    if(appThemeToggle){
+      appThemeToggle.setAttribute("aria-label",isLight?"Activar modo noche":"Activar modo día");
+      appThemeToggle.setAttribute("aria-pressed",String(isLight));
+    }
+    if(appThemeLabel)appThemeLabel.textContent=isLight?"NOCHE":"DÍA";
+  };
+  appThemeToggle?.addEventListener("click",()=>applyTheme(
+    document.documentElement.dataset.surfaceTheme==="light"?"dark":"light"
+  ));
+  addEventListener("bayona:theme",syncAppTheme);
+  syncAppTheme();
+
   const roleKey = "bayona.entry.role.v1";
   const storedRole = localStorage.getItem(roleKey);
   const lastRole = storedRole || "affiliate";
@@ -150,7 +178,8 @@ function wireEntry(world) {
 
   const syncChrome = (m) => {
     if (modeName) modeName.textContent = m === "noche" ? "NOCHE" : "CINE";
-    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", "#050505");
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content",
+      document.documentElement.dataset.surfaceTheme === "light" ? "#F7F3EC" : "#050505");
   };
   syncChrome("noche");
 

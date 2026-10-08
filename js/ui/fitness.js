@@ -167,7 +167,7 @@ function hubCoach(snapshot){
   const coach=COACH_LABELS[pulse.coach]||'Sebastián';
   card.innerHTML=`
     <div class="fit-hub-coach-mark">${esc(coach.slice(0,1))}</div>
-    <div><small>${esc(t('hub.coach.kicker'))}</small><strong>${esc(coach)}</strong><p>${esc(t(pulse.key))}</p></div>
+    <div><small>${esc(t('hub.coach.kicker',{coach}))}</small><strong>${esc(coach)}</strong><p>${esc(t(pulse.key))}</p></div>
     <button type="button">${esc(t('hub.coach.open'))}</button>`;
   card.querySelector('button').onclick=()=>openSection('core');
   return card;
@@ -300,7 +300,9 @@ function home(body){
         ? UI.actions.openTraining?.(w.id)
         : openSection('training');
   hero.append(action);
-  body.append(hero);
+  // El próximo entrenamiento es la primera acción que necesita el cliente.
+  // No hacemos que recorra cinco paneles antes de encontrar su plan.
+  body.insertBefore(hero, body.querySelector('.fit-hub-identity'));
 
   body.append(el('div','fit-house-title','<span>TU ESPACIO</span><small>Todo lo demás vive aquí.</small>'));
   const rooms=el('section','fit-room-grid');
