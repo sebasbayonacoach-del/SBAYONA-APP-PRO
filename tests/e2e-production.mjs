@@ -82,7 +82,43 @@ try{
   check(!focus.body&&focus.visible,"teclado obtiene foco visible");
 
   await page.setViewportSize({width:390,height:844});
+  // Sprint 15A: assertions against the rendered result, not CSS source text.
+  const readable = async(selector) => page.locator(selector).first()
+    .evaluate(node => parseFloat(getComputedStyle(node).fontSize))
+    .catch(() => 0);
+  const touchHeight = async(selector) => page.locator(selector).first()
+    .evaluate(node => node.getBoundingClientRect().height)
+    .catch(() => 0);
+
+  await openSection(page,"hoy");
+  check(await readable(".fit-hub-economy small") >= 11,"Inicio: KPI legible en móvil");
+  check(await touchHeight(".fit-hub-spatial button") >= 44,"Inicio: navegación de foco táctil");
+  await noOverflow(page,"Inicio premium móvil");
+
+  await openSection(page,"training");
+  check(await readable(".proplayer-gateway-stats small") >= 11,"Entrenar: biblioteca sin microtexto");
+  check(await touchHeight(".cal-head .cal-nav button") >= 44,"Entrenar: calendario accesible al tacto");
+  await noOverflow(page,"Entrenar premium móvil");
+
+  await openSection(page,"nutrition");
+  check(await readable(".nut-now-grid small") >= 11,"Nutrición: estadísticas legibles");
+  check(await touchHeight(".nut-feeling-btn") >= 44,"Nutrición: selección táctil");
+  await noOverflow(page,"Nutrición premium móvil");
+
+  await openSection(page,"recovery");
+  check(await readable(".recovery-hero-grid small") >= 11,"Recuperación: KPIs legibles");
+
+  await openSection(page,"progress");
+  check(await readable(".progress-hero-stats small") >= 11,"Progreso: KPIs legibles");
+
+  await openSection(page,"plan");
+  check(await readable(".entitlement-kicker") >= 11,"Plan: precio y preview identificables");
+  check(await touchHeight(".entitlement-compare") >= 44,"Plan: comparar membresías es táctil");
+
   await openSection(page,"social");
+  check(await readable(".community-kpis small") >= 11,"Comunidad: indicadores legibles");
+  check(await readable(".community-empty") >= 11,"Comunidad: estado vacío legible");
+
   await noOverflow(page,"Comunidad móvil");
   await openSection(page,"more");
   await noOverflow(page,"Más móvil");
