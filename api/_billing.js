@@ -12,10 +12,14 @@ export function stripeConfig(){
     performance:String(process.env.STRIPE_PRICE_PERFORMANCE||""),
     elite:String(process.env.STRIPE_PRICE_ELITE||""),
   };
+  // Beta fail-closed: claves live no se aceptan hasta habilitación explícita
+  // posterior a las pruebas y aprobación humana de la puesta en producción.
+  const mode=secretKey.startsWith("sk_test_")?"test":secretKey.startsWith("sk_live_")?"live":"none";
+  const enabled=mode==="test"||(mode==="live"&&process.env.BAYONA_ALLOW_LIVE_PAYMENTS==="YES_I_APPROVE");
   return {
-    secretKey,webhookSecret,prices,
-    checkoutConfigured:Boolean(secretKey&&Object.values(prices).some(Boolean)),
-    webhookConfigured:Boolean(secretKey&&webhookSecret),
+    secretKey,webhookSecret,prices,mode,
+    checkoutConfigured:Boolean(enabled&&Object.values(prices).some(Boolean)),
+    webhookConfigured:Boolean(enabled&&webhookSecret),
   };
 }
 

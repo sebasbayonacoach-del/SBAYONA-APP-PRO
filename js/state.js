@@ -251,6 +251,7 @@ export const S = {
     d.profile.weeklyAvailability.difficultDays = Array.isArray(d.profile.weeklyAvailability.difficultDays) ? d.profile.weeklyAvailability.difficultDays : [];
     d.profile.preferredSessionRange = Array.isArray(d.profile.preferredSessionRange) ? d.profile.preferredSessionRange : [];
     d.profile.membershipPlan = typeof d.profile.membershipPlan === "string" ? d.profile.membershipPlan : "free";
+    d.profile.membershipIntent = typeof d.profile.membershipIntent === "string" ? d.profile.membershipIntent : "free";
     d.profile.coachPersona = typeof d.profile.coachPersona === "string" ? d.profile.coachPersona : "sebastian";
     d.profile.notificationPreferences = {
       morning:false, preTraining:false, evening:false, asked:false,

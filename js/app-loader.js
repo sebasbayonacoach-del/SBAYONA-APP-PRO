@@ -45,6 +45,7 @@ export function loadApp() {
       import("./health/healthUI.js"),
       import("./bridge.js"),
       import("./onboarding.js"),
+      import("./billing.js"), // observa login/logout y valida plan con servidor
       import("./diary/sessionDiary.js"),
     ]);
 
