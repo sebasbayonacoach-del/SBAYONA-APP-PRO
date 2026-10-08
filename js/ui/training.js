@@ -353,12 +353,21 @@ function weekCalendar() {
   wrap.appendChild(el("div", "week-phase", `<span>VOLUMEN OBJETIVO <b>${Math.round(phase.vol * 100)}%</b></span><span>INTENSIDAD <b>${Math.round(phase.int * 100)}% 1RM</b></span>`));
 
   const grid = el("div", "cal-grid");
+  grid.setAttribute("role", "group");
+  grid.setAttribute("aria-label", t("training.weekAria"));
   const dayPlan = MACRO_DAYPLAN();
   dayPlan.forEach((wid, i) => {
     const date = new Date(monday); date.setDate(monday.getDate() + i);
     const done = S.data.today.trained && i === dow && week === S.data.plan.week;
     const isToday = date.toDateString() === today.toDateString();
-    const cell = el("div", `cal-day ${isToday ? "today" : ""} ${done ? "done" : ""} ${wid ? "" : "rest"}`);
+    // Un botón real permite navegar con Tab / Enter / Espacio y expresa la selección.
+    const cell = el("button", `cal-day ${isToday ? "today" : ""} ${done ? "done" : ""} ${wid ? "" : "rest"}`);
+    cell.type = "button";
+    cell.setAttribute("aria-label", t("training.dayAria", {
+      date: date.toLocaleDateString("es-ES", {weekday:"long",day:"numeric",month:"long"}),
+      session: wid ? WORKOUTS[wid].name : t("training.restDay"),
+    }));
+    cell.setAttribute("aria-pressed", "false");
     cell.innerHTML = `
       <div class="cal-d-name">${DAY_NAMES()[i]}</div>
       <div class="cal-d-num">${date.getDate()}</div>
@@ -368,6 +377,7 @@ function weekCalendar() {
     grid.appendChild(cell);
   });
   wrap.appendChild(grid);
+  wrap.appendChild(elT("p", "cal-scroll-hint", t("training.weekScrollHint")));
   const detail = el("div", "cal-detail");
   detail.id = "cal-detail";
   wrap.appendChild(detail);
@@ -381,7 +391,10 @@ const MACRO_DAYPLAN = () => S.weekPlan();
 const DAY_NAMES = () => MACRO.dayNames;
 
 function showDayDetail(wid, date, cell, grid) {
-  if (grid) grid.querySelectorAll(".cal-day").forEach((c) => c.classList.remove("sel"));
+  if (grid) grid.querySelectorAll(".cal-day").forEach((c) => {
+    c.classList.remove("sel");
+    c.setAttribute("aria-pressed", String(c === cell));
+  });
   if (cell) cell.classList.add("sel");
   const box = document.getElementById("cal-detail");
   if (!box) return;

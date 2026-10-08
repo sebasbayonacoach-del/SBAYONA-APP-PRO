@@ -901,3 +901,325 @@ html[data-surface-theme="light"] body.fitness-app.one-coach-mode #drawer-body :i
 body.fitness-app.one-coach-mode #drawer-body .one-priority-index {
   font-size: 11px !important;
 }
+
+/* ===========================================================================
+   SPRINT 15C · ENTRENAR Y PROPLAYER — themed, accessible, no fake UI.
+   320 / 390 / 1440 px inspected in both available themes.
+   =========================================================================== */
+
+/* Day training used hard-coded white headings from a previous dark design. */
+html[data-surface-theme="light"] body.fitness-app #drawer[data-section="training"] .today-recovery-card,
+html[data-surface-theme="light"] body.fitness-app #drawer[data-section="training"] .today-workout-card {
+  background: linear-gradient(120deg,rgba(244,162,97,.08),transparent 45%),#fffdf9 !important;
+  color: #171717 !important;
+  border-color: #d9c9b9 !important;
+  box-shadow: inset 3px 0 #9c4f1f;
+}
+html[data-surface-theme="light"] body.fitness-app #drawer[data-section="training"] :is(
+  .today-recovery-card,.today-workout-card
+) :is(h3,h4,strong) {
+  color: #171717 !important;
+}
+html[data-surface-theme="light"] body.fitness-app #drawer[data-section="training"] :is(
+  .today-recovery-card,.today-workout-card
+) :is(.sub,p,.fit-session-meta) {
+  color: #5d564f !important;
+}
+html[data-surface-theme="light"] body.fitness-app #drawer[data-section="training"] .proplayer-gateway {
+  background:
+    radial-gradient(circle at 88% 10%,rgba(244,162,97,.18),transparent 40%),
+    linear-gradient(155deg,#161718,#090b0c);
+  border-color: #7e5635 !important;
+}
+body.fitness-app #drawer[data-section="training"] .proplayer-gateway h3,
+html[data-surface-theme="light"] body.fitness-app #drawer[data-section="training"] .proplayer-gateway h3 {
+  color: #fffaf3 !important;
+  font-size: clamp(17px,2vw,23px);
+  line-height: 1.2;
+}
+body.fitness-app #drawer[data-section="training"] .proplayer-gateway p {
+  color: #d1cbc5 !important;
+  font-size: 12px;
+}
+body.fitness-app #drawer[data-section="training"] .proplayer-gateway-stats small {
+  color: #e3d6c9 !important;
+  font-size: 11px !important;
+  line-height: 1.25 !important;
+  letter-spacing: .05em;
+}
+body.fitness-app #drawer[data-section="training"] .proplayer-gateway-stats strong {
+  color: #ffc08a;
+  font-size: clamp(17px,2vw,23px);
+  line-height: 1.12;
+}
+body.fitness-app #drawer[data-section="training"] .proplayer-gateway .proplayer-kicker {
+  color: #ffc08a;
+  font-size: 11px;
+  letter-spacing: .12em;
+}
+body.fitness-app #drawer[data-section="training"] .proplayer-gateway {
+  gap: 14px;
+  padding: clamp(15px,2vw,24px);
+}
+body.fitness-app #drawer[data-section="training"] .proplayer-gateway > button {
+  min-height: 44px;
+}
+@media(max-width:620px) {
+  body.fitness-app #drawer[data-section="training"] .proplayer-gateway p {
+    display: block !important;
+    font-size: 12px;
+    line-height: 1.45;
+  }
+  body.fitness-app #drawer[data-section="training"] .proplayer-gateway-stats {
+    gap: 8px;
+  }
+}
+
+/* Week navigation: seven true buttons, accessible labels and keyboard support.
+   Small screens show 2.5 days at a readable size, with native horizontal
+   scrolling rather than seven compressed, illegible tiles. */
+body.fitness-app #drawer[data-section="training"] .week-phase {
+  gap: 14px;
+  font-size: 12px;
+  line-height: 1.4;
+  letter-spacing: .04em;
+}
+body.fitness-app #drawer[data-section="training"] .week-phase > span {
+  min-width: 0;
+}
+body.fitness-app #drawer[data-section="training"] .cal-head {
+  align-items: center;
+  gap: 12px;
+}
+body.fitness-app #drawer[data-section="training"] .cal-head .cal-title {
+  font-size: 13px;
+  line-height: 1.3;
+  letter-spacing: .06em;
+}
+body.fitness-app #drawer[data-section="training"] .cal-day {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  box-sizing: border-box;
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 12px;
+  text-align: left;
+  border-radius: 8px;
+  min-width: 0;
+  min-height: 112px;
+  scroll-snap-align: start;
+  cursor: pointer;
+}
+body.fitness-app #drawer[data-section="training"] .cal-day :is(.cal-d-name,.cal-d-tag) {
+  font-size: 11px !important;
+  line-height: 1.3;
+  letter-spacing: .025em;
+  overflow-wrap: anywhere;
+}
+body.fitness-app #drawer[data-section="training"] .cal-day .cal-d-num {
+  font-size: 17px;
+}
+body.fitness-app #drawer[data-section="training"] .cal-day:focus-visible {
+  outline: 2px solid var(--orange) !important;
+  outline-offset: 2px;
+}
+body.fitness-app #drawer[data-section="training"] .cal-day.sel {
+  color: #f9f7f3;
+  background: #29221c;
+  border-color: var(--orange);
+}
+body.fitness-app #drawer[data-section="training"] .cal-day.rest {
+  opacity: .77;
+}
+html[data-surface-theme="light"] body.fitness-app #drawer[data-section="training"] .cal-day.sel {
+  color: #161616;
+  background: #f5e6d6;
+  border-color: #9c4f1f;
+}
+html[data-surface-theme="light"] body.fitness-app #drawer[data-section="training"] .cal-day.sel .cal-d-tag {
+  color: #9c4f1f;
+}
+body.fitness-app #drawer[data-section="training"] .cal-scroll-hint {
+  display: none;
+  margin: 8px 0 0;
+  color: var(--mute);
+  font: 600 11px/1.4 var(--sans);
+}
+@media (max-width:760px) {
+  body.fitness-app #drawer[data-section="training"] .cal-grid {
+    grid-template-columns: repeat(7,minmax(112px,1fr));
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--hair-strong) transparent;
+    padding: 3px 2px 9px;
+    gap: 8px;
+  }
+  body.fitness-app #drawer[data-section="training"] .cal-scroll-hint {
+    display: block;
+  }
+  body.fitness-app #drawer[data-section="training"] .week-phase {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+}
+
+/* PROPLAYER library: dark immersive in night mode; editorial ivory/light
+   in day mode. Actual art panels remain dark in both themes, but with an
+   intentionally readable caption, not accidental black-on-black text. */
+body.fitness-app #drawer[data-section="library"] .proplayer-library {
+  color: var(--ink);
+}
+body.fitness-app #drawer[data-section="library"] .proplayer-hero .proplayer-title {
+  color: #fffaf3;
+  line-height: 1.02;
+  text-wrap: balance;
+}
+body.fitness-app #drawer[data-section="library"] .proplayer-hero .proplayer-kicker {
+  color: #ffc08a;
+  font-size: 11px;
+  line-height: 1.3;
+}
+body.fitness-app #drawer[data-section="library"] .proplayer-lead {
+  font-size: 14px;
+  line-height: 1.6;
+}
+body.fitness-app #drawer[data-section="library"] :is(
+  .proplayer-metric-label,.proplayer-metric-note,.proplayer-field label,
+  .proplayer-state,.proplayer-count,.proplayer-art span,
+  .proplayer-chip,.proplayer-card-bottom,.proplayer-disclaimer,
+  .proplayer-filter-copy,.proplayer-page-label
+) {
+  font-size: 11px;
+  line-height: 1.4;
+}
+body.fitness-app #drawer[data-section="library"] .proplayer-card h3 {
+  font-size: 15px;
+  line-height: 1.35;
+}
+body.fitness-app #drawer[data-section="library"] .proplayer-field :is(input,select) {
+  min-height: 44px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+body.fitness-app #drawer[data-section="library"] :is(
+  .proplayer-hero button,.proplayer-filter-actions button,
+  .proplayer-pager button,.proplayer-card-bottom button
+) {
+  min-height: 44px;
+  font-size: 12px;
+  line-height: 1.25;
+}
+body.fitness-app #drawer[data-section="library"] .proplayer-hero button {
+  flex: 0 1 auto;
+}
+body.fitness-app #drawer[data-section="library"] .proplayer-card-bottom {
+  flex-wrap: wrap;
+}
+body.fitness-app #drawer[data-section="library"] .proplayer-card-bottom button {
+  flex: 0 0 auto;
+}
+body.fitness-app #drawer[data-section="library"] .proplayer-pager {
+  flex-wrap: wrap;
+}
+
+/* Keep ink / surface pairing deliberate on light theme. */
+html[data-surface-theme="light"] body.fitness-app #drawer[data-section="library"] :is(
+  .proplayer-metric,.proplayer-filters,.proplayer-card,
+  .proplayer-empty,.proplayer-loading,.proplayer-load-error
+) {
+  color: #171717;
+  background: #fffdf9;
+  border-color: #d8d0c4;
+}
+html[data-surface-theme="light"] body.fitness-app #drawer[data-section="library"] .proplayer-metric-value,
+html[data-surface-theme="light"] body.fitness-app #drawer[data-section="library"] .proplayer-card h3 {
+  color: #1c1a18;
+}
+html[data-surface-theme="light"] body.fitness-app #drawer[data-section="library"] :is(
+  .proplayer-metric-label,.proplayer-metric-note,.proplayer-filter-copy,
+  .proplayer-field label,.proplayer-count,.proplayer-page-label,
+  .proplayer-state,.proplayer-card-bottom,.proplayer-chip
+) {
+  color: #625b53;
+}
+html[data-surface-theme="light"] body.fitness-app #drawer[data-section="library"] .proplayer-field :is(input,select) {
+  color: #181818 !important;
+  background: #fffaf4 !important;
+  border-color: #c8bfb3 !important;
+}
+html[data-surface-theme="light"] body.fitness-app #drawer[data-section="library"] .proplayer-card-bottom {
+  border-color: #d8d0c4;
+}
+html[data-surface-theme="light"] body.fitness-app #drawer[data-section="library"] .proplayer-chip {
+  background: #f5eee5;
+  border-color: #d5c5b3;
+}
+html[data-surface-theme="light"] body.fitness-app #drawer[data-section="library"] .proplayer-chip.amber {
+  color: #853f17;
+  background: #ffe9d5;
+}
+html[data-surface-theme="light"] body.fitness-app #drawer[data-section="library"] .proplayer-card-bottom button:not(:disabled) {
+  color: #151515;
+  background: #f4a261;
+}
+html[data-surface-theme="light"] body.fitness-app #drawer[data-section="library"] .proplayer-card-bottom button:disabled {
+  color: #57514b;
+  background: #eae4db;
+  opacity: 1;
+}
+html[data-surface-theme="light"] body.fitness-app #drawer[data-section="library"] .proplayer-disclaimer {
+  color: #5d4b3b;
+  background: #fff2e4;
+  border-color: #e3ccad;
+}
+html[data-surface-theme="light"] body.fitness-app #drawer[data-section="library"] .proplayer-hero {
+  border-color: #a48569;
+}
+/* Technical media art deliberately retains a charcoal backdrop. */
+body.fitness-app #drawer[data-section="library"] .proplayer-art {
+  background: linear-gradient(135deg,#262626,#101213);
+}
+body.fitness-app #drawer[data-section="library"] .proplayer-art :is(span,strong) {
+  color: #ffc08a;
+}
+
+@media(max-width:760px) {
+  body.fitness-app #drawer[data-section="library"] .proplayer-actions {
+    display: grid;
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 9px;
+  }
+  body.fitness-app #drawer[data-section="library"] .proplayer-actions button {
+    width: 100%;
+    min-width: 0;
+    white-space: normal;
+    min-height: 44px;
+  }
+  body.fitness-app #drawer[data-section="library"] .proplayer-hero {
+    min-height: 230px;
+    padding: 22px 17px;
+  }
+  body.fitness-app #drawer[data-section="library"] .proplayer-title {
+    font-size: clamp(29px,7.4vw,38px);
+  }
+  body.fitness-app #drawer[data-section="library"] .proplayer-metric {
+    padding: 14px;
+    min-height: 104px;
+  }
+  body.fitness-app #drawer[data-section="library"] .proplayer-filters {
+    padding: 16px;
+  }
+}
+@media(max-width:360px) {
+  body.fitness-app #drawer[data-section="library"] .proplayer-metrics {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+  }
+}
+
+html[data-surface-theme="light"] body.fitness-app #drawer[data-section="library"] .proplayer-field input::placeholder {
+  color: #676059;
+  opacity: 1;
+}
