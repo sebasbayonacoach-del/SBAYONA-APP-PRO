@@ -526,3 +526,240 @@ html[data-surface-theme="light"] body.fitness-app {
   --one-coach-ink: #0a0a0a;
   --one-coach-muted: #6f6963;
 }
+
+
+/* ===========================================================================
+   SPRINT 15A · LEGIBILIDAD Y CONTROL TÁCTIL
+   Alcance: vista real de Inicio, Entrenar, Nutrición, Recuperación, Progreso,
+   Plan y Comunidad. Capa aditiva sobre el sistema visual de marca.
+   La escala original 6-8px no era apropiada para lectura en móvil.
+   =========================================================================== */
+
+body.fitness-app #drawer-body :is(
+  .fit-hub-identity,.fit-hub-review,.fit-hub-coach,.fit-hub-journey,
+  .fit-hub-history,.fit-hub-spatial,.fit-hub-secondary,.fit-live-phase,
+  .fit-session-close,.fit-session-summary,
+  .nut-now,.nut-feeling,.nut-week,.nut-goals-head,.nut-preferences,
+  .nut-plan-row,.nut-now-grid,.nut-pref-grid,
+  .progress-hero,.progress-period,.progress-strength,.progress-measure-summary,
+  .progress-photos-summary,.progress-advanced,.progress-hero-stats,
+  .progress-period-grid,.progress-strength-grid,.progress-measure-grid,
+  .recovery-hero,.recovery-readiness,.recovery-sleep-card,.recovery-today,
+  .recovery-trend,.recovery-wearable,.recovery-pauses,.recovery-practices,
+  .recovery-activities,.recovery-note,.recovery-night,.recovery-mobility,
+  .recovery-freeze,.recovery-hero-grid,.recovery-trend-grid,
+  .community-hero,.community-kpis,.community-feed,.community-store-intro,
+  .community-store-grid,.community-physical,.community-referrals,.community-ledger
+) small {
+  font-size: 11px !important;
+  line-height: 1.35 !important;
+  letter-spacing: .035em;
+}
+
+body.fitness-app #drawer-body :is(
+  .proplayer-kicker,.proplayer-gateway-stats small,.proplayer-metric-label,
+  .proplayer-metric-note,.cal-d-name,.cal-d-tag,
+  .entitlement-kicker,.entitlement-status small,
+  .community-empty,.community-post-head > small,.community-verified
+) {
+  font-size: 11px !important;
+  line-height: 1.4 !important;
+}
+
+body.fitness-app #drawer-body :is(
+  .nut-now-copy,.progress-hero-copy,.recovery-hero-copy,.community-hero
+) p,
+body.fitness-app #drawer-body :is(
+  .recovery-readiness,.recovery-sleep-card,.recovery-wearable,
+  .recovery-mobility,.recovery-freeze,.recovery-health-warning
+) > p {
+  font-size: 13px !important;
+  line-height: 1.55 !important;
+}
+body.fitness-app #drawer-body :is(
+  .fit-hub-person,.fit-hub-coach,.nut-now-grid,.nut-pref-grid,
+  .nut-goals-head,.nut-plan-row,.progress-review,.progress-section-head,
+  .progress-strength-grid,.recovery-hero-grid,.recovery-section-head,
+  .recovery-readiness-parts,.community-store-intro,.community-post-main,
+  .community-reward,.community-physical-item
+) :is(span,em,p) {
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+body.fitness-app #drawer-body :is(
+  .nut-now-grid,.nut-pref-grid,.progress-hero-stats,.progress-period-grid,
+  .progress-strength-grid,.progress-measure-grid,.recovery-hero-grid,
+  .recovery-trend-grid,.community-kpis
+) article {
+  gap: 8px;
+  padding: 12px;
+  min-width: 0;
+}
+body.fitness-app #drawer-body :is(
+  .nut-now-grid,.progress-hero-stats,.progress-period-grid,
+  .recovery-hero-grid,.community-kpis
+) article { min-height: 88px; }
+
+body.fitness-app #drawer-body :is(
+  .progress-section-head,.recovery-section-head
+) :is(em,b),
+body.fitness-app #drawer-body :is(
+  .progress-period-grid,.progress-measure-grid,.progress-strength-grid
+) :is(em,span),
+body.fitness-app #drawer-body :is(
+  .recovery-hero-grid,.recovery-readiness-parts,.recovery-sleep-timeline,
+  .recovery-trend-grid,.recovery-wearable-grid
+) :is(span,em),
+body.fitness-app #drawer-body :is(
+  .nut-now-grid,.nut-day,.nut-pref-grid,.nut-plan-row,.community-store-intro,
+  .community-post-main,.community-physical-item
+) :is(span,em) {
+  font-size: 11px !important;
+  line-height: 1.4 !important;
+}
+body.fitness-app #drawer-body :is(
+  .fit-hub-spatial,.fit-hub-journey-head,.fit-hub-history
+) > span,
+body.fitness-app #drawer-body .fit-hub-xp b {
+  font-size: 11px !important;
+  line-height: 1.35 !important;
+}
+body.fitness-app #drawer-body .fit-hub-coach p {
+  font-size: 12px;
+  line-height: 1.45;
+}
+body.fitness-app #drawer-body .fit-hub-step :is(strong,small),
+body.fitness-app #drawer-body .fit-hub-quick :is(strong,small) {
+  font-size: 11px !important;
+  line-height: 1.35 !important;
+}
+
+body.fitness-app #drawer-body :is(
+  .btn,.nut-feeling-btn,.nut-goals-head button,.nut-plan-row button,
+  .community-actions button,.community-reactions button,
+  .fit-hub-spatial button,.fit-hub-review button,.fit-hub-coach button,
+  .fit-hub-step,.fit-hub-quick,.recovery-actions button,
+  .recovery-sleep-actions button
+) {
+  font-size: 12px !important;
+  line-height: 1.3 !important;
+  min-height: 40px;
+}
+body.fitness-app #drawer-body .fit-hub-step {
+  min-height: 80px;
+  grid-template-columns: 30px minmax(0,1fr);
+}
+body.fitness-app #drawer-body .fit-hub-step > i {
+  width: 28px;
+  height: 28px;
+  font-size: 11px;
+}
+body.fitness-app #drawer-body .nut-feeling > div,
+body.fitness-app #drawer-body .nut-week-grid {
+  scrollbar-width: thin;
+  scrollbar-color: var(--hair-strong) transparent;
+  padding-bottom: 7px;
+  scroll-snap-type: x proximity;
+}
+body.fitness-app #drawer-body :is(.nut-feeling-btn,.nut-day) {
+  scroll-snap-align: start;
+}
+body.fitness-app #drawer-body .nut-feeling-btn {
+  min-width: 96px;
+  padding-inline: 12px;
+  white-space: nowrap;
+}
+body.fitness-app #drawer-body .nut-day {
+  min-height: 106px;
+  gap: 8px;
+  padding: 10px;
+}
+body.fitness-app #drawer-body .nut-day :is(small,span,em) {
+  font-size: 11px !important;
+  line-height: 1.3;
+}
+body.fitness-app #drawer-body .nut-now-grid strong {
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+body.fitness-app #drawer-body :is(
+  .nut-now,.progress-hero,.recovery-hero,.community-hero
+) {
+  gap: 16px;
+  padding: clamp(14px,2.2vw,24px);
+}
+body.fitness-app #drawer-body :is(
+  .nut-now,.progress-hero,.recovery-hero,.community-hero
+) h3 {
+  text-wrap: balance;
+  line-height: 1.12;
+}
+
+body.fitness-app #drawer-body .entitlement-preview-list span {
+  font-size: 12px !important;
+  line-height: 1.45;
+}
+body.fitness-app #drawer-body .entitlement-preview > p {
+  font-size: 14px !important;
+}
+body.fitness-app #drawer-body .entitlement-compare {
+  min-height: 44px !important;
+  font-size: 12px !important;
+}
+body.fitness-app #drawer-body .cal-head .cal-nav button {
+  min-width: 40px;
+  min-height: 40px;
+}
+body.fitness-app #drawer-body .cal-d-num { font-size: 16px; }
+body.fitness-app #drawer-body :is(button,a,input,select,textarea):focus-visible {
+  outline: 2px solid var(--orange-on-dark,#ffc08a) !important;
+  outline-offset: 3px !important;
+}
+html[data-surface-theme="light"] body.fitness-app #drawer-body :is(
+  button,a,input,select,textarea
+):focus-visible {
+  outline-color: var(--orange-on-light,#9c4f1f) !important;
+}
+
+@media (max-width:760px) {
+  body.fitness-app #drawer-body :is(
+    .btn,.nut-feeling-btn,.nut-goals-head button,.nut-plan-row button,
+    .community-actions button,.community-reactions button,
+    .fit-hub-spatial button,.fit-hub-review button,.fit-hub-coach button,
+    .fit-hub-step,.recovery-actions button,.recovery-sleep-actions button
+  ) { min-height: 44px; }
+
+  body.fitness-app #drawer-body .fit-hub-spatial > div {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3,minmax(0,1fr));
+    gap: 8px;
+    overflow: visible;
+    padding-bottom: 0;
+  }
+  body.fitness-app #drawer-body .fit-hub-spatial button {
+    width: 100%;
+    min-width: 0;
+    white-space: normal;
+    min-height: 44px;
+    padding-inline: 7px;
+  }
+  body.fitness-app #drawer-body .nut-week-grid {
+    grid-template-columns: repeat(7,minmax(106px,1fr));
+    overflow-x: auto;
+  }
+  body.fitness-app #drawer-body .cal-head .cal-nav button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+@media (max-width:390px) {
+  body.fitness-app #drawer-body :is(
+    .progress-hero-stats,.progress-period-grid,
+    .recovery-hero-grid,.nut-now-grid
+  ) {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+  }
+}
