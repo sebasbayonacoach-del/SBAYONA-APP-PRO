@@ -16,14 +16,9 @@
 //   o guárdalo en localStorage["bayona.supabase.v1"] como JSON.
 // ============================================================
 
-const INLINE = {
-  // Backend BAYONA compartido con la web: una cuenta, una identidad.
-  url: "https://otkhozruunouimjgvvun.supabase.co",
-  // Clave public/publishable de Supabase: está diseñada para vivir en el cliente.
-  anonKey: "sb_publishable_ZaBblymo5dRZZJNNOAUXeA_T2-7S1to",
-};
+const INLINE = { url: "", anonKey: "" };
 
-/** resuelve la configuración: inline → window → localStorage */
+/** resuelve la configuración: runtime del servidor → localStorage de desarrollo → inline vacío */
 export function supabaseConfig() {
   const fromWindow = (typeof window !== "undefined" && window.BAYONA_SUPABASE) || null;
   let fromStore = null;
@@ -31,10 +26,8 @@ export function supabaseConfig() {
     fromStore = JSON.parse(localStorage.getItem("bayona.supabase.v1") || "null");
   } catch (e) { /* sin almacenamiento */ }
 
-  const url = INLINE.url || fromWindow?.url || fromStore?.url;
-  const anonKey = (INLINE.anonKey && !INLINE.anonKey.startsWith("PEGA_AQUI"))
-    ? INLINE.anonKey
-    : (fromWindow?.anonKey || fromStore?.anonKey);
+  const url = fromWindow?.url || fromStore?.url || INLINE.url;
+  const anonKey = fromWindow?.anonKey || fromStore?.anonKey || INLINE.anonKey;
 
   return { url, anonKey, ready: Boolean(url && anonKey) };
 }
