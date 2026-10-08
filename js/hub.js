@@ -1,3 +1,4 @@
+import { planFromProfile } from "./entitlements.js";
 // BAYONA — Personal Hub domain model.
 // Datos reales primero: el Hub representa el estado; no inventa métricas.
 
@@ -82,7 +83,7 @@ export function hubSnapshot({ data = {}, level = null, rank = null, workout = nu
     name: profile.name && profile.name !== "TÚ" ? profile.name : null,
     face: profile.face || null,
     coachPersona: profile.coachPersona || "sebastian",
-    membershipPlan: profile.membershipPlan || "free",
+    membershipPlan: planFromProfile(profile),
     goal: profile.goalPrimary || profile.goal || null,
     level: Math.max(1,Number(lvl.lvl)||1),
     rank: rank || null,

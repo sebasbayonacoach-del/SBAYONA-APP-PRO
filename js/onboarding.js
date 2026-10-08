@@ -285,7 +285,7 @@ function view() {
     <div class="ob-stage">
       <div class="ob-kicker">TU ACCESO</div>
       <h2>Empieza donde tenga sentido.</h2>
-      <p>Lo bloqueado seguirá visible como preview. Siempre sabrás qué incluye el siguiente nivel antes de cambiar.</p>
+      <p>Indica el plan que te interesa. No se cobra ni se activa aquí: el acceso de pago requiere una suscripción verificada.</p>
       <div class="ob-plans" role="group" aria-label="${esc(t("onboarding.plan.aria"))}">
         ${PLANS.map((id)=>{
           const p=PLAN_META[id];
@@ -435,7 +435,9 @@ function render(box) {
       developmentProfile:a.age===null?null:{age:a.age,minor:a.minor,requiresGuardianReview:a.minor},
       physiologySex:st.physiologySex,
       coachPersona:st.coachPersona,
-      membershipPlan:st.membershipPlan,
+      // El plan elegido es intención, no una membresía pagada.
+      membershipIntent:st.membershipPlan,
+      membershipPlan:"free",
       onboardingVersion:3,
       onboardingCompletedAt:new Date().toISOString(),
     });

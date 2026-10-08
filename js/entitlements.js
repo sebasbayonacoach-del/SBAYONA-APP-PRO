@@ -99,6 +99,23 @@ export function planComparison() {
   }));
 }
 
-export function planFromProfile(profile) {
-  return normalizePlan(profile?.membershipPlan || profile?.plan || "free");
+// El perfil local solo expresa intención: nunca acredita pago.
+let verifiedEntitlement = { userId: null, plan: "free" };
+
+export function clearVerifiedEntitlement() {
+  verifiedEntitlement = { userId: null, plan: "free" };
+}
+
+export function acceptVerifiedEntitlement(userId, status) {
+  clearVerifiedEntitlement();
+  if (!userId || !status?.ok || !status?.active) return "free";
+  const plan = normalizePlan(status.plan);
+  if (plan === "free") return "free";
+  verifiedEntitlement = { userId: String(userId), plan };
+  return plan;
+}
+
+export function planFromProfile(_profile) {
+  // La autorización real de endpoints premium permanece en servidor/RLS.
+  return verifiedEntitlement.plan;
 }

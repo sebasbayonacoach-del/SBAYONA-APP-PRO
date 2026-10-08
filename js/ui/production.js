@@ -3,7 +3,7 @@
 
 import { S } from "../state.js";
 import { t, esc, fmtDate } from "../i18n.js";
-import { PLAN_META } from "../entitlements.js";
+import { PLAN_META, planFromProfile } from "../entitlements.js";
 import { billingStatus, hydrateBillingEntitlement, openBillingPortal, startCheckout } from "../billing.js";
 import { rolloutEnabled } from "../rollout.js";
 import { listCloudBackups, restoreCloudBackup, saveCloudBackup } from "../cloud-backup.js";
@@ -79,7 +79,7 @@ function renderCloudBackup(body){
   if(!currentSession())return;
 
   (async()=>{
-    const enabled=await rolloutEnabled("cloud_backup",{plan:S.data.profile.membershipPlan||"free"});
+    const enabled=await rolloutEnabled("cloud_backup",{plan:planFromProfile(S.data.profile)});
     if(!alive(card))return;
     if(!enabled){state.textContent=t("prod.backup.rollout");return;}
 

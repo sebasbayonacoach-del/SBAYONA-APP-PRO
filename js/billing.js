@@ -1,7 +1,8 @@
 // BAYONA — billing client
 // El navegador nunca decide que una suscripción está activa: pregunta al backend.
 
-import { currentSession } from "./sync/supabase.js";
+import { currentSession, currentUser, onAuth } from "./sync/supabase.js";
+import { acceptVerifiedEntitlement, clearVerifiedEntitlement } from "./entitlements.js";
 
 let cache={at:0,value:null};
 
@@ -52,7 +53,14 @@ export async function openBillingPortal(){
 }
 
 export async function hydrateBillingEntitlement(S,{force=false}={}){
+  const userId=currentUser()?.id||null;
   const status=await billingStatus({force});
+  // Evita que una respuesta lenta de otra cuenta desbloquee esta sesión.
+  if (!userId || currentUser()?.id!==userId || !currentSession()?.access_token) {
+    clearVerifiedEntitlement();
+    return status;
+  }
+  acceptVerifiedEntitlement(userId,status);
   if(!S?.data?.profile||!status.ok)return status;
   const currentSource=S.data.profile.membershipSource;
   if(status.active&&["raiz","performance","elite"].includes(status.plan)){
@@ -70,4 +78,25 @@ export async function hydrateBillingEntitlement(S,{force=false}={}){
   return status;
 }
 
-export function clearBillingCache(){cache={at:0,value:null};}
+export function clearBillingCache(){
+  cache={at:0,value:null};
+  clearVerifiedEntitlement();
+}
+
+// En login, logout, refresh o cambio de cuenta invalidamos la caché local.
+// Una sesión previa jamás transfiere privilegios a otra.
+onAuth(async(s)=>{
+  clearBillingCache();
+  if (!s?.access_token || !s?.user?.id) return;
+  try {
+    const { S } = await import("./state.js");
+    await hydrateBillingEntitlement(S,{force:true});
+  } catch { clearVerifiedEntitlement(); }
+});
+
+// Una sesión restaurada al refrescar el navegador también se valida.
+if(typeof window!=="undefined"&&currentSession()?.user?.id){
+  import("./state.js")
+    .then(({ S })=>hydrateBillingEntitlement(S,{force:true}))
+    .catch(()=>clearVerifiedEntitlement());
+}

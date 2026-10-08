@@ -58,14 +58,14 @@ language sql
 stable
 security definer
 set search_path=public
-as $
-  select exists (
-    select 1 from billing_subscriptions b
-    where b.user_id=p_user
+as $$
+  select p_user = auth.uid() and exists (
+    select 1 from public.billing_subscriptions b
+    where b.user_id=auth.uid()
       and b.status in ('active','trialing')
       and b.plan=any(p_plans)
   );
-$;
+$$;
 
 revoke all on function user_has_active_paid_plan(uuid,text[]) from public;
 grant execute on function user_has_active_paid_plan(uuid,text[]) to authenticated;

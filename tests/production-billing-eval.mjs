@@ -1,7 +1,7 @@
 import { strict as assert } from "node:assert";
 import { createHmac } from "node:crypto";
 import {
-  verifyStripeSignature,normalizeStripeSubscription,subscriptionActive,PAID_PLANS,
+  verifyStripeSignature,normalizeStripeSubscription,subscriptionActive,PAID_PLANS,stripeConfig,
 } from "../api/_billing.js";
 
 let pass=0;
@@ -33,5 +33,18 @@ ok(subscriptionActive(row),"active habilita entitlement");
 ok(subscriptionActive({...row,status:"trialing"}),"trialing habilita entitlement");
 ok(!subscriptionActive({...row,status:"past_due"}),"past_due no se presenta como activo");
 ok(normalizeStripeSubscription({id:"sub",status:"active",metadata:{plan:"elite"}})===null,"sin user_id no se fabrica entitlement");
+
+const previous={k:process.env.STRIPE_SECRET_KEY,w:process.env.STRIPE_WEBHOOK_SECRET,p:process.env.STRIPE_PRICE_RAIZ,a:process.env.BAYONA_ALLOW_LIVE_PAYMENTS};
+process.env.STRIPE_SECRET_KEY="sk_live_FAKE_DO_NOT_USE";
+process.env.STRIPE_WEBHOOK_SECRET="whsec_fake";
+process.env.STRIPE_PRICE_RAIZ="price_fake";
+delete process.env.BAYONA_ALLOW_LIVE_PAYMENTS;
+ok(!stripeConfig().checkoutConfigured&&!stripeConfig().webhookConfigured,"modo live bloqueado por defecto");
+process.env.STRIPE_SECRET_KEY="sk_test_FAKE_DO_NOT_USE";
+ok(stripeConfig().mode==="test"&&stripeConfig().checkoutConfigured,"modo de prueba habilitable al configurar precios");
+for(const [key,val] of Object.entries({
+  STRIPE_SECRET_KEY:previous.k,STRIPE_WEBHOOK_SECRET:previous.w,
+  STRIPE_PRICE_RAIZ:previous.p,BAYONA_ALLOW_LIVE_PAYMENTS:previous.a,
+})){if(val===undefined)delete process.env[key];else process.env[key]=val;}
 
 console.log(`\nRESULTADO: ${pass} pass · 0 fail\n`);
