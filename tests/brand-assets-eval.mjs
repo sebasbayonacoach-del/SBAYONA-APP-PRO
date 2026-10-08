@@ -23,10 +23,10 @@ for(const name of fonts){
   const size=statSync(join(root,"fonts",name)).size;
   ok(size>1000,"fuente referenciada presente: "+name);
 }
-ok(index.includes('href="css/bayona-brand.css?v=4"'),"hoja de marca enlazada en la app");
+ok(index.includes('href="css/bayona-brand.css?v=5"'),"hoja de marca enlazada en la app");
 ok(sw.includes('"./css/bayona-brand.css"'),"estilos de marca disponibles offline");
 for(const file of ["montserrat-normal-800-latin.woff2","inter-normal-400-latin.woff2","dm-mono-normal-400-latin.woff2"]){
   ok(sw.includes('"./fonts/'+file+'"'),"fuente esencial precacheada: "+file);
 }
-ok(/bayona-shell-v49/.test(sw),"service worker versionado tras el cambio visual");
+ok(/bayona-shell-v50/.test(sw),"service worker versionado tras el cambio visual");
 console.log("\nRESULTADO: "+pass+" verificaciones · 0 fallos\n");

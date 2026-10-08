@@ -107,6 +107,21 @@ try{
   await secondDay.focus(); await page.keyboard.press("Enter");
   check(await secondDay.getAttribute("aria-pressed")==="true","Entrenar: Enter selecciona la sesión");
   check(await page.locator("#cal-detail .card").count()>0,"Entrenar: el detalle de la sesión funciona");
+  const weekBefore=await page.locator(".cal-head .cal-title").innerText();
+  const dayBefore=await page.locator(".cal-grid button.cal-day").first().getAttribute("aria-label");
+  const prevWeek=page.locator(".cal-head .cal-nav button").first();
+  const nextWeek=page.locator(".cal-head .cal-nav button").last();
+  check(await prevWeek.isDisabled(),"Calendario: semana 1 no permite navegar a semana cero");
+  await nextWeek.click();
+  const weekAfter=await page.locator(".cal-head .cal-title").innerText();
+  const dayAfter=await page.locator(".cal-grid button.cal-day").first().getAttribute("aria-label");
+  check(weekAfter!==weekBefore&&dayAfter!==dayBefore,
+    "Calendario: semana siguiente cambia número y fechas de los siete días");
+  check(await page.locator('.cal-grid button.cal-day[aria-pressed="true"]').count()===1,
+    "Calendario: la semana avanzada selecciona un único día visible");
+  await page.locator(".cal-head .cal-nav button").first().click();
+  check((await page.locator(".cal-head .cal-title").innerText())===weekBefore,
+    "Calendario: semana anterior devuelve la fase de partida");
   await openSection(page,"library");
   await page.waitForSelector(".proplayer-card,.proplayer-load-error",{timeout:16000});
   check(await page.locator(".proplayer-card").count()>0,"PROPLAYER: biblioteca real disponible");

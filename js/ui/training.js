@@ -27,6 +27,7 @@ import {
   MAX_RECORDING_MS,
 } from "../media-vault.js";
 import { isGranted, setConsent } from "../consents.js";
+import { weekView, weekDayDate } from "../training-calendar.js";
 
 const EXACT_POSE = { squat: 1, bench: 1, ohp: 1, pullup: 1, row: 1, lunge: 1, curl: 1, plank: 1 };
 const AVATAR_ACTION = {
@@ -332,11 +333,12 @@ function openSessionExerciseDetail(e) {
 let calWeekOffset = 0;
 function weekCalendar() {
   const wrap = el("div");
-  const week = Math.min(MACRO_WEEKS(), S.data.plan.week + calWeekOffset);
-  const phase = S.phase();
-  const dow = (new Date().getDay() + 6) % 7;
+  const view = weekView(S.data.plan.week, calWeekOffset);
+  calWeekOffset = view.offset; // entre semana 1 y 24, nunca fuera del macrociclo
+  const week = view.week;
+  const phase = view.phase; // la fase corresponde a la semana que se ve
   const today = new Date();
-  const monday = new Date(today); monday.setDate(today.getDate() - dow + calWeekOffset * 7);
+  const dow = (today.getDay() + 6) % 7;
 
   const head = el("div", "cal-head");
   head.innerHTML = `<div class="cal-title">SEMANA ${esc(week)}/24 · ${esc(phase.name)}</div>`;
@@ -345,6 +347,8 @@ function weekCalendar() {
   const next = el("button", "", "→");
   prev.setAttribute("aria-label", "Semana anterior");
   next.setAttribute("aria-label", "Semana siguiente");
+  prev.disabled = !view.canPrevious;
+  next.disabled = !view.canNext;
   prev.addEventListener("click", () => { calWeekOffset--; openSection("training"); });
   next.addEventListener("click", () => { calWeekOffset++; openSection("training"); });
   nav.append(prev, next);
@@ -357,7 +361,7 @@ function weekCalendar() {
   grid.setAttribute("aria-label", t("training.weekAria"));
   const dayPlan = MACRO_DAYPLAN();
   dayPlan.forEach((wid, i) => {
-    const date = new Date(monday); date.setDate(monday.getDate() + i);
+    const date = weekDayDate(today, view.offset, i);
     const done = S.data.today.trained && i === dow && week === S.data.plan.week;
     const isToday = date.toDateString() === today.toDateString();
     // Un botón real permite navegar con Tab / Enter / Espacio y expresa la selección.
@@ -381,12 +385,15 @@ function weekCalendar() {
   const detail = el("div", "cal-detail");
   detail.id = "cal-detail";
   wrap.appendChild(detail);
-  setTimeout(() => showDayDetail(dayPlan[dow], today, null, grid), 0);
+  const previewDate = weekDayDate(today, view.offset, dow);
+  queueMicrotask(() => {
+    // No escribir el detalle de una vista que el usuario ya abandonó.
+    if (grid.isConnected) showDayDetail(dayPlan[dow], previewDate, grid.children[dow], grid);
+  });
   return wrap;
 }
 
-// acceso directo al ciclo de datos
-const MACRO_WEEKS = () => MACRO.totalWeeks;
+// Acceso directo al plan semanal guardado (no se modifica la programación).
 const MACRO_DAYPLAN = () => S.weekPlan();
 const DAY_NAMES = () => MACRO.dayNames;
 
