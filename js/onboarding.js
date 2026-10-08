@@ -78,7 +78,7 @@ const st = {
   sessionMinutes:"30",
   birthDate:"",
   physiologySex:"unspecified",
-  safety:Object.fromEntries(PAR_Q_ITEMS.map((x)=>[x.id,false])),
+  safety:Object.fromEntries(PAR_Q_ITEMS.map((x)=>[x.id,null])),
   coachPersona:"sebastian",
   membershipPlan:"free",
   experience:EXPERIENCE[1],
@@ -140,7 +140,18 @@ function ageInfo() {
 }
 
 function safetyResult() {
-  return scoreParQ(st.safety);
+  const result=scoreParQ(st.safety);
+  const answered=PAR_Q_ITEMS.filter((item)=>typeof st.safety[item.id]==="boolean").length;
+  const complete=answered===PAR_Q_ITEMS.length;
+  return {
+    ...result, answered, complete,
+    clearance:complete ? result.clearance
+      : result.redFlags.length ? "refer_required"
+      : result.ambers.length ? "conditional" : "pending",
+    note:complete ? result.note
+      : result.redFlags.length||result.ambers.length ? result.note
+      : "Responde las siete preguntas para que el cribado pueda evaluarse.",
+  };
 }
 
 function view() {
@@ -245,6 +256,7 @@ function view() {
         <div class="ob-kicker">ANTES DE CARGAR</div>
         <h2>Primero, entrenar con criterio.</h2>
         <p>Esto es un cribado de seguridad, no un diagnóstico. Responde SÍ solo si aplica actualmente o te lo ha indicado un profesional.</p>
+        <div class="ob-context-note" role="status" aria-live="polite"><b>${t("onboarding.safety.progress",{answered:result.answered,total:PAR_Q_ITEMS.length})}</b><span>${t("onboarding.safety.explain")}</span></div>
         <div class="ob-safety-list">
           ${PAR_Q_ITEMS.map((item)=>`
             <div class="ob-safety-row">
@@ -256,11 +268,11 @@ function view() {
             </div>`).join("")}
         </div>
         <div class="ob-safety-result ${result.clearance}">
-          <b>${result.clearance==="cleared"?"Sin alertas detectadas en este cribado":result.clearance==="conditional"?"Hay algo que debemos adaptar":"Antes de intensidad, hace falta valoración profesional"}</b>
+          <b>${result.clearance==="cleared"?"Sin alertas detectadas en este cribado":result.clearance==="conditional"?"Hay algo que debemos adaptar":result.clearance==="pending"?t("onboarding.safety.pending"):"Antes de intensidad, hace falta valoración profesional"}</b>
           <span>${esc(result.note)}</span>
         </div>
       </div>
-      ${footer()}`;
+      ${footer({next:result.complete})}`;
   }
 
   if (st.step===6) return `
@@ -335,6 +347,17 @@ function toggle(array,value) {
   return array.includes(value)?array.filter((x)=>x!==value):[...array,value];
 }
 
+// Mantener la posición y la opción activa al actualizar una selección múltiple.
+// Evita enviar el foco a CONTINUAR o volver arriba en pantallas largas.
+function refreshChoice(box, button, selector) {
+  const index=[...box.querySelectorAll(selector)].indexOf(button);
+  const top=box.querySelector(".ob-stage")?.scrollTop ?? 0;
+  render(box);
+  const stage=box.querySelector(".ob-stage");
+  if(stage) stage.scrollTop=top;
+  if(index>=0) box.querySelectorAll(selector)[index]?.focus({preventScroll:true});
+}
+
 function render(box) {
   box.innerHTML=view();
   const q=(s)=>box.querySelector(s);
@@ -347,40 +370,40 @@ function render(box) {
         if (!st.goals.length) st.goals=["BIENESTAR Y ADHERENCIA"];
         if (!st.goals.includes(st.goalPrimary)) st.goalPrimary=st.goals[0];
       }
-      render(box);
+      refreshChoice(box,button,`[data-toggle="${key}"]`);
     };
   });
 
   box.querySelectorAll("[data-single]").forEach((button)=>{
-    button.onclick=()=>{st[button.dataset.single]=button.dataset.v;render(box);};
+    button.onclick=()=>{st[button.dataset.single]=button.dataset.v;refreshChoice(box,button,"[data-single]");};
   });
 
   box.querySelectorAll("[data-day]").forEach((button)=>{
     button.onclick=()=>{
       st.weeklyDays=toggle(st.weeklyDays,button.dataset.day);
       if (!st.weeklyDays.length) st.weeklyDays=[button.dataset.day];
-      render(box);
+      refreshChoice(box,button,"[data-day]");
     };
   });
 
   box.querySelectorAll("[data-window]").forEach((button)=>{
-    button.onclick=()=>{st.preferredWindows=toggle(st.preferredWindows,button.dataset.window);render(box);};
+    button.onclick=()=>{st.preferredWindows=toggle(st.preferredWindows,button.dataset.window);refreshChoice(box,button,"[data-window]");};
   });
 
   box.querySelectorAll("[data-minutes]").forEach((button)=>{
-    button.onclick=()=>{st.sessionMinutes=button.dataset.minutes;render(box);};
+    button.onclick=()=>{st.sessionMinutes=button.dataset.minutes;refreshChoice(box,button,"[data-minutes]");};
   });
 
   box.querySelectorAll("[data-safety]").forEach((button)=>{
-    button.onclick=()=>{st.safety[button.dataset.safety]=button.dataset.value==="true";render(box);};
+    button.onclick=()=>{st.safety[button.dataset.safety]=button.dataset.value==="true";refreshChoice(box,button,"[data-safety]");};
   });
 
   box.querySelectorAll("[data-coach]").forEach((button)=>{
-    button.onclick=()=>{st.coachPersona=button.dataset.coach;render(box);};
+    button.onclick=()=>{st.coachPersona=button.dataset.coach;refreshChoice(box,button,"[data-coach]");};
   });
 
   box.querySelectorAll("[data-plan]").forEach((button)=>{
-    button.onclick=()=>{st.membershipPlan=button.dataset.plan;render(box);};
+    button.onclick=()=>{st.membershipPlan=button.dataset.plan;refreshChoice(box,button,"[data-plan]");};
   });
 
   const name=q("#ob-name");
@@ -402,10 +425,10 @@ function render(box) {
   q("#ob-next")&&(q("#ob-next").onclick=()=>{
     if (st.step===0) st.name=q("#ob-name")?.value.trim()||"";
     if (st.step===1) {
-      st.customGoal=q("#ob-custom-goal")?.value.trim()||st.customGoal;
+      st.customGoal=q("#ob-custom-goal")?.value.trim() ?? st.customGoal;
       st.goalPrimary=q("#ob-primary-goal")?.value||st.goalPrimary;
     }
-    if (st.step===2) st.customPlace=q("#ob-custom-place")?.value.trim()||st.customPlace;
+    if (st.step===2) st.customPlace=q("#ob-custom-place")?.value.trim() ?? st.customPlace;
     st.step=Math.min(TOTAL-1,st.step+1);
     render(box);
   });
@@ -531,6 +554,147 @@ const css=`
 .ob-actions{display:grid;grid-template-columns:48px 1fr;gap:10px;align-items:center;padding-top:14px;border-top:1px solid #202427}.ob-actions>span{width:48px}.ob-back,.ob-primary{min-height:44px;border-radius:8px;cursor:pointer}.ob-back{border:1px solid #30363a;background:#0d0f10;color:#9ca3a6;font-size:16px}.ob-primary{border:1px solid #ff6a00;background:#ff6a00;color:#090909;font:850 9px var(--sans);letter-spacing:.12em}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 @media(max-width:620px){#ob-layer{padding:0;place-items:stretch}#ob-box{width:100%;min-height:100dvh;max-height:100dvh;border:0;border-radius:0;padding:17px 14px 14px}.ob-stage{padding:24px 2px 18px}#ob-box h2{font-size:clamp(29px,9vw,38px)}.ob-choice-grid{margin-top:20px}.ob-choice{min-height:64px;padding:10px}.ob-plans{grid-template-columns:1fr}.ob-plans button{min-height:94px}.ob-summary-v3{margin-top:18px}.ob-safety-row{grid-template-columns:1fr}.ob-safety-row>div{justify-content:flex-start}}
+
+/* Sprint 16B · layout corregido: arriba cabecera, línea de progreso, contenido,
+   navegación. La fila flexible ANTES se asignaba a la barra de progreso. */
+#ob-box {
+  grid-template-rows: auto auto minmax(0,1fr) auto;
+  --ob-brand: #f4a261;
+  --ob-ink: #f5f1eb;
+  --ob-muted: #acb0ac;
+}
+#ob-box .ob-stage { min-height:0; padding-top:clamp(20px,3.5vh,34px); }
+#ob-box .ob-top { font-size:11px; line-height:1.3; }
+#ob-box .ob-kicker, #ob-box .ob-mini-title { font-size:11px; line-height:1.45; }
+#ob-box .ob-inline-field label,
+#ob-box .ob-select-label { font-size:11px; line-height:1.4; }
+#ob-box .ob-summary-v3 small,
+#ob-box .ob-finish-line span,
+#ob-box .ob-plans small,
+#ob-box .ob-plans i,
+#ob-box .ob-coaches small,
+#ob-box .ob-coaches em,
+#ob-box .ob-duration span {
+  font-size:11px;
+  line-height:1.4;
+}
+#ob-box .ob-privacy-line,
+#ob-box .ob-safety-result span {font-size:11px!important;line-height:1.55}
+#ob-box .ob-safety-row>span { font-size:12px;line-height:1.5 }
+#ob-box :is(.ob-choice,.ob-safety-row button,.ob-days button,
+  .ob-chips button,.ob-duration button,.ob-coaches button,
+  .ob-plans button,.ob-back,.ob-primary,
+  .ob-inline-field input,#ob-birth,#ob-primary-goal) { min-height:44px }
+#ob-box .ob-safety-row button { min-width:56px;height:44px;font-size:12px }
+#ob-box .ob-primary { font-size:12px;line-height:1.3 }
+#ob-box .ob-context-note span {font-size:12px}
+#ob-box .ob-stage :is(button,input,select):focus-visible,
+#ob-box .ob-actions button:focus-visible {
+  outline:2px solid #f4a261!important;outline-offset:3px!important
+}
+#ob-box .ob-progress i {background:#f4a261}
+#ob-box .ob-kicker, #ob-box .ob-choice-icon,
+#ob-box .ob-mini-title, #ob-box .ob-plans small {color:#f4a261}
+#ob-box .ob-primary {background:#f4a261;border-color:#f4a261;color:#101010}
+#ob-box .ob-primary:hover {background:#ffc08a}
+#ob-box .ob-choice.on,
+#ob-box .ob-coaches button.on,
+#ob-box .ob-plans button.on,
+#ob-box :is(.ob-days,.ob-chips,.ob-duration) button.on {border-color:#f4a261}
+#ob-box .ob-stage, #ob-box .ob-choice-grid, #ob-box .ob-plans {min-width:0}
+@media(max-width:620px) {
+  #ob-box .ob-stage {padding-top:20px}
+  #ob-box .ob-choice-grid {gap:9px}
+  #ob-box .ob-safety-row>div {gap:9px}
+  #ob-box .ob-plans {gap:9px}
+}
+
+/* El modo día utiliza papel marfil y contraste real, sin invertir el texto
+   de botones semánticos ni disfrazar sus selecciones. */
+html[data-surface-theme="light"] #ob-layer {background:rgba(244,241,235,.98)}
+html[data-surface-theme="light"] #ob-box {
+  --ob-ink:#161616; --ob-muted:#625a51;
+  background:#f7f3ec;color:#161616;border-color:#d8cfc4
+}
+html[data-surface-theme="light"] #ob-box .ob-top {color:#615950}
+html[data-surface-theme="light"] #ob-box .ob-top span:first-child {color:#161616}
+html[data-surface-theme="light"] #ob-box .ob-progress {background:#ddd4c8}
+html[data-surface-theme="light"] #ob-box :is(h2,.ob-summary-v3 b,
+  .ob-coaches strong,.ob-plans strong) {color:#161616}
+html[data-surface-theme="light"] #ob-box :is(p,.ob-mini-title,
+  .ob-inline-field label,.ob-select-label,.ob-context-note span,
+  .ob-safety-result span,.ob-finish-line span,.ob-plans i,
+  .ob-coaches small,.ob-coaches em) {color:#625a51}
+html[data-surface-theme="light"] #ob-box .ob-choice,
+html[data-surface-theme="light"] #ob-box :is(.ob-safety-row,.ob-days,.ob-chips,.ob-duration) button,
+html[data-surface-theme="light"] #ob-box :is(.ob-coaches,.ob-plans) button,
+html[data-surface-theme="light"] #ob-box .ob-back {
+  background:#fffdf9;color:#1b1a18;border-color:#d3c8bc
+}
+html[data-surface-theme="light"] #ob-box :is(.ob-choice,.ob-coaches button,
+  .ob-plans button,.ob-days button,.ob-chips button,.ob-duration button).on {
+  background:#fff0e0;color:#171717;border-color:#9c4f1f
+}
+html[data-surface-theme="light"] #ob-box .ob-choice-icon,
+html[data-surface-theme="light"] #ob-box .ob-plans small,
+html[data-surface-theme="light"] #ob-box .ob-kicker,
+html[data-surface-theme="light"] #ob-box .ob-duration b {color:#9c4f1f}
+html[data-surface-theme="light"] #ob-box :is(.ob-inline-field input,
+  #ob-birth,#ob-primary-goal,#ob-name) {
+  background:#fffdf9;color:#191919;border-color:#cfc3b6
+}
+html[data-surface-theme="light"] #ob-box input::placeholder {color:#655d55}
+html[data-surface-theme="light"] #ob-box :is(.ob-symbol,.ob-context-note,
+  .ob-safety-result) {background:#fffdf9;border-color:#d4c8bc}
+html[data-surface-theme="light"] #ob-box .ob-safety-row {
+  border-bottom-color:#d8cfc4
+}
+html[data-surface-theme="light"] #ob-box .ob-safety-row button.on {
+  background:#e0f2e8;border-color:#387251;color:#21543a
+}
+html[data-surface-theme="light"] #ob-box .ob-safety-row button.yes {
+  background:#ffeadc;border-color:#9c4f1f;color:#803c17
+}
+html[data-surface-theme="light"] #ob-box .ob-summary-v3 {
+  background:#e1d8cc;border-color:#d9d0c5
+}
+html[data-surface-theme="light"] #ob-box .ob-summary-v3 span {background:#fffdf9}
+html[data-surface-theme="light"] #ob-box .ob-summary-v3 small {color:#625a51}
+html[data-surface-theme="light"] #ob-box .ob-actions {border-top-color:#d7cdc1}
+html[data-surface-theme="light"] #ob-box .ob-primary {background:#f4a261;color:#101010}
+html[data-surface-theme="light"] #ob-box .ob-privacy-line {color:#625a51!important}
+html[data-surface-theme="light"] #ob-box .ob-coach-avatar {
+  background:#f8ede1;color:#9c4f1f
+}
+html[data-surface-theme="light"] #ob-box .ob-ready-mark {
+  background:#f4a261;color:#101010
+}
+
+
+/* Superar la capa legacy de pro.css (body.fitness-app #ob-box strong/input),
+   que fuerza tinta blanca y campos negros incluso cuando el tema es claro. */
+html[data-surface-theme="light"] body.fitness-app #ob-box strong,
+html[data-surface-theme="light"] body.fitness-app #ob-box .ob-choice strong,
+html[data-surface-theme="light"] body.fitness-app #ob-box .ob-plans strong,
+html[data-surface-theme="light"] body.fitness-app #ob-box .ob-coaches strong {
+  color:#181716!important;
+}
+html[data-surface-theme="light"] body.fitness-app #ob-box input,
+html[data-surface-theme="light"] body.fitness-app #ob-box select,
+html[data-surface-theme="light"] body.fitness-app #ob-box textarea {
+  color:#181716!important;
+  background:#fffdf9!important;
+  border-color:#c8bbae!important;
+}
+html[data-surface-theme="light"] body.fitness-app #ob-box .ob-safety-row>span,
+html[data-surface-theme="light"] body.fitness-app #ob-box .ob-plans em {
+  color:#302d29!important;
+}
+html[data-surface-theme="light"] body.fitness-app #ob-box .ob-safety-result b,
+html[data-surface-theme="light"] body.fitness-app #ob-box .ob-context-note b {
+  color:#191716!important;
+}
+
 `;
 
 function boot(retries=20) {
