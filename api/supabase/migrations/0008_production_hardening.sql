@@ -52,13 +52,34 @@ create index if not exists user_backups_user_created_idx
 
 alter table user_backups enable row level security;
 
+create or replace function user_has_active_paid_plan(p_user uuid, p_plans text[])
+returns boolean
+language sql
+stable
+security definer
+set search_path=public
+as $
+  select exists (
+    select 1 from billing_subscriptions b
+    where b.user_id=p_user
+      and b.status in ('active','trialing')
+      and b.plan=any(p_plans)
+  );
+$;
+
+revoke all on function user_has_active_paid_plan(uuid,text[]) from public;
+grant execute on function user_has_active_paid_plan(uuid,text[]) to authenticated;
+
 drop policy if exists "user reads own backups" on user_backups;
 create policy "user reads own backups" on user_backups
 for select to authenticated using (auth.uid()=user_id);
 
 drop policy if exists "user inserts own backups" on user_backups;
 create policy "user inserts own backups" on user_backups
-for insert to authenticated with check (auth.uid()=user_id);
+for insert to authenticated with check (
+  auth.uid()=user_id
+  and user_has_active_paid_plan(auth.uid(),array['performance','elite']::text[])
+);
 
 drop policy if exists "user deletes own backups" on user_backups;
 create policy "user deletes own backups" on user_backups
