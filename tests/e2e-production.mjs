@@ -99,6 +99,26 @@ try{
   check(await readable(".proplayer-gateway-stats small") >= 11,"Entrenar: biblioteca sin microtexto");
   check(await touchHeight(".cal-head .cal-nav button") >= 44,"Entrenar: calendario accesible al tacto");
   await noOverflow(page,"Entrenar premium móvil");
+  check(await page.locator(".cal-grid button.cal-day").count()===7,"Entrenar: siete días son botones con teclado");
+  const weekIsScrollable=await page.locator(".cal-grid").evaluate(el=>el.scrollWidth>el.clientWidth);
+  check(weekIsScrollable,"Entrenar: días legibles con desplazamiento horizontal");
+  const secondDay=page.locator(".cal-grid button.cal-day").nth(1);
+  check((await secondDay.getAttribute("aria-label"))?.length>8,"Entrenar: día anuncia la fecha y la sesión");
+  await secondDay.focus(); await page.keyboard.press("Enter");
+  check(await secondDay.getAttribute("aria-pressed")==="true","Entrenar: Enter selecciona la sesión");
+  check(await page.locator("#cal-detail .card").count()>0,"Entrenar: el detalle de la sesión funciona");
+  await openSection(page,"library");
+  await page.waitForSelector(".proplayer-card,.proplayer-load-error",{timeout:16000});
+  check(await page.locator(".proplayer-card").count()>0,"PROPLAYER: biblioteca real disponible");
+  check(await readable(".proplayer-metric-label")>=11,"PROPLAYER: estadísticas legibles");
+  const exerciseName=(await page.locator(".proplayer-card h3").first().innerText()).trim();
+  await page.locator("#proplayer-search").fill(exerciseName.split(" ")[0]);
+  const filtered=Number((await page.locator(".proplayer-count").innerText()).split(" ")[0].replaceAll(".",""));
+  check(filtered>0&&filtered<3141,"PROPLAYER: búsqueda filtra las fichas reales");
+  await page.locator(".proplayer-filter-actions button.secondary").click();
+  check((await page.locator(".proplayer-count").innerText()).startsWith("3.141"),
+    "PROPLAYER: restablecer recupera el catálogo completo");
+  await noOverflow(page,"PROPLAYER premium móvil");
 
   await openSection(page,"nutrition");
   check(await readable(".nut-now-grid small") >= 11,"Nutrición: estadísticas legibles");
@@ -146,6 +166,26 @@ try{
   check(lightContrast>=4.5,"modo día: texto del perfil alcanza contraste WCAG AA");
   await noOverflow(page,"Más móvil · modo día");
   await page.screenshot({path:"artifacts/e2e/mobile-more-light.png",fullPage:false});
+  await openSection(page,"training");
+  const trainingInk=await page.locator(".today-recovery-card h4,.today-workout-card h4").first()
+    .evaluate(el=>getComputedStyle(el).color).catch(()=>"");
+  check(trainingInk==="rgb(23, 23, 23)","Entrenar día: título oscuro y legible");
+  await openSection(page,"library");
+  await page.waitForSelector(".proplayer-card,.proplayer-load-error",{timeout:16000});
+  const libraryInk=await page.locator(".proplayer-metric-value").first().evaluate(el=>{
+    const f=getComputedStyle(el).color,b=getComputedStyle(el.closest(".proplayer-metric")).backgroundColor;
+    const luminance=color=>{
+      const rgb=(color.match(/[\d.]+/g)||[]).slice(0,3).map(Number).map(n=>{
+        const v=n/255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;
+      });
+      return rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722;
+    };
+    const a=luminance(f),c=luminance(b);return (Math.max(a,c)+.05)/(Math.min(a,c)+.05);
+  });
+  check(libraryInk>=4.5,"PROPLAYER día: cifras y tarjetas cumplen WCAG AA");
+  const searchBg=await page.locator("#proplayer-search").evaluate(el=>getComputedStyle(el).backgroundColor);
+  check(searchBg==="rgb(255, 250, 244)","PROPLAYER día: buscador claro y coherente");
+  await noOverflow(page,"PROPLAYER móvil · modo día");
   await page.evaluate(async()=>{const {applyTheme}=await import("./js/theme.js");applyTheme("dark");});
   check(await page.locator("html").getAttribute("data-surface-theme")==="dark","modo noche se restaura");
   await ctx.close();
