@@ -1223,3 +1223,6 @@ html[data-surface-theme="light"] body.fitness-app #drawer[data-section="library"
   color: #676059;
   opacity: 1;
 }
+
+/* SPRINT 15D · los límites del macrociclo se comunican visualmente. */
+body.fitness-app #drawer[data-section="training"] .cal-nav button:disabled { opacity:.42; cursor:not-allowed; }
