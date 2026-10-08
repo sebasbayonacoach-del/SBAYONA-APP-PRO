@@ -16,6 +16,7 @@ import { coreReply, intencionAsignacion } from "./replies.js";
 import { shortSession, todaysSession } from "../engine.js";
 import * as core from "./ai-core.js";
 import { memoryPromptLines } from "./memory.js";
+import { currentSession } from "../sync/supabase.js";
 
 export {
   decideRoute, derivacionATexto, contextToPrompt, COACH_TOOLS, TOOL_NAMES,
@@ -237,9 +238,13 @@ export async function askCore(text, opts = {}) {
     const timer = ctrl ? setTimeout(() => ctrl.abort(), 45000) : null;
     let acc = "";
     try {
+      const session = currentSession();
+      const headers = { "content-type": "application/json", accept: "text/event-stream" };
+      if (session?.access_token) headers.authorization = `Bearer ${session.access_token}`;
+
       const res = await fetch(coachEndpoint(), {
         method: "POST",
-        headers: { "content-type": "application/json", accept: "text/event-stream" },
+        headers,
         body: JSON.stringify({
           message: text,
           history: core.trimHistory(history),
