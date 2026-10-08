@@ -763,3 +763,141 @@ html[data-surface-theme="light"] body.fitness-app #drawer-body :is(
     grid-template-columns: repeat(2,minmax(0,1fr));
   }
 }
+
+/* ===========================================================================
+   SPRINT 15B · Coach OS legible in both themes.
+   Root cause: legacy Coach OS hard-coded white title/value text, while the
+   light theme changed panel backgrounds to white. All overrides are isolated
+   to Coach role and preserve status colors and billing/role gates.
+   =========================================================================== */
+body.fitness-app.one-coach-mode #drawer-body .one-kicker,
+body.fitness-app.one-coach-mode #drawer-body :is(
+  .one-metric-label,.one-metric-note,.one-data-tile > span,
+  .one-coach-ops-copy > span,.one-coach-pulse > small,
+  .one-tag,.one-disclaimer,.one-footnote
+) {
+  font-size: 11px !important;
+  line-height: 1.4 !important;
+}
+body.fitness-app.one-coach-mode #drawer-body .one-action {
+  min-height: 44px;
+  padding: 8px 13px;
+  font-size: 12px !important;
+  line-height: 1.25;
+}
+body.fitness-app.one-coach-mode #drawer-body .one-coach-hero-copy p,
+body.fitness-app.one-coach-mode #drawer-body .one-priority p,
+body.fitness-app.one-coach-mode #drawer-body .one-coach-ops-copy > span {
+  font-size: 13px !important;
+  line-height: 1.5;
+}
+body.fitness-app.one-coach-mode #drawer-body .one-metric {
+  min-height: 94px;
+  padding: 16px;
+}
+body.fitness-app.one-coach-mode #drawer-body :is(.one-coach-ops,.one-coach-hero) {
+  gap: 16px;
+}
+@media (max-width:760px) {
+  body.fitness-app.one-coach-mode #drawer-body .one-action {
+    min-height: 44px;
+    font-size: 12px !important;
+    white-space: normal;
+  }
+  body.fitness-app.one-coach-mode #drawer-body .one-actions {
+    display: grid;
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 8px;
+  }
+  body.fitness-app.one-coach-mode #drawer-body .one-actions .one-action:first-child {
+    grid-column: 1/-1;
+  }
+}
+
+/* Light Coach shell and typography. The selector outranks the existing
+   dark-only !important shell and generic light athlete theme. */
+html[data-surface-theme="light"] body.fitness-app.one-coach-mode,
+html[data-surface-theme="light"] body.fitness-app.one-coach-mode :is(
+  #topbar,#panel-nav,#drawer,#panel-foot,.drawer-head
+) {
+  color: #161616 !important;
+  background: #f5f1e9 !important;
+  border-color: #ddd5ca !important;
+  --fit-bg: #f5f1e9;
+  --fit-ink: #161616;
+  --fit-muted: #5e5953;
+  --one-coach-bg: #f5f1e9;
+  --one-coach-surface: #fffdf9;
+  --one-coach-surface-2: #ffffff;
+  --one-coach-ink: #161616;
+  --one-coach-muted: #5e5953;
+  --one-coach-line: #ddd5ca;
+}
+html[data-surface-theme="light"] body.fitness-app.one-coach-mode :is(
+  #drawer-title,.brand-name,#topbar .brand-name,
+  .drawer-head strong
+) {
+  color: #161616 !important;
+}
+html[data-surface-theme="light"] body.fitness-app.one-coach-mode #panel-nav .rail-btn {
+  color: #55504a !important;
+  background: transparent;
+}
+html[data-surface-theme="light"] body.fitness-app.one-coach-mode #panel-nav .rail-btn.active {
+  color: #161616 !important;
+  background: #eae2d6 !important;
+}
+html[data-surface-theme="light"] body.fitness-app.one-coach-mode #drawer-body :is(
+  .one-coach-hero,.one-coach-ops,.one-metric,.one-roster,
+  .one-priorities,.one-core-board,.one-macro-preview,
+  .one-profile-panel,.one-week-editor,.one-data-tile,
+  .one-profile-kpis,.one-macro-now,.one-metrics
+) {
+  background: #fffdf9 !important;
+  border-color: #d9d1c6 !important;
+  color: #161616 !important;
+}
+html[data-surface-theme="light"] body.fitness-app.one-coach-mode #drawer-body :is(
+  .one-coach-hero-copy h3,.one-coach-pulse > strong,
+  .one-coach-ops-context > strong,.one-coach-ops-copy > strong,
+  .one-metric-value,.one-section-head h4,.one-profile-copy h3,
+  .one-priority p
+) {
+  color: #161616 !important;
+}
+html[data-surface-theme="light"] body.fitness-app.one-coach-mode #drawer-body :is(
+  .one-coach-hero-copy p,.one-coach-pulse > small,
+  .one-metric-label,.one-metric-note,
+  .one-coach-ops-copy > span,.one-disclaimer,.one-footnote,
+  .one-data-tile > span
+) {
+  color: #625b54 !important;
+}
+html[data-surface-theme="light"] body.fitness-app.one-coach-mode #drawer-body :is(
+  .one-coach-pulse,.one-coach-ops-context,.one-priority-list,
+  .one-priority,.one-roster-labels,.one-client-row
+) {
+  border-color: #ded6cb !important;
+}
+html[data-surface-theme="light"] body.fitness-app.one-coach-mode #drawer-body .one-action {
+  background: #fffdf9 !important;
+  color: #161616 !important;
+  border-color: #b9ac9c !important;
+}
+html[data-surface-theme="light"] body.fitness-app.one-coach-mode #drawer-body .one-action.primary {
+  background: #f4a261 !important;
+  color: #161616 !important;
+  border-color: #f4a261 !important;
+}
+html[data-surface-theme="light"] body.fitness-app.one-coach-mode #drawer-body .one-action:focus-visible {
+  outline-color: #9c4f1f !important;
+}
+html[data-surface-theme="light"] body.fitness-app.one-coach-mode #drawer-body :is(
+  .one-metric.danger .one-metric-value,.one-metric.warn .one-metric-value
+) {
+  color: #914317 !important;
+}
+
+body.fitness-app.one-coach-mode #drawer-body .one-priority-index {
+  font-size: 11px !important;
+}

@@ -166,7 +166,41 @@ try{
   check((await cp.locator("#drawer").getAttribute("data-section"))==="coachos","Coach aterriza en Coach OS");
   check(await cp.locator(".one-coach-hero").count()===1,"Coach OS renderiza");
   await noOverflow(cp,"Coach desktop");
+  const desktopCoachAction = await cp.locator(".one-coach-hero .one-action").first()
+    .evaluate(el=>el.getBoundingClientRect().height).catch(()=>0);
+  check(desktopCoachAction>=44,"Coach desktop: botones de estudio con altura táctil");
   await cp.screenshot({path:"artifacts/e2e/coach.png",fullPage:false});
+  // Sprint 15B: Coach light theme must not place white typography on white cards.
+  await cp.setViewportSize({width:390,height:844});
+  await cp.evaluate(async()=>{const {applyTheme}=await import("./js/theme.js");applyTheme("light");});
+  await cp.waitForTimeout(200);
+  check(await cp.locator("html").getAttribute("data-surface-theme")==="light","Coach OS permite modo día");
+  const coachReadability = await cp.evaluate(()=>{
+    const lum=(color)=>{
+      const rgb=(color.match(/[\d.]+/g)||[]).slice(0,3).map(Number);
+      const linear=rgb.map(n=>{const x=n/255;return x<=.04045?x/12.92:((x+.055)/1.055)**2.4;});
+      return linear[0]*.2126+linear[1]*.7152+linear[2]*.0722;
+    };
+    const contrast=(a,b)=>{const x=lum(a),y=lum(b);return (Math.max(x,y)+.05)/(Math.min(x,y)+.05);};
+    const selectorToCard=[
+      [".one-coach-hero-copy h3",".one-coach-hero"],
+      [".one-coach-pulse > strong",".one-coach-hero"],
+      [".one-coach-ops-copy > strong",".one-coach-ops"],
+      [".one-metric-value",".one-metric"],
+    ];
+    return selectorToCard.map(([selector,card])=>{
+      const el=document.querySelector(selector),box=el?.closest(card);
+      return {selector,ratio:el&&box?contrast(getComputedStyle(el).color,getComputedStyle(box).backgroundColor):0};
+    });
+  });
+  for(const data of coachReadability)check(data.ratio>=4.5,"Coach día: contraste WCAG AA "+data.selector);
+  const coachTouch = await cp.locator(".one-coach-hero .one-action").first()
+    .evaluate(el=>el.getBoundingClientRect().height).catch(()=>0);
+  check(coachTouch>=44,"Coach día: acciones con 44px táctiles");
+  await noOverflow(cp,"Coach móvil · modo día");
+  await cp.screenshot({path:"artifacts/e2e/coach-light-mobile.png",fullPage:false});
+  await cp.evaluate(async()=>{const {applyTheme}=await import("./js/theme.js");applyTheme("dark");});
+  check(await cp.locator("html").getAttribute("data-surface-theme")==="dark","Coach conserva modo noche");
   await coach.close();
 
   check(errors.filter((x)=>x.startsWith("PAGE ")||x.startsWith("COACH ")).length===0,"sin pageerror en recorridos");
