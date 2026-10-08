@@ -18,6 +18,8 @@
 // (api/image.js). Aquí solo se manda el id de la receta.
 // ============================================================
 
+import { currentSession } from "./sync/supabase.js";
+
 const STORE = "bayona.receta.img.v1";
 const MAX = 8;            // recetas en caché (LRU)
 const THUMB = 360;        // lado de la miniatura en px
@@ -118,7 +120,10 @@ export async function pedirImagen(receta) {
   const tarea = (async () => {
     if (navigator.onLine === false) return null;
     try {
-      const r = await fetch(`${apiBase()}/api/meal-image?id=${encodeURIComponent(id)}`);
+      const token=currentSession()?.access_token;
+      const r = await fetch(`${apiBase()}/api/meal-image?id=${encodeURIComponent(id)}`, {
+        headers: token ? { authorization: `Bearer ${token}` } : {},
+      });
       const j = await r.json().catch(() => null);
       if (!r.ok || !j?.ok || !j.image) return null;
       const mini = await aMiniatura(j.image);
