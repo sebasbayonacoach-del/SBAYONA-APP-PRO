@@ -1,0 +1,169 @@
+
+/* ========================================================================
+   BAYONA Sprint 19 · UNA SOLA PORTADA
+   #luxe-landing es la presentación pública. #entry es SOLO selector de
+   acceso Cliente / Coach, nunca otra portada comercial.
+   ======================================================================== */
+body.fitness-app #entry {
+  padding: clamp(12px,2.5vw,28px);
+  align-items: center;
+  justify-content: center;
+}
+body.fitness-app #entry .e-app-shell.e-single-access {
+  width: min(700px,100%);
+  min-height: 0;
+  height: auto;
+  max-height: calc(100dvh - 36px);
+  grid-template-rows: auto minmax(0,1fr) auto;
+  border: 1px solid var(--bx-line);
+  overflow-y:auto;
+  border-radius:22px;
+  background:var(--bx-surface);
+}
+body.fitness-app #entry .e-single-access .e-appbar {
+  min-height:66px;
+  border-bottom:1px solid var(--bx-line);
+}
+body.fitness-app #entry .e-single-access .e-entry-layout {
+  display:block;
+  height:auto;
+  min-height:0;
+  grid-template-columns:none;
+  grid-template-rows:none;
+}
+body.fitness-app #entry .e-single-access .e-role-panel {
+  padding:clamp(24px,4vw,39px);
+  background:var(--bx-surface);
+  display:block;
+}
+body.fitness-app #entry .e-single-access .e-access-intro {
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:9px;
+  margin:0 0 clamp(20px,2.5vw,30px);
+}
+body.fitness-app #entry .e-access-kicker {
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  font:750 11px/1.45 var(--sans);
+  color:var(--bx-accent);
+  letter-spacing:.105em;
+}
+body.fitness-app #entry .e-access-kicker i {
+  width:7px;height:7px;border-radius:50%;
+  background:currentColor;
+  box-shadow:0 0 0 5px rgba(244,162,97,.12);
+}
+html[data-surface-theme="light"] body.fitness-app #entry .e-access-kicker {color:#9c4f1f}
+body.fitness-app #entry .e-access-intro h1 {
+  margin:0;
+  max-width:100%;
+  text-wrap:balance;
+  font:800 clamp(26px,3.15vw,38px)/1.14 var(--display);
+  letter-spacing:-.02em;
+  color:var(--bx-ink);
+}
+body.fitness-app #entry .e-single-access .e-access-intro .e-sub {
+  margin:0;
+  max-width:530px;
+  font:470 clamp(12px,1.2vw,14px)/1.6 var(--sans);
+  color:var(--bx-sub);
+}
+body.fitness-app #entry .e-single-access .e-role-panel-head {
+  margin:0 0 13px;
+}
+body.fitness-app #entry .e-single-access .e-role-panel-head strong {
+  font:700 15px/1.3 var(--sans);
+  letter-spacing:0;
+  color:var(--bx-ink);
+}
+body.fitness-app #entry .e-single-access .e-role-panel-head small {
+  color:var(--bx-sub);
+  font:700 10px/1.4 var(--sans);
+  letter-spacing:.09em;
+}
+body.fitness-app #entry .e-single-access .e-role-card {
+  min-height:155px;
+}
+body.fitness-app #entry .e-single-access .e-role-body {
+  min-height:113px;
+}
+body.fitness-app #entry .e-single-access .e-role-copy strong {
+  font:780 clamp(18px,2vw,21px)/1.23 var(--display);
+  letter-spacing:-.01em;
+}
+body.fitness-app #entry .e-single-access .e-role-note {
+  margin-top:17px;
+  font:500 12px/1.5 var(--sans);
+}
+body.fitness-app #entry .e-single-access .e-entry-foot {
+  min-height:48px;
+  display:flex;
+  justify-content:space-between;
+  padding:10px clamp(20px,4vw,39px);
+  gap:14px;
+}
+body.fitness-app #entry .e-single-access .e-entry-foot span {
+  flex:initial;
+  white-space:normal;
+  font-size:10px;
+}
+@media(max-width:920px) {
+  body.fitness-app #entry .e-app-shell.e-single-access {
+    width:min(700px,100%);
+    display:grid!important;
+    grid-template-rows:auto minmax(0,1fr) auto!important;
+    min-height:0!important;
+    max-height:calc(100dvh - 24px);
+    overflow-y:auto!important;
+  }
+  body.fitness-app #entry .e-single-access .e-entry-layout {
+    display:block!important;
+    height:auto!important;
+    min-height:0!important;
+  }
+}
+@media(max-width:620px) {
+  body.fitness-app #entry {padding:0;display:flex;align-items:stretch;justify-content:flex-start}
+  body.fitness-app #entry .e-app-shell.e-single-access {
+    min-height:100dvh!important;
+    max-height:none;
+    border:0;
+    border-radius:0;
+    overflow:visible!important;
+    display:flex!important;
+    flex-direction:column;
+  }
+  body.fitness-app #entry .e-single-access .e-appbar {
+    min-height:66px;
+    flex:0 0 auto;
+    padding:0 20px;
+  }
+  body.fitness-app #entry .e-single-access .e-entry-layout {
+    flex:1 0 auto;
+    width:100%;
+  }
+  body.fitness-app #entry .e-single-access .e-role-panel {
+    padding:clamp(24px,7vw,35px) 20px 27px;
+  }
+  body.fitness-app #entry .e-single-access .e-access-intro {gap:10px;margin-bottom:25px}
+  body.fitness-app #entry .e-single-access .e-access-intro h1 {
+    font-size:clamp(27px,7vw,35px);
+  }
+  body.fitness-app #entry .e-single-access .e-role-grid {gap:12px}
+  body.fitness-app #entry .e-single-access .e-role-card {min-height:0}
+  body.fitness-app #entry .e-single-access .e-role-body {min-height:112px}
+  body.fitness-app #entry .e-single-access .e-entry-foot {
+    flex:0 0 auto;
+    min-height:50px;
+    padding:13px 20px;
+  }
+  body.fitness-app #entry .e-single-access .e-entry-foot span:nth-child(2){display:inline}
+}
+@media(max-width:355px) {
+  body.fitness-app #entry .e-single-access .e-role-panel {padding:22px 15px 24px}
+  body.fitness-app #entry .e-single-access .e-entry-foot {padding:12px 15px}
+  body.fitness-app #entry .e-single-access .e-entry-foot span {font-size:9px}
+}
