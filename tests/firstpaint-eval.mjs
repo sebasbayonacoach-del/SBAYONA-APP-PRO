@@ -14,5 +14,5 @@ ok(boot.includes('releaseFirstPaint();')&&boot.includes('document.body.classList
 ok(boot.includes('montarLanding({')&&boot.includes('    releaseFirstPaint();'),"portada terminada antes de mostrar contenido");
 ok(boot.includes('loadApp()\n      .then(() => {\n        releaseFirstPaint();'),"usuarios recurrentes ven app solo después de inicializar");
 ok(boot.includes('firstPaintFailure(error)')&&boot.includes('retry.addEventListener'),"si falla la red se muestra Reintentar en vez de acceso inútil");
-ok(sw.includes('bayona-shell-v57'),"service worker invalida HTML/CSS en actualizaciones");
+ok(sw.includes('bayona-shell-v58'),"service worker invalida HTML/CSS en actualizaciones");
 console.log("RESULTADO "+checks+" comprobaciones del primer render, cero fallos");

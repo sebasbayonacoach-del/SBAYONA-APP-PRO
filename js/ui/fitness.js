@@ -232,6 +232,23 @@ function hubHistory(snapshot){
   return wrap;
 }
 
+
+// Reto público gratuito, empaquetado también en Android. Se diferencia de las
+// misiones diarias con XP: este reto NO concede XP ni planes de pago.
+function campaignMissionCard(){
+  let done=0;
+  try{
+    const raw=JSON.parse(localStorage.getItem('bayona.mision7.v1')||'[]');
+    if(Array.isArray(raw))done=new Set(raw.filter(d=>Number.isInteger(d)&&d>=1&&d<=7)).size;
+  }catch{ /* navegador con almacenamiento bloqueado: mostrar 0, sin inventar */ }
+  const section=el('section','fit-mission-card');
+  section.innerHTML=`<div><small>${esc(t('hub.missions.kicker'))}</small><strong>${esc(t('hub.missions.title'))}</strong><p>${esc(t('hub.missions.sub'))}</p><span>${esc(t('hub.missions.progress',{done}))}</span></div>`;
+  const link=el('a','fit-mission-action',esc(t('hub.missions.cta'))+' ↗');
+  link.href='./misiones.html';
+  section.append(link);
+  return section;
+}
+
 function home(body){
   body.textContent='';
   const p=S.data.profile,today=S.data.today,active=S.getActiveSession(),stats=S.data.stats;
@@ -303,6 +320,7 @@ function home(body){
   // El próximo entrenamiento es la primera acción que necesita el cliente.
   // No hacemos que recorra cinco paneles antes de encontrar su plan.
   body.insertBefore(hero, body.querySelector('.fit-hub-identity'));
+  body.insertBefore(campaignMissionCard(), body.querySelector('.fit-hub-identity'));
 
   body.append(el('div','fit-house-title','<span>TU ESPACIO</span><small>Todo lo demás vive aquí.</small>'));
   const rooms=el('section','fit-room-grid');
