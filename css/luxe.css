@@ -1058,3 +1058,8 @@ html[data-surface-theme="light"] .luxe-demo-lock{
   .luxe-device {height:auto;min-height:610px}
   .luxe-demo-focus {gap:10px}
 }
+
+/* Captación sin checkout falso: consulta humana por WhatsApp. */
+.luxe-campaign-link{display:inline-flex;align-items:center;justify-content:center;min-height:44px;margin:10px 0 4px;padding:9px 12px;border:1px solid rgba(244,162,97,.48);border-radius:10px;color:#f4a261;text-decoration:none;font:800 11px/1.2 Inter,system-ui,sans-serif;letter-spacing:.035em;text-align:center}
+.luxe-campaign-link:hover,.luxe-campaign-link:focus-visible{background:rgba(244,162,97,.10);outline-offset:3px}
+html[data-surface-theme="light"] .luxe-campaign-link{color:#924617;border-color:#ad6e43}

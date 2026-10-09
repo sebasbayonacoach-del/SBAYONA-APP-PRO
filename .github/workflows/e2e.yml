@@ -39,6 +39,11 @@ jobs:
           cat /tmp/bayona-server.log
           exit 1
 
+      - name: Public mission and contact funnel
+        env:
+          BAYONA_CAMPAIGN_URL: http://127.0.0.1:8094
+        run: node tools/mission-campaign-browser.mjs
+
       - name: Production E2E
         run: node tests/e2e-production.mjs
 

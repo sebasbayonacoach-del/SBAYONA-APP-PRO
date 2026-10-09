@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="color-scheme" content="dark"/>
+<meta name="theme-color" content="#090909"/>
+<meta name="description" content="Misión BAYONA: siete días de movimiento, hábitos y progreso a tu ritmo. Prueba el reto y solicita un plan de entrenamiento personalizado."/>
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="BAYONA · Misión 7 días"/>
+<meta property="og:description" content="Una acción diaria. Un sistema de entrenamiento con dirección. Empieza sin pagar y consulta un plan personalizado."/>
+<meta property="og:image" content="/icon-512.png"/>
+<title>Misiones BAYONA · 7 días para empezar</title>
+<link rel="icon" type="image/png" href="/icon-192.png"/>
+<link rel="stylesheet" href="/css/mission-campaign.css?v=1"/>
+<script type="module" defer src="/js/mission-campaign.js?v=1"></script>
+</head>
+<body>
+<header><div class="shell top"><a class="logo" href="/"><b>◈</b> BAYONA</a><a class="toplink" href="/">EXPLORAR APP ↗</a></div></header>
+<main>
+<section class="shell hero" aria-labelledby="hero-title">
+  <span class="eyebrow">BAYONA · MISIÓN ABIERTA · EMPIEZA GRATIS</span>
+  <h1 id="hero-title">7 días.<br/><em>Una nueva dirección.</em></h1>
+  <p class="lead">No necesitas ser atleta. Empieza con siete acciones sencillas de movimiento, recuperación y seguimiento, adaptadas a tus posibilidades. Registra lo que haces: sin progreso inventado.</p>
+  <div class="actions">
+    <a class="button primary" href="#reto">COMENZAR MISIÓN <span aria-hidden="true">↘</span></a>
+    <a class="button" id="hero-contact" href="https://wa.me/34641698332" target="_blank" rel="noopener noreferrer">HABLAR CON UN ENTRENADOR ↗</a>
+    <button class="button" type="button" id="share-mission">COMPARTIR MISIÓN ↗</button>
+  </div>
+  <div class="note" id="share-feedback" role="status" aria-live="polite">El reto no requiere cuenta ni pago. Las casillas se guardan únicamente en este navegador.</div>
+</section>
+<section class="shell grid" id="reto" aria-label="Reto de siete días">
+  <div class="panel">
+    <span class="eyebrow">TU CAMINO</span>
+    <h2>Una misión cada día</h2>
+    <p>Marca una acción solamente cuando la hayas hecho. Puedes adaptar la intensidad, el tiempo y el día a tu condición y disponibilidad.</p>
+    <div class="progressline"><span id="progress-count">0 de 7 misiones</span><span id="progress-percent">0 %</span></div>
+    <div class="track" role="progressbar" aria-label="Progreso de la misión de siete días" aria-valuemin="0" aria-valuemax="7" aria-valuenow="0" id="progress-track"><span id="progress-fill"></span></div>
+    <div class="missions">
+      <label class="mission"><input type="checkbox" data-mission-day="1"/><span><strong>01 · Decide tu objetivo</strong><small>Escribe para ti qué quieres mejorar y por qué. Algo realista para esta semana.</small></span></label>
+      <label class="mission"><input type="checkbox" data-mission-day="2"/><span><strong>02 · Muévete a tu ritmo</strong><small>Camina, entrena o haz movilidad durante unos minutos, dentro de tus posibilidades.</small></span></label>
+      <label class="mission"><input type="checkbox" data-mission-day="3"/><span><strong>03 · Organiza tu semana</strong><small>Elige cuándo podrás entrenar y reserva un espacio para recuperarte.</small></span></label>
+      <label class="mission"><input type="checkbox" data-mission-day="4"/><span><strong>04 · Cuida la recuperación</strong><small>Prioriza una pausa tranquila, movilidad cómoda o descanso si lo necesitas.</small></span></label>
+      <label class="mission"><input type="checkbox" data-mission-day="5"/><span><strong>05 · Registra cómo estás</strong><small>Anota energía, sueño o sensaciones. No compares tu progreso con el de otros.</small></span></label>
+      <label class="mission"><input type="checkbox" data-mission-day="6"/><span><strong>06 · Repite algo sostenible</strong><small>Vuelve a una actividad que hayas disfrutado, sin forzar la intensidad.</small></span></label>
+      <label class="mission"><input type="checkbox" data-mission-day="7"/><span><strong>07 · Decide el siguiente paso</strong><small>Revisa qué funcionó y elige un hábito que quieras mantener.</small></span></label>
+    </div>
+    <p class="note" style="margin-top:18px">Estas casillas son un registro personal, no acreditan ejercicios realizados ni generan XP o membresías dentro de BAYONA App.</p>
+  </div>
+  <aside class="panel aside" aria-label="La misión continúa">
+    <span class="eyebrow">EL SIGUIENTE NIVEL</span>
+    <h2>Entrenar con un plan cambia el juego.</h2>
+    <p>Si necesitas orientación real, puedes consultar directamente un programa BAYONA.</p>
+    <ul><li>Un plan adaptado a tu punto de partida.</li><li>Seguimiento según el programa contratado.</li><li>Entrenamiento y recuperación con dirección.</li></ul>
+    <a class="button primary" href="#planes">VER PROGRAMAS ↘</a>
+    <a class="button" style="margin-top:10px" href="/?source=mision7">EXPLORAR LA APP</a>
+    <p class="note" style="margin-top:15px">La aplicación disponible actualmente permite pruebas locales. La sincronización entre dispositivos y los cobros dentro de la app todavía están en validación.</p>
+  </aside>
+</section>
+<div class="shell"><hr class="divider"/></div>
+<section class="shell offers" id="planes" aria-labelledby="plans-title">
+  <div class="sectionhead"><span class="eyebrow">ENTRENAMIENTO PERSONALIZADO</span><h2 id="plans-title">Tu misión puede continuar.</h2><p>Elige un nivel y consulta disponibilidad directamente por WhatsApp. Los precios son los anunciados en BAYONA; la contratación y las condiciones se confirman personalmente, sin cobros automáticos aquí.</p></div>
+  <div class="cards">
+    <article class="offer"><h3>RAÍZ</h3><div class="price">35 € <small>/mes</small></div><p>Para comenzar con una estructura mensual, seguimiento y comunidad.</p><a class="button primary sales-cta" data-plan="raiz" href="https://wa.me/34641698332" target="_blank" rel="noopener noreferrer">CONSULTAR RAÍZ ↗</a></article>
+    <article class="offer popular"><h3>PERFORMANCE</h3><div class="price">93 € <small>/mes</small></div><p>Para quien busca mayor personalización y seguimiento de su entrenamiento.</p><a class="button primary sales-cta" data-plan="performance" href="https://wa.me/34641698332" target="_blank" rel="noopener noreferrer">CONSULTAR PERFORMANCE ↗</a></article>
+    <article class="offer"><h3>ELITE</h3><div class="price">209 € <small>/mes</small></div><p>Para un acompañamiento prioritario y sesiones privadas según disponibilidad.</p><a class="button primary sales-cta" data-plan="elite" href="https://wa.me/34641698332" target="_blank" rel="noopener noreferrer">CONSULTAR ELITE ↗</a></article>
+  </div>
+  <p class="note" style="margin-top:18px">No se procesan pagos en esta página. No introduzcas información médica, bancaria ni contraseñas en mensajes iniciales de WhatsApp.</p>
+</section>
+</main>
+<footer><div class="shell"><span><b>BAYONA</b> · Donde la ciencia se encuentra con el movimiento.</span><span>Movimiento responsable. Escucha a tu cuerpo; ante dolor o dudas de salud, consulta a un profesional cualificado.</span></div></footer>
+</body>
+</html>
