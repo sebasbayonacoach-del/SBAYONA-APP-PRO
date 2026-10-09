@@ -63,7 +63,7 @@ ok(!ci.includes("continue-on-error: true"),"CI no tolera fallos estáticos");
 ok(ci.includes("verify-production.mjs")&&ci.includes("perf-budget.mjs"),"CI bloquea seguridad y performance");
 ok(vercel.includes("Strict-Transport-Security")&&vercel.includes("Content-Security-Policy"),"despliegue añade HSTS y CSP");
 ok(!sw.includes("./trainingym/catalog.json")&&!sw.includes("./vendor/three.module.js"),"PWA no precarga recursos pesados");
-ok(/CACHE = "bayona-shell-v57"/.test(sw),"shell PWA está en v56 con tipografías de marca");
+ok(/CACHE = "bayona-shell-v58"/.test(sw),"shell PWA está en v56 con tipografías de marca");
 ok(more.includes("renderProductionControls"),"controles de producción están en Más");
 ok(loader.includes("installObservability"),"observabilidad se instala al cargar");
 

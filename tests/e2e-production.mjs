@@ -125,6 +125,22 @@ try{
     return Boolean(identity && (el.compareDocumentPosition(identity)&Node.DOCUMENT_POSITION_FOLLOWING));
   });
   check(firstClientFocus,"Cliente: sesión de hoy aparece antes de métricas secundarias");
+  const missionEntry=page.locator("#drawer-body .fit-mission-card .fit-mission-action");
+  check(await missionEntry.count()===1,
+    "Cliente: misión gratuita de 7 días integrada en Inicio");
+  check((await missionEntry.getAttribute("href"))==="./misiones.html",
+    "Cliente: Misiones abre recurso local que también existe en APK");
+  const missionTab=await ctx.newPage();
+  try{
+    const missionUrl=new URL("misiones.html",base).toString();
+    const missionResponse=await missionTab.goto(missionUrl,{waitUntil:"domcontentloaded"});
+    check(missionResponse?.status()===200,"Misiones: ruta interna accesible");
+    check(await missionTab.locator("[data-mission-day]").count()===7,
+      "Misiones: siete acciones reales en la app");
+    await missionTab.locator('[data-mission-day="1"]').check();
+    check((await missionTab.locator("#progress-count").innerText()).includes("1 de 7"),
+      "Misiones: progreso honesto de 1/7");
+  } finally {await missionTab.close();}
   const completedProfile=await page.evaluate(async()=>{
     const {S}=await import("./js/state.js");return S.data.profile;
   });

@@ -20,7 +20,7 @@ ok(css.includes('body.fitness-app.one-coach-mode')&&css.includes('.one-coach-her
 ok(css.includes('.fit-hub-identity')&&css.includes('.fit-today-hero'),'diseño Cliente independiente');
 ok(css.includes('body.fitness-app #entry .e-entry-layout{display:block!important;'),'acceso móvil crece con su contenido');
 ok(css.includes('prefers-reduced-motion:reduce'),'respeta reducción de movimiento');
-ok(sw.includes('bayona-shell-v57')&&sw.includes('"./css/bayona-experience.css"'),'estilos nuevos cacheados para PWA offline');
+ok(sw.includes('bayona-shell-v58')&&sw.includes('"./css/bayona-experience.css"'),'estilos nuevos cacheados para PWA offline');
 ok(index.includes('css/bayona-single-entry.css?v=1'),'selector compacto cargado como última capa');
 ok(fit.includes("body.insertBefore(hero, body.querySelector('.fit-hub-identity'))"),'sesión de cliente primero');
 ok(fit.includes("t('hub.coach.kicker',{coach})"),'interpolación de nombre de coach correcta');

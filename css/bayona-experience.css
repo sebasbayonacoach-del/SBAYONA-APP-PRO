@@ -572,3 +572,20 @@ html[data-surface-theme="light"] body.fitness-app #drawer-body .fit-hub-identity
   body.fitness-app #drawer-body .fit-today-hero {min-height:160px;}
   body.fitness-app #drawer-body .fit-hub-identity {padding:17px!important;}
 }
+
+/* Misión 7 días: acceso real desde el Inicio del cliente, sin XP ficticio. */
+body.fitness-app #drawer-body .fit-mission-card {
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;
+  gap:16px;padding:clamp(16px,2.5vw,23px);
+  border:1px solid rgba(244,162,97,.45);border-radius:18px;
+  background:linear-gradient(120deg,rgba(244,162,97,.13),transparent 65%),var(--bx-surface);
+  margin:12px 0 15px;
+}
+body.fitness-app #drawer-body .fit-mission-card>div{flex:1 1 215px;min-width:0;display:grid;gap:5px}
+body.fitness-app #drawer-body .fit-mission-card small{color:var(--bx-accent);font:800 10px/1.5 var(--sans);letter-spacing:.09em}
+body.fitness-app #drawer-body .fit-mission-card strong{color:var(--bx-ink);font:800 clamp(18px,2vw,22px)/1.22 var(--display)}
+body.fitness-app #drawer-body .fit-mission-card p{margin:0;color:var(--bx-sub);font:500 12px/1.55 var(--sans)}
+body.fitness-app #drawer-body .fit-mission-card span{color:var(--bx-sub);font:650 11px/1.4 var(--sans)}
+body.fitness-app #drawer-body .fit-mission-action{display:inline-flex;justify-content:center;align-items:center;min-height:46px;padding:12px 17px;border:0;border-radius:10px;background:#f4a261;color:#17110b;text-decoration:none;font:800 11px/1.2 var(--sans);white-space:nowrap}
+body.fitness-app #drawer-body .fit-mission-action:focus-visible{outline:3px solid var(--bx-accent);outline-offset:3px}
+@media(max-width:620px){body.fitness-app #drawer-body .fit-mission-action{width:100%}}
