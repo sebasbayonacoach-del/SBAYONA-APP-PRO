@@ -972,6 +972,11 @@ const es = {
   /* ---- LUXE · landing pública (v10) ---- */
   "luxe.nav.features": "Qué es",
   "luxe.nav.planes": "Planes",
+  "luxe.nav.missions": "Misiones",
+  "luxe.campaign.consult": "CONSULTAR POR WHATSAPP",
+  "luxe.campaign.try": "PROBAR MISIÓN 7 DÍAS",
+  "mission.storage.unavailable": "Tu navegador no permite guardar estas casillas. Puedes seguir usándolas durante esta visita.",
+  "mission.share.title": "BAYONA · Misión 7 días",
   "luxe.nav.faq": "Preguntas",
   "luxe.hero.kicker": "TU ENTRENAMIENTO. TU RITMO. TU PERSONAJE.",
   "luxe.hero.tituloA": "Más fuerte.",

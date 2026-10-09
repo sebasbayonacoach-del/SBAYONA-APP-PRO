@@ -31,6 +31,7 @@ const HOST = process.env.BAYONA_HOST || "127.0.0.1";
 const STATIC_ROOT_FILES = new Set([
   "index.html", "sw.js", "manifest.webmanifest", "robots.txt", "sitemap.xml",
   "icon-192.png", "icon-512.png", "icon-maskable-512.png", "BAYONA-preview.html",
+  "misiones.html", // campaña pública sin datos ni permisos de coach
 ]);
 const STATIC_DIRECTORIES = new Set(["css", "js", "fonts", "media", "vendor", "trainingym", "ml", "mobile"]);
 function publicFile(relativePath){

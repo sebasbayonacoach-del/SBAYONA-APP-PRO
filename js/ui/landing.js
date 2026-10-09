@@ -18,6 +18,7 @@ export function contenidoLanding(t) {
       { href: "#luxe-features", label: t("luxe.nav.features") },
       { href: "#luxe-planes", label: t("luxe.nav.planes") },
       { href: "#luxe-faq", label: t("luxe.nav.faq") },
+      { href: "/misiones.html", label: t("luxe.nav.missions") },
     ],
     hero: {
       kicker: t("luxe.hero.kicker"),
@@ -157,6 +158,7 @@ export function planesHTML(c) {
           <ul>${p.perks.map((x) => `<li>${x}</li>`).join("")}</ul>
           <button class="luxe-btn-primary luxe-price-cta" data-plan="${p.id}">${p.cta}</button>
           <p class="luxe-price-note">${p.tagline}</p>
+          ${p.id !== "free" ? `<a class="luxe-campaign-link" href="/misiones.html?plan=${p.id}">${t("luxe.campaign.consult")} ↗</a>` : `<a class="luxe-campaign-link" href="/misiones.html">${t("luxe.campaign.try")} ↗</a>`}
         </div>`
         )
         .join("")}
