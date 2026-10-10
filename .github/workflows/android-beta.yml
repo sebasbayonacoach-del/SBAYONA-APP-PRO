@@ -1,0 +1,95 @@
+name: BAYONA Android beta · PROPLAYER
+on:
+  push:
+    branches:
+      - bayona-one/android-v102-proplayer-videos-20261010
+      - bayona-one/visual-integration-v6
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  android-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Instalar SDK Android 36
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Dependencias Capacitor
+        working-directory: mobile
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Comprobar catálogo y vídeo sin suplantaciones
+        run: node tests/android-proplayer-catalog-eval.mjs
+
+      - name: Generar contenido estático para Android
+        run: npm run mobile:pack
+
+      - name: Comprobar catálogo dentro del paquete
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+          base=Path("mobile/web-build")
+          rows=json.loads((base/"trainingym/catalog.json").read_text())
+          assert len(rows)==3141, len(rows)
+          assert not (base/"trainingym/blob-manifest.json").exists()
+          for f in ("index.html","misiones.html","media/squat.mp4","media/bench.mp4","media/burpee.mp4"):
+            if f == "media/burpee.mp4":
+              assert not (base/f).exists(), "No incluir vídeo ajeno sin licencia"
+            else:
+              assert (base/f).is_file(), f
+          print("CATÁLOGO_ANDROID_OK: 3141 fichas; 11 demos base; sin datos privados")
+          PY
+
+      - name: Integrar contenido en Capacitor
+        working-directory: mobile
+        run: npx cap sync android
+
+      - name: Compilar APK Android beta
+        working-directory: mobile/android
+        run: |
+          chmod +x ./gradlew
+          ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: Verificar APK, firma y catálogo empaquetado
+        run: |
+          set -euo pipefail
+          APK=mobile/android/app/build/outputs/apk/debug/app-debug.apk
+          test -s "$APK"
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose "$APK"
+          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging "$APK" | grep '^package:'
+          unzip -Z1 "$APK" > /tmp/bayona-apk-entries.txt
+          grep -qx 'assets/public/trainingym/catalog.json' /tmp/bayona-apk-entries.txt
+          grep -qx 'assets/public/media/squat.mp4' /tmp/bayona-apk-entries.txt
+          grep -qx 'assets/public/misiones.html' /tmp/bayona-apk-entries.txt
+          if grep -q 'assets/public/private-trainingym/' /tmp/bayona-apk-entries.txt; then
+            echo "Se han incluido medios privados por error" >&2
+            exit 1
+          fi
+          unzip -p "$APK" assets/public/trainingym/catalog.json |
+            python3 -c 'import json,sys; x=json.load(sys.stdin); assert len(x)==3141, len(x); print("APK_PROPLAYER_OK", len(x))'
+          sha256sum "$APK"
+
+      - name: Publicar APK verificable como artefacto de CI
+        uses: actions/upload-artifact@v4
+        with:
+          name: BAYONA-Android-1.0.2-beta1
+          path: mobile/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14

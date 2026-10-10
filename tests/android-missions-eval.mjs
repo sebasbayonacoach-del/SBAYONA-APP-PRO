@@ -16,6 +16,6 @@ for(const p of ['misiones.html','css/mission-campaign.css','js/mission-campaign.
  ok(existsSync(join(root,p)),p+' existe');
  ok(sw.includes('"./'+p+'"'),p+' precacheado offline');
 }
-ok(sw.includes('bayona-shell-v58'),'PWA versionada para misiones offline');
-ok(read('mobile/android/app/build.gradle').includes('versionCode 2'),'incrementada versión Android');
+ok(sw.includes('bayona-shell-v59'),'PWA versionada para misiones offline');
+ok(read('mobile/android/app/build.gradle').includes('versionCode 3'),'incrementada versión Android');
 console.log('ANDROID_MISSIONS '+n+' comprobaciones OK');

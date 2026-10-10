@@ -1,0 +1,46 @@
+import {chromium} from 'playwright';
+const browser=await chromium.launch({headless:true,...(process.env.BAYONA_E2E_CHROME?{executablePath:process.env.BAYONA_E2E_CHROME,args:['--no-sandbox']}:{})});
+const checks=[];const ok=(bool,msg)=>{checks.push({pass:Boolean(bool),msg});console.log(bool?'PASS':'FAIL',msg);if(!bool)throw Error('FAIL '+msg)};
+const page=await browser.newPage({viewport:{width:390,height:844},reducedMotion:'reduce'});
+const errors=[];page.on('pageerror',e=>errors.push(e.message));
+const base=process.env.BAYONA_PACK_URL||'http://127.0.0.1:8148';
+try{
+ const r=await page.goto(base+'/?source=pwa&nosw=1',{waitUntil:'domcontentloaded',timeout:25000});
+ ok(r?.status()===200,'paquete Android HTML funciona');
+ await page.locator('#entry-coach').waitFor({state:'visible',timeout:25000});
+ await page.locator('#entry-coach').click();
+ await page.waitForFunction(()=>Boolean(document.body.classList.contains('entered')),{timeout:25000}).catch(()=>{});
+ ok(await page.locator('body').getAttribute('data-one-context')==='coach'||await page.evaluate(()=>document.body.dataset.oneContext)==='coach','contexto coach DEMO accesible en mismo dispositivo');
+ await page.evaluate(async()=>{const{openSection}=await import('./js/ui/shared.js');openSection('library')});
+ await page.locator('.proplayer-card').first().waitFor({state:'visible',timeout:20000});
+ ok(await page.locator('.proplayer-card').count()===30,'catálogo PROPLAYER muestra 30 fichas por página');
+ ok((await page.locator('.proplayer-title').innerText()).includes('3.141'),'catálogo real de 3141');
+ ok(await page.locator('.proplayer-build-btn').count()===1,'editor local de entrenador en modo DEMO');
+ await page.route('https://acajakbiebfp9udy.public.blob.vercel-storage.com/**',route=>route.abort());
+ const first=page.locator('.proplayer-card').first();
+ await first.locator('.proplayer-card-bottom button').first().click();
+ await page.locator('[data-proplayer-video] video').waitFor({state:'attached',timeout:10000});
+ const videoSrc=await page.locator('[data-proplayer-video] video').getAttribute('src');
+ ok(videoSrc?.startsWith('https://acajakbiebfp9udy.public.blob.vercel-storage.com/'),'vídeo remoto seleccionado desde catálogo');
+ await page.waitForFunction(()=>document.querySelector('.proplayer-video-state')?.classList.contains('danger'),null,{timeout:10000});
+ ok((await page.locator('.proplayer-video-state').innerText()).includes('No se pudo reproducir'),'error de vídeo offline informado');
+ await page.locator('.proplayer-video-head button').click();
+ await page.locator('.proplayer-card').first().locator('.proplayer-add-routine').click();
+ ok(!(await page.locator('.proplayer-build-btn').isDisabled()),'selección habilita crear rutina');
+ await page.locator('.proplayer-build-btn').click();
+ await page.locator('#ppr-name').waitFor({state:'visible',timeout:7000});
+ await page.locator('#ppr-name').fill('BAYONA · Mi rutina de prueba');
+ ok((await page.locator('#ppr-client').inputValue())==='local','asignación local sin nube ni datos ajenos');
+ await page.locator('#ppr-save').click();
+ await page.waitForFunction(()=>!document.querySelector('#ppr-save'),null,{timeout:6000});
+ const assignment=await page.evaluate(async()=>{const{S}=await import('./js/state.js');const as=(S.data.asignaciones||[]).filter(a=>a.clienteId==='local');const r=as.at(-1);const routine=r?S.customRoutine(r.customRoutineId):null;return {count:as.length,id:r?.customRoutineId,exerciseCount:routine?.exercises?.length,videoUrl:routine?.exercises?.[0]?.videoUrl}});
+ ok(assignment.count>0&&assignment.exerciseCount===1,'rutina local guardada con 1 ejercicio');
+ ok(assignment.videoUrl?.startsWith('https://'),'enlace al vídeo conservado en rutina');
+ await page.reload({waitUntil:'domcontentloaded'});
+ await page.waitForFunction(()=>!document.body.classList.contains('bayona-boot-pending'),null,{timeout:30000});
+ const restored=await page.evaluate(async()=>{const{S}=await import('./js/state.js');return (S.data.asignaciones||[]).some(a=>a.clienteId==='local'&&a.customRoutineId)});
+ ok(restored,'asignación local persiste después de recargar');
+ ok(errors.length===0,'sin excepciones JavaScript');
+ console.log('ANDROID PROPLAYER RESULT '+checks.length+'/'+checks.length);
+}catch(e){console.error('PROPLAYER E2E FAILED',e?.stack||String(e));console.log('ERRORS',errors);process.exitCode=1}
+finally{await browser.close();}
