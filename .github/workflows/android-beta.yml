@@ -87,6 +87,9 @@ jobs:
             exit 1
           fi
           echo "Firma beta confirmada igual a la versión 1.0.1."
+          # Gradle/AGP puede usar un almacén debug efímero distinto al de HOME.
+          # El proyecto Android recibe explícitamente el almacén comprobado.
+          echo "BAYONA_ANDROID_BETA_KEYSTORE_PATH=$HOME/.android/debug.keystore" >> "$GITHUB_ENV"
 
       - name: Compilar APK Android beta
         working-directory: mobile/android
