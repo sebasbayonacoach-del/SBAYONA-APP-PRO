@@ -6,6 +6,7 @@ import { jointAngles, scoreSet, cameraView } from './formScore.js';
 import { AvatarRetarget } from './retarget.js';
 import { KeyEMA, visible, LM } from './angles.js';
 import { isGranted, setConsent, revokeConsent, migrateLegacyConsents } from '../consents.js';
+import { scopedStorage } from '../sync/identity.js';
 
 migrateLegacyConsents(); // consentimientos centralizados (incluye claves legadas)
 // fases del contador → texto mostrado al usuario
@@ -66,9 +67,10 @@ function notifyStorageError() {
  *  @returns {boolean} false si no se pudo guardar (se avisa; el resumen viaja igual en el evento). */
 function queueSet(summary) {
   try {
-    const q = JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]');
+    const store = scopedStorage();
+    const q = JSON.parse(store?.getItem(QUEUE_KEY) || '[]');
     q.push({ ...summary, _key: `cam:${summary.exercise}:${summary.ts}`, _queuedAt: new Date().toISOString(), _attempts: 0 });
-    localStorage.setItem(QUEUE_KEY, JSON.stringify(q));
+    store?.setItem(QUEUE_KEY, JSON.stringify(q));
     return true;
   } catch {
     // error de almacenamiento NUNCA en silencio: se avisa y el resumen viaja en el evento

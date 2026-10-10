@@ -5,6 +5,7 @@ import {
   currentUser, currentSession, accountRole,
   select, insert, rpc,
 } from "./supabase.js";
+import { scopedStorage } from "./identity.js";
 
 function mustUser() {
   const u = currentUser();
@@ -19,15 +20,16 @@ function asArray(value) {
 const COMPLETE_QUEUE_KEY = "bayona.coaching.complete.v1";
 
 function readCompleteQueue() {
-  try { return JSON.parse(localStorage.getItem(COMPLETE_QUEUE_KEY) || "[]").filter(Boolean); }
+  try { return JSON.parse(scopedStorage()?.getItem(COMPLETE_QUEUE_KEY) || "[]").filter(Boolean); }
   catch { return []; }
 }
 
 function writeCompleteQueue(ids) {
   try {
+    const store = scopedStorage();
     const unique = [...new Set((ids || []).filter(Boolean))].slice(-100);
-    if (unique.length) localStorage.setItem(COMPLETE_QUEUE_KEY, JSON.stringify(unique));
-    else localStorage.removeItem(COMPLETE_QUEUE_KEY);
+    if (unique.length) store?.setItem(COMPLETE_QUEUE_KEY, JSON.stringify(unique));
+    else store?.removeItem(COMPLETE_QUEUE_KEY);
   } catch { /* la cola es auxiliar; nunca rompe Training */ }
 }
 

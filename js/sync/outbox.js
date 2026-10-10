@@ -11,12 +11,14 @@
 // relee S.data y reenvía el espejo completo — idempotente por diseño.
 // ============================================================
 
+import { scopedStorage } from "./identity.js";
+
 const KEY = "bayona.sync.outbox.v1";
 const BASE_MS = 15000;      // 1er reintento a los 15 s
 const MAX_MS = 30 * 60000;  // techo: media hora
 
 function storage() {
-  return typeof localStorage !== "undefined" ? localStorage : null;
+  return scopedStorage();
 }
 
 function leer() {

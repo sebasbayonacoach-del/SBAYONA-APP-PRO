@@ -1,4 +1,6 @@
 // Optional menstrual diary. Kept outside the account sync and game state.
+import { scopedStorage } from "./sync/identity.js";
+
 export const CYCLE_KEY = "bayona.cycle.v1";
 export const localDate = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
 const blank = () => ({ consent: false, start: "", regular: false, length: 28, hormonal: false, entries: [] });
@@ -13,7 +15,7 @@ export function validateCycle(data, today = localDate()) {
   if (!Number.isInteger(Number(data.length)) || Number(data.length) < 15 || Number(data.length) > 90) throw new Error("Revisa la duración: usa un número entero entre 15 y 90 días. Es un dato, no un diagnóstico.");
   return { consent: true, start: data.start || "", length: Number(data.length), regular: data.regular === true, hormonal: data.hormonal === true };
 }
-export function readCycle(storage = globalThis.localStorage) {
+export function readCycle(storage = scopedStorage()) {
   try {
     const value = JSON.parse(storage?.getItem(CYCLE_KEY) || "null");
     if (!value?.consent) return blank();
@@ -22,13 +24,13 @@ export function readCycle(storage = globalThis.localStorage) {
     return { ...config, entries };
   } catch { return blank(); }
 }
-export function saveCycle(config, storage = globalThis.localStorage) {
+export function saveCycle(config, storage = scopedStorage()) {
   if (config.consent !== true) throw new Error("Activa el permiso para guardar el diario en este dispositivo.");
   const value = { ...validateCycle(config), entries: readCycle(storage).entries };
   storage.setItem(CYCLE_KEY, JSON.stringify(value));
   return value;
 }
-export function logCycle(entry, storage = globalThis.localStorage, today = localDate()) {
+export function logCycle(entry, storage = scopedStorage(), today = localDate()) {
   const value = readCycle(storage);
   if (!value.consent) throw new Error("El diario está desactivado.");
   if (!["habitual","suave","descanso"].includes(entry.mode) || !["ninguno","leve","moderado","intenso"].includes(entry.pain) || !["baja","media","alta"].includes(entry.energy)) throw new Error("Completa las sensaciones de hoy.");
@@ -37,7 +39,7 @@ export function logCycle(entry, storage = globalThis.localStorage, today = local
   storage.setItem(CYCLE_KEY, JSON.stringify(value));
   return value;
 }
-export function deleteCycle(storage = globalThis.localStorage) { storage?.removeItem(CYCLE_KEY); }
+export function deleteCycle(storage = scopedStorage()) { storage?.removeItem(CYCLE_KEY); }
 export function cycleSummary(value, today = localDate()) {
   const entry = value.consent ? value.entries?.find(e => e.date === today) : null;
   const elapsed = value.consent && value.start ? dayNumber(today) - dayNumber(value.start) : null;

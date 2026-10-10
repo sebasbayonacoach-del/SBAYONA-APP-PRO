@@ -4,6 +4,8 @@ import { S, todayKey } from '../state.js';
 import { esc, t } from '../i18n.js';
 import { BUILDERS, UI, el, openSection, toast } from './shared.js';
 import { renderHoy } from './hoy.js';
+import { todaysSession } from '../engine.js';
+import { decideNow } from '../now.js';
 import {
   PLAN_META, planFromProfile, featureForSection, hasFeature, featureTier,
 } from '../entitlements.js';
@@ -101,81 +103,117 @@ function quickRoute(key,title,sub,ico='arrow'){
   return b;
 }
 
+function runNowAction(decision,w){
+  if(!decision)return;
+  if(decision.action==='resume')return UI.actions.resumeSession?.();
+  if(decision.action==='train')return w?UI.actions.openTraining?.(w.id):openSection('training');
+  if(decision.action==='recover')return UI.actions.openTraining?.('mobility_flow');
+  if(decision.action==='progress')return openSection('progress');
+  return openSection('core');
+}
+
+function askBayona(prompt=t('now.changedPrompt')){
+  if(UI.actions.openCoachAsk)return UI.actions.openCoachAsk(prompt);
+  openSection('core');
+  requestAnimationFrame(()=>UI.actions.askCoach?.(prompt));
+}
+
+function nowNeed(label,sub,kind,action){
+  const b=el('button',`fit-now-need fit-now-need-${kind}`);
+  b.type='button';
+  b.innerHTML=`<strong>${esc(label)}</strong><small>${esc(sub)}</small>`;
+  b.onclick=action;
+  return b;
+}
+
 function home(body){
   body.textContent='';
-  const p=S.data.profile,today=S.data.today,active=S.getActiveSession(),stats=S.data.stats;
-  const pending=active&&!['completada','abandonada'].includes(active.status)?active:null;
+  const p=S.data.profile,today=S.data.today,active=S.getActiveSession();
   const w=S.todayWorkout();
+  const detail=S.readinessDetail();
+  const adjusted=todaysSession();
+  const decision=decideNow({
+    profile:p,
+    today,
+    readinessDetail:detail,
+    activeSession:active,
+    workout:w,
+    adjustedSession:adjusted,
+    history:S.data.history,
+  });
 
   const avatar=p.face
     ? `<img src="${esc(p.face)}" alt="">`
     : `<span>${esc((p.name&&p.name!=='TÚ'?p.name:'B').slice(0,1).toUpperCase())}</span>`;
-  const greeting=p.name&&p.name!=='TÚ'?`Hola, ${esc(p.name)}.`:'Tu día.';
+  const now=new Date();
+  const clock=now.toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'});
+  const day=now.toLocaleDateString('es',{weekday:'long'});
   const membership=PLAN_META[planFromProfile(p)]?.label || 'FREE';
-  const head=el('section','fit-app-head',`
+  const head=el('section','fit-app-head fit-now-head',`
     <div>
-      <small>${esc(new Date().toLocaleDateString('es',{weekday:'long',day:'numeric',month:'long'}))}</small>
-      <h2>${greeting}</h2>
-      <span>BAYONA ONE · ${esc(String(p.goal||'TU OBJETIVO').replace(' Y ',' · '))} · ${esc(membership)}</span>
+      <small>${esc(clock)} · ${esc(day)}</small>
+      <h2>${p.name&&p.name!=='TÚ'?`Hola, ${esc(p.name.split(/\s+/)[0])}.`:'Ahora.'}</h2>
+      <span>TU CUERPO · TU CONTEXTO · ${esc(membership)}</span>
     </div>
     <button class="fit-profile-chip" type="button" aria-label="Abrir mi perfil">${avatar}</button>`);
   head.querySelector('.fit-profile-chip').onclick=()=>openSection('profile');
   body.append(head);
 
-  if((stats?.workouts||0)===0&&!today.trained&&!pending){
-    body.append(el('div','fit-first-guide',`
-      <strong>EMPIEZA AQUÍ</strong>
-      <span><i>1</i> cómo estás</span>
-      <span><i>2</i> tu sesión</span>
-      <span><i>3</i> tu progreso</span>`));
+  if(detail.score==null&&today.energy==null){
+    body.append(moodStrip(today,()=>home(body)));
   }
 
-  body.append(moodStrip(today,()=>home(body)));
-
-  const hero=el('section','fit-today-hero');
-  const title=pending?friendly(pending):today.trained?'Hecho por hoy':w?friendly(w):'Hoy no tienes sesión';
-  const meta=pending
-    ? `${pending.logged} / ${pending.plannedSets} series`
-    : today.trained
-      ? 'Entrenamiento completado'
-      : w
-        ? `${w.min} min · ${w.exercises.length} ejercicios`
-        : 'Tu cuerpo también progresa cuando descansa';
-  hero.innerHTML=`<div class="fit-today-top"><span>HOY</span><span>${today.trained?'✓':''}</span></div><h3>${esc(title)}</h3><p>${esc(meta)}</p>`;
-  const action=el('button','fit-today-action',
-    pending?'Retomar sesión':today.trained?'Ver progreso':w?'Empezar':'Ver entrenamientos');
-  action.type='button';
-  action.onclick=()=>pending
-    ? UI.actions.resumeSession?.()
-    : today.trained
-      ? openSection('progress')
-      : w
-        ? UI.actions.openTraining?.(w.id)
-        : openSection('training');
-  hero.append(action);
+  const hero=el('section',`fit-now-card is-${decision.kind}`);
+  const score=decision.status.score==null?'—':String(decision.status.score);
+  hero.innerHTML=`
+    <div class="fit-now-top">
+      <span>${esc(decision.kicker)}</span>
+      <span class="fit-now-status"><b>${esc(score)}</b><small>${esc(decision.status.label)}</small></span>
+    </div>
+    <div class="fit-now-copy">
+      <h3>${esc(decision.title)}</h3>
+      <p>${esc(decision.body)}</p>
+      <div class="fit-now-insight">${esc(decision.insight)}</div>
+    </div>`;
+  const actions=el('div','fit-now-actions');
+  const primary=el('button','fit-now-primary',decision.actionLabel);
+  primary.type='button';
+  primary.onclick=()=>runNowAction(decision,w);
+  const changed=el('button','fit-now-secondary',t('now.ui.changed'));
+  changed.type='button';
+  changed.onclick=()=>askBayona(decision.secondaryPrompt);
+  actions.append(primary,changed);
+  hero.append(actions);
   body.append(hero);
 
-  body.append(el('div','fit-house-title','<span>TU ESPACIO</span><small>Todo lo demás vive aquí.</small>'));
-  const rooms=el('section','fit-room-grid');
-  rooms.append(
-    room('training','Entrenar','Sesiones y ejercicios','training'),
-    room('nutrition','Comer','Nutrición e hidratación','nutrition'),
-    room('recovery','Recuperar','Sueño y descanso','recovery'),
-    room('progress','Evolucionar','Historial y cambios','progress')
+  body.append(el('div','fit-now-question',`<span>${esc(t('now.ui.question'))}</span><small>${esc(t('now.ui.questionHint'))}</small>`));
+  const needs=el('section','fit-now-needs');
+  needs.append(
+    nowNeed(t('now.ui.train'),t('now.ui.trainSub'),'train',()=>w?UI.actions.openTraining?.(w.id):openSection('training')),
+    nowNeed(t('now.ui.eat'),t('now.ui.eatSub'),'eat',()=>openSection('nutrition')),
+    nowNeed(t('now.ui.recover'),t('now.ui.recoverSub'),'recover',()=>openSection('recovery')),
+    nowNeed(t('now.ui.ask'),t('now.ui.askSub'),'ask',()=>askBayona())
   );
-  body.append(rooms);
+  body.append(needs);
 
-  body.append(el('div','fit-hub-secondary-title',`<span>${esc(t('hub.quick.label'))}</span><small>${esc(t('hub.quick.hint'))}</small>`));
-  const quick=el('section','fit-hub-secondary');
-  quick.append(
-    quickRoute('core',t('hub.quick.coach.title'),t('hub.quick.coach.sub'),'profile'),
-    quickRoute('plan',t('hub.quick.plan.title'),t('hub.quick.plan.sub'),'plan'),
-    quickRoute('armory',t('hub.quick.rewards.title'),t('hub.quick.rewards.sub'),'settings')
-  );
-  body.append(quick);
+  const ask=el('button','fit-now-ask');
+  ask.type='button';
+  ask.innerHTML=`<span>◈</span><strong>${esc(t('now.ui.askButton'))}</strong><small>${esc(t('now.ui.askExamples'))}</small>`;
+  ask.onclick=()=>askBayona();
+  body.append(ask);
 
-  body.append(el('div','fit-week-title','<span>ESTA SEMANA</span>'));
+  body.append(el('div','fit-week-title',`<span>${esc(t('now.ui.week'))}</span><small>${esc(t('now.ui.weekHint'))}</small>`));
   body.append(weekStrip());
+
+  const more=el('div','fit-now-more');
+  const plan=el('button','',t('now.ui.plan'));
+  const armory=el('button','',t('now.ui.armory'));
+  const privacy=el('button','',t('now.ui.privacy'));
+  plan.onclick=()=>openSection('plan');
+  armory.onclick=()=>openSection('armory');
+  privacy.onclick=()=>openSection('more');
+  more.append(plan,armory,privacy);
+  body.append(more);
 }
 
 function openTool(id){
@@ -187,7 +225,7 @@ function openTool(id){
 export function installFitnessUI(){
   const nav=document.getElementById('panel-nav');
   nav.innerHTML=[
-    ['hoy','Inicio'],
+    ['hoy',t('now.nav')],
     ['training','Entrenar'],
     ['progress','Progreso'],
     ['profile','Perfil'],
@@ -230,4 +268,17 @@ export function installFitnessUI(){
   };
 
   document.getElementById('foot-hint').textContent=t('fitness.tagline');
+
+  // BAYONA siempre está a un toque. No es navegación: es la puerta directa
+  // al cerebro contextual desde cualquier pantalla del atleta.
+  let fab=document.getElementById('bayona-now-fab');
+  if(!fab){
+    fab=el('button','fit-bayona-fab');
+    fab.id='bayona-now-fab';
+    fab.type='button';
+    fab.setAttribute('aria-label',t('now.ui.fabAria'));
+    fab.innerHTML='<span>◈</span><strong>BAYONA</strong>';
+    fab.onclick=()=>askBayona();
+    document.body.append(fab);
+  }
 }

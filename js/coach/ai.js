@@ -125,8 +125,11 @@ export function minutesIn(text) {
    ============================================================ */
 
 /** Base de la API para contenedores nativos (APK/IPA), donde no hay servidor local. */
+export const PUBLIC_API_BASE = "https://bayona-app-one.vercel.app";
 export function apiBase() {
-  return (typeof window !== "undefined" && window.BAYONA_API_BASE) || "";
+  if (typeof window !== "undefined" && window.BAYONA_API_BASE) return window.BAYONA_API_BASE;
+  const native = Boolean(globalThis.Capacitor?.isNativePlatform?.());
+  return native ? PUBLIC_API_BASE : "";
 }
 
 /** Dónde vive el proxy. Configurable por ventana para despliegues propios. */

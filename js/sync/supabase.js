@@ -11,6 +11,7 @@
 //   · Cada dominio de salud exige su consentimiento activo en `consents`.
 // ============================================================
 import { supabaseConfig } from "./config.js";
+import { setActiveIdentity, clearActiveIdentity } from "./identity.js";
 
 const TOKEN_KEY = "bayon…n.v1";
 const cfg = supabaseConfig();
@@ -22,6 +23,8 @@ const listeners = new Set();
 function loadSession() {
   try { session = JSON.parse(localStorage.getItem(TOKEN_KEY) || "null"); }
   catch (e) { session = null; }
+  if (session?.user?.id) setActiveIdentity(session.user.id);
+  else clearActiveIdentity();
   return session;
 }
 function saveSession(s) {
@@ -32,8 +35,15 @@ function saveSession(s) {
   } catch (e) {
     window.dispatchEvent(new CustomEvent("bayona:storage-error"));
   }
+
+  // La identidad local sigue exactamente a la sesión. Un token inválido o un
+  // logout no puede dejar apuntando al namespace privado de la cuenta anterior.
+  if (s?.user?.id) setActiveIdentity(s.user.id);
+  else clearActiveIdentity();
+
   listeners.forEach((fn) => fn(s));
 }
+
 export function onAuth(fn) { listeners.add(fn); return () => listeners.delete(fn); }
 
 /* ---------------- transporte ---------------- */
@@ -87,6 +97,7 @@ export async function signInWithPassword(email, password) {
     method: "POST", body: { email, password },
   });
   saveSession(toSession(d));
+  if (session?.user?.id) setActiveIdentity(session.user.id);
   return session;
 }
 
@@ -108,16 +119,22 @@ export function accountRole() {
 }
 
 /** alta con email + contraseña + rol BAYONA para mantener separadas las experiencias */
-export async function signUpWithPassword(email, password, role = accountRole()) {
+export async function signUpWithPassword(email, password, role = accountRole(), metadata = {}) {
   const d = await call("/auth/v1/signup", {
     method: "POST",
     body: {
       email,
       password,
-      data: { bayona_role: normalizeBayonaRole(role) },
+      data: {
+        ...metadata,
+        bayona_role: normalizeBayonaRole(role),
+      },
     },
   });
-  if (d?.access_token) saveSession(toSession(d));
+  if (d?.access_token) {
+    saveSession(toSession(d));
+    if (session?.user?.id) setActiveIdentity(session.user.id);
+  }
   return d;
 }
 
@@ -135,8 +152,9 @@ export function completeAuthFromHash(hash = location.hash) {
   const h = new URLSearchParams((hash || "").replace(/^#/, ""));
   const access_token = h.get("access_token");
   const refresh_token = h.get("refresh_token");
+  const type = h.get("type") || null;
   if (!access_token) return null;
-  const s = { access_token, refresh_token, expires_at: Math.floor(Date.now() / 1000) + 3600, user: null };
+  const s = { access_token, refresh_token, expires_at: Math.floor(Date.now() / 1000) + 3600, user: null, auth_type: type };
   saveSession(s);
   history.replaceState(null, "", location.pathname + location.search);
   refreshUser();
@@ -149,6 +167,7 @@ export async function refreshUser() {
     const u = await call("/auth/v1/user");
     session = { ...session, user: u };
     saveSession(session);
+    if (u?.id) setActiveIdentity(u.id);
     return u;
   } catch (e) {
     if (e.status === 401) saveSession(null);
@@ -159,6 +178,30 @@ export async function refreshUser() {
 export async function signOut() {
   try { await call("/auth/v1/logout", { method: "POST" }); } catch (e) { /* la sesión local manda */ }
   saveSession(null);
+  clearActiveIdentity();
+}
+
+export async function updateUserMetadata(data = {}) {
+  const d = await call("/auth/v1/user", { method: "PUT", body: { data } });
+  if (session) {
+    session = { ...session, user: d };
+    saveSession(session);
+  }
+  return d;
+}
+
+export async function requestPasswordReset(email, redirectTo = "") {
+  const suffix = redirectTo ? `?redirect_to=${encodeURIComponent(redirectTo)}` : "";
+  return call("/auth/v1/recover" + suffix, { method: "POST", body: { email } });
+}
+
+export async function updatePassword(password) {
+  const d = await call("/auth/v1/user", { method: "PUT", body: { password } });
+  if (session) {
+    session = { ...session, user: d };
+    saveSession(session);
+  }
+  return d;
 }
 
 /** renueva el access token si vence en menos de 2 min */
@@ -173,8 +216,13 @@ export async function ensureFreshSession() {
     saveSession(toSession(d) || session);
     return session;
   } catch (e) {
-    saveSession(null);
-    return null;
+    // Una caída de red no debe expulsar al usuario de una app offline-first.
+    // Solo errores de autenticación reales invalidan la sesión local.
+    if (e?.status === 400 || e?.status === 401 || e?.status === 403) {
+      saveSession(null);
+      return null;
+    }
+    return session;
   }
 }
 

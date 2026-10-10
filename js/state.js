@@ -7,7 +7,7 @@
 // ============================================================
 import { RANKS, ITEMS, WORKOUTS, MACRO, MEALS, EXERCISES, phaseOfWeek } from "./data.js";
 import { profileWeek, personalizeWorkout } from "./personalization.js";
-import { deleteCycle, readCycle } from "./cycle.js";
+import { readCycle } from "./cycle.js";
 import { resetConsents } from "./consents.js";
 import {
   setReward, prReward, workoutCompleteReward, mealReward, waterReward,
@@ -15,6 +15,7 @@ import {
   focusReward, activePauseReward,
 } from "./rewards.js";
 import { respaldar, guardarSeguro, recuperar } from "./backup.js";
+import { clearActiveUserData, scopedStorage } from "./sync/identity.js";
 
 const KEY = "bayona.save.v2";
 export const SCHEMA = 4;
@@ -170,8 +171,9 @@ export const S = {
   init() {
     let raw = null;
     let motivo = null;
+    const store = scopedStorage();
     try {
-      raw = localStorage.getItem(KEY);
+      raw = store?.getItem(KEY) || null;
       const parsed = raw ? JSON.parse(raw) : null;
       // Un save puede PARSEAR sin ser una partida: "texto", 0, [], 7.
       // Eso no son datos de juego: se trata como corrupción (se conserva
@@ -184,14 +186,14 @@ export const S = {
     }
     if (motivo) {
       // corrupción: conserva copia para recuperación, no pierda en silencio
-      try { if (raw) localStorage.setItem("bayona.save.corrupt", raw); } catch { /* sin storage */ }
+      try { if (raw) store?.setItem("bayona.save.corrupt", raw); } catch { /* sin storage */ }
       this.storageFailed = true;
       emit("storage-error", { where: "load", recoverable: true });
     }
     // RED DE SEGURIDAD · si la partida principal no se puede leer,
     // se busca la última instantánea válida antes de empezar de cero.
     if (!this.data) {
-      const r = recuperar();
+      const r = recuperar(store);
       if (r) {
         this.data = r.data;
         this.recoveredFrom = r.de;
@@ -341,12 +343,13 @@ export const S = {
    *  Si localStorage está lleno, suelta lo prescindible ANTES de rendirse:
    *  perder un mes de entrenamiento por una nota de voz sería absurdo. */
   save() {
-    const r = guardarSeguro(this.data, undefined, KEY);
+    const store = scopedStorage();
+    const r = guardarSeguro(this.data, store, KEY);
     if (r.ok) {
       if (this.storageFailed) { this.storageFailed = false; }
       if (r.soltado.length) emit("storage-trimmed", { soltado: r.soltado });
       // red de seguridad: una foto más del estado, solo si ha cambiado
-      respaldar(this.data);
+      respaldar(this.data, store);
       return true;
     }
     this.storageFailed = true;
@@ -884,6 +887,7 @@ export const S = {
     Object.assign(this.data.profile, profile, { onboarded: true });
     this.logJourney("start", "BAYONA iniciado. La historia empieza aquí.", 0);
     this.save();
+    emit("profile", this.data.profile);
   },
 
   // ---------- VOZ PRIVADA (consentimiento explícito; solo en el dispositivo) ----------
@@ -928,13 +932,13 @@ export const S = {
     return { exportedAt: new Date().toISOString(), schema: SCHEMA, save: this.data, cycle: readCycle() };
   },
   deleteAll() {
-    // «borrar todo» tiene que borrar también las instantáneas, o el
-    // botón de borrar datos sería una mentira.
-    try { localStorage.removeItem(KEY); } catch { /* nada */ }
-    try { localStorage.removeItem("bayona.backup.v1"); } catch { /* nada */ }
-    try { localStorage.removeItem("bayona.save.corrupt"); } catch { /* nada */ }
-    deleteCycle();
-    resetConsents(); // la clave de consents solo la toca consents.js
-    this.reset(false);
+    // Borra el namespace personal entero de la identidad activa: progreso,
+    // salud, consentimientos, diario, chats, Coach Studio, colas y backups.
+    // La sesión Auth y las preferencias del dispositivo se conservan.
+    try { clearActiveUserData(); } catch { /* nada */ }
+    resetConsents(); // además invalida la caché en memoria del módulo de consentimientos
+    // CacheStorage no pertenece a localStorage: el avatar 3D se limpia aparte.
+    import("./avatar3d.js").then(({ clearActiveAvatarCache }) => clearActiveAvatarCache()).catch(() => {});
+    this.reset(false); // deja un estado limpio y válido para seguir en la cuenta
   },
 };

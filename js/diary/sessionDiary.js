@@ -9,6 +9,7 @@
 // ============================================================
 import { esc, t } from '../i18n.js';
 import { migrateLegacyConsents } from '../consents.js';
+import { scopedStorage } from '../sync/identity.js';
 
 // Consentimientos centralizados: migra claves antiguas (incluida la clave rota '***') al arrancar.
 migrateLegacyConsents();
@@ -245,7 +246,7 @@ export function liveSetCount() { return live.sets.length; }
 export function finishSession() {
   const d = liveDiary();
   try {
-    DiaryStore(globalThis.localStorage).save(d);
+    DiaryStore(scopedStorage()).save(d);
   } catch {
     // sin storage: se avisa (evento + estado honesto) y el diario se devuelve igual
     notifyStorageError();
@@ -271,7 +272,7 @@ function mountUI() {
   fab.addEventListener('click', () => {
     let d = null;
     try {
-      d = liveSetCount() ? liveDiary() : DiaryStore(globalThis.localStorage).latest();
+      d = liveSetCount() ? liveDiary() : DiaryStore(scopedStorage()).latest();
     } catch {
       // localStorage inaccesible (modo privado/bloqueado): aviso + estado honesto
       notifyStorageError();

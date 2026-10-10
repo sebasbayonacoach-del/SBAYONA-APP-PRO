@@ -17,6 +17,7 @@ import {
   dia, riesgoBaja, deudaDe, visitasDe,
 } from "./model.js";
 import { esLinkPago, normalizaReferencia, nombrePasarela } from "./pagos.js";
+import { scopedStorage } from "../sync/identity.js";
 
 const KEY = "bayona.centro.v1";
 const ANILLO = "bayona.centro.anillo.v1";
@@ -41,7 +42,7 @@ const VACIO = () => ({
 /* ============================================================
    ANILLO DE SEGURIDAD (propio del centro)
    ============================================================ */
-const mem = () => (typeof localStorage !== "undefined" ? localStorage : null);
+const mem = () => scopedStorage();
 
 function leerAnillo(st) {
   if (!st) return [];
@@ -167,19 +168,20 @@ export const G = {
   /** Carga. Si está corrupto, busca la última instantánea válida. */
   init() {
     let bruto = null;
+    const st = mem();
     try {
-      const raw = localStorage.getItem(KEY);
+      const raw = st?.getItem(KEY);
       bruto = raw ? JSON.parse(raw) : null;
     } catch {
       this.error = "corrupto";
     }
     if (bruto && (typeof bruto !== "object" || Array.isArray(bruto))) {
       this.error = "forma";
-      try { localStorage.setItem(CORRUPT, JSON.stringify(bruto)); } catch { /* sin storage */ }
+      try { st?.setItem(CORRUPT, JSON.stringify(bruto)); } catch { /* sin storage */ }
       bruto = null;
     }
     if (!bruto) {
-      const r = recuperarSeguro();
+      const r = recuperarSeguro(st);
       if (r) { bruto = r.data; this.recuperadoDe = r.de; }
     }
     this.estado = sanear(bruto);
@@ -188,7 +190,7 @@ export const G = {
 
   save() {
     this.estado.actualizado = new Date().toISOString();
-    const r = guardarSeguro(this.estado);
+    const r = guardarSeguro(this.estado, mem());
     // lo que de verdad quedó en disco pasa a ser el estado en memoria:
     // si no, la pantalla mostraría datos que no existen en el guardado
     if (r.datos) this.estado = sanear(r.datos);
@@ -385,7 +387,7 @@ export const G = {
 
   borrarTodo() {
     this.estado = VACIO();
-    try { for (const k of [KEY, ANILLO, CORRUPT]) localStorage.removeItem(k); } catch { /* sin storage */ }
+    try { const st = mem(); for (const k of [KEY, ANILLO, CORRUPT]) st?.removeItem(k); } catch { /* sin storage */ }
     avisar();
   },
 };

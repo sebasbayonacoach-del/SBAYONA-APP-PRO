@@ -86,7 +86,13 @@ console.log("✓ Android detectado: " + devices[0].split("\t")[0]);
 run(process.execPath, ["tools/sync-shop-catalog.mjs"]);
 run(process.execPath, ["tests/commerce-eval.mjs"]);
 run("npm", ["run", "mobile:pack"]);
-run("npx", ["cap", "sync", "android"], { cwd: mobile });
+
+const capCli = resolve(mobile, "node_modules/@capacitor/cli/bin/capacitor");
+if (!existsSync(capCli)) {
+  console.log("✓ Preparando herramientas Android (solo hace falta la primera vez)…");
+  run("npm", ["ci", "--ignore-scripts"], { cwd: mobile });
+}
+run(process.execPath, [capCli, "sync", "android"], { cwd: mobile });
 
 const jh = javaHome();
 if (!jh) throw new Error("No se encontró un JDK válido para Gradle.");

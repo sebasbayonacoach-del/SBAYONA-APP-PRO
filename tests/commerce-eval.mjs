@@ -40,8 +40,8 @@ check(armory.includes("DESBLOQUEO POR PROGRESO"), "los bloqueos digitales explic
 
 const fitness = readFileSync(resolve(root, "js/ui/fitness.js"), "utf8");
 const navBlock = fitness.match(/nav\.innerHTML=\[([\s\S]*?)\]\.map/)?.[1] || "";
-const primaryDestinations = [...navBlock.matchAll(/\['([^']+)'\s*,\s*'([^']+)'\]/g)].map((m) => m[1]);
-check(JSON.stringify(primaryDestinations) === JSON.stringify(["hoy", "training", "progress", "profile"]), "navegación cliente mantiene solo Inicio / Entrenar / Progreso / Perfil");
+const primaryDestinations = [...navBlock.matchAll(/\['([^']+)'\s*,/g)].map((m) => m[1]);
+check(JSON.stringify(primaryDestinations) === JSON.stringify(["hoy", "training", "progress", "profile"]), "navegación cliente mantiene solo Ahora / Entrenar / Progreso / Perfil");
 
 const i18n = readFileSync(resolve(root, "js/i18n.js"), "utf8");
 check(!i18n.includes('"nav.armory": "ARMERÍA"'), "no quedan dos nombres Armario/Armería");
@@ -60,6 +60,6 @@ check(sw.includes('"./js/shop-catalog.js"'), "catálogo comercial disponible en 
 const pack = readFileSync(resolve(root, "mobile/pack-web.mjs"), "utf8");
 check(pack.includes("'trainingym'"), "la APK empaqueta también el catálogo PROPLAYER");
 const gradle = readFileSync(resolve(root, "mobile/android/app/build.gradle"), "utf8");
-check(gradle.includes('versionCode 4') && gradle.includes('versionName "1.0.3-beta"'), "Android queda versionado como 1.0.3-beta");
+check(gradle.includes('versionCode 6') && gradle.includes('versionName "1.0.5-beta"'), "Android queda versionado como 1.0.5-beta");
 
 console.log(`\n📊 RESULTADO: ${ok} comprobaciones · 0 fallos\n`);

@@ -12,6 +12,7 @@ import {
 } from "./shared.js";
 import { getAppearance, THEMES } from "./appearance.js";
 import { diagnostico, instantaneas, previsualizar, restaurar } from "../backup.js";
+import { scopedStorage } from "../sync/identity.js";
 import { currentSession, isConfigured } from "../sync/supabase.js";
 import { installState, requestInstall, onInstallState } from "../pwa.js";
 import { openAccount } from "../sync/account.js";
@@ -224,8 +225,9 @@ BUILDERS.more = (body) => {
 
   // ---------- RED DE SEGURIDAD DEL PROGRESO ----------
   body.appendChild(el("div", "sec-label", t("data.safetyLabel")));
-  const diag = diagnostico();
-  const shots = instantaneas();
+  const progressStore = scopedStorage();
+  const diag = diagnostico(progressStore);
+  const shots = instantaneas(progressStore);
   const safe = el("div", "card");
   safe.appendChild(elT("h4", "", t("data.safetyTitle")));
   safe.appendChild(elT("div", "sub", t("data.safetyNote")));
@@ -247,7 +249,7 @@ BUILDERS.more = (body) => {
   if (shots.length) {
     const lista = el("div", "data-shots");
     shots.slice(0, 5).forEach((s, i) => {
-      const v = previsualizar(i) || {};
+      const v = previsualizar(i, progressStore) || {};
       const fila = el("div", "data-shot");
       fila.innerHTML = `<div><strong>${esc(new Date(s.at).toLocaleString("es-ES"))}</strong>
         <small>${esc(t("data.safetyShotN", { xp: fmtInt(v.xp || 0), w: fmtInt(v.entrainamientos || 0), sets: fmtInt(v.series || 0) }))}</small></div>`;
@@ -263,7 +265,7 @@ BUILDERS.more = (body) => {
           </div>`, () => {
           $("#rs-no").onclick = hideModal;
           $("#rs-yes").onclick = () => {
-            if (restaurar(i)) { hideModal(); toast(t("data.safetyRestored"), t("data.safetyRestoredNote")); location.reload(); }
+            if (restaurar(i, progressStore)) { hideModal(); toast(t("data.safetyRestored"), t("data.safetyRestoredNote")); location.reload(); }
           };
         });
       };

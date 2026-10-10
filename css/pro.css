@@ -5918,3 +5918,129 @@ html[data-surface-theme="light"] body.fitness-app #topbar .chip{
   border-color:#d5cec3 !important;
   background:#fffdf9 !important;
 }
+
+/* ============================================================
+   42 · BAYONA NOW — una decisión, un toque
+   ============================================================ */
+.fit-now-head{margin-bottom:14px}
+.fit-now-card{
+  position:relative;
+  overflow:hidden;
+  min-height:300px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  gap:24px;
+  padding:20px;
+  border:1px solid #3a2b20;
+  border-radius:22px;
+  background:
+    radial-gradient(circle at 88% 4%,rgba(244,162,97,.20),transparent 34%),
+    radial-gradient(circle at 5% 100%,rgba(244,162,97,.06),transparent 34%),
+    linear-gradient(145deg,#151719,#0b0d0e 70%);
+  box-shadow:inset 0 1px rgba(255,255,255,.03),0 24px 70px rgba(0,0,0,.20);
+}
+.fit-now-card::after{
+  content:"";
+  position:absolute;
+  width:220px;height:220px;right:-105px;top:-105px;
+  border:1px solid rgba(244,162,97,.16);border-radius:50%;
+  box-shadow:0 0 0 34px rgba(244,162,97,.025),0 0 0 68px rgba(244,162,97,.012);
+  pointer-events:none;
+}
+.fit-now-top{position:relative;z-index:1;display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
+.fit-now-top>span:first-child{
+  color:#f4a261;font:850 8px/1 var(--sans);letter-spacing:.17em
+}
+.fit-now-status{display:grid;grid-template-columns:auto auto;align-items:end;gap:7px;text-align:right}
+.fit-now-status b{color:#f6f2eb;font:650 30px/.82 var(--serif);letter-spacing:-.04em}
+.fit-now-status small{padding-bottom:2px;color:#7e878b;font:800 7px/1 var(--sans);letter-spacing:.1em}
+.fit-now-copy{position:relative;z-index:1;margin-top:auto}
+.fit-now-copy h3{
+  max-width:520px;margin:0;color:#f7f4ee;
+  font:620 clamp(31px,8vw,48px)/.96 var(--serif);letter-spacing:-.045em
+}
+.fit-now-copy p{
+  max-width:590px;margin:12px 0 0;color:#9aa0a3;
+  font:500 11px/1.55 var(--sans)
+}
+.fit-now-insight{
+  width:max-content;max-width:100%;margin-top:12px;padding:7px 10px;
+  border:1px solid #292d30;border-radius:999px;background:#0d1011;
+  color:#747d81;font:650 8px/1.2 var(--sans);letter-spacing:.03em
+}
+.fit-now-actions{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:9px}
+.fit-now-primary,.fit-now-secondary{
+  min-height:48px;border-radius:12px;font:850 9px/1 var(--sans);letter-spacing:.09em;cursor:pointer
+}
+.fit-now-primary{border:1px solid #f4a261;background:#f4a261;color:#08090a}
+.fit-now-secondary{border:1px solid #303538;background:#0d1011;color:#aeb3b5}
+.fit-now-primary:focus-visible,.fit-now-secondary:focus-visible{outline:2px solid #f4a261;outline-offset:2px}
+.fit-now-card.is-recover{border-color:#34302a}
+.fit-now-question,.fit-week-title{
+  display:flex;align-items:end;justify-content:space-between;gap:12px;margin:22px 2px 10px
+}
+.fit-now-question span,.fit-week-title span{
+  color:#8a9296;font:800 8px/1 var(--sans);letter-spacing:.14em
+}
+.fit-now-question small,.fit-week-title small{color:#555d61;font:500 8px/1 var(--sans)}
+.fit-now-needs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.fit-now-need{
+  min-height:86px;display:flex;flex-direction:column;justify-content:flex-end;gap:5px;
+  padding:12px;border:1px solid #24292c;border-radius:14px;background:#0d1011;
+  color:#eee;text-align:left;cursor:pointer
+}
+.fit-now-need:hover,.fit-now-need:focus-visible{border-color:#654225;background:#111415;outline:none}
+.fit-now-need strong{font:700 11px/1.1 var(--sans)}
+.fit-now-need small{color:#687074;font:500 8px/1.3 var(--sans)}
+.fit-now-need-ask{border-color:#3b2c21;background:linear-gradient(145deg,#15100d,#0e1011)}
+.fit-now-need-ask strong{color:#f4a261}
+.fit-now-ask{
+  width:100%;min-height:58px;display:grid;grid-template-columns:26px auto 1fr;align-items:center;gap:10px;
+  margin-top:10px;padding:10px 14px;border:1px solid #33291f;border-radius:14px;
+  background:linear-gradient(90deg,rgba(244,162,97,.08),#0d1011 42%);color:#d9d7d2;text-align:left;cursor:pointer
+}
+.fit-now-ask>span{color:#f4a261;font-size:19px}
+.fit-now-ask>strong{font:800 9px/1 var(--sans);letter-spacing:.08em;white-space:nowrap}
+.fit-now-ask>small{overflow:hidden;color:#737b7f;font:500 8px/1.25 var(--sans);text-overflow:ellipsis;white-space:nowrap}
+.fit-now-more{display:flex;justify-content:center;gap:4px;margin:15px 0 4px}
+.fit-now-more button{
+  min-height:34px;padding:0 10px;border:0;background:transparent;color:#626a6e;
+  font:650 8px/1 var(--sans);cursor:pointer
+}
+.fit-now-more button:hover,.fit-now-more button:focus-visible{color:#f4a261;outline:none}
+.fit-bayona-fab{
+  position:fixed;right:max(14px,env(safe-area-inset-right));bottom:calc(78px + env(safe-area-inset-bottom));z-index:78;
+  min-height:42px;display:flex;align-items:center;gap:8px;padding:0 13px;
+  border:1px solid #6b4528;border-radius:999px;background:rgba(14,15,16,.94);color:#f0ede7;
+  box-shadow:0 12px 35px rgba(0,0,0,.36),inset 0 1px rgba(255,255,255,.04);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);cursor:pointer
+}
+.fit-bayona-fab span{color:#f4a261;font-size:16px}
+.fit-bayona-fab strong{font:850 8px/1 var(--sans);letter-spacing:.11em}
+body:not(.entered) .fit-bayona-fab{display:none}
+body.fitness-app.session-active .fit-bayona-fab{opacity:.7}
+@media(max-width:620px){
+  .fit-now-card{min-height:330px;padding:18px}
+  .fit-now-actions{grid-template-columns:1fr}
+  .fit-now-needs{grid-template-columns:1fr 1fr}
+  .fit-now-need{min-height:78px}
+  .fit-now-ask{grid-template-columns:24px 1fr}
+  .fit-now-ask>small{grid-column:2;white-space:normal;margin-top:-4px}
+  .fit-bayona-fab{right:12px;bottom:calc(72px + env(safe-area-inset-bottom));min-height:40px;padding:0 11px}
+}
+html[data-surface-theme="light"] body.fitness-app .fit-now-card{
+  border-color:#dec4ad;
+  background:radial-gradient(circle at 88% 4%,rgba(226,126,52,.13),transparent 34%),linear-gradient(145deg,#fffdfa,#f5f0ea 72%);
+  box-shadow:0 18px 48px rgba(64,45,29,.08)
+}
+html[data-surface-theme="light"] body.fitness-app .fit-now-copy h3,
+html[data-surface-theme="light"] body.fitness-app .fit-now-status b{color:#211b17}
+html[data-surface-theme="light"] body.fitness-app .fit-now-copy p{color:#665f5a}
+html[data-surface-theme="light"] body.fitness-app .fit-now-insight,
+html[data-surface-theme="light"] body.fitness-app .fit-now-need,
+html[data-surface-theme="light"] body.fitness-app .fit-now-ask,
+html[data-surface-theme="light"] body.fitness-app .fit-now-secondary{background:#fffaf5;border-color:#e1d7ce;color:#3d3732}
+html[data-surface-theme="light"] body.fitness-app .fit-bayona-fab{background:rgba(255,250,245,.96);color:#2a241f;border-color:#d59665}
+
+body[data-section="hoy"] .fit-bayona-fab{display:none}

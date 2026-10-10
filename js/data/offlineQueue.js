@@ -3,6 +3,8 @@
 // clave que js/vision/boot.js → la cola de la cámara es esta cola).
 // El transporte se inyecta: `send(item)` → Promise<{ok:boolean, retry?:boolean}>.
 
+import { scopedStorage } from '../sync/identity.js';
+
 const QUEUE_KEY = 'bayona.sets_queue_v1';
 const DEAD_KEY = 'bayona.sets_queue_dead_v1'; // nunca se pierde en silencio: los
 // registros que agotan reintentos se conservan aquí (recuperables/auditables).
@@ -17,7 +19,7 @@ const memStore = {
 
 function storeOf(store) {
   try {
-    return store ?? (typeof localStorage !== 'undefined' ? localStorage : memStore);
+    return store ?? scopedStorage() ?? memStore;
   } catch {
     return memStore;
   }

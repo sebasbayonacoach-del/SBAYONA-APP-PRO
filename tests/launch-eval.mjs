@@ -42,8 +42,10 @@ ok(!sitemap.includes("<loc>./"), "sitemap no usa URLs relativas");
 console.log("\n— PWA —");
 ok(manifest.display === "standalone", "manifest standalone");
 ok(manifest.start_url === "./?source=pwa", "arranque PWA estable");
-ok(landingBoot.includes('const appShell = source === "pwa"') && landingBoot.includes("yaDentro() || direct || appShell"),
-  "la PWA instalada salta marketing y abre el portal de la app");
+ok(landingBoot.includes('const appShell = source === "pwa"')
+    && landingBoot.includes("if (appShell || nativeShell)")
+    && landingBoot.includes('import("./auth-gate.js")'),
+  "la PWA instalada salta marketing y abre splash/auth antes del producto");
 ok(Array.isArray(manifest.icons) && manifest.icons.length >= 3, "manifest tiene iconos");
 ok(manifest.icons.every((x) => existsSync(join(root, String(x.src).replace(/^\.\//, "")))), "todos los iconos del manifest existen");
 ok(manifest.icons.some((x) => String(x.purpose || "").includes("maskable")), "hay icono maskable");

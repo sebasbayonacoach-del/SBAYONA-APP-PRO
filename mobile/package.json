@@ -5,10 +5,10 @@
   "description": "Contenedor móvil (Capacitor) de BAYONA — Android/iOS",
   "dependencies": {
     "@capacitor/android": "^8.5.2",
-    "@capacitor/cli": "^8.5.2",
     "@capacitor/core": "^8.5.2"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.5.2",
     "typescript": "^7.0.2"
   },
   "type": "module"

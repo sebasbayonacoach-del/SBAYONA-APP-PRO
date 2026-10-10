@@ -23,9 +23,10 @@ import {
 import {
   isConfigured, probeBackend, currentSession, currentUser, accountRole, onAuth,
   signInWithPassword, signUpWithPassword, signInWithMagicLink,
-  signOut, ensureFreshSession, refreshUser, completeAuthFromHash,
+  signOut, ensureFreshSession, refreshUser, completeAuthFromHash, updateUserMetadata,
   select, insert, upsert, remove,
 } from "./supabase.js";
+import { portableProfile } from "./profile.js";
 
 TITLES.account = ["CUENTA", "BAYONA EN LA NUBE · TUS DATOS, TUS REGLAS"];
 
@@ -86,6 +87,12 @@ async function pushProfile() {
       throw e;
     }
   }
+  await updateUserMetadata({
+    bayona_role: accountRole(),
+    display_name: d.profile.name || null,
+    bayona_profile: portableProfile(d.profile),
+  });
+
   const rows = Object.entries(consentStatus()).map(([domain, v]) => ({
     user_id: u.id,
     domain,
@@ -409,9 +416,9 @@ BUILDERS.account = (body) => {
       try {
         await signInWithPassword(email(), pass());
         await refreshUser();
-        await hydrateAssignmentsToLocal(S).catch(() => 0);
-        toast("SESIÓN INICIADA", "Ya estás en la nube.");
-        buildIfOpen();
+        // Cambiar de identidad cambia también el namespace local. Recargar evita
+        // que el estado en memoria de la cuenta anterior sobreviva al cambio.
+        location.reload();
       } catch (e) { msg.textContent = t("cloud.login.failed", { error: e.message }); }
     };
     bUp.onclick = async () => {
@@ -421,8 +428,12 @@ BUILDERS.account = (body) => {
       try {
         await signUpWithPassword(email(), pass());
         msg.textContent = t("cloud.signup.created");
-        toast("CUENTA CREADA", "Bienvenido a BAYONA.");
-        buildIfOpen();
+        if (currentSession()) {
+          await refreshUser().catch(() => null);
+          location.reload();
+          return;
+        }
+        toast("REVISA TU EMAIL", "Confirma tu cuenta y vuelve a entrar.");
       } catch (e) { msg.textContent = t("cloud.signup.failed", { error: e.message }); }
     };
     body.appendChild(form);
@@ -450,7 +461,12 @@ BUILDERS.account = (body) => {
   if (ses) {
     const out = el("button", "btn btn-danger btn-block", "CERRAR SESIÓN");
     out.style.marginTop = "8px";
-    out.onclick = async () => { await signOut(); toast("SESIÓN CERRADA", "Tus datos siguen en este dispositivo."); buildIfOpen(); };
+    out.onclick = async () => {
+      await signOut();
+      // El siguiente arranque abrirá el namespace invitado/otra cuenta, nunca
+      // los datos que quedaron en memoria de la sesión que acaba de salir.
+      location.reload();
+    };
     body.appendChild(out);
   }
 
@@ -494,6 +510,7 @@ function sincroSuave() {
 
 // sincronizado suave al terminar un entreno o al cambiar medidas/asignaciones
 on("session", sincroSuave);
+on("profile", sincroSuave);
 on("medidas", sincroSuave);
 on("asignaciones", sincroSuave);
 on("cloud-assignment-complete", async (assignment) => {

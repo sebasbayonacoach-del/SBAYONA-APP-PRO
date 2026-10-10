@@ -114,10 +114,23 @@ function boot() {
     platformLabel.textContent = `ESPAÑOL · ${surface}`;
   }
 
-  // Una instalación real (PWA o APK/iOS) ya es producto, no página de venta:
-  // salta marketing y entra al selector Atleta / Coach. La web pública conserva
-  // la landing para visitantes nuevos.
-  if (yaDentro() || direct || appShell || nativeShell) {
+  // Una instalación real ya abre como producto. Antes de cargar el mundo 3D
+  // pasa por la puerta de identidad: splash → sesión → perfil → espacio.
+  if (appShell || nativeShell) {
+    removeLanding();
+    const nativePlatform = String(globalThis.Capacitor?.getPlatform?.() || "").toUpperCase();
+    const surface = nativeShell ? (nativePlatform || "APP") : "PWA";
+    import("./auth-gate.js")
+      .then(({ launchAuthGate }) => launchAuthGate({ platform: surface }))
+      .catch((error) => {
+        console.error("BAYONA: la puerta de acceso no pudo arrancar", error);
+      });
+    return;
+  }
+
+  // En web pública, un usuario recurrente o un deep-link puede saltar la
+  // landing comercial. La app instalada nunca pasa por esta rama.
+  if (yaDentro() || direct) {
     removeLanding();
     const role = direct === "coachos" || direct === "coach-os"
       ? "coach"

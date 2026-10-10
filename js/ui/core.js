@@ -21,6 +21,7 @@ import { t, esc } from "../i18n.js";
 import { askCore, buildCoachContext, probeCloud } from "../coach/ai.js";
 import { WORKOUTS } from "../data.js";
 import { validaAsignacion } from "../coachos.js";
+import { scopedStorage } from "../sync/identity.js";
 
 const STORE = "bayona.coach.chat.v1";
 const MAX_TURNS = 40;
@@ -34,12 +35,12 @@ const chat = {
 };
 function load() {
   try {
-    const v = JSON.parse(localStorage.getItem(STORE) || "[]");
+    const v = JSON.parse(scopedStorage()?.getItem(STORE) || "[]");
     return Array.isArray(v) ? v.slice(-MAX_TURNS) : [];
   } catch { return []; }
 }
 function persist() {
-  try { localStorage.setItem(STORE, JSON.stringify(chat.turns.slice(-MAX_TURNS))); }
+  try { scopedStorage()?.setItem(STORE, JSON.stringify(chat.turns.slice(-MAX_TURNS))); }
   catch { /* sin storage: la conversación sigue en memoria */ }
 }
 

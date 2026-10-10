@@ -4,6 +4,8 @@
 // Los módulos (cámara, salud, voz, fotos) leen de aquí NUNCA de claves sueltas.
 // ============================================================
 
+import { activeIdentity, scopedStorage } from "./sync/identity.js";
+
 export const CONSENT_VERSION = 1;
 const KEY = "bayona.consents.v1";
 
@@ -17,7 +19,7 @@ const LEGACY = {
 };
 
 function store() {
-  try { return typeof localStorage !== "undefined" ? localStorage : null; } catch { return null; }
+  try { return scopedStorage(); } catch { return null; }
 }
 
 function blank() {
@@ -31,8 +33,18 @@ function blank() {
 }
 
 let cache = null;
+let cacheIdentity = null;
+
+function ensureIdentityCache() {
+  const identity = activeIdentity() || "guest";
+  if (cacheIdentity !== identity) {
+    cacheIdentity = identity;
+    cache = null;
+  }
+}
 
 function readRaw() {
+  ensureIdentityCache();
   const s = store();
   if (!s) return null;
   try {
@@ -42,6 +54,7 @@ function readRaw() {
 }
 
 function write(data) {
+  ensureIdentityCache();
   cache = data;
   const s = store();
   if (!s) return false;
@@ -73,6 +86,7 @@ export function migrateLegacyConsents() {
 }
 
 export function getConsents() {
+  ensureIdentityCache();
   if (cache) return cache;
   cache = readRaw() || migrateLegacyConsents();
   return cache;
@@ -100,6 +114,7 @@ export function revokeConsent(domain) {
 
 /** Borra TODOS los consentimientos (borrado total de datos · RGPD). Único dueño de la clave. */
 export function resetConsents() {
+  ensureIdentityCache();
   cache = blank();
   const s = store();
   if (!s) return false;

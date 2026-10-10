@@ -381,7 +381,7 @@ function datosBlock() {
     descargar(`bayona-mis-datos-${new Date().toISOString().slice(0, 10)}.json`, exportarDatos(S.exportAll()));
     toast("DATOS EXPORTADOS", "Copia JSON completa de todo lo registrado. Nada se queda fuera.");
   };
-  const b2 = el("button", "btn btn-danger btn-block", "BORRAR MI CUENTA");
+  const b2 = el("button", "btn btn-danger btn-block", "BORRAR DATOS DE ESTE DISPOSITIVO");
   b2.style.marginTop = "8px";
   b2.onclick = flujoBorrado;
   box.appendChild(b1);
@@ -391,13 +391,13 @@ function datosBlock() {
 
 function flujoBorrado() {
   showModal(`
-    <div class="cine-tag">BORRAR CUENTA</div>
-    <div class="cine-title" style="font-size:20px">¿BORRAR TODO?</div>
+    <div class="cine-tag">BORRADO LOCAL</div>
+    <div class="cine-title" style="font-size:20px">¿BORRAR LOS DATOS LOCALES?</div>
     <div class="sub">Se borran <b>tus datos de este dispositivo</b>: perfil, entrenos, medidas, fotos, diario y récords. No se puede deshacer.<br/>Antes de borrar se descarga un <b>acuse</b> con qué se borró y cuándo.</div>
     <label style="display:block;margin:10px 0">MOTIVO (OPCIONAL)<input id="del-motivo" type="text" maxlength="120" placeholder="por ejemplo: cambio de app" /></label>
     <div style="display:flex;gap:8px">
       <button class="btn grow" id="del-cancel">VOLVER</button>
-      <button class="btn btn-danger grow" id="del-ok">BORRAR MI CUENTA</button>
+      <button class="btn btn-danger grow" id="del-ok">BORRAR DATOS</button>
     </div>`, () => {
     $("#del-cancel").onclick = hideModal;
     $("#del-ok").onclick = () => {
@@ -408,7 +408,7 @@ function flujoBorrado() {
       UI.session = null;
       hideModal();
       BUILDERS.progress();
-      toast("CUENTA BORRADA", "Datos eliminados de este dispositivo. El acuse de borrado se ha descargado.");
+      toast("DATOS LOCALES BORRADOS", "La cuenta cloud no se ha eliminado. El acuse local se ha descargado.");
     };
   });
 }

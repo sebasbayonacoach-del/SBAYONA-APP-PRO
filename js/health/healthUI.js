@@ -4,6 +4,7 @@
 import { PAR_Q_ITEMS, buildHealthMap } from './healthMap.js';
 import { esc } from '../i18n.js';
 import { isGranted, setConsent, revokeConsent, migrateLegacyConsents } from '../consents.js';
+import { scopedStorage } from '../sync/identity.js';
 
 // Consentimientos centralizados: migra claves antiguas (incluida la clave rota '***') al arrancar.
 migrateLegacyConsents();
@@ -125,7 +126,7 @@ function notifyStorageError() {
 function saveRecord(input) {
   if (!isGranted('health')) return { ok: false, reason: 'sin-permiso' };
   try {
-    localStorage.setItem(STORE_KEY, JSON.stringify({ ...input, savedAt: new Date().toISOString() }));
+    scopedStorage()?.setItem(STORE_KEY, JSON.stringify({ ...input, savedAt: new Date().toISOString() }));
     return { ok: true, reason: null };
   } catch {
     // almacenamiento lleno/bloqueado: se avisa y se muestra estado honesto
@@ -290,7 +291,7 @@ function stepResult() {
   forget.onclick = () => {
     revokeConsent('health');
     try {
-      localStorage.removeItem(STORE_KEY);
+      scopedStorage()?.removeItem(STORE_KEY);
     } catch {
       notifyStorageError();
     }

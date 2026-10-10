@@ -31,6 +31,8 @@
 // ============================================================
 
 const RING = "bayona.backup.v1";
+import { scopedStorage } from "./sync/identity.js";
+
 const MAIN = "bayona.save.v2";
 const CORRUPT = "bayona.save.corrupt";
 const SLOTS = 8;
@@ -48,7 +50,7 @@ const RECORTES = [
   }],
 ];
 
-const mem = () => (typeof localStorage !== "undefined" ? localStorage : null);
+const mem = () => scopedStorage();
 
 /* ---------- huella barata para no llenar el anillo de copias iguales ---------- */
 function huella(s) {

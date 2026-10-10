@@ -12,6 +12,8 @@
 // Nivel superior PURO (sin three, sin window): testeable en node.
 // ============================================================
 
+import { activeIdentity } from "./sync/identity.js";
+
 export const AVATAR3D_PROVIDER = "avaturn";
 export const AVATAR3D_RIG_PROFILE = "avaturn-fullbody-v1";
 export const AVATAR3D_CACHE = "bayona-avatar3d-v1";
@@ -48,7 +50,14 @@ export const AVATAR3D_ACTIONS = {
 let memSubdomain = "";
 
 function store() {
+  // Configuración de proveedor no es dato personal; por compatibilidad sigue
+  // como preferencia global del dispositivo. El descriptor vive en S.profile.
   try { return typeof localStorage !== "undefined" ? localStorage : null; } catch { return null; }
+}
+
+export function avatarCacheName() {
+  const id = activeIdentity();
+  return id ? `${AVATAR3D_CACHE}-user-${id}` : `${AVATAR3D_CACHE}-guest`;
 }
 
 export function configureAvatar3d({ subdomain } = {}) {
@@ -148,7 +157,7 @@ export async function resolveAvatarBytes(ref, { timeoutMs = AVATAR3D_FETCH_TIMEO
 export async function storeAvatarBytes(avatarId, bytes) {
   const key = `avaturn:${avatarId}.glb`;
   try {
-    const cache = await caches.open(AVATAR3D_CACHE);
+    const cache = await caches.open(avatarCacheName());
     await cache.put(key, new Response(bytes, { headers: { "content-type": "model/gltf-binary" } }));
     return key;
   } catch {
@@ -158,12 +167,35 @@ export async function storeAvatarBytes(avatarId, bytes) {
 
 export async function readAvatarBytes(cacheKey) {
   try {
-    const cache = await caches.open(AVATAR3D_CACHE);
-    const hit = await cache.match(cacheKey);
+    const scoped = await caches.open(avatarCacheName());
+    let hit = await scoped.match(cacheKey);
+    if (!hit) {
+      // Compatibilidad 1.0.3: un avatar previo podía estar en la caché global.
+      // Se copia al namespace actual en el primer uso; nunca se asigna por nombre.
+      const legacy = await caches.open(AVATAR3D_CACHE);
+      hit = await legacy.match(cacheKey);
+      if (hit) {
+        const copy = hit.clone();
+        await scoped.put(cacheKey, copy).catch(() => {});
+      }
+    }
     if (!hit) return null;
     const buf = await hit.arrayBuffer();
     return isGlbBytes(buf) ? buf : null;
   } catch { return null; }
+}
+
+export async function deleteAvatarBytes(cacheKey) {
+  if (!cacheKey) return false;
+  try {
+    const cache = await caches.open(avatarCacheName());
+    return await cache.delete(cacheKey);
+  } catch { return false; }
+}
+
+export async function clearActiveAvatarCache() {
+  try { return await caches.delete(avatarCacheName()); }
+  catch { return false; }
 }
 
 // ---------------- CARGA EN EL MUNDO (solo navegador) ----------------

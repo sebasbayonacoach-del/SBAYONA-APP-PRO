@@ -289,8 +289,9 @@ BUILDERS.appearance = (body) => {
     back3d.type = "button";
     back3d.addEventListener("click", async () => {
       try {
-        const { detachAvatar3d } = await import("../avatar3d.js");
+        const { detachAvatar3d, deleteAvatarBytes } = await import("../avatar3d.js");
         detachAvatar3d(UI.W);
+        await deleteAvatarBytes(S.data.profile.avatar3d?.cacheKey);
       } catch { /* el de la foto ya estaba */ }
       S.data.profile.avatar3d = null;
       S.save();

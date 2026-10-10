@@ -205,7 +205,7 @@ export const TITLES = {
   rhythm: ["MI RITMO", "TU CUERPO · TUS DECISIONES"],
   profile: ["Perfil", "UN PLAN QUE ENCAJA CONTIGO"],
   home:      ["INICIO", "TU MUNDO"],
-  hoy:       ["Hoy", "ENTRENA A TU RITMO"],
+  hoy:       [t("now.title"), t("now.subtitle")],
   training:  ["Entrenar", "TU PLAN · TU SIGUIENTE SERIE"],
   library:   ["PROPLAYER", "3.141 EJERCICIOS · BIBLIOTECA TÉCNICA"],
   nutrition: ["NUTRICIÓN", "COCINA · ENERGÍA"],
