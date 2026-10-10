@@ -10,7 +10,8 @@
     "qa:5000": "node tests/qa-5000-eval.mjs",
     "coach:smoke": "node tools/coach-smoke.mjs",
     "mobile:pack": "node mobile/pack-web.mjs",
-    "sync:shop": "node tools/sync-shop-catalog.mjs"
+    "sync:shop": "node tools/sync-shop-catalog.mjs",
+    "phone:update": "node tools/update-phone.mjs"
   },
   "engines": {
     "node": ">=22.0.0"
