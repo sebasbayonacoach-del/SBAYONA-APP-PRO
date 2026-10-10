@@ -26,9 +26,9 @@ jobs:
           java-version: '21'
 
       - uses: android-actions/setup-android@v3
-
-      - name: Instalar SDK Android 36
-        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+        with:
+          # La acción instala "tools" por defecto, un paquete ya retirado.
+          packages: 'platform-tools platforms;android-36 build-tools;36.0.0'
 
       - name: Dependencias Capacitor
         working-directory: mobile
