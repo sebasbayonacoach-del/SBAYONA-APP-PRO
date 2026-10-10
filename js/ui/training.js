@@ -561,7 +561,7 @@ function renderSession() {
   const vid = sessionVideoFor(s);
   if (vid) {
     technique.append(el("div", "media-hero", `<video src="${vid}" controls muted playsinline preload="none" poster="${sessionPosterFor(s)}"></video>`));
-    technique.append(el("div", "media-caption", s.videoFile ? "Demostración PROPLAYER" : "Demostración pregrabada"));
+    technique.append(el("div", "media-caption", s.videoUrl ? t("training.video.online") : t("training.video.local")));
   }
   technique.append(el("p", "media-caption", esc(sessionTip(s))));
   body.append(technique);

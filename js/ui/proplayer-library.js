@@ -1,7 +1,7 @@
 // BAYONA / PROPLAYER — biblioteca técnica propiedad de BAYONA.
 // El catálogo se integra como dominio de entrenamiento; los MP4 se cargan bajo demanda.
 import { S } from "../state.js";
-import { esc } from "../i18n.js";
+import { esc, t } from "../i18n.js";
 import { BUILDERS, $, el, elT, openSection, showModal, hideModal, toast } from "./shared.js";
 import { linkedClients, saveCloudRoutine, assignCloudRoutine } from "../sync/coaching.js";
 
@@ -285,9 +285,16 @@ function playVideo(record) {
     video.src = mediaUrl(record);
     video.setAttribute("aria-label", "Demostración de " + record.nombre);
 
-    const state = elT("p", "proplayer-video-state", "MP4 verificado · propiedad BAYONA · carga bajo demanda.");
+    // Los clips PROPLAYER se almacenan fuera de la APK. No afirmar que
+    // funcionan sin red, que la app posee derechos sobre ellos o que el
+    // enlace está operativo hasta que el navegador confirme metadatos.
+    const state = elT("p", "proplayer-video-state", t("proplayer.video.external"));
+    video.addEventListener("loadedmetadata", () => {
+      state.textContent = t("proplayer.video.ready");
+      state.classList.remove("danger");
+    });
     video.addEventListener("error", () => {
-      state.textContent = "No se pudo abrir este MP4 desde la biblioteca local.";
+      state.textContent = t("proplayer.video.failed");
       state.classList.add("danger");
     });
 
@@ -375,6 +382,7 @@ function renderLibrary(body, data) {
     makeMetric("SIN MP4", formatCount(missing), "ausente o con incidencia")
   );
   root.append(metrics);
+  root.append(elT("p", "proplayer-network-note", t("proplayer.catalog.network")));
 
   const workspace = el("div", "proplayer-workspace");
   const filters = el("aside", "proplayer-filters");
@@ -517,7 +525,7 @@ function renderLibrary(body, data) {
       const mediaState = record.estado_media === "duplicate"
         ? "MP4 reutilizado"
         : record.video_disponible_local
-          ? "MP4 verificado"
+          ? "Vídeo en línea"
           : record.estado_media === "error"
             ? "Incidencia"
             : "Sin MP4";

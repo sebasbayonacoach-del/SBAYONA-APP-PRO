@@ -7159,3 +7159,6 @@ html[data-surface-theme="light"] body.fitness-app #drawer-body .card .kv .k {
 html[data-surface-theme="light"] body.fitness-app #drawer-body .card .kv .v {
   color: #151515 !important;
 }
+
+/* El catálogo PROPLAYER se instala localmente; sus clips externos no. */
+.proplayer-network-note{margin:10px 0 20px;padding:14px 17px;border:1px solid var(--line);border-radius:12px;color:var(--muted);font:500 12px/1.65 var(--sans);}

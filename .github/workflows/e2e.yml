@@ -44,6 +44,16 @@ jobs:
           BAYONA_CAMPAIGN_URL: http://127.0.0.1:8094
         run: node tools/mission-campaign-browser.mjs
 
+      - name: Android PROPLAYER · catálogo offline y asignación local
+        run: |
+          npm run mobile:pack
+          python3 -m http.server 8148 --bind 127.0.0.1 --directory mobile/web-build > /tmp/bayona-android-pack.log 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:8148/trainingym/catalog.json >/dev/null; then break; fi
+            sleep 0.5
+          done
+          BAYONA_PACK_URL=http://127.0.0.1:8148 node tools/android-proplayer-browser.mjs
+
       - name: Production E2E
         run: node tests/e2e-production.mjs
 
