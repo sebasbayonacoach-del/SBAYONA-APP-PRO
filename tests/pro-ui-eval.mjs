@@ -58,8 +58,10 @@ function existeCss() {
 
 assert(css.length > 0, "css/pro.css existe");
 const hojas = [...index.matchAll(/<link[^>]+href="(css\/[^"]+)"/g)].map((m) => m[1].split("?")[0]);
-assert(hojas[hojas.length - 1] === "css/pro.css",
-  "pro.css es la ÚLTIMA hoja: es la que manda", hojas.join(" → "));
+// pro.css manda sobre el resto del producto. La única hoja que puede ir por
+// detrás es la capa de marca, que impone la tipografía y la paleta de la web.
+assert(hojas[hojas.length - 2] === "css/pro.css" && hojas[hojas.length - 1] === "css/bayona-brand.css",
+  "pro.css es la ÚLTIMA hoja de producto; encima solo la capa de marca", hojas.join(" → "));
 const sw = leer("sw.js");
 assert(sw.includes("./css/pro.css"), "el service worker precachea pro.css (funciona sin red)");
 

@@ -320,6 +320,15 @@ function startWorkout(w) {
     exIdx: 0, setIdx: 0, logged: 0, plannedSets,
     minutes: plan.min, xpAcc: 0,
     startedAt: Date.now(), updatedAt: Date.now(),
+    phase: "prep",
+    preparation: {
+      energy: S.data.today.energy ?? null,
+      discomfort: 0,
+      objective: "",
+      warmupDone: false,
+    },
+    closure: null,
+    earlyFinish: false,
     setsDone: [],
   };
   UI.session = sess;

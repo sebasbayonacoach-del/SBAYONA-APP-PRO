@@ -102,28 +102,28 @@ export const WORKOUTS = {
 // ------------------------------------------------------------
 export const ITEMS = [
   // TORSO
-  { id: "core_tee",    slot: "top", name: "CAMISETA CORE BAYONA", rarity: "COMMON",    physical: true,  vis: { kind: "tee",     color: "#111111", accent: "#ff6a00" } },
+  { id: "core_tee",    slot: "top", name: "CAMISETA ORIGINS", rarity: "COMMON",    physical: true, shopId: "camiseta-origins", vis: { kind: "tee", color: "#111111", accent: "#ff6a00" } },
   { id: "ember_tee",   slot: "top", name: "CAMISETA ASCUA",      rarity: "RARE",      physical: false, vis: { kind: "tee",     color: "#0d0d0d", accent: "#ff6a00" } },
-  { id: "apex_jacket", slot: "top", name: "CHAQUETA ÁPICE",      rarity: "EPIC",      physical: true,  vis: { kind: "jacket",  color: "#0a0a0a", accent: "#ffffff" } },
-  { id: "titan_hoodie",slot: "top", name: "SUDADERA TITÁN",      rarity: "LEGENDARY", physical: true,  vis: { kind: "jacket",  color: "#f2f2f2", accent: "#ff6a00" } },
+  { id: "apex_jacket", slot: "top", name: "CHAQUETA WINDSTOPPER", rarity: "EPIC", physical: true, shopId: "chaqueta-windstopper", vis: { kind: "jacket", color: "#0a0a0a", accent: "#ffffff" } },
+  { id: "titan_hoodie",slot: "top", name: "HOODIE PREMIUM", rarity: "LEGENDARY", physical: true, shopId: "hoodie-premium", vis: { kind: "jacket", color: "#f2f2f2", accent: "#ff6a00" } },
   { id: "myth_shell",  slot: "top", name: "CUBIERTA MÍTICA",     rarity: "MYTHIC",    physical: false, vis: { kind: "jacket",  color: "#0d0d0d", accent: "#ff6a00", glow: true } },
   // PIERNAS
-  { id: "core_pants",  slot: "bottom", name: "PANTALÓN CORE",       rarity: "COMMON",    physical: true,  vis: { kind: "long",  color: "#0a0a0a" } },
-  { id: "sprint_shorts",slot:"bottom", name: "CORTOS SPRINT",       rarity: "RARE",      physical: true,  vis: { kind: "short", color: "#2b2b2b" } },
+  { id: "core_pants",  slot: "bottom", name: "PANTALÓN JOGGER PREMIUM", rarity: "COMMON", physical: true, shopId: "pantalon-jogger-premium", vis: { kind: "long", color: "#0a0a0a" } },
+  { id: "sprint_shorts",slot:"bottom", name: "SHORT TÉCNICO BAYONA", rarity: "RARE", physical: true, shopId: "short-tecnico-bayona", vis: { kind: "short", color: "#2b2b2b" } },
   { id: "vanguard_pants",slot:"bottom",name:"PANTALÓN VANGUARDIA",  rarity: "EPIC",      physical: false, vis: { kind: "long",  color: "#111111", accent: "#ff8c3b" } },
   // CALZADO
-  { id: "core_runners",slot: "shoes", name: "ZAPATILLAS CORE",     rarity: "COMMON",    physical: true,  vis: { color: "#f5f5f5", accent: "#111111" } },
-  { id: "apex_lifters",slot: "shoes", name: "ZAPATILLAS ÁPICE",    rarity: "EPIC",      physical: true,  vis: { color: "#ff6a00", accent: "#0d0d0d" } },
+  { id: "core_runners",slot: "shoes", name: "ZAPATILLAS MOVE", rarity: "COMMON", physical: true, shopId: "zapatillas-move", vis: { color: "#f5f5f5", accent: "#111111" } },
+  { id: "apex_lifters",slot: "shoes", name: "ZAPATILLAS TRAINER PRO", rarity: "EPIC", physical: true, shopId: "zapatillas-trainer-pro", vis: { color: "#ff6a00", accent: "#0d0d0d" } },
   { id: "ghost_kicks", slot: "shoes", name: "ZAPATILLAS FANTASMA", rarity: "RARE",      physical: false, vis: { color: "#ffffff", accent: "#8a8a8a", glow: true } },
   // MUÑECA
-  { id: "perf_bands",  slot: "wrist", name: "MUÑEQUERAS RENDIMIENTO", rarity: "EPIC",   physical: true,  vis: { color: "#ff6a00" } },
-  { id: "focus_straps",slot: "wrist", name: "TIRAS DE ENFOQUE",    rarity: "RARE",      physical: true,  vis: { color: "#ffffff" } },
+  { id: "perf_bands",  slot: "wrist", name: "RELOJ INTELIGENTE BAYONA", rarity: "EPIC", physical: true, shopId: "reloj-inteligente-bayona", vis: { color: "#ff6a00" } },
+  { id: "focus_straps",slot: "wrist", name: "TIRAS DE ENFOQUE", rarity: "RARE", physical: false, vis: { color: "#ffffff" } },
   // CABEZA
-  { id: "bayona_cap",  slot: "head", name: "GORRA BAYONA",        rarity: "COMMON",    physical: true,  vis: { kind: "cap",        color: "#111111", accent: "#ff6a00" } },
+  { id: "bayona_cap",  slot: "head", name: "GORRA BAYONA", rarity: "COMMON", physical: true, shopId: "gorra-bayona", vis: { kind: "cap", color: "#111111", accent: "#ff6a00" } },
   { id: "pulse_cans",  slot: "head", name: "AURICULARES PULSO",   rarity: "RARE",      physical: false, vis: { kind: "headphones", color: "#2b2b2b", accent: "#ffffff" } },
   { id: "sage_wrap",   slot: "head", name: "BANDA SALVIA",        rarity: "COMMON",    physical: false, vis: { kind: "headband",   color: "#e0e0e0", accent: "#111111" } },
   // MOCHILA
-  { id: "field_pack",  slot: "back", name: "MOCHILA DE CAMPO",    rarity: "RARE",      physical: true,  vis: { color: "#111111", accent: "#ff6a00" } },
+  { id: "field_pack",  slot: "back", name: "MOCHILA BAYONA", rarity: "RARE", physical: true, shopId: "mochila-bayona", vis: { color: "#111111", accent: "#ff6a00" } },
   { id: "apex_wings",  slot: "back", name: "ALAS ÁPICE",          rarity: "LEGENDARY", physical: false, vis: { color: "#f2f2f2", accent: "#ff6a00", glow: true } },
   // EFECTOS
   { id: "aura_sun",    slot: "effects", name: "AURA AMANECER",   rarity: "LEGENDARY", physical: false, vis: { color: "#ff6a00" } },

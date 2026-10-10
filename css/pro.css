@@ -98,7 +98,15 @@ body.fitness-app :focus-visible {
 
 /* la app se lee en un solo cuerpo, sin escala por sección */
 body.fitness-app #drawer-body { font: 400 14px/1.55 var(--sans); }
-body.fitness-app h1, body.fitness-app h2, body.fitness-app h3, body.fitness-app h4 { letter-spacing: -.01em; }
+/* La app se lee en un solo cuerpo, sin escala por sección.
+   Se EXCLUYE la landing pública (.luxe-activo): sus titulares son display y
+   llevan su propio tracking (hero -0.04em, nombres de plan 0.1em). Con esta
+   regla, de especificidad (0,1,2) contra (0,1,1) de luxe.css, se los pisaba
+   a todos y el hero se leía suelto. */
+body.fitness-app:not(.luxe-activo) h1,
+body.fitness-app:not(.luxe-activo) h2,
+body.fitness-app:not(.luxe-activo) h3,
+body.fitness-app:not(.luxe-activo) h4 { letter-spacing: -.01em; }
 
 /* ============================================================
    3 · TEXTOS: CAJA ORACIONARIA
@@ -2507,24 +2515,26 @@ html[data-mode="noche"] body.fitness-app {
   --warn: #ffad42;
 
   color-scheme: dark;
-  background: #050505;
-  color: #f4f4f1;
+  /* fondo y tinta desde los tokens: si la marca cambia, el papel que hay detrás
+     de la landing cambia con ella y no queda un halo del color viejo */
+  background: var(--fit-bg);
+  color: var(--fit-ink);
 }
 
 /* selección, foco y scrollbar */
 body.fitness-app ::selection {
-  background: #ff6a00;
-  color: #090909;
+  background: #f4a261;
+  color: var(--acc-ink, #090909);
 }
 body.fitness-app :focus-visible {
-  outline-color: #ff6a00;
+  outline-color: #f4a261;
 }
 body.fitness-app * {
   scrollbar-color: #3a3e42 #090a0b;
 }
 body.fitness-app a,
 body.fitness-app button {
-  -webkit-tap-highlight-color: rgba(255,106,0,.14);
+  -webkit-tap-highlight-color: rgba(244,162,97,.14);
 }
 
 /* shell global */
@@ -2553,11 +2563,11 @@ body.fitness-app .rail-btn.active {
 }
 body.fitness-app #panel-nav .rail-btn.active::before,
 body.fitness-app .one-coach-launch::after {
-  background: #ff6a00;
-  color: #ff6a00;
+  background: #f4a261;
+  color: #f4a261;
 }
 body.fitness-app .one-edition {
-  color: #ff8a3a;
+  color: #f4a261;
   border-color: #603018;
   background: #1a0d05;
 }
@@ -2570,27 +2580,27 @@ body.fitness-app .one-context-btn {
 }
 body.fitness-app .one-context-btn.active {
   background: #17191c;
-  color: #ff8a3a;
+  color: #f4a261;
 }
 body.fitness-app .one-context-btn.active svg {
-  stroke: #ff6a00;
+  stroke: #f4a261;
 }
 
 /* entrada */
 body.fitness-app #entry {
   background:
-    radial-gradient(circle at 78% 44%, rgba(255,106,0,.08), transparent 27%),
+    radial-gradient(circle at 78% 44%, rgba(244,162,97,.08), transparent 27%),
     linear-gradient(135deg, #050505 0%, #070707 54%, #0d0906 100%);
   color: #f7f5f1;
 }
 body.fitness-app #entry .e-kicker {
-  color: #ff7a1a;
+  color: #f4a261;
 }
 body.fitness-app #entry .e-title {
   color: #f7f5f1;
 }
 body.fitness-app #entry .e-title em {
-  color: #ff6a00;
+  color: #f4a261;
   text-decoration: none;
 }
 body.fitness-app #entry .e-kicker {
@@ -2615,13 +2625,13 @@ body.fitness-app #entry .e-sub {
   color: #9a9fa3;
 }
 body.fitness-app #entry .e-enter {
-  border-color: #ff6a00;
-  background: #ff6a00;
-  color: #090909;
+  border-color: #f4a261;
+  background: #f4a261;
+  color: var(--acc-ink, #090909);
 }
 body.fitness-app #entry .e-enter:hover {
-  background: #ff7d24;
-  border-color: #ff7d24;
+  background: #f4a261;
+  border-color: #f4a261;
 }
 body.fitness-app #entry .e-mode {
   border-color: #2d3033;
@@ -2629,9 +2639,9 @@ body.fitness-app #entry .e-mode {
   color: #8f9498;
 }
 body.fitness-app #entry .e-mode.on {
-  border-color: #ff6a00;
+  border-color: #f4a261;
   background: #1b0d04;
-  color: #ff8a3a;
+  color: #f4a261;
 }
 
 /* onboarding */
@@ -2662,9 +2672,9 @@ body.fitness-app #ob-box textarea {
 }
 body.fitness-app #ob-box button.big,
 body.fitness-app #ob-box .btn-primary {
-  border-color: #ff6a00;
-  background: #ff6a00;
-  color: #090909;
+  border-color: #f4a261;
+  background: #f4a261;
+  color: var(--acc-ink, #090909);
 }
 
 /* universo atleta */
@@ -2696,7 +2706,7 @@ body.fitness-app .fit-welcome p,
 body.fitness-app .fit-eyebrow,
 body.fitness-app .sec-label,
 body.fitness-app .one-kicker {
-  color: #ff7a1a !important;
+  color: #f4a261 !important;
 }
 body.fitness-app .fit-welcome > div > span,
 body.fitness-app .fit-page-intro p,
@@ -2731,23 +2741,23 @@ body.fitness-app .card:hover {
 body.fitness-app.one-athlete-mode .fit-session-card {
   border-color: #322014;
   background:
-    linear-gradient(120deg, rgba(255,106,0,.08), transparent 36%),
+    linear-gradient(120deg, rgba(244,162,97,.08), transparent 36%),
     #0a0b0c;
 }
 body.fitness-app.one-athlete-mode .fit-session-card::before {
-  background: #ff6a00;
+  background: #f4a261;
 }
 body.fitness-app.one-athlete-mode .fit-session-card .btn-primary,
 body.fitness-app .btn-primary,
 body.fitness-app .one-action.primary {
-  border-color: #ff6a00 !important;
-  background: #ff6a00 !important;
-  color: #090909 !important;
+  border-color: #f4a261 !important;
+  background: #f4a261 !important;
+  color: var(--acc-ink, #090909) !important;
 }
 body.fitness-app .btn-primary:hover,
 body.fitness-app .one-action.primary:hover {
-  border-color: #ff7d24 !important;
-  background: #ff7d24 !important;
+  border-color: #f4a261 !important;
+  background: #f4a261 !important;
 }
 body.fitness-app .btn,
 body.fitness-app .one-action {
@@ -2758,7 +2768,7 @@ body.fitness-app .one-action {
 body.fitness-app .btn:hover,
 body.fitness-app .one-action:hover {
   border-color: #914516;
-  color: #ff9a56;
+  color: #ffc08a;
 }
 
 /* controles */
@@ -2785,7 +2795,7 @@ body.fitness-app.one-athlete-mode #drawer[data-section="plan"] #drawer-body > .s
 body.fitness-app.one-athlete-mode #drawer[data-section="plan"] #drawer-body > .card:first-of-type {
   border-color: #332015 !important;
   background:
-    linear-gradient(125deg, rgba(255,106,0,.08), transparent 42%),
+    linear-gradient(125deg, rgba(244,162,97,.08), transparent 42%),
     #090a0b !important;
   color: #f4f4f1;
 }
@@ -2797,7 +2807,7 @@ body.fitness-app.one-athlete-mode #drawer[data-section="nutrition"] .nut-receta-
   color: #f2f2ef;
 }
 body.fitness-app.one-athlete-mode #drawer[data-section="nutrition"] .nut-receta-meta {
-  color: #ff7a1a;
+  color: #f4a261;
 }
 body.fitness-app.one-athlete-mode #drawer[data-section="nutrition"] .nut-receta-ingr {
   color: #8f969a;
@@ -2811,7 +2821,7 @@ body.fitness-app.one-athlete-mode #drawer[data-section="progress"] .mbar {
   background: #25282b;
 }
 body.fitness-app.one-athlete-mode #drawer[data-section="nutrition"] .mbar i {
-  background: #ff6a00 !important;
+  background: #f4a261 !important;
 }
 
 /* progreso */
@@ -2829,11 +2839,11 @@ body.fitness-app.one-athlete-mode #drawer[data-section="progress"] .tl {
   border-color: #3a3e42;
 }
 body.fitness-app.one-athlete-mode #drawer[data-section="progress"] .tl-item::before {
-  border-color: #ff6a00;
+  border-color: #f4a261;
   background: #050505;
 }
 body.fitness-app.one-athlete-mode #drawer[data-section="progress"] .tl-day {
-  color: #ff7a1a;
+  color: #f4a261;
 }
 body.fitness-app.one-athlete-mode #drawer[data-section="progress"] .tl-txt {
   color: #c3c7c4;
@@ -2855,10 +2865,10 @@ body.fitness-app.one-athlete-mode #drawer[data-section="plan"] table.lab td {
 }
 body.fitness-app.one-athlete-mode #drawer[data-section="plan"] table.lab tr.current td {
   background: #1b0d05;
-  color: #ff9a56;
+  color: #ffc08a;
 }
 body.fitness-app.one-athlete-mode #drawer[data-section="plan"] .spark i {
-  background: #ff6a00 !important;
+  background: #f4a261 !important;
 }
 
 /* bienestar y perfil */
@@ -2887,7 +2897,7 @@ body.fitness-app.one-coach-mode #scene-wrap {
 body.fitness-app .one-coach-hero {
   border-color: #2b2019;
   background:
-    radial-gradient(circle at 85% 30%, rgba(255,106,0,.09), transparent 35%),
+    radial-gradient(circle at 85% 30%, rgba(244,162,97,.09), transparent 35%),
     #0b0c0d;
 }
 body.fitness-app .one-coach-hero-copy h3,
@@ -2917,18 +2927,18 @@ body.fitness-app .one-progress {
   background: #24272a;
 }
 body.fitness-app .one-progress i {
-  background: #ff6a00;
+  background: #f4a261;
 }
 body.fitness-app .one-client-row:hover {
   background: #131517;
 }
 body.fitness-app .one-client-time,
 body.fitness-app .one-priority-index {
-  color: #ff7a1a;
+  color: #f4a261;
 }
 body.fitness-app .one-row-open:hover {
-  border-color: #ff6a00;
-  color: #ff9a56;
+  border-color: #f4a261;
+  color: #ffc08a;
 }
 body.fitness-app .one-phase {
   border-color: #282b2e;
@@ -2940,17 +2950,17 @@ body.fitness-app .one-phase.actual {
 }
 body.fitness-app .one-phase.actual span,
 body.fitness-app .one-phase.actual strong {
-  color: #ff9a56;
+  color: #ffc08a;
 }
 body.fitness-app .one-profile-monogram {
   border-color: #8b4217;
   background: #1a0d05;
-  color: #ff9a56;
+  color: #ffc08a;
 }
 body.fitness-app .one-tag.copper {
   border-color: #743813;
   background: #1a0d05;
-  color: #ff9a56;
+  color: #ffc08a;
 }
 
 /* toasts y overlays */
@@ -2962,7 +2972,7 @@ body.fitness-app .cine-modal {
   color: #f4f4f1 !important;
 }
 body.fitness-app #toasts .toast::before {
-  background: #ff6a00;
+  background: #f4a261;
 }
 
 /* mobile bottom nav stays black */
@@ -2976,11 +2986,11 @@ body.fitness-app #toasts .toast::before {
     color: #7f8589;
   }
   body.fitness-app #panel-nav .rail-btn.active {
-    color: #ff8a3a;
+    color: #f4a261;
     background: #101214;
   }
   body.fitness-app #panel-nav .rail-btn.active svg {
-    stroke: #ff6a00;
+    stroke: #f4a261;
   }
 }
 
@@ -3015,7 +3025,7 @@ body.fitness-app #entry .e-title {
   letter-spacing: -.055em;
 }
 body.fitness-app #entry .e-title em {
-  color: #ff6a00;
+  color: #f4a261;
   font-style: normal;
 }
 body.fitness-app #entry .e-sub {
@@ -3056,7 +3066,7 @@ body.fitness-app .e-role-card[aria-pressed="true"] {
 }
 body.fitness-app .e-role-card > b {
   justify-self: end;
-  color: #ff6a00;
+  color: #f4a261;
   font-size: 22px;
 }
 body.fitness-app .e-role-media,
@@ -3078,7 +3088,7 @@ body.fitness-app .e-role-media video {
 body.fitness-app .e-role-media i {
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg,transparent 30%,rgba(255,106,0,.16));
+  background: linear-gradient(135deg,transparent 30%,rgba(244,162,97,.16));
 }
 body.fitness-app .e-role-copy {
   display: grid;
@@ -3086,7 +3096,7 @@ body.fitness-app .e-role-copy {
   min-width: 0;
 }
 body.fitness-app .e-role-copy small {
-  color: #ff7a1a;
+  color: #f4a261;
   font: 750 8px/1 var(--sans);
   letter-spacing: .15em;
 }
@@ -3109,7 +3119,7 @@ body.fitness-app .e-role-dashboard {
   box-sizing: border-box;
   border: 1px solid #22262a;
   background:
-    radial-gradient(circle at 80% 15%,rgba(255,106,0,.16),transparent 34%),
+    radial-gradient(circle at 80% 15%,rgba(244,162,97,.16),transparent 34%),
     #070809;
 }
 body.fitness-app .e-role-dashboard i {
@@ -3121,7 +3131,7 @@ body.fitness-app .e-role-dashboard i {
 body.fitness-app .e-role-dashboard i:first-child {
   grid-row: 1 / 4;
   background:
-    linear-gradient(to top,rgba(255,106,0,.2),transparent 55%),
+    linear-gradient(to top,rgba(244,162,97,.2),transparent 55%),
     #0d1012;
 }
 body.fitness-app .e-role-dashboard i:nth-child(2) {
@@ -3150,10 +3160,10 @@ body.fitness-app #panel-nav .one-role-coach-nav {
   color: #858c90;
 }
 body.fitness-app #panel-nav .one-role-coach-nav.active {
-  color: #ff8a3a;
+  color: #f4a261;
 }
 body.fitness-app #panel-nav .one-role-coach-nav.active svg {
-  stroke: #ff6a00;
+  stroke: #f4a261;
 }
 
 /* ---------- home afiliado ---------- */
@@ -3170,7 +3180,7 @@ body.fitness-app .affiliate-intro-v12 {
   padding: 4px 0 6px;
 }
 body.fitness-app .affiliate-intro-v12 > span {
-  color: #ff7a1a;
+  color: #f4a261;
   font: 720 8px/1.4 var(--sans);
   letter-spacing: .12em;
   text-transform: uppercase;
@@ -3215,7 +3225,7 @@ body.fitness-app .affiliate-day-v12.current {
 }
 body.fitness-app .affiliate-day-v12.current b,
 body.fitness-app .affiliate-day-v12.current i {
-  color: #ff8a3a;
+  color: #f4a261;
 }
 body.fitness-app .affiliate-day-v12.done i {
   color: #5ac98a;
@@ -3245,9 +3255,9 @@ body.fitness-app .affiliate-hero-fallback-v12 {
   place-items: center;
   width: 100%;
   height: 100%;
-  color: #ff6a00;
+  color: #f4a261;
   font-size: 64px;
-  background: radial-gradient(circle at 70% 40%,rgba(255,106,0,.15),transparent 34%),#08090a;
+  background: radial-gradient(circle at 70% 40%,rgba(244,162,97,.15),transparent 34%),#08090a;
 }
 body.fitness-app .affiliate-session-visual-v12::after {
   content: "";
@@ -3269,7 +3279,7 @@ body.fitness-app .affiliate-session-overlay-v12 {
   box-sizing: border-box;
 }
 body.fitness-app .affiliate-session-kicker-v12 {
-  color: #ff7a1a;
+  color: #f4a261;
   font: 760 8px/1 var(--sans);
   letter-spacing: .16em;
 }
@@ -3299,10 +3309,10 @@ body.fitness-app .affiliate-session-cta-v12 {
   min-height: 38px;
   margin-top: 18px;
   padding: 0 15px;
-  border: 1px solid #ff6a00;
+  border: 1px solid #f4a261;
   border-radius: 5px;
-  background: #ff6a00;
-  color: #090909;
+  background: #f4a261;
+  color: var(--acc-ink, #090909);
   font: 760 9px/1 var(--sans);
   letter-spacing: .08em;
   cursor: pointer;
@@ -3338,13 +3348,13 @@ body.fitness-app .affiliate-guide-avatar-v12 {
   flex: 0 0 46px;
   border: 1px solid #773813;
   border-radius: 50%;
-  color: #ff8a3a;
+  color: #f4a261;
   background: #180c05;
 }
 body.fitness-app .affiliate-guide-avatar-v12 i {
   position: absolute;
   inset: -4px;
-  border: 1px solid rgba(255,106,0,.18);
+  border: 1px solid rgba(244,162,97,.18);
   border-radius: 50%;
   animation: oneGuidePulse 2.8s ease-in-out infinite;
 }
@@ -3353,7 +3363,7 @@ body.fitness-app .affiliate-guide-avatar-v12 i {
 }
 body.fitness-app .affiliate-guide-head-v12 small {
   display: block;
-  color: #ff7a1a;
+  color: #f4a261;
   font: 700 7.5px/1 var(--sans);
   letter-spacing: .12em;
 }
@@ -3386,8 +3396,8 @@ body.fitness-app .affiliate-mini-action-v12 {
   cursor: pointer;
 }
 body.fitness-app .affiliate-mini-action-v12:hover {
-  border-color: #ff6a00;
-  color: #ff9a56;
+  border-color: #f4a261;
+  color: #ffc08a;
 }
 body.fitness-app .affiliate-stats-v12 {
   display: grid;
@@ -3427,7 +3437,7 @@ body.fitness-app .affiliate-section-head-v12 {
 }
 body.fitness-app .affiliate-section-head-v12 small {
   display: block;
-  color: #ff7a1a;
+  color: #f4a261;
   font: 740 7.5px/1 var(--sans);
   letter-spacing: .13em;
 }
@@ -3494,14 +3504,14 @@ body.fitness-app .affiliate-ex-media-v12 > b {
   width: 26px;
   height: 26px;
   border-radius: 50%;
-  color: #090909;
-  background: #ff6a00;
+  color: var(--acc-ink, #090909);
+  background: #f4a261;
   font-size: 9px;
 }
 body.fitness-app .affiliate-ex-media-v12.missing {
   display: grid;
   place-items: center;
-  color: #ff6a00;
+  color: #f4a261;
 }
 body.fitness-app .affiliate-ex-copy-v12 {
   display: grid;
@@ -3510,7 +3520,7 @@ body.fitness-app .affiliate-ex-copy-v12 {
   padding: 10px 10px 10px 0;
 }
 body.fitness-app .affiliate-ex-copy-v12 small {
-  color: #ff7a1a;
+  color: #f4a261;
   font: 700 7px/1 var(--sans);
   letter-spacing: .1em;
 }
@@ -3547,7 +3557,7 @@ body.fitness-app .affiliate-checkin-v12 {
 }
 body.fitness-app .affiliate-checkin-v12 > small,
 body.fitness-app .affiliate-nutrition-v12 small {
-  color: #ff7a1a;
+  color: #f4a261;
   font: 700 7.5px/1 var(--sans);
   letter-spacing: .12em;
 }
@@ -4080,7 +4090,7 @@ body.fitness-app.one-athlete-mode.dash-pc #scene-wrap {
   background:#000;
 }
 .proplayer-video-state{margin:10px 0;color:#8f9aa1;font-size:9px}
-.proplayer-video-state.danger{color:#e9a17f}
+.proplayer-video-state.danger{color:#ffc08a}
 .proplayer-video-actions{display:flex;justify-content:flex-end;margin-top:12px}
 
 @media (min-width:901px){
@@ -4423,7 +4433,7 @@ body.fitness-app .one-action.danger:hover{
 body.fitness-app #entry {
   padding: clamp(18px, 3vw, 36px);
   background:
-    radial-gradient(circle at 18% 18%, rgba(255,106,0,.13), transparent 32%),
+    radial-gradient(circle at 18% 18%, rgba(244,162,97,.13), transparent 32%),
     radial-gradient(circle at 88% 82%, rgba(255,255,255,.035), transparent 30%),
     #050607;
 }
@@ -4458,7 +4468,7 @@ body.fitness-app #entry .e-corner {
   gap: 9px;
 }
 body.fitness-app #entry .e-corner .brand-mark {
-  color: #ff6a00;
+  color: #f4a261;
   font-size: 17px;
 }
 body.fitness-app #entry .e-corner .brand-name {
@@ -4478,8 +4488,8 @@ body.fitness-app #entry .e-app-status i {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #ff6a00;
-  box-shadow: 0 0 0 4px rgba(255,106,0,.08), 0 0 18px rgba(255,106,0,.34);
+  background: #f4a261;
+  box-shadow: 0 0 0 4px rgba(244,162,97,.08), 0 0 18px rgba(244,162,97,.34);
 }
 body.fitness-app #entry .e-app-status b {
   padding: 6px 8px;
@@ -4511,7 +4521,7 @@ body.fitness-app #entry .e-entry-foot {
   margin-right: 0;
 }
 body.fitness-app #entry .e-kicker {
-  color: #ff7a1a;
+  color: #f4a261;
   font: 760 9px/1.4 var(--sans);
   letter-spacing: .16em;
 }
@@ -4523,7 +4533,7 @@ body.fitness-app #entry .e-title {
   letter-spacing: -.055em;
 }
 body.fitness-app #entry .e-title em {
-  color: #ff6a00;
+  color: #f4a261;
 }
 body.fitness-app #entry .e-sub {
   max-width: 610px;
@@ -4561,7 +4571,7 @@ body.fitness-app #entry .e-entry-proof span {
 body.fitness-app #entry .e-entry-proof b {
   display: inline-block;
   width: 28px;
-  color: #ff6a00;
+  color: #f4a261;
   font-weight: 800;
 }
 body.fitness-app #entry .e-role-panel {
@@ -4571,7 +4581,7 @@ body.fitness-app #entry .e-role-panel {
   flex-direction: column;
   justify-content: center;
   background:
-    radial-gradient(circle at 100% 0, rgba(255,106,0,.07), transparent 32%),
+    radial-gradient(circle at 100% 0, rgba(244,162,97,.07), transparent 32%),
     #08090a;
 }
 body.fitness-app #entry .e-role-panel-head {
@@ -4627,7 +4637,7 @@ body.fitness-app #entry .e-role-card[aria-pressed="true"] {
   transform: none;
   border-color: #8f4318;
   background: #111213;
-  box-shadow: inset 3px 0 #ff6a00;
+  box-shadow: inset 3px 0 #f4a261;
 }
 body.fitness-app #entry .e-role-card[aria-pressed="true"]::after {
   content: "ÚLTIMO ACCESO";
@@ -4635,10 +4645,10 @@ body.fitness-app #entry .e-role-card[aria-pressed="true"]::after {
   top: 12px;
   right: 12px;
   padding: 5px 7px;
-  border: 1px solid rgba(255,106,0,.28);
+  border: 1px solid rgba(244,162,97,.28);
   border-radius: 999px;
   background: #17100b;
-  color: #ff8a3a;
+  color: #f4a261;
   font: 800 7px/1 var(--sans);
   letter-spacing: .11em;
 }
@@ -4663,7 +4673,7 @@ body.fitness-app #entry .e-role-topline em {
   font-style: normal;
 }
 body.fitness-app #entry .e-role-topline small {
-  color: #ff7a1a;
+  color: #f4a261;
 }
 body.fitness-app #entry .e-role-body {
   min-height: 134px;
@@ -4678,7 +4688,7 @@ body.fitness-app #entry .e-role-card > b {
 }
 body.fitness-app #entry .e-role-body > b {
   justify-self: end;
-  color: #ff6a00;
+  color: #f4a261;
   font: 500 22px/1 var(--sans);
 }
 body.fitness-app #entry .e-role-media,
@@ -4700,7 +4710,7 @@ body.fitness-app #entry .e-role-dashboard {
   padding: 8px;
   border-color: #292e31;
   background:
-    linear-gradient(180deg, rgba(255,106,0,.08), transparent 42%),
+    linear-gradient(180deg, rgba(244,162,97,.08), transparent 42%),
     #080a0b;
 }
 body.fitness-app #entry .e-role-dashboard i {
@@ -4716,7 +4726,7 @@ body.fitness-app #entry .e-role-dashboard i:first-child::after {
   bottom: 8px;
   height: 34%;
   border-radius: 3px 3px 1px 1px;
-  background: linear-gradient(90deg,#ff6a00 22%,#713415 22% 43%,#ff6a00 43% 67%,#713415 67%);
+  background: linear-gradient(90deg,#f4a261 22%,#713415 22% 43%,#f4a261 43% 67%,#713415 67%);
   opacity: .7;
 }
 body.fitness-app #entry .e-role-copy {
@@ -4753,7 +4763,7 @@ body.fitness-app #entry .e-role-note {
   font: 500 9px/1.45 var(--sans);
 }
 body.fitness-app #entry .e-role-note span {
-  color: #ff6a00;
+  color: #f4a261;
 }
 body.fitness-app #entry .e-entry-foot {
   min-height: 46px;
@@ -5018,10 +5028,10 @@ body.fitness-app #entry .e-quick-resume {
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  border: 1px solid rgba(255,106,0,.38);
+  border: 1px solid rgba(244,162,97,.38);
   border-radius: 12px;
   background:
-    linear-gradient(90deg, rgba(255,106,0,.10), transparent 58%),
+    linear-gradient(90deg, rgba(244,162,97,.10), transparent 58%),
     #0d0f10;
   color: #f2f0eb;
   text-align: left;
@@ -5029,9 +5039,9 @@ body.fitness-app #entry .e-quick-resume {
 }
 body.fitness-app #entry .e-quick-resume:hover,
 body.fitness-app #entry .e-quick-resume:focus-visible {
-  border-color: #ff6a00;
+  border-color: #f4a261;
   background:
-    linear-gradient(90deg, rgba(255,106,0,.16), transparent 64%),
+    linear-gradient(90deg, rgba(244,162,97,.16), transparent 64%),
     #101214;
   outline: none;
 }
@@ -5045,7 +5055,7 @@ body.fitness-app #entry .e-quick-resume small {
   letter-spacing: .14em;
 }
 body.fitness-app #entry .e-quick-resume strong {
-  color: #ff8a3a;
+  color: #f4a261;
   font: 760 10px/1 var(--sans);
   letter-spacing: .08em;
 }
@@ -5129,11 +5139,11 @@ body.fitness-app .today-recovery-card,
 body.fitness-app .today-workout-card {
   border-color: #5b381e;
   background:
-    radial-gradient(circle at 92% 10%, rgba(255,106,0,.09), transparent 30%),
+    radial-gradient(circle at 92% 10%, rgba(244,162,97,.09), transparent 30%),
     linear-gradient(145deg,#121416,#0d0f10);
 }
 body.fitness-app .today-recovery-card {
-  box-shadow: inset 3px 0 #ff6a00;
+  box-shadow: inset 3px 0 #f4a261;
 }
 body.fitness-app .today-workout-card {
   position: relative;
@@ -5146,10 +5156,10 @@ body.fitness-app .today-workout-card::before {
   top: 12px;
   right: 12px;
   padding: 5px 7px;
-  border: 1px solid rgba(255,106,0,.25);
+  border: 1px solid rgba(244,162,97,.25);
   border-radius: 999px;
-  background: rgba(255,106,0,.07);
-  color: #ff8a3a;
+  background: rgba(244,162,97,.07);
+  color: #f4a261;
   font: 800 7px/1 var(--sans);
   letter-spacing: .12em;
 }
@@ -5238,7 +5248,7 @@ body.fitness-app.one-athlete-mode #drawer[data-section="hoy"] #drawer-body{
   border:1px solid #30363a;
   border-radius:14px;
   background:#101315;
-  color:#ff7b1d;
+  color:#f4a261;
   cursor:pointer;
 }
 .fit-profile-chip img{
@@ -5261,7 +5271,7 @@ body.fitness-app.one-athlete-mode #drawer[data-section="hoy"] #drawer-body{
   background:#0d1011;
 }
 .fit-first-guide>strong{
-  color:#ff7a1a;
+  color:#f4a261;
   font:800 7px/1 var(--sans);
   letter-spacing:.13em;
 }
@@ -5331,7 +5341,7 @@ body.fitness-app.one-athlete-mode #drawer[data-section="hoy"] #drawer-body{
   outline:none;
 }
 .fit-mood-btn[aria-pressed="true"]{
-  box-shadow:inset 0 -2px #ff6a00;
+  box-shadow:inset 0 -2px #f4a261;
 }
 .fit-today-hero{
   position:relative;
@@ -5344,7 +5354,7 @@ body.fitness-app.one-athlete-mode #drawer[data-section="hoy"] #drawer-body{
   border:1px solid #3a2b20;
   border-radius:20px;
   background:
-    radial-gradient(circle at 82% 20%,rgba(255,106,0,.17),transparent 28%),
+    radial-gradient(circle at 82% 20%,rgba(244,162,97,.17),transparent 28%),
     linear-gradient(145deg,#141719,#0d0f10 66%);
   box-shadow:inset 0 1px rgba(255,255,255,.025);
 }
@@ -5355,11 +5365,11 @@ body.fitness-app.one-athlete-mode #drawer[data-section="hoy"] #drawer-body{
   height:180px;
   right:-54px;
   top:-64px;
-  border:1px solid rgba(255,106,0,.14);
+  border:1px solid rgba(244,162,97,.14);
   border-radius:50%;
   box-shadow:
-    0 0 0 26px rgba(255,106,0,.025),
-    0 0 0 52px rgba(255,106,0,.012);
+    0 0 0 26px rgba(244,162,97,.025),
+    0 0 0 52px rgba(244,162,97,.012);
   pointer-events:none;
 }
 .fit-today-top{
@@ -5369,7 +5379,7 @@ body.fitness-app.one-athlete-mode #drawer[data-section="hoy"] #drawer-body{
   right:18px;
   display:flex;
   justify-content:space-between;
-  color:#ff7d21;
+  color:#f4a261;
   font:850 8px/1 var(--sans);
   letter-spacing:.15em;
 }
@@ -5395,9 +5405,9 @@ body.fitness-app.one-athlete-mode #drawer[data-section="hoy"] #drawer-body{
   width:max-content;
   min-height:42px;
   padding:0 16px;
-  border:1px solid #ff6a00;
+  border:1px solid #f4a261;
   border-radius:12px;
-  background:#ff6a00;
+  background:#f4a261;
   color:#090a0b;
   font:850 8px/1 var(--sans);
   letter-spacing:.1em;
@@ -5453,7 +5463,7 @@ body.fitness-app.one-athlete-mode #drawer[data-section="hoy"] #drawer-body{
   place-items:center;
   border:1px solid #2b3033;
   border-radius:10px;
-  color:#ff7a1a;
+  color:#f4a261;
   background:#111416;
 }
 .fit-room-icon svg,
@@ -5525,7 +5535,7 @@ body.fitness-app.one-athlete-mode #panel-nav .rail-btn span{
 .profile-v2-avatar{
   width:58px;height:58px;flex:0 0 auto;display:grid;place-items:center;
   overflow:hidden;border:1px solid #343a3e;border-radius:18px;
-  background:#111416;color:#ff7b1d;font:700 20px/1 var(--serif);
+  background:#111416;color:#f4a261;font:700 20px/1 var(--serif);
 }
 .profile-v2-avatar img{width:100%;height:100%;object-fit:cover}
 .profile-v2-head>div:last-child{min-width:0}
@@ -5556,7 +5566,7 @@ body.fitness-app.one-athlete-mode #panel-nav .rail-btn span{
   color:#e9e7e2;font:650 13px/1.2 var(--sans)
 }
 .profile-v2-section summary>b{
-  color:#ff7b1d;font:800 8px/1 var(--sans);letter-spacing:.08em
+  color:#f4a261;font:800 8px/1 var(--sans);letter-spacing:.08em
 }
 .profile-v2-section[open] summary{border-bottom:1px solid #22272a}
 .profile-v2-form,
@@ -5664,8 +5674,8 @@ html[data-surface-theme="light"] body.fitness-app {
   --warn:#986400;
 
   color-scheme:light;
-  background:#f3f0e9;
-  color:#181818;
+  background: var(--fit-bg);
+  color: var(--fit-ink);
 }
 
 html[data-surface-theme="light"] body.fitness-app #scene-wrap {
@@ -5892,4 +5902,19 @@ html[data-surface-theme="light"] body.fitness-app .profile-v2-section[open] summ
 @media(max-width:620px){
   .fit-hub-secondary{grid-template-columns:1fr}
   .fit-hub-quick{min-height:62px}
+}
+
+/* LIGHT · legibilidad persistente del chrome superior */
+html[data-surface-theme="light"] body.fitness-app .brand-name,
+html[data-surface-theme="light"] body.fitness-app #drawer-title{
+  color:#1a1917 !important;
+}
+html[data-surface-theme="light"] body.fitness-app #drawer-sub,
+html[data-surface-theme="light"] body.fitness-app #topbar .mono{
+  color:#6f6961 !important;
+}
+html[data-surface-theme="light"] body.fitness-app #topbar .chip{
+  color:#282522 !important;
+  border-color:#d5cec3 !important;
+  background:#fffdf9 !important;
 }

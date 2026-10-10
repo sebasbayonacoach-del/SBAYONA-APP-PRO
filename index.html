@@ -33,6 +33,10 @@
 <!-- PRO · el lenguaje visual real. Se carga EL ÚLTIMO y manda sobre
      las capas anteriores: neutro, denso, sin botones gigantes. -->
 <link rel="stylesheet" href="css/pro.css?v=3" />
+<!-- MARCA · última capa: la app adopta la tipografía y la paleta de la web
+     (Montserrat / Inter / DM Mono + #050505 / #F4A261). Se carga después de
+     pro.css para ganar la cascada. Para volver atrás, borrar esta línea. -->
+<link rel="stylesheet" href="css/bayona-brand.css?v=1" />
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="icon" href="icon-192.png" sizes="192x192" type="image/png" />
 <link rel="apple-touch-icon" href="icon-192.png" />
@@ -100,7 +104,7 @@
           <h1 class="e-title" id="entry-title">Tu salud.<br /><em>Tu progreso.</em></h1>
           <div class="e-sub">Entrena, come, registra y mejora. Desde cualquier lugar.</div>
           <div class="e-system-pills" aria-label="Funciones principales">
-            <span>PROPLAYER</span><span>RUTINAS</span><span>PROGRESO</span><span>CLIENTES</span>
+            <span>ENTRENO</span><span>NUTRICIÓN</span><span>RECUPERACIÓN</span><span>PROGRESO</span>
           </div>
           <div class="e-entry-proof">
             <span><b>01</b> SIMPLE</span>
@@ -111,12 +115,12 @@
 
         <section class="e-role-panel" aria-label="Selecciona cómo entrar">
           <div class="e-role-panel-head">
-            <div><small>ACCESO</small><strong>¿Dónde quieres entrar?</strong></div>
+            <div><small>ACCESO</small><strong>¿Cómo vas a usar BAYONA?</strong></div>
             <span>ELIGE UN PERFIL</span>
           </div>
 
           <button class="e-quick-resume" id="entry-resume" type="button" hidden>
-            <span><small>ÚLTIMO ESPACIO</small><strong id="entry-resume-label">CONTINUAR</strong></span>
+            <span><small>ACCESO RÁPIDO</small><strong id="entry-resume-label">CONTINUAR</strong></span>
             <kbd>↵</kbd>
           </button>
 
@@ -160,7 +164,7 @@
       <div class="e-entry-foot">
         <span>BAYONA ONE</span>
         <span>ENTRENAMIENTO · COACHING · GESTIÓN</span>
-        <span>ESPAÑOL · PWA</span>
+        <span id="entry-platform">ESPAÑOL · WEB</span>
       </div>
     </div>
   </div>

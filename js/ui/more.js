@@ -50,6 +50,16 @@ BUILDERS.more = (body) => {
   });
   body.appendChild(wgrid);
 
+  const guide = el("div", "card");
+  guide.innerHTML = `<div class="card-row"><h4>${esc(t("guide.repeat.title"))}</h4><span class="pill">${esc(t("guide.repeat.badge"))}</span></div>
+    <div class="sub">${esc(t("guide.repeat.body"))}</div>`;
+  const guideButton = el("button", "btn btn-block", t("guide.repeat.button"));
+  guideButton.type = "button";
+  guideButton.style.marginTop = "10px";
+  guideButton.addEventListener("click", () => window.dispatchEvent(new CustomEvent("bayona:restart-tour")));
+  guide.appendChild(guideButton);
+  body.appendChild(guide);
+
   body.appendChild(el("div", "sec-label", "RESUMEN DEL DÍA"));
   const rc = el("div", "card");
   rc.innerHTML = `<h4>CERRAR EL DÍA</h4><div class="sub">Un capítulo de tu día con lo que has registrado de verdad. Cada día cuenta.</div>`;

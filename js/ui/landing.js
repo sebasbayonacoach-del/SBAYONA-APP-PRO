@@ -29,7 +29,10 @@ export function contenidoLanding(t) {
       proof: [
         { n: "100%", k: t("luxe.proof.local") },
         { n: "0", k: t("luxe.proof.nube") },
-        { n: "41", k: t("luxe.proof.suites") },
+        /* 44 = 43 suites de tests/ + el golden set de biomecánica, que es lo
+           que cuenta el propio runner ("44 suites"). Antes ponía 41 aquí y 44 en
+           la tarjeta de features: la misma cifra, dos números distintos. */
+        { n: "44", k: t("luxe.proof.suites") },
       ],
       visualHint: t("luxe.hero.visualHint"),
     },
@@ -56,9 +59,20 @@ export function contenidoLanding(t) {
         periodo: "mes",
         cta: id === "free" ? "EMPEZAR" : `VER ${meta.label}`,
         destacado: id === "performance",
+        tagline: meta.tagline,
         perks,
       };
     }),
+    featuresHead: {
+      kicker: t("luxe.nav.features"),
+      titulo: t("luxe.features.titulo"),
+      sub: t("luxe.features.sub"),
+    },
+    planesHead: {
+      kicker: t("luxe.nav.planes"),
+      titulo: t("luxe.planes.titulo"),
+      sub: t("luxe.planes.sub"),
+    },
     faqTitulo: t("luxe.faq.titulo"),
     faq: [
       { q: t("luxe.faq1.q"), a: t("luxe.faq1.a") },
@@ -90,7 +104,13 @@ export function heroHTML(c) {
     </div>
     <div class="luxe-hero-visual luxe-reveal" aria-hidden="true">
       <div class="luxe-hero-visual-inner">
-        <div class="luxe-avatar-placeholder">◈</div>
+        <div class="luxe-orbits">
+          <span></span><span></span><span></span>
+          <b></b>
+          <i class="luxe-orbits-sat luxe-orbits-sat--a"></i>
+          <i class="luxe-orbits-sat luxe-orbits-sat--b"></i>
+          <i class="luxe-orbits-sat luxe-orbits-sat--c"></i>
+        </div>
         <div class="luxe-hint">${c.hero.visualHint}</div>
       </div>
     </div>`;
@@ -100,15 +120,15 @@ export function heroHTML(c) {
 export function featuresHTML(c) {
   return `
     <div class="luxe-section-head luxe-reveal">
-      <div class="luxe-label">${c.nav[0].label.toUpperCase()}</div>
-      <h2>${c.hero.tituloA} ${c.hero.tituloB}</h2>
-      <p>${c.hero.sub}</p>
+      <div class="luxe-label">${c.featuresHead.kicker.toUpperCase()}</div>
+      <h2>${c.featuresHead.titulo}</h2>
+      <p>${c.featuresHead.sub}</p>
     </div>
     <div class="luxe-bento">
       ${c.features
         .map(
-          (f, i) => `
-        <div class="luxe-bento-card${i === 0 ? " wide" : " third"} luxe-reveal">
+          (f) => `
+        <div class="luxe-bento-card third luxe-reveal">
           <div class="luxe-card-icon">${f.icon}</div>
           <h3>${f.titulo}</h3>
           <p>${f.texto}</p>
@@ -123,37 +143,42 @@ export function featuresHTML(c) {
 export function planesHTML(c) {
   return `
     <div class="luxe-section-head luxe-reveal">
-      <div class="luxe-label">${c.nav[1].label.toUpperCase()}</div>
-      <h2>${c.planes.length} ${c.nav[1].label.toLowerCase()}</h2>
-      <p>${c.footer.nota}</p>
+      <div class="luxe-label">${c.planesHead.kicker.toUpperCase()}</div>
+      <h2>${c.planesHead.titulo}</h2>
+      <p>${c.planesHead.sub}</p>
     </div>
     <div class="luxe-pricing">
       ${c.planes
         .map(
           (p) => `
         <div class="luxe-price-card${p.destacado ? " featured" : ""} luxe-reveal">
-          <h3>${p.nombre}</h3>
+          <div class="luxe-price-card-top">
+            <h3>${p.nombre}</h3>
+            ${p.destacado ? '<span class="luxe-price-flag">★ MÁS ELEGIDO</span>' : ""}
+          </div>
           <div class="luxe-price">${p.precio}€ <span>/${p.periodo}</span></div>
           <ul>${p.perks.map((x) => `<li>${x}</li>`).join("")}</ul>
           <button class="luxe-btn-primary luxe-price-cta" data-plan="${p.id}">${p.cta}</button>
-          <div class="luxe-card-meta">${p.destacado ? "★ " : ""}${p.id}</div>
+          <p class="luxe-price-note">${p.tagline}</p>
         </div>`
         )
         .join("")}
     </div>
-    <div id="luxe-faq" class="luxe-section-head" style="margin-top:48px">
+    <div id="luxe-faq" class="luxe-section-head luxe-reveal luxe-section-head--spaced">
       <div class="luxe-label">FAQ</div>
       <h2>${c.faqTitulo}</h2>
     </div>
+    <div class="luxe-faq">
     ${c.faq
       .map(
         (f) => `
-      <div class="luxe-bento-card luxe-reveal" style="margin-bottom:8px">
+      <div class="luxe-faq-card luxe-reveal">
         <h3>${f.q}</h3>
         <p>${f.a}</p>
       </div>`
       )
-      .join("")}`;
+      .join("")}
+    </div>`;
 }
 
 /** Instala el IntersectionObserver del reveal (sin librerías). */

@@ -211,7 +211,7 @@ export function shortSession(min = 20) {
 }
 
 // registra la sesión en histórico (para tendencias)
-export function archiveSet(exKey, kg, reps, rir, muscleOverride = null) {
+export function archiveSet(exKey, kg, reps, rir, muscleOverride = null, meta = {}) {
   const t = S.data.today;
   t.muscleSets = t.muscleSets || {};
   const m = muscleOverride || EXERCISES[exKey]?.muscle || "FULL";
@@ -222,5 +222,13 @@ export function archiveSet(exKey, kg, reps, rir, muscleOverride = null) {
   t.strain = sessionStrain(
     (t.setLog = t.setLog || []).concat([{ kg, reps, rir, e1Base: S.data.prs[exKey]?.e1 || e1 }])
   );
-  t.setLog.push({ ex: exKey, kg, reps, rir }); // ex: para las gráficas de progreso (P14)
+  const effort = ["easy", "ok", "hard"].includes(meta.effort) ? meta.effort : "ok";
+  const note = String(meta.note || "").trim().replace(/\s+/g, " ").slice(0, 160);
+  t.setLog.push({
+    ex: exKey, kg, reps, rir,
+    idKey: meta.idKey || null,
+    effort,
+    discomfort: Boolean(meta.discomfort),
+    note,
+  }); // datos reales + contexto subjetivo; no modifica XP/PR
 }

@@ -223,7 +223,9 @@ export function installFitnessUI(){
       ['appearance','Mi imagen','Foto y apariencia'],
       ['account','Mi cuenta','Cuenta y sincronización'],
       ['more','Privacidad','Permisos, exportación y datos'],
-    ].forEach(([key,title,sub])=>extras.append(route(key,title,sub,'settings')));
+    ].forEach(([key,title,sub])=>extras.append(
+      key==='plan' ? quickRoute(key,title,sub,'settings') : route(key,title,sub,'settings')
+    ));
     body.append(extras);
   };
 

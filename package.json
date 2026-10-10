@@ -2,14 +2,15 @@
   "name": "bayona",
   "version": "1.0.0",
   "type": "module",
-  "description": "BAYONA \u2014 Avatar-Centered Fitness Life RPG",
+  "description": "BAYONA — Avatar-Centered Fitness Life RPG",
   "scripts": {
     "setup": "node setup-recursos.mjs",
     "start": "node tools/serve.mjs",
     "test": "node tests/run.mjs",
     "qa:5000": "node tests/qa-5000-eval.mjs",
     "coach:smoke": "node tools/coach-smoke.mjs",
-    "mobile:pack": "node mobile/pack-web.mjs"
+    "mobile:pack": "node mobile/pack-web.mjs",
+    "sync:shop": "node tools/sync-shop-catalog.mjs"
   },
   "engines": {
     "node": ">=22.0.0"

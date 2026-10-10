@@ -4,10 +4,26 @@
 // Con esto la app abre sin red y el registro de series funciona offline
 // (los datos viven en el dispositivo y se sincronizan después).
 // ============================================================
-const CACHE = "bayona-shell-v33";
+const CACHE = "bayona-shell-v35";
 const SHELL = [
   "./css/pro.css",
   "./css/luxe.css",
+  // Marca unificada con la web: capa de tipografía y paleta + sus .woff2.
+  "./css/bayona-brand.css",
+  "./fonts/montserrat-normal-400-latin.woff2", "./fonts/montserrat-normal-700-latin.woff2",
+  "./fonts/montserrat-normal-800-latin.woff2", "./fonts/montserrat-normal-900-latin.woff2",
+  "./fonts/montserrat-normal-400-latin-ext.woff2",
+  "./fonts/montserrat-normal-700-latin-ext.woff2", "./fonts/montserrat-normal-800-latin-ext.woff2",
+  "./fonts/montserrat-normal-900-latin-ext.woff2",
+  "./fonts/montserrat-italic-700-latin.woff2", "./fonts/montserrat-italic-800-latin.woff2",
+  "./fonts/montserrat-italic-900-latin.woff2",
+  "./fonts/inter-normal-300-latin.woff2", "./fonts/inter-normal-400-latin.woff2",
+  "./fonts/inter-normal-500-latin.woff2", "./fonts/inter-normal-600-latin.woff2",
+  "./fonts/inter-normal-700-latin.woff2", "./fonts/inter-normal-800-latin.woff2",
+  "./fonts/inter-normal-400-latin-ext.woff2",
+  "./fonts/inter-italic-latin.woff2", "./fonts/inter-italic-latin-ext.woff2",
+  "./fonts/dm-mono-normal-400-latin.woff2", "./fonts/dm-mono-normal-500-latin.woff2",
+  "./fonts/dm-mono-normal-400-latin-ext.woff2",
   "./js/ui/landing.js", "./js/ui/landing-boot.js", "./js/app-loader.js", "./js/theme.js", "./js/entitlements.js",
   "./js/gym/model.js", "./js/gym/store.js", "./js/gym/acceso.js", "./js/gym/informes.js", "./js/gym/pagos.js",
   "./js/ui/centro.js", "./js/ui/cuotas.js", "./js/ui/agenda.js",
@@ -25,7 +41,7 @@ const SHELL = [
   "./fonts/instrument-sans-pxiTypc9vs.woff2",
   "./fonts/newsreader-cY9AfjOCX1.woff2", "./fonts/newsreader-cY9XfjOCX1.woff2",
   "./fonts/space-mono-i7dPIFZifj.woff2", "./fonts/space-mono-i7dMIFZifj.woff2",
-  "./js/main.js", "./js/move.js", "./js/state.js", "./js/data.js", "./js/engine.js", "./js/rewards.js",
+  "./js/main.js", "./js/move.js", "./js/state.js", "./js/data.js", "./js/shop-catalog.js", "./js/engine.js", "./js/rewards.js",
   "./js/i18n.js", "./js/consents.js", "./js/phygital.js", "./js/media.js", "./js/bridge.js",
   "./js/onboarding.js", "./js/face.js", "./js/avatar3d.js", "./js/ui.js", "./js/avatar.js", "./js/world.js", "./js/fallback2d.js",
   "./js/ui/shared.js", "./js/ui/one.js", "./js/ui/affiliate-v12.js", "./js/ui/cinematics.js", "./js/ui/training.js", "./js/ui/proplayer-library.js", "./trainingym/catalog.json", "./js/ui/nutrition.js",

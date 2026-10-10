@@ -101,11 +101,23 @@ function boot() {
   const direct = directTarget();
   const source = new URLSearchParams(globalThis.location?.search || "").get("source");
   const appShell = source === "pwa";
-  document.body.classList.toggle("pwa-shell-entry", appShell);
+  const nativeShell = Boolean(
+    globalThis.Capacitor?.isNativePlatform?.()
+    || globalThis.Capacitor?.getPlatform?.() === "android"
+    || globalThis.Capacitor?.getPlatform?.() === "ios"
+  );
+  document.body.classList.toggle("pwa-shell-entry", appShell || nativeShell);
+  const platformLabel = document.getElementById("entry-platform");
+  if (platformLabel) {
+    const nativePlatform = String(globalThis.Capacitor?.getPlatform?.() || "").toUpperCase();
+    const surface = nativeShell ? (nativePlatform || "APP") : (appShell ? "PWA" : "WEB");
+    platformLabel.textContent = `ESPAÑOL · ${surface}`;
+  }
 
-  // La app instalada abre como app: sin marketing, directo al selector
-  // Atleta / Coach. El deep-link sigue pudiendo entrar a una sección concreta.
-  if (yaDentro() || direct || appShell) {
+  // Una instalación real (PWA o APK/iOS) ya es producto, no página de venta:
+  // salta marketing y entra al selector Atleta / Coach. La web pública conserva
+  // la landing para visitantes nuevos.
+  if (yaDentro() || direct || appShell || nativeShell) {
     removeLanding();
     const role = direct === "coachos" || direct === "coach-os"
       ? "coach"
