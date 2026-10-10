@@ -75,6 +75,18 @@ jobs:
           mkdir -p "$HOME/.android"
           printf '%s' "$BETA_KEYSTORE_BASE64" | base64 --decode > "$HOME/.android/debug.keystore"
           chmod 600 "$HOME/.android/debug.keystore"
+          # El usuario ya tiene 1.0.1 instalada: si cambia este certificado,
+          # Android rechazará la actualización y se arriesgan sus datos locales.
+          EXPECTED=8382904dbe97e2eb8eea76ea14affcc653f75f63705e9703af4f8b3021b3b0dd
+          ACTUAL="$(keytool -list -v -keystore "$HOME/.android/debug.keystore" \
+            -storepass android -alias androiddebugkey | \
+            awk '/SHA256: / {print $2}' | tr -d ':' | tr '[:upper:]' '[:lower:]')"
+          if [ "$ACTUAL" != "$EXPECTED" ]; then
+            echo "La firma restaurada no coincide con la APK beta anterior; se bloquea publicación." >&2
+            echo "Certificado esperado: $EXPECTED / restaurado: $ACTUAL" >&2
+            exit 1
+          fi
+          echo "Firma beta confirmada igual a la versión 1.0.1."
 
       - name: Compilar APK Android beta
         working-directory: mobile/android
