@@ -3,7 +3,10 @@ on:
   push:
     branches:
       - bayona-one/android-v102-proplayer-videos-20261010
+      - bayona-one/android-v102-signed-release-20261010
       - bayona-one/visual-integration-v6
+    tags:
+      - v1.0.2-beta.1
   workflow_dispatch:
 
 permissions:
@@ -61,6 +64,33 @@ jobs:
         working-directory: mobile
         run: npx cap sync android
 
+      - name: Restaurar firma beta desde Secret de GitHub Actions
+        env:
+          BETA_KEYSTORE_BASE64: ${{ secrets.BAYONA_ANDROID_BETA_DEBUG_KEYSTORE_B64 }}
+        run: |
+          if [ -z "$BETA_KEYSTORE_BASE64" ]; then
+            echo "Falta la clave segura de firma beta; no distribuir una APK con certificado diferente." >&2
+            exit 1
+          fi
+          mkdir -p "$HOME/.android"
+          printf '%s' "$BETA_KEYSTORE_BASE64" | base64 --decode > "$HOME/.android/debug.keystore"
+          chmod 600 "$HOME/.android/debug.keystore"
+          # El usuario ya tiene 1.0.1 instalada: si cambia este certificado,
+          # Android rechazará la actualización y se arriesgan sus datos locales.
+          EXPECTED=8382904dbe97e2eb8eea76ea14affcc653f75f63705e9703af4f8b3021b3b0dd
+          ACTUAL="$(keytool -list -v -keystore "$HOME/.android/debug.keystore" \
+            -storepass android -alias androiddebugkey | \
+            awk '/SHA256: / {print $2}' | tr -d ':' | tr '[:upper:]' '[:lower:]')"
+          if [ "$ACTUAL" != "$EXPECTED" ]; then
+            echo "La firma restaurada no coincide con la APK beta anterior; se bloquea publicación." >&2
+            echo "Certificado esperado: $EXPECTED / restaurado: $ACTUAL" >&2
+            exit 1
+          fi
+          echo "Firma beta confirmada igual a la versión 1.0.1."
+          # Gradle/AGP puede usar un almacén debug efímero distinto al de HOME.
+          # El proyecto Android recibe explícitamente el almacén comprobado.
+          echo "BAYONA_ANDROID_BETA_KEYSTORE_PATH=$HOME/.android/debug.keystore" >> "$GITHUB_ENV"
+
       - name: Compilar APK Android beta
         working-directory: mobile/android
         run: |
@@ -73,6 +103,10 @@ jobs:
           APK=mobile/android/app/build/outputs/apk/debug/app-debug.apk
           test -s "$APK"
           "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose "$APK"
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --print-certs "$APK" |
+            grep -F 'Signer #1 certificate SHA-256 digest: 8382904dbe97e2eb8eea76ea14affcc653f75f63705e9703af4f8b3021b3b0dd'
+          # Misma identidad de firma de 1.0.1: actualización sin borrar datos.
+          cp "$APK" mobile/android/app/build/outputs/apk/debug/BAYONA-Android-1.0.2-beta.1.apk
           "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging "$APK" | grep '^package:'
           unzip -Z1 "$APK" > /tmp/bayona-apk-entries.txt
           grep -qx 'assets/public/trainingym/catalog.json' /tmp/bayona-apk-entries.txt
@@ -90,6 +124,40 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: BAYONA-Android-1.0.2-beta1
-          path: mobile/android/app/build/outputs/apk/debug/app-debug.apk
+          path: mobile/android/app/build/outputs/apk/debug/BAYONA-Android-1.0.2-beta.1.apk
           if-no-files-found: error
           retention-days: 14
+
+  publish-prerelease:
+    # Publicar únicamente con un tag explícito: otros commits nunca deben
+    # reemplazar el APK que ya están probando los usuarios.
+    if: github.ref == 'refs/tags/v1.0.2-beta.1'
+    needs: android-apk
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: BAYONA-Android-1.0.2-beta1
+          path: release
+
+      - name: Publicar APK firmado en GitHub Releases
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          TAG=v1.0.2-beta.1
+          APK=release/BAYONA-Android-1.0.2-beta.1.apk
+          test -s "$APK"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$APK" --clobber
+            gh release edit "$TAG" --draft=false --prerelease
+          else
+            gh release create "$TAG" "$APK" --prerelease \
+              --title 'BAYONA Android 1.0.2-beta.1 · Rutinas y PROPLAYER' \
+              --notes 'Beta Android. Catálogo de 3.141 ejercicios offline, vídeos de PROPLAYER online. Misma firma de 1.0.1-beta.1. Coach demo local: sin nube/Stripe certificados y sin incluir MP4 de terceros sin licencia.'
+          fi
+          gh release view "$TAG" --json isDraft,url,assets \
+            --jq '{draft:.isDraft,url:.url,assets:[.assets[]|{name:.name,size:.size}]}'

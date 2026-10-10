@@ -24,6 +24,17 @@ android {
         }
     }
     signingConfigs {
+        // En CI, todas las betas utilizan la misma identidad que 1.0.1.
+        // Nunca asumir la clave debug efímera generada por Gradle en el runner.
+        debug {
+            def betaDebugKeystore = System.getenv('BAYONA_ANDROID_BETA_KEYSTORE_PATH')
+            if (betaDebugKeystore != null && !betaDebugKeystore.isEmpty()) {
+                storeFile file(betaDebugKeystore)
+                storePassword 'android'
+                keyAlias 'androiddebugkey'
+                keyPassword 'android'
+            }
+        }
         release {
             if (keystorePropsFile.exists()) {
                 storeFile rootProject.file(keystoreProps['storeFile'])
