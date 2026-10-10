@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - bayona-one/android-v102-proplayer-videos-20261010
+      - bayona-one/android-v102-signed-release-20261010
       - bayona-one/visual-integration-v6
     tags:
       - v1.0.2-beta.1
