@@ -80,6 +80,7 @@ export function decideNow({
   activeSession = null,
   workout = null,
   adjustedSession = null,
+  plannerContext = null,
   history = [],
 } = {}) {
   const hour = typeof now?.getHours === "function" ? now.getHours() : 12;
@@ -111,6 +112,30 @@ export function decideNow({
         : t("now.resume.body.simple"),
       action: "resume",
       actionLabel: t("now.resume.cta"),
+    };
+  }
+
+  if (plannerContext?.item && plannerContext.state === "active") {
+    const item = plannerContext.item;
+    return {
+      ...base,
+      kind: "planner",
+      title: t("now.planner.active.title", { prefix: hello, title: item.title }),
+      body: t("now.planner.active.body", { start: item.start || "—", end: item.end || "—" }),
+      action: "planner",
+      actionLabel: t("now.planner.active.cta"),
+    };
+  }
+
+  if (plannerContext?.item && plannerContext.state === "next" && plannerContext.minutesUntil != null && plannerContext.minutesUntil <= 45) {
+    const item = plannerContext.item;
+    return {
+      ...base,
+      kind: "planner",
+      title: t("now.planner.next.title", { prefix: hello, title: item.title }),
+      body: t("now.planner.next.body", { start: item.start || "—", minutes: plannerContext.minutesUntil }),
+      action: "planner",
+      actionLabel: t("now.planner.next.cta"),
     };
   }
 

@@ -14,6 +14,7 @@ import { t } from "../i18n.js";
 import { WORKOUTS } from "../data.js";
 import { coreReply, intencionAsignacion } from "./replies.js";
 import { shortSession, todaysSession } from "../engine.js";
+import { localDateKey, parsePlannerIntent, plannerItemsForDate } from "../planner.js";
 import * as core from "./ai-core.js";
 
 export {
@@ -42,6 +43,7 @@ export function buildCoachContext() {
   const p = d.profile || {};
   const w = S.todayWorkout();
   const sesion = todaysSession();
+  const agendaHoy = plannerItemsForDate(d.life, localDateKey()).filter((x) => x.status !== "cancelled");
 
   return {
     perfil: {
@@ -81,6 +83,12 @@ export function buildCoachContext() {
       xp: d.xp || 0,
       fase: S.phase()?.name || null,
       semana: d.plan?.week ?? null,
+    },
+    agenda: {
+      pendientes: agendaHoy.filter((x) => x.status === "planned").length,
+      bloques: agendaHoy.length
+        ? agendaHoy.map((x) => `${x.id} | ${x.start || "todo el día"}${x.end ? "-" + x.end : ""} | ${x.title} | ${x.status}`).join(" ; ")
+        : "sin bloques",
     },
     salud: {
       avisos: d.healthFlags?.redFlags || [],
@@ -172,10 +180,16 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
  */
 export async function runLocal(text, { onDelta, onTool, onDone, speed = 16 } = {}) {
   const mins = minutesIn(text);
+  // Plan diario: solo extrae bloques cuando hay horas explícitas. Cero horas inventadas.
+  const plannerProposals = parsePlannerIntent(text, {
+    defaultDurationMin: S.data?.life?.planner?.defaultDurationMin || 60,
+  });
   // intención de ASIGNAR RUTINA: se detecta antes de responder para que
   // el texto y la tarjeta hablen de lo mismo.
   const asignacionPropuesta = intencionAsignacion(text, WORKOUTS);
-  const full = coreReply(text, localCtx(mins, { asignacionPropuesta }));
+  const full = plannerProposals.length
+    ? t("coach.localPlannerReply", { count: plannerProposals.length })
+    : coreReply(text, localCtx(mins, { asignacionPropuesta }));
 
   for (const chunk of full.split(/(\s+)/)) {
     onDelta?.(chunk);
@@ -183,6 +197,16 @@ export async function runLocal(text, { onDelta, onTool, onDone, speed = 16 } = {
   }
 
   // adaptaciones REALES, igual que en el camino de la nube
+  for (const proposal of plannerProposals) {
+    onTool?.({
+      name: "create_day_block",
+      label: t("coach.toolCreateDayBlock"),
+      args: proposal,
+    });
+  }
+  if (plannerProposals.length) {
+    onTool?.({ name: "open_day_planner", label: t("coach.toolOpenDayPlanner"), args: { date: plannerProposals[0].date } });
+  }
   if (asignacionPropuesta) {
     onTool?.({
       name: "assign_routine",

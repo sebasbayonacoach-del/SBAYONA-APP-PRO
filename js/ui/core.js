@@ -22,6 +22,8 @@ import { askCore, buildCoachContext, probeCloud } from "../coach/ai.js";
 import { WORKOUTS } from "../data.js";
 import { validaAsignacion } from "../coachos.js";
 import { scopedStorage } from "../sync/identity.js";
+import { addPlannerItem, completePlannerItem, updatePlannerItem } from "../planner.js";
+import { openPlanner } from "./planner.js";
 
 const STORE = "bayona.coach.chat.v1";
 const MAX_TURNS = 40;
@@ -174,6 +176,14 @@ BUILDERS.core = (body) => {
     if (tool.args?.razon) card.appendChild(elT("div", "coach-tool-r", tool.args.razon));
     if (tool.args?.zona) card.appendChild(elT("div", "coach-tool-r", `${tool.args.zona}${tool.args.intensidad ? ` · ${tool.args.intensidad}/3` : ""}`));
     if (tool.args?.tema) card.appendChild(elT("div", "coach-tool-r", tool.args.tema));
+    if (tool.name === "create_day_block" && tool.args?.title) {
+      card.appendChild(elT("div", "coach-tool-r",
+        `${tool.args.date || todayKey()} · ${tool.args.start || t("planner.allDay")}${tool.args.end ? "–" + tool.args.end : ""} · ${tool.args.title}`));
+    }
+    if ((tool.name === "update_day_block" || tool.name === "complete_day_block") && tool.args?.id) {
+      const existing = S.data.life?.planner?.items?.find((x) => x.id === tool.args.id);
+      if (existing) card.appendChild(elT("div", "coach-tool-r", `${existing.start || t("planner.allDay")} · ${existing.title}`));
+    }
 
     // acción real, solo cuando el coach propone algo aplicable
     if (tool.name === "assign_routine" && tool.args?.workoutId && WORKOUTS[tool.args.workoutId]) {
@@ -190,6 +200,57 @@ BUILDERS.core = (body) => {
         b.disabled = true;
         toast(t("coach.assigned"), t("coach.assignedNote", { name: w.name }));
       };
+      card.appendChild(b);
+    }
+    if (tool.name === "create_day_block" && tool.args?.title) {
+      const b = el("button", "btn btn-primary", t("coach.dayBlockSave"));
+      b.onclick = () => {
+        const result = addPlannerItem(S.data.life, {
+          ...tool.args,
+          source: "manual",
+          date: /^\d{4}-\d{2}-\d{2}$/.test(tool.args.date || "") ? tool.args.date : todayKey(),
+        });
+        S.data.life = result.life;
+        S.save();
+        window.dispatchEvent(new CustomEvent("bayona:planner", { detail: { event: "create", id: result.item.id } }));
+        b.textContent = t("coach.dayBlockSaved");
+        b.disabled = true;
+      };
+      card.appendChild(b);
+    }
+    if (tool.name === "update_day_block" && tool.args?.id) {
+      const exists = S.data.life?.planner?.items?.some((x) => x.id === tool.args.id);
+      if (exists) {
+        const b = el("button", "btn btn-primary", t("coach.toolUpdateDayBlock"));
+        b.onclick = () => {
+          const result = updatePlannerItem(S.data.life, tool.args.id, tool.args);
+          S.data.life = result.life;
+          S.save();
+          window.dispatchEvent(new CustomEvent("bayona:planner", { detail: { event: "update", id: tool.args.id } }));
+          b.textContent = t("coach.dayBlockUpdated");
+          b.disabled = true;
+        };
+        card.appendChild(b);
+      }
+    }
+    if (tool.name === "complete_day_block" && tool.args?.id) {
+      const exists = S.data.life?.planner?.items?.some((x) => x.id === tool.args.id);
+      if (exists) {
+        const b = el("button", "btn btn-primary", t("coach.dayBlockComplete"));
+        b.onclick = () => {
+          const result = completePlannerItem(S.data.life, tool.args.id, true);
+          S.data.life = result.life;
+          S.save();
+          window.dispatchEvent(new CustomEvent("bayona:planner", { detail: { event: "complete", id: tool.args.id } }));
+          b.textContent = t("coach.dayBlockCompleted");
+          b.disabled = true;
+        };
+        card.appendChild(b);
+      }
+    }
+    if (tool.name === "open_day_planner") {
+      const b = el("button", "btn", t("coach.openDayPlanner"));
+      b.onclick = () => openPlanner(tool.args?.date || todayKey());
       card.appendChild(b);
     }
     if (tool.name === "open_short_session" && tool.args?.workout) {

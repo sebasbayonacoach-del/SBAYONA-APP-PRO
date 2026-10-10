@@ -175,6 +175,31 @@ async function pushAvatar() {
   if (p.filas.length) await insert(p.tabla, p.filas);
 }
 
+/** espejo del PLANIFICADOR PERSONAL (0006_life_os.sql). */
+async function pushPlanner() {
+  const u = currentUser();
+  const items = S.data.life?.planner?.items || [];
+  await remove("planner_items", { user_id: `eq.${u.id}` });
+  if (!items.length) return;
+  await insert("planner_items", items.map((item) => ({
+    user_id: u.id,
+    client_id: item.id,
+    day: item.date,
+    start_time: item.start || null,
+    end_time: item.end || null,
+    all_day: Boolean(item.allDay),
+    title: item.title,
+    item_type: item.type || "other",
+    priority: item.priority || "normal",
+    status: item.status || "planned",
+    source: item.source || "manual",
+    external_id: item.externalId || null,
+    location: item.location || "",
+    notes: item.notes || "",
+    source_url: item.url || null,
+  })));
+}
+
 /** orquestador */
 export async function syncNow(opts = {}) {
   if (STATE.busy) return false;
@@ -190,7 +215,7 @@ export async function syncNow(opts = {}) {
     await pushReadiness();
     await pushWorkouts();
     // espejo ampliado: BEST-EFFORT (si falta la migración, el resto sincroniza igual)
-    try { await pushMedidas(); await pushAsignaciones(); await pushAvatar(); }
+    try { await pushMedidas(); await pushAsignaciones(); await pushAvatar(); await pushPlanner(); }
     catch { /* tablas nuevas pendientes de migración: no rompe el espejo principal */ }
     STATE.last = new Date().toISOString();
     outbox.limpiar();
@@ -216,7 +241,14 @@ export async function pullBackup() {
       select("readiness_daily", { user_id: `eq.${u.id}`, order: "day.desc", limit: "30" }),
       select("workout_sessions", { user_id: `eq.${u.id}`, order: "started_at.desc", limit: "50" }),
     ]);
-    const blob = { exportedAt: new Date().toISOString(), profiles, readiness, workout_sessions, local: S.data };
+    let planner_items = [], connected_sources = [];
+    try {
+      [planner_items, connected_sources] = await Promise.all([
+        select("planner_items", { user_id: `eq.${u.id}`, order: "day.asc,start_time.asc" }),
+        select("connected_sources", { user_id: `eq.${u.id}`, order: "provider.asc" }),
+      ]);
+    } catch { /* 0006 todavía no aplicada: la copia base sigue funcionando */ }
+    const blob = { exportedAt: new Date().toISOString(), profiles, readiness, workout_sessions, planner_items, connected_sources, local: S.data };
     const a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob([JSON.stringify(blob, null, 2)], { type: "application/json" }));
     a.download = `bayona-nube-${new Date().toISOString().slice(0, 10)}.json`;
@@ -513,6 +545,7 @@ on("session", sincroSuave);
 on("profile", sincroSuave);
 on("medidas", sincroSuave);
 on("asignaciones", sincroSuave);
+if (typeof window !== "undefined") addEventListener("bayona:planner", sincroSuave);
 on("cloud-assignment-complete", async (assignment) => {
   if (!assignment?.cloudAssignmentId || !currentSession()) return;
   try { await completeCloudAssignment(assignment.cloudAssignmentId); }

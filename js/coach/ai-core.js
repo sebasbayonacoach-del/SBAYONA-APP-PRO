@@ -71,6 +71,7 @@ export function contextToPrompt(ctx) {
     `HOY → ${flat(ctx.hoy)}`,
     `REGISTROS DE HOY → ${flat(ctx.registros)}`,
     `ESTADO → ${flat(ctx.estado)}`,
+    `AGENDA → ${flat(ctx.agenda || {})}`,
     `SALUD → ${flat(ctx.salud)}`,
   ].join("\n");
 }
@@ -81,7 +82,7 @@ export function contextToPrompt(ctx) {
 
 const CORTA = { type: "string", description: "corta, en español" };
 
-/** Única lista de herramientas. El modelo solo puede pedir estas siete. */
+/** Única lista de herramientas. El modelo solo puede pedir esta allowlist cerrada. */
 export const COACH_TOOLS = {
   get_plan_day: {
     label: "Consultar tu plan de hoy",
@@ -160,6 +161,52 @@ export const COACH_TOOLS = {
     desc: "Explica por qué una decisión de entrenamiento se toma así, citando consenso (UEFA 2025, ACSM, ISSN, OMS).",
     args: { type: "object", properties: { tema: CORTA }, required: ["tema"], additionalProperties: false },
   },
+  create_day_block: {
+    label: t("coach.toolCreateDayBlock"),
+    desc: "Propone añadir un bloque real al planificador personal. Nunca lo guarda sin confirmación del usuario.",
+    args: {
+      type: "object",
+      properties: {
+        title: CORTA,
+        date: { type: "string", description: "AAAA-MM-DD" },
+        start: { type: "string", description: "HH:MM en hora local" },
+        end: { type: "string", description: "HH:MM en hora local" },
+        type: { type: "string", enum: ["work","training","meal","recovery","personal","admin","focus","travel","other"] },
+        location: CORTA,
+        notes: CORTA,
+      },
+      required: ["title", "date"],
+      additionalProperties: false,
+    },
+  },
+  update_day_block: {
+    label: t("coach.toolUpdateDayBlock"),
+    desc: "Propone mover o editar un bloque que ya existe en la agenda. Necesita el id real del contexto.",
+    args: {
+      type: "object",
+      properties: {
+        id: { type: "string" }, title: CORTA, date: { type: "string" },
+        start: { type: "string" }, end: { type: "string" },
+        type: { type: "string", enum: ["work","training","meal","recovery","personal","admin","focus","travel","other"] },
+        location: CORTA, notes: CORTA,
+      },
+      required: ["id"],
+      additionalProperties: false,
+    },
+  },
+  complete_day_block: {
+    label: t("coach.toolCompleteDayBlock"),
+    desc: "Propone marcar como terminado un bloque real de la agenda usando su id.",
+    args: {
+      type: "object", properties: { id: { type: "string" } },
+      required: ["id"], additionalProperties: false,
+    },
+  },
+  open_day_planner: {
+    label: t("coach.toolOpenDayPlanner"),
+    desc: "Abre el planificador diario para que el usuario revise su línea temporal.",
+    args: { type: "object", properties: { date: { type: "string" } }, additionalProperties: false },
+  },
 };
 
 export const TOOL_NAMES = Object.keys(COACH_TOOLS);
@@ -223,7 +270,9 @@ export const HONESTY = `REGLAS DE VERACIDAD (no negociables):
 - Si un dato aparece como «${SIN_REGISTRAR}», DILO. No lo estimes, no lo supongas, no lo rellenes.
 - No diagnostiques, no prometas resultados y no nombres enfermedades.
 - Si derivaste al usuario a un profesional, no le des ninguna alternativa para «ahorrarse» esa derivación.
-- Si no sabes algo, dilo y di qué registro lo resolvería.`;
+- Si no sabes algo, dilo y di qué registro lo resolvería.
+- Si el usuario da horas explícitas para organizar su día, usa las herramientas del planificador; no inventes horas que no dijo.
+- Crear, mover o completar un bloque es una PROPUESTA: la interfaz pide confirmación antes de mutar el día.`;
 
 export function buildSystemPrompt(ctx, personality = "MENTOR") {
   return [

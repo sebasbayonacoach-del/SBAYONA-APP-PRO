@@ -6,6 +6,7 @@ import { BUILDERS, UI, el, openSection, toast } from './shared.js';
 import { renderHoy } from './hoy.js';
 import { todaysSession } from '../engine.js';
 import { decideNow } from '../now.js';
+import { activeOrNextItem, dayProgress, localDateKey, plannerItemsForDate } from '../planner.js';
 import {
   PLAN_META, planFromProfile, featureForSection, hasFeature, featureTier,
 } from '../entitlements.js';
@@ -109,6 +110,7 @@ function runNowAction(decision,w){
   if(decision.action==='train')return w?UI.actions.openTraining?.(w.id):openSection('training');
   if(decision.action==='recover')return UI.actions.openTraining?.('mobility_flow');
   if(decision.action==='progress')return openSection('progress');
+  if(decision.action==='planner')return openSection('planner');
   return openSection('core');
 }
 
@@ -132,6 +134,7 @@ function home(body){
   const w=S.todayWorkout();
   const detail=S.readinessDetail();
   const adjusted=todaysSession();
+  const plannerContext=activeOrNextItem(S.data.life, new Date());
   const decision=decideNow({
     profile:p,
     today,
@@ -139,6 +142,7 @@ function home(body){
     activeSession:active,
     workout:w,
     adjustedSession:adjusted,
+    plannerContext,
     history:S.data.history,
   });
 
@@ -201,6 +205,20 @@ function home(body){
   ask.innerHTML=`<span>◈</span><strong>${esc(t('now.ui.askButton'))}</strong><small>${esc(t('now.ui.askExamples'))}</small>`;
   ask.onclick=()=>askBayona();
   body.append(ask);
+
+  const planDate=localDateKey();
+  const planItems=plannerItemsForDate(S.data.life,planDate);
+  const planProgress=dayProgress(S.data.life,planDate);
+  const pendingPlan=planItems.filter(x=>x.status==='planned').slice(0,2);
+  const dayCard=el('button','fit-life-day');
+  dayCard.type='button';
+  dayCard.innerHTML=`
+    <span class="fit-life-day-kicker">${esc(t('planner.home.kicker'))}</span>
+    <div class="fit-life-day-head"><strong>${esc(pendingPlan.length?t('planner.home.pending',{count:planProgress.pending}):t('planner.home.empty'))}</strong><b>${esc(String(planProgress.done))}/${esc(String(planProgress.total))}</b></div>
+    <div class="fit-life-day-list">${pendingPlan.length?pendingPlan.map(item=>`<span><i>${esc(item.start||'·')}</i><em>${esc(item.title)}</em></span>`).join(''):`<span><em>${esc(t('planner.empty.body'))}</em></span>`}</div>
+    <small>${esc(t('planner.home.open'))} →</small>`;
+  dayCard.onclick=()=>openSection('planner');
+  body.append(dayCard);
 
   body.append(el('div','fit-week-title',`<span>${esc(t('now.ui.week'))}</span><small>${esc(t('now.ui.weekHint'))}</small>`));
   body.append(weekStrip());

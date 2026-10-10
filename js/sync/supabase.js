@@ -305,9 +305,9 @@ export async function insert(table, rows) {
   });
 }
 
-export async function upsert(table, rows) {
+export async function upsert(table, rows, params = null) {
   await ensureFreshSession();
-  return call(`/rest/v1/${table}`, {
+  return call(`/rest/v1/${table}${qs(params)}`, {
     method: "POST",
     body: rows,
     headers: { ...REST_HEADERS, Prefer: "return=representation,resolution=merge-duplicates" },

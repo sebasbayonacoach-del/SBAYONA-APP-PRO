@@ -16,9 +16,10 @@ import {
 } from "./rewards.js";
 import { respaldar, guardarSeguro, recuperar } from "./backup.js";
 import { clearActiveUserData, scopedStorage } from "./sync/identity.js";
+import { normalizeLifeOS } from "./planner.js";
 
 const KEY = "bayona.save.v2";
-export const SCHEMA = 4;
+export const SCHEMA = 5;
 
 /**
  * Recompensa por nivel. Vive fuera del objeto S y en orden: se recorre
@@ -275,6 +276,7 @@ export const S = {
     d.phygital = d.phygital || { redeemed: [], audit: [] };
     d.consents = d.consents || null; // espejo legado; la fuente vive en js/consents.js
     d.healthFlags = d.healthFlags || null;
+    d.life = normalizeLifeOS(d.life);
     d.plan = d.plan || { week: 1, sessionsDone: {}, custom: {} };
     d.plan.custom = d.plan.custom || {};
     d.activeSession = d.activeSession || null;
@@ -334,6 +336,7 @@ export const S = {
       phygital: { redeemed: [], audit: [] },
       consents: null,
       healthFlags: null,
+      life: normalizeLifeOS({}),
       activeSession: null,
     };
     if (!silent) this.save();

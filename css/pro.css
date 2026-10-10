@@ -6044,3 +6044,105 @@ html[data-surface-theme="light"] body.fitness-app .fit-now-secondary{background:
 html[data-surface-theme="light"] body.fitness-app .fit-bayona-fab{background:rgba(255,250,245,.96);color:#2a241f;border-color:#d59665}
 
 body[data-section="hoy"] .fit-bayona-fab{display:none}
+
+/* ============================================================
+   43 · BAYONA LIFE OS — planificador diario universal
+   ============================================================ */
+.fit-life-day{
+  width:100%;display:grid;gap:11px;margin-top:14px;padding:15px 16px;
+  border:1px solid #2b3033;border-radius:15px;background:#0d1011;color:#eee;
+  text-align:left;cursor:pointer
+}
+.fit-life-day:hover,.fit-life-day:focus-visible{border-color:#654225;outline:none}
+.fit-life-day-kicker{color:#f4a261;font:850 8px/1 var(--sans);letter-spacing:.14em}
+.fit-life-day-head{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.fit-life-day-head strong{font:700 13px/1.25 var(--sans)}
+.fit-life-day-head b{color:#7c8589;font:700 10px/1 var(--sans)}
+.fit-life-day-list{display:grid;gap:7px}
+.fit-life-day-list>span{display:grid;grid-template-columns:48px 1fr;gap:9px;align-items:center}
+.fit-life-day-list i{color:#747d81;font:700 9px/1 var(--sans);font-style:normal}
+.fit-life-day-list em{overflow:hidden;color:#c9cccd;font:500 10px/1.2 var(--sans);font-style:normal;text-overflow:ellipsis;white-space:nowrap}
+.fit-life-day>small{color:#70787c;font:750 8px/1 var(--sans);letter-spacing:.08em}
+
+.planner-head{display:grid;gap:9px;margin-bottom:18px}
+.planner-head h3{margin:0;color:var(--fit-ink);font:650 clamp(28px,7vw,42px)/1 var(--serif);letter-spacing:-.035em}
+.planner-head p{max-width:58ch;margin:0;color:var(--fit-muted);font:500 11px/1.55 var(--sans)}
+.planner-date-nav{display:grid;grid-template-columns:42px minmax(0,1fr) 42px;gap:8px;margin-top:8px}
+.planner-date-nav button{min-height:44px;border:1px solid var(--hair);border-radius:11px;background:var(--fit-card);color:var(--fit-ink);cursor:pointer}
+.planner-date-main{display:grid;place-items:center;gap:3px}
+.planner-date-main strong{text-transform:capitalize;font:700 11px/1.1 var(--sans)}
+.planner-date-main small{color:var(--fit-muted);font:750 7px/1 var(--sans);letter-spacing:.09em}
+
+.planner-progress{display:grid;gap:9px;padding:13px 14px;margin-bottom:12px;border:1px solid var(--hair);border-radius:13px;background:var(--fit-card)}
+.planner-progress>div{display:flex;justify-content:space-between;gap:12px}
+.planner-progress span,.planner-progress small{color:var(--fit-muted);font:750 8px/1.25 var(--sans);letter-spacing:.08em}
+.planner-progress strong{color:var(--fit-ink);font:700 11px/1 var(--sans)}
+.planner-progress>i{height:3px;overflow:hidden;border-radius:999px;background:var(--hair)}
+.planner-progress>i>b{display:block;height:100%;background:#f4a261}
+
+.planner-actions{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:7px;margin-bottom:16px}
+.planner-actions .btn{margin:0;min-width:0;padding-inline:10px;font-size:8px}
+
+.planner-timeline{position:relative;display:grid;gap:8px;margin:0 0 18px}
+.planner-timeline::before{content:"";position:absolute;left:61px;top:0;bottom:0;width:1px;background:var(--hair);pointer-events:none}
+.planner-item{position:relative;display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:10px;align-items:start;padding:12px 10px 12px 0;border:1px solid var(--hair);border-left:2px solid #697176;border-radius:13px;background:var(--fit-card)}
+.planner-item.type-training{border-left-color:#f4a261}
+.planner-item.type-work,.planner-item.type-focus{border-left-color:#8b949a}
+.planner-item.type-meal{border-left-color:#b48b65}
+.planner-item.type-recovery{border-left-color:#7d8e86}
+.planner-item.type-personal{border-left-color:#9a7f89}
+.planner-item.is-done{opacity:.55}
+.planner-item.is-done h4{text-decoration:line-through;text-decoration-thickness:1px}
+.planner-time{position:relative;z-index:1;padding-top:4px;background:var(--fit-card);color:var(--fit-muted);font:750 8px/1.2 var(--sans);text-align:center}
+.planner-item-main{min-width:0}
+.planner-item-top{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:5px}
+.planner-type,.planner-source{padding:4px 6px;border:1px solid var(--hair);border-radius:999px;color:var(--fit-muted);font:750 7px/1 var(--sans);letter-spacing:.05em;text-transform:uppercase}
+.planner-source{border-color:#3a2d22;color:#c88c5f}
+.planner-item h4{margin:0;color:var(--fit-ink);font:700 12px/1.25 var(--sans)}
+.planner-meta{margin-top:5px;color:var(--fit-muted);font:500 9px/1.35 var(--sans)}
+.planner-item-actions{display:flex;gap:4px}
+.planner-icon-btn{width:28px;height:28px;display:grid;place-items:center;padding:0;border:1px solid var(--hair);border-radius:8px;background:transparent;color:var(--fit-muted);font:700 12px/1 var(--sans);cursor:pointer}
+.planner-icon-btn:hover,.planner-icon-btn:focus-visible{border-color:#765033;color:#f4a261;outline:none}
+.planner-empty{display:grid;gap:6px;padding:24px 16px;border:1px dashed var(--hair);border-radius:14px;text-align:center}
+.planner-empty strong{color:var(--fit-ink);font:650 14px/1.2 var(--serif)}
+.planner-empty span{color:var(--fit-muted);font:500 10px/1.45 var(--sans)}
+
+.planner-connections-card,.planner-ai-card{width:100%;display:grid;align-items:center;gap:11px;margin-top:9px;padding:14px;border:1px solid var(--hair);border-radius:14px;background:var(--fit-card);color:var(--fit-ink);text-align:left;cursor:pointer}
+.planner-connections-card{grid-template-columns:1.2fr 1fr auto}
+.planner-connections-card span{display:grid;gap:4px}
+.planner-connections-card small{color:#f4a261;font:800 7px/1 var(--sans);letter-spacing:.1em}
+.planner-connections-card strong{font:700 11px/1.2 var(--sans)}
+.planner-connections-card>span:nth-child(2){color:var(--fit-muted);font:500 9px/1.35 var(--sans)}
+.planner-connections-card>b{color:#f4a261}
+.planner-ai-card{grid-template-columns:26px 1fr;margin-bottom:8px;border-color:#3a2d22;background:linear-gradient(90deg,rgba(244,162,97,.07),var(--fit-card))}
+.planner-ai-card>span:first-child{color:#f4a261;font-size:18px}
+.planner-ai-card>span:last-child{display:grid;gap:4px}
+.planner-ai-card strong{font:700 11px/1.2 var(--sans)}
+.planner-ai-card small{color:var(--fit-muted);font:500 9px/1.35 var(--sans)}
+
+.planner-modal,.planner-connections{display:grid;gap:12px}
+.planner-field{display:grid;gap:6px}
+.planner-field>span{color:var(--fit-muted);font:750 8px/1 var(--sans);letter-spacing:.07em;text-transform:uppercase}
+.planner-field input,.planner-field select,.planner-field textarea{width:100%;box-sizing:border-box;padding:11px 12px;border:1px solid #303538;border-radius:10px;background:#0a0c0d;color:#f1efeb;font:500 12px/1.35 var(--sans);outline:none}
+.planner-field textarea{resize:vertical}
+.planner-field input:focus,.planner-field select:focus,.planner-field textarea:focus{border-color:#b86d37;box-shadow:0 0 0 3px rgba(244,162,97,.08)}
+.planner-form-row{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.planner-modal-actions{display:grid;grid-template-columns:.7fr 1.3fr;gap:8px;margin-top:4px}
+.planner-connect-scroll{max-height:min(56vh,520px);overflow:auto;padding-right:4px}
+.planner-connect-group{display:grid;gap:6px;margin:12px 0 16px}
+.planner-connect-group h4{margin:0;color:#858d91;font:800 8px/1 var(--sans);letter-spacing:.1em}
+.planner-connector{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:10px;border:1px solid #262b2e;border-radius:10px;background:#0b0d0e}
+.planner-connector>span{display:grid;gap:4px}
+.planner-connector strong{color:#e7e5e1;font:650 10px/1.2 var(--sans)}
+.planner-connector small{color:#666f73;font:500 8px/1.3 var(--sans)}
+.planner-connector em{max-width:112px;color:#747d81;font:750 7px/1.2 var(--sans);font-style:normal;text-align:right}
+.planner-connector em.is-ready{color:#f4a261}
+
+@media(max-width:620px){
+  .planner-actions{grid-template-columns:1fr 1fr}.planner-actions .btn:first-child{grid-column:1/-1}
+  .planner-item{grid-template-columns:46px minmax(0,1fr)}
+  .planner-timeline::before{left:54px}
+  .planner-item-actions{grid-column:2;justify-content:flex-end;margin-top:3px}
+  .planner-connections-card{grid-template-columns:1fr auto}.planner-connections-card>span:nth-child(2){grid-column:1/-1;grid-row:2}
+  .planner-form-row{grid-template-columns:1fr}
+}

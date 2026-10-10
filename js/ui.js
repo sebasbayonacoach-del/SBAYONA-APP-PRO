@@ -28,6 +28,7 @@ import "./ui/coachos.js";
 import "./ui/armory.js";
 import "./ui/progress.js";
 import "./ui/core.js";
+import "./ui/planner.js";
 import "./ui/more.js";
 import "./ui/personal.js";
 import "./ui/appearance.js";

@@ -63,6 +63,14 @@ for (const [i, clave] of RAIL.entries()) {
     ejecutar: () => openSection(clave),
   });
 }
+registra({
+  id: "ir:planner",
+  titulo: (TITLES.planner || ["", ""])[0],
+  grupo: t("cmd.grupo.ir"),
+  destacado: true,
+  ejecutar: () => openSection("planner"),
+});
+
 for (const clave of DEL_CENTRO) {
   registra({
     id: `ir:${clave}`,

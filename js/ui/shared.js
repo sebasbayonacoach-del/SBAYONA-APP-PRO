@@ -46,6 +46,7 @@ export const BUILDERS = {};
 export const PLACES = {
   home:      { env: "home",     action: "idle",     cam: [0, 1.15, 3.3],   tgt: [0, 0.95, 0] },
   hoy:       { env: "home",     action: "idle",     cam: [0, 1.15, 3.3],   tgt: [0, 0.95, 0] },
+  planner:   { env: "home",     action: "idle",     cam: [0, 1.15, 3.3],   tgt: [0, 0.95, 0] },
   training:  { env: "gym",      action: "idle",     cam: [1.2, 1.35, 3.6], tgt: [0, 0.95, 0] },
   library:   { env: "gym",      action: "idle",     cam: [1.2, 1.35, 3.6], tgt: [0, 0.95, 0] },
   nutrition: { env: "kitchen",  action: "sit",      cam: [0.6, 1.25, 3.1], tgt: [0.2, 0.9, 0] },
@@ -191,6 +192,7 @@ export function openSection(name) {
       ? "training"
       : ["nutrition","recovery","mind","rhythm","daily"].includes(name) ? "wellbeing"
       : ["appearance","account","more","armory","core","trabajo","coachos"].includes(name) ? "profile"
+      : name === "planner" ? "hoy"
       : name === "plan" ? "training" : name;
   document.querySelectorAll("#panel-nav [data-go]").forEach(node => {
     const active = node.dataset.go === group; node.classList.toggle("active", active);
@@ -214,6 +216,7 @@ export const TITLES = {
   mind:      ["MENTE", "SILENCIO"],
   progress:  ["Progreso", "CADA SERIE CUENTA"],
   plan:      ["PLAN", "MACROCICLO"],
+  planner:   [t("planner.title"), t("planner.kicker")],
   coachos:   ["COACH OS", "CENTRO DE MANDO"],
   centro:    ["Centro", "TU GIMNASIO, DE UN VISTAZO"],
   socios:    ["Socios", "FICHAS · ACTIVIDAD · MEMBRESÍA"],
