@@ -153,6 +153,20 @@ export function normalizePlannerItem(raw = {}, fallback = {}) {
   };
 }
 
+function normalizeInboxItem(raw = {}) {
+  const text = clean(raw.text || raw.notes || "", 2000);
+  const title = clean(raw.title || "", 120);
+  const url = /^https?:\/\//i.test(String(raw.url || "")) ? String(raw.url).slice(0, 800) : "";
+  return {
+    id: clean(raw.id || "", 100) || null,
+    title,
+    text,
+    url,
+    source: clean(raw.source || "share", 60) || "share",
+    createdAt: raw.createdAt || new Date().toISOString(),
+  };
+}
+
 export function normalizeLifeOS(raw = {}) {
   const planner = raw?.planner && typeof raw.planner === "object" ? raw.planner : {};
   const integrations = raw?.integrations && typeof raw.integrations === "object" ? raw.integrations : {};
@@ -169,6 +183,11 @@ export function normalizeLifeOS(raw = {}) {
     deduped.push(item);
   }
 
+  const inbox = (Array.isArray(raw?.inbox) ? raw.inbox : [])
+    .map((x) => normalizeInboxItem(x))
+    .filter((x) => x.id && (x.text || x.title || x.url))
+    .slice(-200);
+
   return {
     planner: {
       items: deduped.slice(-1000),
@@ -176,6 +195,7 @@ export function normalizeLifeOS(raw = {}) {
       dayStartsAt: validTime(planner.dayStartsAt) ? planner.dayStartsAt : "07:00",
       dayEndsAt: validTime(planner.dayEndsAt) ? planner.dayEndsAt : "23:00",
     },
+    inbox,
     integrations: {
       connections: integrations.connections && typeof integrations.connections === "object"
         ? { ...integrations.connections }
@@ -188,6 +208,29 @@ export function normalizeLifeOS(raw = {}) {
 function makeId(prefix = "pl") {
   if (globalThis.crypto?.randomUUID) return prefix + "_" + crypto.randomUUID();
   return prefix + "_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 9);
+}
+
+export function addInboxItem(life, input = {}) {
+  const target = normalizeLifeOS(life);
+  const item = normalizeInboxItem({ ...input, id: input.id || makeId("inbox") });
+  if (!item.text && !item.title && !item.url) return { life: target, item: null, created: false };
+  const fingerprint = `${item.source}::${item.title}::${item.text}::${item.url}`;
+  const duplicate = target.inbox.find((x) => `${x.source}::${x.title}::${x.text}::${x.url}` === fingerprint);
+  if (duplicate) return { life: target, item: duplicate, created: false };
+  target.inbox.push(item);
+  target.inbox = target.inbox.slice(-200);
+  return { life: target, item, created: true };
+}
+
+export function removeInboxItem(life, id) {
+  const target = normalizeLifeOS(life);
+  const before = target.inbox.length;
+  target.inbox = target.inbox.filter((x) => x.id !== id);
+  return { life: target, removed: before - target.inbox.length };
+}
+
+export function inboxItems(life) {
+  return normalizeLifeOS(life).inbox.slice().reverse();
 }
 
 export function addPlannerItem(life, input, opts = {}) {

@@ -17,6 +17,7 @@ import {
   haptic, playTone, enterHome, BUILDERS,
 } from "./shared.js";
 import { confirmEarlyFinish } from "./cinematics.js";
+import { openNativeMusic } from "../integrations/native-context.js";
 
 const EXACT_POSE = { squat: 1, bench: 1, ohp: 1, pullup: 1, row: 1, lunge: 1, curl: 1, plank: 1 };
 const AVATAR_ACTION = {
@@ -75,6 +76,11 @@ BUILDERS.training = (body) => {
   }
   const rhythm = rhythmTrainingCard();
   if (rhythm) body.appendChild(rhythm);
+
+  const music = el("button", "btn btn-block", t("training.music"));
+  music.type = "button";
+  music.onclick = () => openNativeMusic(t("training.musicQuery"));
+  body.appendChild(music);
 
   // En una app de entrenamiento, HOY manda. La biblioteca técnica queda
   // disponible después de la acción principal, no compite con ella.

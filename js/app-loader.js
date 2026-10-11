@@ -40,6 +40,7 @@ export function loadApp() {
       import("./bridge.js"),
       import("./onboarding.js"),
       import("./diary/sessionDiary.js"),
+      import("./integrations/auto-sync.js"),
     ]);
 
     // Un módulo complementario no debe dejar al usuario frente a una pantalla

@@ -8,10 +8,13 @@ import { S } from "../state.js";
 import { t, esc } from "../i18n.js";
 import {
   addPlannerItem, completePlannerItem, datePlusDays, dayProgress,
-  exportICS, findConflicts, importICSIntoLife, localDateKey,
-  plannerItemsForDate, removePlannerItem, updatePlannerItem,
+  exportICS, findConflicts, importICSIntoLife, inboxItems, localDateKey,
+  plannerItemsForDate, removeInboxItem, removePlannerItem, updatePlannerItem,
 } from "../planner.js";
 import { INTEGRATIONS, INTEGRATION_GROUPS, integrationStatus } from "../integrations/catalog.js";
+import {
+  addPlannerItemToSystemCalendar, openNativeMap, syncDeviceCalendar,
+} from "../integrations/native-context.js";
 import {
   BUILDERS, UI, el, elT, hideModal, openSection, showModal, toast,
 } from "./shared.js";
@@ -229,7 +232,27 @@ function renderTimeline(body, items) {
     del.setAttribute("aria-label", del.title);
     del.onclick = () => removeItem(item);
 
-    actions.append(done, edit, del);
+    actions.append(done);
+    if (item.location) {
+      const map = el("button", "planner-icon-btn", "↗");
+      map.type = "button";
+      map.title = t("planner.action.route");
+      map.setAttribute("aria-label", map.title);
+      map.onclick = () => openNativeMap(item.location);
+      actions.append(map);
+    }
+    if (item.source !== "device_calendar") {
+      const cal = el("button", "planner-icon-btn", "+");
+      cal.type = "button";
+      cal.title = t("planner.action.systemCalendar");
+      cal.setAttribute("aria-label", cal.title);
+      cal.onclick = async () => {
+        const opened = await addPlannerItemToSystemCalendar(item);
+        if (!opened) toast(t("planner.calendar.unavailableTitle"), t("planner.calendar.unavailableBody"), "danger");
+      };
+      actions.append(cal);
+    }
+    actions.append(edit, del);
     list.appendChild(row);
   }
   body.appendChild(list);
@@ -279,10 +302,13 @@ function connectionsModal() {
         ${providers.map((provider) => {
           const status = integrationStatus(S.data.life, provider.id);
           const ready = status.connected;
+          const calendarAction = provider.id === "device_calendar"
+            ? `<button class="planner-connect-action" data-provider-action="device_calendar">${esc(t(ready ? "planner.connector.sync" : "planner.connector.connect"))}</button>`
+            : `<em class="${ready ? "is-ready" : ""}">${esc(t(ready ? "planner.connector.ready" : "planner.connector.oauth"))}</em>`;
           return `
             <div class="planner-connector">
               <span><strong>${esc(provider.name)}</strong><small>${esc(provider.capabilities.join(" · "))}</small></span>
-              <em class="${ready ? "is-ready" : ""}">${esc(t(ready ? "planner.connector.ready" : "planner.connector.oauth"))}</em>
+              ${calendarAction}
             </div>
           `;
         }).join("")}
@@ -300,6 +326,25 @@ function connectionsModal() {
     </div>
   `, () => {
     document.getElementById("pl-connect-close").onclick = hideModal;
+    document.querySelectorAll("[data-provider-action=\"device_calendar\"]").forEach((button) => {
+      button.onclick = async () => {
+        button.disabled = true;
+        button.textContent = t("planner.connector.syncing");
+        const result = await syncDeviceCalendar(S.data.life, { askPermission: true });
+        if (result.ok) {
+          S.data.life = result.life;
+          S.save();
+          window.dispatchEvent(new CustomEvent("bayona:planner", { detail: { event: "device-calendar-sync" } }));
+          hideModal();
+          toast(t("planner.connector.syncedTitle"), t("planner.connector.syncedBody", { count: result.count }));
+          BUILDERS.planner(document.getElementById("drawer-body"));
+          return;
+        }
+        button.disabled = false;
+        button.textContent = t("planner.connector.connect");
+        toast(t("planner.connector.permissionTitle"), t("planner.connector.permissionBody"), "danger");
+      };
+    });
   });
 }
 
@@ -309,6 +354,52 @@ export function plannerPreview(limit = 2) {
   const p = dayProgress(S.data.life, date);
   const pending = items.filter((x) => x.status === "planned").slice(0, Math.max(1, limit));
   return { date, items, pending, progress: p };
+}
+
+function renderInbox(body) {
+  const items = inboxItems(S.data.life);
+  if (!items.length) return;
+  const wrap = el("section", "planner-inbox");
+  const head = el("div", "planner-inbox-head", `<span>${esc(t("planner.inbox.kicker"))}</span><b>${items.length}</b>`);
+  wrap.appendChild(head);
+  items.slice(0, 4).forEach((item) => {
+    const card = el("article", "planner-inbox-card");
+    const displayTitle = item.title || t("planner.inbox.sharedItem");
+    const preview = item.text || item.url || "";
+    card.innerHTML = `<strong>${esc(displayTitle)}</strong>${preview ? `<p>${esc(preview.slice(0, 220))}</p>` : ""}`;
+    const actions = el("div", "planner-inbox-actions");
+    const plan = el("button", "btn btn-primary", t("planner.inbox.plan"));
+    plan.type = "button";
+    plan.onclick = () => editModal({
+      title: item.title || t("planner.inbox.defaultTitle"),
+      notes: item.text || item.url || "",
+      date: selectedDate,
+      source: "manual",
+    });
+    const ask = el("button", "btn", t("planner.inbox.ask"));
+    ask.type = "button";
+    ask.onclick = () => {
+      const prompt = t("planner.inbox.prompt", { content: (item.text || item.title || item.url || "").slice(0, 900) });
+      if (UI.actions.openCoachAsk) return UI.actions.openCoachAsk(prompt);
+      openSection("core");
+      setTimeout(() => UI.actions.askCoach?.(prompt), 100);
+    };
+    const dismiss = el("button", "planner-icon-btn", "×");
+    dismiss.type = "button";
+    dismiss.title = t("planner.inbox.dismiss");
+    dismiss.setAttribute("aria-label", dismiss.title);
+    dismiss.onclick = () => {
+      const result = removeInboxItem(S.data.life, item.id);
+      S.data.life = result.life;
+      S.save();
+      window.dispatchEvent(new CustomEvent("bayona:planner", { detail: { event: "inbox-dismiss" } }));
+      BUILDERS.planner(body);
+    };
+    actions.append(plan, ask, dismiss);
+    card.appendChild(actions);
+    wrap.appendChild(card);
+  });
+  body.appendChild(wrap);
 }
 
 BUILDERS.planner = (body) => {
@@ -346,6 +437,7 @@ BUILDERS.planner = (body) => {
     BUILDERS.planner(body);
   };
   body.appendChild(head);
+  renderInbox(body);
 
   const score = el("section", "planner-progress");
   score.innerHTML = `

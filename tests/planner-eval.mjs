@@ -3,12 +3,13 @@ import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
-  activeOrNextItem, addPlannerItem, completePlannerItem, datePlusDays,
+  activeOrNextItem, addInboxItem, addPlannerItem, completePlannerItem, datePlusDays,
   dayProgress, exportICS, findConflicts, importICSIntoLife,
-  localDateKey, normalizeLifeOS, parseICS, parsePlannerIntent, plannerItemsForDate,
+  inboxItems, localDateKey, normalizeLifeOS, parseICS, parsePlannerIntent, plannerItemsForDate, removeInboxItem,
   removePlannerItem, updatePlannerItem,
 } from "../js/planner.js";
 import { INTEGRATIONS, integrationStatus } from "../js/integrations/catalog.js";
+import { mergeDeviceCalendarEvents } from "../js/integrations/native-context.js";
 import { decideNow } from "../js/now.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -110,5 +111,33 @@ check(account.includes('addEventListener("bayona:planner", sincroSuave)'), "camb
 
 const sw = readFileSync(resolve(root, "sw.js"), "utf8");
 check(sw.includes('"./js/planner.js"') && sw.includes('"./js/ui/planner.js"') && sw.includes('"./js/integrations/catalog.js"'), "Life OS está disponible en el shell offline");
+
+let nativeLife = normalizeLifeOS({});
+let mergedNative = mergeDeviceCalendarEvents(nativeLife, [
+  { externalId:"42:1000", date:"2026-10-11", start:"09:00", end:"10:00", title:"Reunión", calendar:"Trabajo" },
+], { fromDate:"2026-10-11", toDate:"2026-10-12" });
+nativeLife = mergedNative.life;
+check(mergedNative.count === 1 && nativeLife.planner.items[0].source === "device_calendar", "calendario Android entra con fuente explícita");
+mergedNative = mergeDeviceCalendarEvents(nativeLife, [
+  { externalId:"42:1000", date:"2026-10-11", start:"09:30", end:"10:30", title:"Reunión movida", calendar:"Trabajo" },
+], { fromDate:"2026-10-11", toDate:"2026-10-12" });
+check(mergedNative.life.planner.items.length === 1 && mergedNative.life.planner.items[0].start === "09:30", "re-sincronizar actualiza y no duplica eventos nativos");
+mergedNative = mergeDeviceCalendarEvents(mergedNative.life, [], { fromDate:"2026-10-11", toDate:"2026-10-12" });
+check(mergedNative.life.planner.items.length === 0, "si desaparece del calendario externo, desaparece del espejo del rango");
+
+let inboxLife = normalizeLifeOS({});
+let inbox = addInboxItem(inboxLife, { id:"inbox_1", title:"Correo", text:"Responder propuesta mañana", source:"android_share" });
+inboxLife = inbox.life;
+check(inbox.created && inboxItems(inboxLife).length === 1, "BAYONA Inbox recibe contenido compartido");
+const dupInbox = addInboxItem(inboxLife, { id:"inbox_2", title:"Correo", text:"Responder propuesta mañana", source:"android_share" });
+check(!dupInbox.created && dupInbox.life.inbox.length === 1, "Inbox deduplica el mismo contenido compartido");
+check(removeInboxItem(inboxLife, "inbox_1").removed === 1, "Inbox permite descartar contexto sin tocar el planificador");
+
+const manifest = readFileSync(resolve(root, "mobile/android/app/src/main/AndroidManifest.xml"), "utf8");
+const nativePlugin = readFileSync(resolve(root, "mobile/android/app/src/main/java/app/bayona/fit/LifeOSPlugin.java"), "utf8");
+const activity = readFileSync(resolve(root, "mobile/android/app/src/main/java/app/bayona/fit/MainActivity.java"), "utf8");
+check(manifest.includes("android.permission.READ_CALENDAR") && manifest.includes("android.intent.action.SEND"), "Android declara calendario de lectura + compartir hacia BAYONA");
+check(nativePlugin.includes("CalendarContract.Instances") && nativePlugin.includes("consumeShare") && nativePlugin.includes("openMap") && nativePlugin.includes("openMusic"), "plugin nativo implementa calendario, Inbox, Maps y música");
+check(activity.includes("registerPlugin(LifeOSPlugin.class)") && activity.includes("onNewIntent"), "MainActivity registra LifeOS y recibe shares con la app abierta");
 
 console.log("\n📊 RESULTADO: " + ok + " comprobaciones · 0 fallos\n");

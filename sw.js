@@ -4,7 +4,7 @@
 // Con esto la app abre sin red y el registro de series funciona offline
 // (los datos viven en el dispositivo y se sincronizan después).
 // ============================================================
-const CACHE = "bayona-shell-v38";
+const CACHE = "bayona-shell-v39";
 const SHELL = [
   "./css/pro.css",
   "./css/luxe.css",
@@ -24,7 +24,7 @@ const SHELL = [
   "./fonts/inter-italic-latin.woff2", "./fonts/inter-italic-latin-ext.woff2",
   "./fonts/dm-mono-normal-400-latin.woff2", "./fonts/dm-mono-normal-500-latin.woff2",
   "./fonts/dm-mono-normal-400-latin-ext.woff2",
-  "./js/ui/landing.js", "./js/ui/landing-boot.js", "./js/ui/auth-gate.js", "./js/app-loader.js", "./js/theme.js", "./js/entitlements.js", "./js/now.js", "./js/planner.js", "./js/integrations/catalog.js",
+  "./js/ui/landing.js", "./js/ui/landing-boot.js", "./js/ui/auth-gate.js", "./js/app-loader.js", "./js/theme.js", "./js/entitlements.js", "./js/now.js", "./js/planner.js", "./js/integrations/catalog.js", "./js/integrations/native-context.js", "./js/integrations/auto-sync.js",
   "./js/gym/model.js", "./js/gym/store.js", "./js/gym/acceso.js", "./js/gym/informes.js", "./js/gym/pagos.js",
   "./js/ui/centro.js", "./js/ui/cuotas.js", "./js/ui/agenda.js",
   "./js/ui/acceso.js",  "./js/ui/portal.js", "./js/ui/informes.js",
