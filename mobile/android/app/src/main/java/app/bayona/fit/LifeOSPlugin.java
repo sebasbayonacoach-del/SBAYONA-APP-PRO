@@ -233,6 +233,44 @@ public class LifeOSPlugin extends Plugin {
     }
 
     @PluginMethod
+    public void openOAuth(PluginCall call) {
+        String url = call.getString("url", "");
+        if (!url.startsWith("https://") || !url.contains("/auth/v1/authorize")) {
+            call.reject("oauth_url_not_allowed", "OAUTH_URL_NOT_ALLOWED");
+            return;
+        }
+        try {
+            Intent browser = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            browser.addCategory(Intent.CATEGORY_BROWSABLE);
+            getActivity().startActivity(browser);
+            call.resolve();
+        } catch (ActivityNotFoundException e) {
+            call.reject("browser_unavailable", "BROWSER_UNAVAILABLE", e);
+        }
+    }
+
+    @PluginMethod
+    public void consumeAuthCallback(PluginCall call) {
+        Intent intent = getActivity().getIntent();
+        JSObject output = new JSObject();
+        Uri uri = intent == null ? null : intent.getData();
+        if (uri == null || !Intent.ACTION_VIEW.equals(intent.getAction())
+            || !"bayonafit".equals(uri.getScheme()) || !"auth".equals(uri.getHost())
+            || !"/callback".equals(uri.getPath())) {
+            output.put("url", "");
+            call.resolve(output);
+            return;
+        }
+        // Tras entregarlo una vez, el enlace ya no permanece en el intent
+        // ni se registra en logcat. Nunca imprimir los tokens.
+        output.put("url", uri.toString());
+        intent.setData(null);
+        intent.setAction(null);
+        getActivity().setIntent(intent);
+        call.resolve(output);
+    }
+
+    @PluginMethod
     public void appSettings(PluginCall call) {
         Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
         intent.setData(Uri.parse("package:" + getContext().getPackageName()));

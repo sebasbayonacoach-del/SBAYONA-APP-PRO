@@ -8,6 +8,7 @@ import { t, esc } from "../i18n.js";
 import { loadApp } from "../app-loader.js";
 import { montarLanding } from "./landing.js";
 import { initTheme } from "../theme.js";
+import { accountRole } from "../sync/supabase.js";
 
 function yaDentro() {
   try {
@@ -72,7 +73,7 @@ async function enterApp(plan = null, role = null) {
       return;
     }
 
-    const safeRole = inferredRole === "coach" ? "coach" : "affiliate";
+    const safeRole = inferredRole === "coach" && accountRole() === "coach" ? "coach" : "affiliate";
     const target = document.getElementById(safeRole === "coach" ? "entry-coach" : "entry-go");
     if (target) {
       target.click();
@@ -132,9 +133,7 @@ function boot() {
   // landing comercial. La app instalada nunca pasa por esta rama.
   if (yaDentro() || direct) {
     removeLanding();
-    const role = direct === "coachos" || direct === "coach-os"
-      ? "coach"
-      : (localStorage.getItem("bayona.entry.role.v1") || "affiliate");
+    const role = accountRole() === "coach" ? "coach" : "affiliate";
     loadApp()
       .then(() => {
         if (direct && !document.body.classList.contains("entered")) {

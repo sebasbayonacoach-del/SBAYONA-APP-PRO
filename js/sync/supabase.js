@@ -29,6 +29,7 @@ function loadSession() {
 }
 function saveSession(s) {
   session = s;
+  if (!s?.user?.id || (verifiedCoachId && verifiedCoachId !== s.user.id)) verifiedCoachId = null;
   try {
     if (s) localStorage.setItem(TOKEN_KEY, JSON.stringify(s));
     else localStorage.removeItem(TOKEN_KEY);
@@ -101,41 +102,57 @@ export async function signInWithPassword(email, password) {
   return session;
 }
 
-/** alta con email + contraseña (crea el usuario en auth.users) */
-function normalizeBayonaRole(role) {
-  return role === "coach" ? "coach" : "athlete";
-}
-
-/** rol de producto persistido en Auth; si la cuenta es antigua usa el último mundo elegido. */
+/** Rol autorizado solo mediante una función SQL controlada por el servidor. */
+let verifiedCoachId = null;
 export function accountRole() {
-  const u = currentUser();
-  const remote = u?.user_metadata?.bayona_role || u?.user_metadata?.role;
-  if (remote === "coach" || remote === "athlete") return remote;
+  const uid = currentUser()?.id;
+  return uid && uid === verifiedCoachId ? "coach" : "athlete";
+}
+export async function verifyCoachRole() {
+  const uid = currentUser()?.id;
+  verifiedCoachId = null;
+  if (!uid) return "athlete";
   try {
-    return localStorage.getItem("bayona.entry.role.v1") === "coach" ? "coach" : "athlete";
+    const accepted = await rpc("is_bayona_coach", {});
+    if (accepted === true) verifiedCoachId = uid;
   } catch {
-    return "athlete";
+    // Sin verificar = atleta. Nunca interpretar metadatos modificables
+    // ni un valor en localStorage como permiso de Coach Studio.
   }
+  return accountRole();
 }
 
-/** alta con email + contraseña + rol BAYONA para mantener separadas las experiencias */
-export async function signUpWithPassword(email, password, role = accountRole(), metadata = {}) {
+/** Altas públicas: siempre usuario normal, nunca entrenador. */
+export async function signUpWithPassword(email, password, _role = "athlete", metadata = {}) {
+  const { bayona_role: _ignored, role: _ignoredRole, ...safeMetadata } = metadata || {};
   const d = await call("/auth/v1/signup", {
     method: "POST",
-    body: {
-      email,
-      password,
-      data: {
-        ...metadata,
-        bayona_role: normalizeBayonaRole(role),
-      },
-    },
+    body: { email, password, data: { ...safeMetadata, bayona_role: "athlete" } },
   });
   if (d?.access_token) {
     saveSession(toSession(d));
     if (session?.user?.id) setActiveIdentity(session.user.id);
   }
   return d;
+}
+
+/** OAuth gestionado por Supabase. No se almacena client_secret en la app.
+ * Configurar Google en Supabase Auth y permitir ambos redirect_to antes de usarlo.
+ */
+export function googleOAuthUrl({ native = false, webOrigin = "" } = {}) {
+  if (!cfg.ready) throw new Error("Supabase sin configurar.");
+  const redirect = native
+    ? "bayonafit://auth/callback"
+    : new URL("/?source=pwa", webOrigin || location.origin).href;
+  const callback = new URL(redirect);
+  const attempt = globalThis.crypto?.randomUUID?.();
+  if (!attempt) throw new Error("Este dispositivo no admite el acceso seguro con Google.");
+  sessionStorage.setItem("bayona.oauth.attempt.v1", attempt);
+  callback.searchParams.set("auth_state", attempt);
+  const url = new URL(cfg.url + "/auth/v1/authorize");
+  url.searchParams.set("provider", "google");
+  url.searchParams.set("redirect_to", callback.toString());
+  return url.toString();
 }
 
 /** magic link: manda un email de acceso de un solo uso */

@@ -729,3 +729,12 @@ body.auth-gate-active > :not(#bayona-auth-gate):not(script):not(style) {
 .auth-legacy-summary strong { color:#e8e8e8; font-size:11px; overflow:hidden; text-overflow:ellipsis; }
 .auth-center .auth-primary + .auth-secondary { margin-top:9px; }
 @media(max-width:420px){.auth-legacy-summary{grid-template-columns:1fr}.auth-legacy-summary span{grid-template-columns:90px 1fr;align-items:center}}
+/* Auth pública 1.0.10: nombre + Google, sin selector de privilegios */
+.auth-entry-note{margin:0 0 14px;color:#8b8b8b;font:500 10px/1.5 Inter,system-ui,sans-serif}
+.auth-google-divider{display:flex;align-items:center;gap:10px;margin:18px 0 12px;color:#878787;font:750 9px/1.1 Inter,system-ui,sans-serif;letter-spacing:.08em;text-align:center}
+.auth-google-divider::before,.auth-google-divider::after{content:"";height:1px;flex:1;background:#2c2c2c}
+.auth-google-button{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;min-height:48px;padding:11px 13px;border:1px solid #454545;border-radius:11px;background:#f8f7f5;color:#191919;font:750 13px/1.3 Inter,system-ui,sans-serif;cursor:pointer}
+.auth-google-button:hover:not(:disabled),.auth-google-button:focus-visible{background:#fff;outline:2px solid #e2a66e;outline-offset:2px}
+.auth-google-button:disabled{cursor:wait;opacity:.6}
+.auth-google-mark{font:900 18px/1 Inter,system-ui,sans-serif;color:#4285f4;letter-spacing:-.1em}
+#entry-coach[hidden]{display:none!important}

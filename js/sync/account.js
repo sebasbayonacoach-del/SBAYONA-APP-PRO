@@ -88,7 +88,6 @@ async function pushProfile() {
     }
   }
   await updateUserMetadata({
-    bayona_role: accountRole(),
     display_name: d.profile.name || null,
     bayona_profile: portableProfile(d.profile),
   });
@@ -470,6 +469,7 @@ BUILDERS.account = (body) => {
     body.appendChild(el("div", "sec-label", "ACCESO"));
     const form = el("div", "card");
     form.innerHTML = `<h4>${t("cloud.account.title")}</h4><div class="sub">${t("cloud.account.note")}</div>`;
+    form.append(field("NOMBRE PARA CUENTA NUEVA", "text", "ac-name", "Cómo quieres que te llamemos"));
     form.append(field("EMAIL", "email", "ac-email", "tu@email.com"));
     form.append(field("CONTRASEÑA", "password", "ac-pass", "mínimo 8 caracteres"));
     const row = el("div", "opt-row");
@@ -512,7 +512,9 @@ BUILDERS.account = (body) => {
       if (!(await requireCloud(msg))) return;
       msg.textContent = t("cloud.signup.creating");
       try {
-        await signUpWithPassword(email(), pass());
+        const displayName = form.querySelector("#ac-name")?.value.trim() || "";
+        if (!displayName) throw new Error("Escribe tu nombre para registrarte.");
+        await signUpWithPassword(email(), pass(), "athlete", { display_name: displayName });
         msg.textContent = t("cloud.signup.created");
         if (currentSession()) {
           await refreshUser().catch(() => null);

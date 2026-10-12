@@ -6,6 +6,8 @@
 import { loadApp } from "../app-loader.js";
 import {
   accountRole,
+  googleOAuthUrl,
+  verifyCoachRole,
   completeAuthFromHash,
   currentSession,
   currentUser,
@@ -85,7 +87,6 @@ const state = {
   pendingEmail: "",
   pendingPassword: "",
   pendingName: "",
-  pendingRole: "athlete",
   profileStep: 0,
   profile: {
     name: "",
@@ -100,6 +101,63 @@ const state = {
 let root = null;
 let surface = "APP";
 let booted = false;
+let googlePolling = null;
+let oauthHandling = false;
+function verifyOAuthAttempt(url) {
+  const expected = sessionStorage.getItem("bayona.oauth.attempt.v1");
+  const actual = url.searchParams.get("auth_state");
+  if (!expected || !actual || expected !== actual) return false;
+  sessionStorage.removeItem("bayona.oauth.attempt.v1");
+  return true;
+}
+
+
+async function consumeGoogleCallback() {
+  const native = globalThis.Capacitor?.Plugins?.LifeOS;
+  if (!root || !native?.consumeAuthCallback || oauthHandling) return;
+  oauthHandling = true;
+  try {
+    const callback = await native.consumeAuthCallback();
+    if (!callback?.url) return;
+    const url = new URL(callback.url);
+    if (url.protocol !== "bayonafit:" || url.hostname !== "auth" || url.pathname !== "/callback") return;
+    if (!verifyOAuthAttempt(url)) return setMessage("El intento de acceso no coincide. Inicia sesión otra vez.", "error");
+    const error = new URLSearchParams(url.hash.replace(/^#/, "")).get("error_description")
+      || url.searchParams.get("error_description");
+    if (error) return setMessage("Google no pudo completar el acceso. Inténtalo de nuevo.", "error");
+    if (!completeAuthFromHash(url.hash)) return setMessage("El acceso con Google no se completó.", "error");
+    await refreshUser();
+    await afterAuthenticated();
+  } catch (error) {
+    state.busy = false;
+    setMessage(errorText(error), "error");
+  } finally {
+    oauthHandling = false;
+  }
+}
+
+async function startGoogle() {
+  if (state.busy) return;
+  state.busy = true;
+  state.message = "";
+  render();
+  try {
+    const plugin = globalThis.Capacitor?.Plugins?.LifeOS;
+    const url = googleOAuthUrl({ native: Boolean(plugin?.openOAuth) });
+    if (plugin?.openOAuth) {
+      await plugin.openOAuth({ url });
+      if (!googlePolling) googlePolling = setInterval(consumeGoogleCallback, 750);
+      state.busy = false;
+      render();
+    } else {
+      location.assign(url);
+    }
+  } catch (error) {
+    state.busy = false;
+    setMessage(errorText(error), "error");
+  }
+}
+
 
 const esc = (value) => String(value ?? "")
   .replaceAll("&", "&amp;")
@@ -166,6 +224,8 @@ async function cloudProfile(user) {
 
 async function saveCoreProfile(user, name, role, profile = null) {
   if (!user?.id) return;
+  if (role === "coach" && accountRole() !== "coach")
+    throw new Error("Coach Studio requiere la autorización del propietario.");
   const core = {
     id: user.id,
     display_name: String(name || "").trim().slice(0, 40) || null,
@@ -181,7 +241,6 @@ async function saveCoreProfile(user, name, role, profile = null) {
     }
   }
   await updateUserMetadata({
-    bayona_role: role === "coach" ? "coach" : "athlete",
     display_name: core.display_name,
     ...(profile ? { bayona_profile: portableProfile({ ...profile, onboarded: true }) } : {}),
   });
@@ -253,14 +312,14 @@ async function enterProduct({ guest = false, roleOverride = null } = {}) {
     let role = roleOverride;
     if (guest) {
       clearActiveIdentity();
-      role = localStorage.getItem(ROLE_KEY) === "coach" ? "coach" : "athlete";
+      role = "athlete";
     } else {
       const user = currentUser();
       if (user?.id) setActiveIdentity(user.id);
       role = role || accountRole();
     }
 
-    const entryRole = role === "coach" ? "coach" : "affiliate";
+    const entryRole = !guest && accountRole() === "coach" ? "coach" : "affiliate";
     localStorage.setItem(ROLE_KEY, entryRole);
 
     await loadApp();
@@ -274,6 +333,8 @@ async function enterProduct({ guest = false, roleOverride = null } = {}) {
     document.body.classList.remove("auth-gate-active");
     root?.remove();
     root = null;
+    if (googlePolling) clearInterval(googlePolling);
+    googlePolling = null;
 
     if (entryRole !== "coach") {
       setTimeout(() => {
@@ -292,7 +353,7 @@ async function afterAuthenticated() {
   setActiveIdentity(user.id);
 
   const row = await cloudProfile(user);
-  const role = user?.user_metadata?.bayona_role || row?.role || "athlete";
+  const role = await verifyCoachRole();
 
   if (role === "coach") {
     const name = row?.display_name || displayNameFromUser(user) || state.pendingName;
@@ -336,17 +397,6 @@ async function afterAuthenticated() {
   render();
 }
 
-function roleChoices() {
-  return `
-    <div class="auth-role-grid" role="group" aria-label="Tipo de cuenta">
-      <button type="button" class="auth-role ${state.pendingRole === "athlete" ? "is-active" : ""}" data-auth-role="athlete" aria-pressed="${state.pendingRole === "athlete"}">
-        <span class="auth-role-icon">◈</span><span><strong>Entreno para mí</strong><small>Rutinas, progreso y acompañamiento</small></span>
-      </button>
-      <button type="button" class="auth-role ${state.pendingRole === "coach" ? "is-active" : ""}" data-auth-role="coach" aria-pressed="${state.pendingRole === "coach"}">
-        <span class="auth-role-icon">▦</span><span><strong>Soy coach</strong><small>Clientes, programación y seguimiento</small></span>
-      </button>
-    </div>`;
-}
 
 function authHeader(kicker, title, copy) {
   return `
@@ -381,7 +431,7 @@ function authForm() {
       <form id="auth-form" novalidate>
         ${signup ? `
           <label class="auth-field"><span>Nombre</span><input id="auth-name" name="name" autocomplete="name" maxlength="40" value="${esc(state.pendingName)}" placeholder="Cómo quieres que te llamemos"></label>
-          ${roleChoices()}
+          <p class="auth-entry-note">Tu espacio personal. Coach Studio está reservado al propietario de BAYONA.</p>
         ` : ""}
         <label class="auth-field"><span>Email</span><input id="auth-email" name="email" type="email" autocomplete="email" inputmode="email" value="${esc(state.pendingEmail)}" placeholder="tu@email.com"></label>
         <label class="auth-field"><span>Contraseña</span><input id="auth-password" name="password" type="password" autocomplete="${signup ? "new-password" : "current-password"}" minlength="8" placeholder="Mínimo 8 caracteres"></label>
@@ -392,6 +442,8 @@ function authForm() {
           ${state.busy ? "UN MOMENTO…" : signup ? "CREAR MI CUENTA" : "ENTRAR"}
         </button>
       </form>
+      <div class="auth-google-divider"><span>O CONTINÚA CON</span></div>
+      <button class="auth-google-button" type="button" data-auth-action="google" ${state.busy ? "disabled" : ""}><span class="auth-google-mark">G</span> Continuar con Google</button>
       <div class="auth-security"><span>●</span> Conexión segura · datos separados por cuenta</div>
       ${legacyProgress() ? '<button type="button" class="auth-local" data-auth-action="local">Continuar con el progreso guardado en este dispositivo</button>' : ""}
     </section>`;
@@ -517,7 +569,7 @@ async function migrateLegacyProgress() {
   render();
   try {
     importLegacyUserDataToActive();
-    const role = user?.user_metadata?.bayona_role || "athlete";
+    const role = await verifyCoachRole();
     try {
       await saveCoreProfile(user, legacy.profile?.name || displayNameFromUser(user), role, legacy.profile || null);
     } catch {
@@ -607,7 +659,7 @@ async function submitAuth(event) {
 
   try {
     if (signup) {
-      const result = await signUpWithPassword(email, password, state.pendingRole, {
+      const result = await signUpWithPassword(email, password, "athlete", {
         display_name: name,
       });
       if (!result?.access_token) {
@@ -755,14 +807,8 @@ function wire() {
     };
   });
 
-  root?.querySelectorAll("[data-auth-role]").forEach((button) => {
-    button.onclick = () => {
-      state.pendingRole = button.dataset.authRole === "coach" ? "coach" : "athlete";
-      render();
-    };
-  });
-
   root?.querySelector("#auth-form")?.addEventListener("submit", submitAuth);
+  root?.querySelector('[data-auth-action="google"]')?.addEventListener("click", startGoogle);
   root?.querySelector("#auth-reset-form")?.addEventListener("submit", saveNewPassword);
 
   root?.querySelector('[data-auth-action="forgot"]')?.addEventListener("click", forgotPassword);
@@ -822,7 +868,14 @@ async function bootstrap() {
   const splashStarted = performance.now();
   const hashParams = new URLSearchParams((location.hash || "").replace(/^#/, ""));
   const recovery = hashParams.get("type") === "recovery";
-  const hashSession = completeAuthFromHash();
+  const pendingOAuth = sessionStorage.getItem("bayona.oauth.attempt.v1");
+  const hasOAuthResponse = Boolean(hashParams.get("access_token") && new URL(location.href).searchParams.get("auth_state"));
+  if (hasOAuthResponse && (!pendingOAuth || !verifyOAuthAttempt(new URL(location.href)))) {
+    state.mode = "login";
+    state.busy = false;
+    return setMessage("No pudimos verificar el retorno de Google. Inténtalo de nuevo.", "error");
+  }
+  const hashSession = hasOAuthResponse || !hashParams.get("access_token") ? completeAuthFromHash() : null;
 
   let health = null;
   if (isConfigured()) health = await probeBackend({ timeoutMs: 3200 }).catch(() => null);
@@ -849,7 +902,7 @@ async function bootstrap() {
       return;
     }
     if (hasUserLocalState(existing?.user)) {
-      await enterProduct({ roleOverride: existing?.user?.user_metadata?.bayona_role || "athlete" });
+      await enterProduct({ roleOverride: "athlete" });
       return;
     }
   }
@@ -881,4 +934,8 @@ export async function launchAuthGate({ platform = "APP" } = {}) {
   }
 
   await bootstrap();
+  if (root && globalThis.Capacitor?.Plugins?.LifeOS?.consumeAuthCallback) {
+    if (!googlePolling) googlePolling = setInterval(consumeGoogleCallback, 750);
+    consumeGoogleCallback();
+  }
 }

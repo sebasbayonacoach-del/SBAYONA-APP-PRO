@@ -81,7 +81,9 @@ check(authGate.includes("He olvidado mi contraseña") && authGate.includes("upda
 check(authGate.includes('state.mode = "profile"') && authGate.includes("PASO \${step + 1} DE \${total}"), "una cuenta nueva crea perfil antes de entrar");
 check(authGate.includes('state.mode = "migrate"') && authGate.includes("¿Este progreso es tuyo?"), "progreso legado exige confirmación antes de vincularse");
 check(authGate.includes("SÍ, USAR MI PROGRESO") && authGate.includes("NO, CREAR PERFIL NUEVO"), "la migración local es explícita y reversible");
-check(authGate.includes("Entreno para mí") && authGate.includes("Soy coach"), "registro separa cliente y coach");
+check(!authGate.includes("Soy coach") && authGate.includes("Continuar con Google") &&
+  authGate.includes('signUpWithPassword(email, password, "athlete"'),
+  "registro público siempre usuario normal con Google opcional");
 check(authGate.includes("Conexión segura · datos separados por cuenta"), "la UI comunica seguridad sin afirmar cifrado local inexistente");
 check(authGate.includes("Después te pediremos seguridad, permisos o datos de salud solo cuando una función realmente los necesite."), "datos sensibles salen del registro inicial");
 
@@ -132,9 +134,9 @@ const index = readFileSync(resolve(root, "index.html"), "utf8");
 check(index.includes('href="css/auth.css?v=1"'), "estilos Front Door forman parte del documento");
 
 const sw = readFileSync(resolve(root, "sw.js"), "utf8");
-check(sw.includes("bayona-shell-v42") && sw.includes('"./js/ui/auth-gate.js"') && sw.includes('"./js/sync/identity.js"'), "PWA cachea puerta e identidad multiusuario");
+check(sw.includes("bayona-shell-v43") && sw.includes('"./js/ui/auth-gate.js"') && sw.includes('"./js/sync/identity.js"'), "PWA cachea puerta e identidad multiusuario");
 
 const gradle = readFileSync(resolve(root, "mobile/android/app/build.gradle"), "utf8");
-check(gradle.includes("versionCode 10") && gradle.includes('versionName "1.0.9-beta"'), "Android queda versionado como 1.0.9-beta");
+check(gradle.includes("versionCode 11") && gradle.includes('versionName "1.0.10-beta"'), "Android queda versionado como 1.0.10-beta");
 
 console.log("\n📊 RESULTADO: " + ok + " comprobaciones · 0 fallos\n");

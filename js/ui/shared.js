@@ -4,6 +4,7 @@
 // entre secciones; viaja con el usuario (travel = cambio de lugar).
 // ============================================================
 import { S, on } from "../state.js";
+import { accountRole } from "../sync/supabase.js";
 import { t, esc } from "../i18n.js";
 import {
   hasFeature, featureForSection, lockedFeatureCopy, planFromProfile,
@@ -156,6 +157,8 @@ function renderLockedSection(body, feature) {
 }
 
 export function openSection(name) {
+  const coachOnly = new Set(["coachos","centro","socios","cuotas","agenda","acceso","portal","informes"]);
+  if (coachOnly.has(name) && accountRole() !== "coach") name = "hoy";
   if (document.body.classList.contains("fitness-app") && name === "home") name = "hoy";
   document.body.classList.toggle("avatar-view", name === "armory");
   document.body.dataset.section = name;

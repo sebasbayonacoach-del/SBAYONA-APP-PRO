@@ -5,6 +5,7 @@
 // → mundo limpio → TODO el contenido en el PANEL LATERAL.
 // ============================================================
 import { S } from "./state.js";
+import { accountRole } from "./sync/supabase.js";
 import { World } from "./world.js";
 import { initUI } from "./ui.js";
 import { openSection, enterHome } from "./ui/shared.js";
@@ -123,8 +124,10 @@ function wireEntry(world) {
     }
   }
 
+  coach.hidden = accountRole() !== "coach";
   const roleKey = "bayona.entry.role.v1";
-  const storedRole = localStorage.getItem(roleKey);
+  const rawStoredRole = localStorage.getItem(roleKey);
+  const storedRole = rawStoredRole === "coach" && accountRole() !== "coach" ? null : rawStoredRole;
   const lastRole = storedRole || "affiliate";
   entry.dataset.lastRole = lastRole;
   entry.querySelectorAll("[data-entry-role]").forEach((b) => {
@@ -156,7 +159,8 @@ function wireEntry(world) {
 
   const enter = (role = "affiliate") => {
     if (document.body.classList.contains("entered")) return;
-    const safeRole = role === "coach" ? "coach" : "affiliate";
+    // La tarjeta de entrenador nunca concede privilegios por sí sola.
+    const safeRole = role === "coach" && accountRole() === "coach" ? "coach" : "affiliate";
     localStorage.setItem(roleKey, safeRole);
     document.body.dataset.entryRole = safeRole;
     document.body.classList.toggle("entry-coach", safeRole === "coach");
