@@ -738,3 +738,17 @@ body.auth-gate-active > :not(#bayona-auth-gate):not(script):not(style) {
 .auth-google-button:disabled{cursor:wait;opacity:.6}
 .auth-google-mark{font:900 18px/1 Inter,system-ui,sans-serif;color:#4285f4;letter-spacing:-.1em}
 #entry-coach[hidden]{display:none!important}
+
+/* Front Door touch targets — final accessibility owner.
+   pro.css intentionally compresses product controls to 32 px; authentication
+   is a different context and keeps 44–50 px targets on desktop and mobile. */
+body.fitness-app #bayona-auth-gate .auth-field input {
+  min-height: 48px;
+  height: 48px;
+}
+body.fitness-app #bayona-auth-gate .auth-text-button {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 2px;
+}

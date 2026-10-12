@@ -132,6 +132,9 @@ check(account.includes('on("profile", sincroSuave)'), "cambios de perfil entran 
 
 const index = readFileSync(resolve(root, "index.html"), "utf8");
 check(index.includes('href="css/auth.css?v=1"'), "estilos Front Door forman parte del documento");
+const authCss = readFileSync(resolve(root, "css/auth.css"), "utf8");
+check(authCss.includes("#bayona-auth-gate .auth-field input") && authCss.includes("height: 48px"), "inputs del acceso conservan objetivo táctil de 48 px");
+check(authCss.includes("#bayona-auth-gate .auth-text-button") && authCss.includes("min-height: 44px"), "recuperar contraseña conserva objetivo táctil de 44 px");
 
 const sw = readFileSync(resolve(root, "sw.js"), "utf8");
 check(sw.includes("bayona-shell-v43") && sw.includes('"./js/ui/auth-gate.js"') && sw.includes('"./js/sync/identity.js"'), "PWA cachea puerta e identidad multiusuario");
