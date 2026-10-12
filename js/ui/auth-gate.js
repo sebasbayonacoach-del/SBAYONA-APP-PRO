@@ -620,7 +620,19 @@ function shell(content) {
   return `
     <div class="auth-shell">
       <div class="auth-brand"><span>◈</span><strong>BAYONA</strong><small>${esc(surface)}</small></div>
-      <main class="auth-stage">${content}</main>
+      <div class="auth-body">
+        <aside class="auth-editorial" aria-hidden="true">
+          <span>BAYONA APP / TU ESPACIO</span>
+          <strong>ENTRENA.<br>REGISTRA.<br><em>EVOLUCIONA.</em></strong>
+          <p>Tu entrenamiento, tus hábitos y tu progreso en un solo lugar. La tecnología acompaña; el proceso sigue siendo tuyo.</p>
+          <div class="auth-editorial-points">
+            <small>01 · TU RUTINA</small>
+            <small>02 · TU PROGRESO</small>
+            <small>03 · TU COACH</small>
+          </div>
+        </aside>
+        <main class="auth-stage">${content}</main>
+      </div>
       <footer class="auth-footer"><span>UNA CUENTA · TU PROGRESO</span><span>PRIVACIDAD POR DISEÑO</span></footer>
     </div>`;
 }

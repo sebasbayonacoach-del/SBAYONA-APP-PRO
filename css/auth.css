@@ -754,3 +754,73 @@ body.fitness-app #bayona-auth-gate .auth-text-button {
 }
 #bayona-auth-gate .auth-pause-notice{margin:12px 0;border:1px solid #805c39;border-radius:10px;padding:12px;color:#f8c99f;background:rgba(142,89,39,.11);font:500 11px/1.45 Inter,system-ui,sans-serif}
 #bayona-auth-gate .auth-tabs button:disabled{cursor:not-allowed;opacity:.45}
+
+
+/* Front Door editorial desktop composition — BAYONA Web integration audit. */
+.auth-body {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(440px, 520px);
+  align-items: center;
+  gap: clamp(44px, 7vw, 96px);
+}
+.auth-editorial {
+  max-width: 590px;
+  display: grid;
+  align-content: center;
+  gap: 18px;
+  padding: clamp(24px, 4vw, 56px) 0;
+}
+.auth-editorial > span {
+  color: #f4a261;
+  font: 750 10px/1.2 "DM Mono", ui-monospace, monospace;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+.auth-editorial > strong {
+  color: #f7f5f1;
+  font: 800 clamp(54px, 6vw, 92px)/.86 Montserrat, Inter, sans-serif;
+  letter-spacing: -.065em;
+}
+.auth-editorial > strong em {
+  color: #f4a261;
+  font-style: normal;
+}
+.auth-editorial > p {
+  max-width: 48ch;
+  margin: 0;
+  color: #999;
+  font-size: 14px;
+  line-height: 1.65;
+}
+.auth-editorial-points {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 1px;
+  margin-top: 14px;
+  background: #242424;
+  border: 1px solid #242424;
+}
+.auth-editorial-points small {
+  padding: 13px 11px;
+  background: #080808;
+  color: #777;
+  font: 700 9px/1.25 "DM Mono", ui-monospace, monospace;
+  letter-spacing: .08em;
+}
+.auth-stage {
+  min-width: 0;
+}
+.auth-card {
+  width: 100%;
+  max-width: 520px;
+}
+
+@media (max-width: 900px) {
+  .auth-body {
+    display: block;
+  }
+  .auth-editorial {
+    display: none;
+  }
+}

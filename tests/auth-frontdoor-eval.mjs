@@ -133,8 +133,12 @@ check(account.includes('on("profile", sincroSuave)'), "cambios de perfil entran 
 const index = readFileSync(resolve(root, "index.html"), "utf8");
 check(index.includes('href="css/auth.css?v=1"'), "estilos Front Door forman parte del documento");
 const authCss = readFileSync(resolve(root, "css/auth.css"), "utf8");
+const authGateSource = readFileSync(resolve(root, "js/ui/auth-gate.js"), "utf8");
 check(authCss.includes("#bayona-auth-gate .auth-field input") && authCss.includes("height: 48px"), "inputs del acceso conservan objetivo táctil de 48 px");
 check(authCss.includes("#bayona-auth-gate .auth-text-button") && authCss.includes("min-height: 44px"), "recuperar contraseña conserva objetivo táctil de 44 px");
+check(authGateSource.includes('class="auth-editorial"') && authGateSource.includes("ENTRENA.<br>REGISTRA."), "Front Door de escritorio conserva narrativa editorial BAYONA");
+check(authCss.includes(".auth-body") && authCss.includes("minmax(440px, 520px)"), "Front Door conserva composición editorial de dos columnas");
+check(authCss.includes("@media (max-width: 900px)") && authCss.includes(".auth-editorial"), "móvil conserva una única columna de acceso");
 
 const sw = readFileSync(resolve(root, "sw.js"), "utf8");
 check(sw.includes("bayona-shell-v44") && sw.includes('"./js/ui/auth-gate.js"') && sw.includes('"./js/sync/identity.js"'), "PWA cachea puerta e identidad multiusuario");
