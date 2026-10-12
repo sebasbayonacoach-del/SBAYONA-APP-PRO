@@ -19,12 +19,13 @@ Rutas secundarias (sin pestañas extra): **Mi Día** desde Ahora; **Misiones dia
 - [x] Prueba de flujo real Mi Día → Progreso en Playwright a 390 px.
 - [x] Mi Día PRO: subtareas, repeticiones diarias/laborables/semanales, aplazamiento con excepción por instancia, prioridades, Hoy/Semana/Pendientes y creación rápida.
 - [ ] Drag-and-drop táctil y filtros avanzados (NO implementados; no son prerrequisitos para las tareas actuales).
-- [ ] Misiones por áreas conectadas a registros verificables y límites de XP.
-- [ ] Integración de misión prioritaria en BAYONA NOW.
+- [x] Cinco misiones de vida enlazadas a registros y tareas confirmadas, bono único de 8/12 XP por área (máximo 52 XP/día).
+- [x] BAYONA NOW prioriza una tarea de crecimiento voluntaria solo si no hay sesión, cita próxima ni recuperación prioritaria.
 - [ ] Insignias/animaciones 3D/artefactos originales por rango.
 - [ ] Sincronización incremental y RLS producción verificados.
 - [ ] Capturas nuevas, copy y marketing de WEB.
 - [x] APK 1.0.8-beta compilado en Descargas/BAYONA (debug para pruebas).
+- [x] APK 1.0.9-beta con misiones de vida y Progreso compilado (debug, 19 MB). No instalado: ADB sin dispositivo.
 - [ ] Instalación en Android real: pendiente de reconectar ADB. No equivale a versión de tienda.
 
 ## ARQUITECTURA
@@ -53,6 +54,17 @@ Se amplió el planificador existente, sin otra app dentro de BAYONA:
 10. Sync nube usa upsert por (user_id,client_id), luego eliminación de filas ausentes; requiere migraciones antes de almacenar funciones PRO. Sigue siendo espejo local-first, no sincronización multi-dispositivo certificada.
 
 **Comprobación:** 50 suites de Node en verde, smoke Playwright móvil 390px (crear rápido, recurrencia, subtareas, 3 vistas, 0 errores y 0 overflow).
+
+## NUEVA FASE — MISIONES DE VIDA (CÓDIGO COMPLETADO)
+- Motor puro `js/game/missions.js`: Cuerpo, Mente, Trabajo, Relaciones y Propósito.
+- Los registros internos de entrenamiento/movilidad, mente y bloques de foco pueden completar misiones. Las tareas manuales completadas también pueden contar, con etiqueta honesta "confirmada por ti".
+- Los eventos externos solo dan contexto: NO completan misiones.
+- `js/rewards.js` es la fuente del bono; `S.claimAreaMission` valida el estado, fecha y clave reclamada, con 8/12 XP por área y 52 XP/día máximo.
+- Un bono no se vuelve a reclamar por volver a marcar/desmarcar una tarea.
+- Mi Día muestra las cinco áreas plegadas y permite reclamar bonos. Progreso muestra el mismo estado; Ahora solo sugiere una tarea cuando la jerarquía de seguridad y agenda lo permite.
+- Las misiones antiguas de `js/hoy.js` continúan: no se han sustituido ni reiniciado.
+- QA: 25 comprobaciones del motor, batería completa 51 suites y smoke móvil de recompensa (0→1/5, +8 XP, no reclamo duplicado, 0 JS errors y 0 overflow).
+- La sincronización entre varios dispositivos del registro de bonos sigue SIN certificar y necesita controles del lado servidor para producción a escala.
 
 ## DESPUÉS — GAMIFICACIÓN VERIFICABLE
 1. Vista de misiones plegable en Mi Día, máximo 3-5 sugeridas en Ahora.

@@ -6229,3 +6229,26 @@ body[data-section="hoy"] .fit-bayona-fab{display:none}
 .planner-quick-add input{width:100%;min-width:0;min-height:43px;padding:10px 12px;border:1px solid var(--hair);border-radius:10px;background:var(--fit-card);color:var(--fit-ink);font:500 11px/1.3 var(--sans)}
 .planner-quick-add input:focus-visible{outline:2px solid #b77845;outline-offset:2px}
 .planner-quick-submit{min-height:43px;padding:9px 11px;border:1px solid #a86531;border-radius:10px;background:#a65c27;color:#fff;font:800 9px/1.1 var(--sans);letter-spacing:.02em;cursor:pointer}
+
+/* Life Game · five areas inside existing Mi Día; collapsed to preserve calm UI */
+.planner-life-missions{margin:0 0 13px;border:1px solid #60452e;border-radius:13px;background:linear-gradient(120deg,rgba(244,162,97,.07),var(--fit-card) 75%);overflow:hidden}
+.planner-life-missions-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px;cursor:pointer;list-style-position:inside}
+.planner-life-missions-head strong{font:800 10px/1.3 var(--sans);letter-spacing:.07em;color:var(--fit-ink)}
+.planner-life-missions-head span{color:#f4a261;font:800 9px/1.3 var(--sans);text-align:right}
+.planner-life-missions-note{margin:0;padding:0 14px 9px;color:var(--fit-muted);font:500 10px/1.5 var(--sans)}
+.planner-life-mission{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:9px;margin:0 12px 8px;padding:11px 10px;border:1px solid var(--hair);border-radius:9px}
+.planner-life-mission:last-child{margin-bottom:12px}
+.planner-life-mission-info{display:grid;gap:5px}
+.planner-life-mission-info strong{font:750 11px/1.2 var(--sans);color:var(--fit-ink)}
+.planner-life-mission-info small{font:500 9px/1.3 var(--sans);color:var(--fit-muted)}
+.planner-life-mission-action{min-width:74px;min-height:36px;border:1px solid #7e5232;border-radius:8px;background:rgba(244,162,97,.09);color:#f4a261;font:800 9px/1 var(--sans);cursor:pointer}
+.planner-life-mission-action:disabled{opacity:.5;cursor:default}
+@media(max-width:380px){.planner-life-missions-head{flex-wrap:wrap}.planner-life-mission{grid-template-columns:minmax(0,1fr) 80px}}
+
+.life-areas-summary{margin:0 0 15px;border:1px solid var(--hair);border-radius:12px;background:var(--fit-card);overflow:hidden}
+.life-areas-summary-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;cursor:pointer;list-style-position:inside}
+.life-areas-summary-head strong{font:800 10px/1.2 var(--sans);color:var(--fit-ink)}
+.life-areas-summary-head span{font:750 9px/1.2 var(--sans);color:#f4a261;text-align:right}
+.life-areas-progress-row{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:10px 14px;border-top:1px solid var(--hair)}
+.life-areas-progress-row>span{font:700 10px/1.2 var(--sans);color:var(--fit-ink)}
+.life-areas-progress-row small{font:500 9px/1.2 var(--sans);color:var(--fit-muted);text-align:right}

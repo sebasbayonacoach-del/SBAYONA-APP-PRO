@@ -6,6 +6,7 @@ import { BUILDERS, UI, el, openSection, toast } from './shared.js';
 import { renderHoy } from './hoy.js';
 import { todaysSession } from '../engine.js';
 import { decideNow } from '../now.js';
+import { lifeMissions } from '../game/missions.js';
 import { activeOrNextItem, dayProgress, localDateKey, plannerItemsForDate } from '../planner.js';
 import {
   PLAN_META, planFromProfile, featureForSection, hasFeature, featureTier,
@@ -135,6 +136,7 @@ function home(body){
   const detail=S.readinessDetail();
   const adjusted=todaysSession();
   const plannerContext=activeOrNextItem(S.data.life, new Date());
+  const missionContext=lifeMissions({life:S.data.life,today,date:today.date});
   const decision=decideNow({
     profile:p,
     today,
@@ -143,6 +145,7 @@ function home(body){
     workout:w,
     adjustedSession:adjusted,
     plannerContext,
+    missionContext,
     history:S.data.history,
   });
 
@@ -213,7 +216,7 @@ function home(body){
   const dayCard=el('button','fit-life-day');
   dayCard.type='button';
   dayCard.innerHTML=`
-    <span class="fit-life-day-kicker">${esc(t('planner.home.kicker'))}</span>
+    <span class="fit-life-day-kicker">${esc(t('planner.home.kicker'))} · ${esc(t('game.missions.summary',{done:missionContext.done,total:missionContext.total}))}</span>
     <div class="fit-life-day-head"><strong>${esc(pendingPlan.length?t('planner.home.pending',{count:planProgress.pending}):t('planner.home.empty'))}</strong><b>${esc(String(planProgress.done))}/${esc(String(planProgress.total))}</b></div>
     <div class="fit-life-day-list">${pendingPlan.length?pendingPlan.map(item=>`<span><i>${esc(item.start||'·')}</i><em>${esc(item.title)}</em></span>`).join(''):`<span><em>${esc(t('planner.empty.body'))}</em></span>`}</div>
     <small>${esc(t('planner.home.open'))} →</small>`;

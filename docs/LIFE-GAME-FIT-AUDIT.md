@@ -67,3 +67,6 @@ El juego debe añadir un motivo para volver y ejecutar acciones, no menús adici
 - migración de planner conserva todos los campos legacy y usuarios externos.
 - accesibilidad básica: contraste, foco, reduced-motion, tap targets.
 - no desplegar cambios de la WEB hasta confirmar la versión APP.
+
+## Fase 1.0.9 — Misiones 5 áreas
+Conecta los registros y los bloques reales sin reemplazar la agenda, la economía ni la pantalla principal. El motor distingue actividad registrada en BAYONA de tarea manual autodeclarada. Un único bono diario por área (total 52 XP) se reclama explícitamente y es idempotente por día en almacenamiento local. No se atribuye mérito a eventos importados. En Ahora la prioridad sigue siendo sesión, cita/agenda, recuperación y, por último, tarea de crecimiento elegida. En Progreso se ofrece un resumen plegado. No certifica sincronización de bonos multi-dispositivo ni despliegue del esquema cloud.

@@ -81,6 +81,7 @@ export function decideNow({
   workout = null,
   adjustedSession = null,
   plannerContext = null,
+  missionContext = null,
   history = [],
 } = {}) {
   const hour = typeof now?.getHours === "function" ? now.getHours() : 12;
@@ -194,6 +195,22 @@ export function decideNow({
         : t("now.ready.body", { workout: workout.name || "—", minutes: workout.min || "—" }),
       action: "train",
       actionLabel: t("now.ready.cta"),
+    };
+  }
+
+  // En un día libre de entrenamiento y sin una cita urgente,
+  // un compromiso de crecimiento elegido puede ser la siguiente acción.
+  // Nunca se impone si los registros muestran baja preparación.
+  if (missionContext?.next && part !== "noche" && (score == null || score >= 45)) {
+    const task = missionContext.next;
+    const area = missionContext.areas?.find((entry) => entry.id === task.area);
+    return {
+      ...base,
+      kind: "life",
+      title: t("now.life.title", { prefix: hello, title: task.title }),
+      body: t("now.life.body", { area: area?.short || t("planner.area.none") }),
+      action: "planner",
+      actionLabel: t("now.life.cta"),
     };
   }
 

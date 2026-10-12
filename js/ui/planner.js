@@ -7,6 +7,7 @@
 import { S } from "../state.js";
 import { planDelDia } from "../hoy.js";
 import { LIFE_AREAS, growthSuggestions, areaSummary } from "../game/areas.js";
+import { lifeMissions } from "../game/missions.js";
 import { t, esc } from "../i18n.js";
 import {
   addPlannerItem, completePlannerItem, datePlusDays, dayProgress,
@@ -25,6 +26,7 @@ import {
 let selectedDate = localDateKey();
 let growthExpanded = false;
 let plannerView = "day";
+let lifeMissionsExpanded = false;
 
 const TYPE_KEYS = {
   work: "planner.type.work",
@@ -561,6 +563,60 @@ function renderDailyMissions(body) {
   body.append(wrap);
 }
 
+function renderLifeMissions(body) {
+  if (selectedDate !== localDateKey() || plannerView !== "day") return;
+  const progress = lifeMissions({
+    life: S.data.life, today: S.data.today, date: selectedDate,
+  });
+  const wrap = el("details", "planner-life-missions");
+  wrap.open = lifeMissionsExpanded;
+  wrap.addEventListener("toggle", () => { lifeMissionsExpanded = wrap.open; });
+  const summary = el("summary", "planner-life-missions-head");
+  summary.append(elT("strong", "", t("game.missions.title")));
+  summary.append(elT("span", "", t("game.missions.summary", {
+    done: progress.done, total: progress.total,
+  })));
+  wrap.append(summary);
+  wrap.append(elT("p", "planner-life-missions-note", t("game.missions.note")));
+  for (const mission of progress.areas) {
+    const row = el("div", "planner-life-mission");
+    const labels = el("div", "planner-life-mission-info");
+    labels.append(elT("strong", "", mission.short));
+    const status = mission.done
+      ? t(mission.source === "tracked" ? "game.missions.tracked" : "game.missions.confirmed")
+      : mission.total ? t("game.missions.pending") : t("game.missions.available");
+    labels.append(elT("small", "", status));
+    const btn = el("button", "planner-life-mission-action",
+      mission.claimed ? t("game.missions.claimed") :
+        mission.done ? t("game.missions.reward", { xp: mission.xp }) :
+          mission.total ? t("game.missions.view") : t("game.missions.choose"));
+    btn.type = "button";
+    btn.disabled = mission.claimed;
+    btn.onclick = () => {
+      if (mission.done) {
+        const reward = S.claimAreaMission(mission.id);
+        if (reward) {
+          toast(t("game.missions.claimSuccess"), "+" + reward.xp + " XP");
+          BUILDERS.planner(body);
+        }
+      } else if (mission.total) {
+        wrap.open = false;
+        const match = [...body.querySelectorAll(".planner-item")].find((node) =>
+          node.querySelector(".planner-area")?.textContent?.trim() === mission.short);
+        match?.scrollIntoView?.({ behavior: "smooth", block: "center" });
+      } else {
+        growthExpanded = true;
+        BUILDERS.planner(body);
+        const ideas = body.querySelector(".planner-growth");
+        if (ideas) ideas.open = true;
+      }
+    };
+    row.append(labels, btn);
+    wrap.append(row);
+  }
+  body.append(wrap);
+}
+
 function renderGrowthIdeas(body) {
   const visibleItems = plannerItemsForDate(S.data.life, selectedDate);
   const ideas = growthSuggestions({ life: S.data.life, date: selectedDate, visibleItems });
@@ -666,6 +722,7 @@ BUILDERS.planner = (body) => {
   `;
   body.appendChild(score);
   renderDailyMissions(body);
+  renderLifeMissions(body);
   renderGrowthIdeas(body);
 
   const actions = el("section", "planner-actions");

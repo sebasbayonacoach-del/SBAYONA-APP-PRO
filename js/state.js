@@ -12,8 +12,9 @@ import { resetConsents } from "./consents.js";
 import {
   setReward, prReward, workoutCompleteReward, mealReward, waterReward,
   stepsReward, mindReward, mobilityReward, healthMapReward, missionReward,
-  focusReward, activePauseReward,
+  focusReward, activePauseReward, areaMissionReward,
 } from "./rewards.js";
+import { lifeMissions } from "./game/missions.js";
 import { respaldar, guardarSeguro, recuperar } from "./backup.js";
 import { clearActiveUserData, scopedStorage } from "./sync/identity.js";
 import { normalizeLifeOS } from "./planner.js";
@@ -570,6 +571,8 @@ export const S = {
    * @returns {{xp:number, skill:string, text:string}|null} null si ya estaba reclamada
    */
   claimMission(id) {
+    // Solo la vía especializada puede conceder los bonos por área.
+    if (String(id).startsWith("area_")) return null;
     const t = this.data.today;
     t.missionKeys = t.missionKeys || [];
     if (t.missionKeys.includes(id)) return null;
@@ -578,6 +581,26 @@ export const S = {
     this.addXP(r.xp, r.skill, r.skillGain);
     this.save(); emit("today");
     return r;
+  },
+
+  /**
+   * Bono diario por área de vida: no se concede con solo abrir una pantalla.
+   * Recalcula el criterio, exige fecha local vigente y registra el ID ANTES
+   * del XP. Máximo una recompensa por área/día, incluida la autorregistrada.
+   */
+  claimAreaMission(area) {
+    const t = this.data.today;
+    if (t.date !== todayKey()) return null;
+    const mission = lifeMissions({ life: this.data.life, today: t, date: t.date })
+      .areas.find((a) => a.id === area);
+    if (!mission?.done || mission.claimed) return null;
+    const reward = areaMissionReward(area);
+    if (!reward.xp) return null;
+    t.missionKeys = t.missionKeys || [];
+    t.missionKeys.push(mission.missionId);
+    this.addXP(reward.xp, reward.skill, reward.skillGain);
+    this.save(); emit("today");
+    return { ...reward, source: mission.source, area: mission.id };
   },
 
   // ---------- TRABAJO / PRODUCTIVIDAD SALUDABLE ----------

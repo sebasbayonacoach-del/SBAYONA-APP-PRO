@@ -18,6 +18,9 @@ export const RULES = {
   healthMap: { base: 40, perLayer: 4, cap: 20, skill: "discipline" },
   // bonos de MISIÓN DIARIA (una sola vez por misión y por día; el trabajo
   // en sí ya se premia arriba — aquí solo el bono de cumplir la misión)
+  areaMission: Object.freeze({
+    body: 12, mind: 12, work: 12, relationships: 8, purpose: 8,
+  }), // BONO extra diario por área, máximo 52 XP/día: sin recompensa por tarea repetida
   mission: {
     m_pasos: 50,     // caminar 8.000 pasos
     m_comida: 25,    // registrar tus 3 comidas
@@ -131,6 +134,12 @@ export function mobilityReward() {
 export function missionReward(id = "") {
   const xp = RULES.mission[id] ?? RULES.mission.default;
   return { xp, skill: "discipline", skillGain: 1, text: "Misión del día cumplida" };
+}
+
+/** Bono acotado por UN logro diario de área, concedido solo por S.claimAreaMission. */
+export function areaMissionReward(area = "") {
+  const xp = RULES.areaMission[area] || 0;
+  return { xp, skill: "discipline", skillGain: 1, text: "Misión de vida completada" };
 }
 
 /** Bloque de foco completado (25 min de trabajo consciente). */

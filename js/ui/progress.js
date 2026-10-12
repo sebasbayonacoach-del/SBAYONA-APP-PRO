@@ -4,6 +4,7 @@
 // ============================================================
 import { S, todayKey } from "../state.js";
 import { LIFE_RANKS, rankProgress, xpForLevel } from "../game/ranks.js";
+import { lifeMissions } from "../game/missions.js";
 import { EXERCISES } from "../data.js";
 import { recoveryScore, project1RM, volumeStatus } from "../engine.js";
 import { isGranted, setConsent } from "../consents.js";
@@ -22,6 +23,7 @@ BUILDERS.progress = (body) => {
   const d = S.data;
   body.textContent = "";
   body.appendChild(lifeRankCard(d.xp));
+  body.appendChild(lifeAreasCard(d));
   body.appendChild(el("div", "sec-label", "TU ENTRENAMIENTO EN NÚMEROS"));
   const grid = el("div", "stat-grid");
   const L = S.level();
@@ -77,6 +79,26 @@ BUILDERS.progress = (body) => {
   body.appendChild(tl);
 
 };
+
+function lifeAreasCard(data) {
+  const report = lifeMissions({ life: data.life, today: data.today, date: data.today.date });
+  const details = el("details", "life-areas-summary");
+  const summary = el("summary", "life-areas-summary-head");
+  summary.append(elT("strong", "", t("game.missions.title")));
+  summary.append(elT("span", "", t("game.missions.summary", {
+    done: report.done, total: report.total,
+  })));
+  details.append(summary);
+  for (const area of report.areas) {
+    const row = el("div", "life-areas-progress-row");
+    row.append(elT("span", "", area.short));
+    row.append(elT("small", "", area.claimed ? t("game.missions.claimed")
+      : area.done ? t(area.source === "tracked" ? "game.missions.tracked" : "game.missions.confirmed")
+        : t("game.missions.pending")));
+    details.append(row);
+  }
+  return details;
+}
 
 function lifeRankCard(totalXp) {
   const rank = rankProgress(totalXp);
