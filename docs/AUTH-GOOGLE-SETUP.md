@@ -25,9 +25,10 @@ El conector lista inicialmente bppjzewgqdrghexazgcj, pero también permite consu
    INSERT INTO public.bayona_owner(singleton,user_id)
    VALUES (true, 'UUID_REAL_DEL_PROPIETARIO')
    ON CONFLICT (singleton) DO NOTHING;
-4. Comprueba que hay una sola fila y corresponde a la cuenta indicada.
-5. Si ya existe su perfil, actualízalo: UPDATE public.profiles SET role='coach' WHERE id=(SELECT user_id FROM public.bayona_owner WHERE singleton=true);
-6. Cierra y vuelve a iniciar sesión. La app solo permitirá Coach Studio si la RPC devuelve TRUE.
+4. Comprueba que hay una sola fila y corresponde a la cuenta indicada. La migración sincroniza automáticamente `profiles.role` al asignar, actualizar o revocar el propietario.
+5. Cierra y vuelve a iniciar sesión. La app solo permitirá Coach Studio si la RPC devuelve TRUE.
+
+**Importante:** `ON CONFLICT (singleton) DO NOTHING` no cambia un propietario existente. Si ya existe uno distinto, revisar explícitamente quién debe ser el propietario antes de modificar ese registro.
 
 ## Pruebas antes de producción
 - Email + nombre: alta como usuario.
@@ -64,3 +65,11 @@ No se debe declarar listo para usuarios externos hasta que se validen las migrac
 - Las pruebas verifican Auth HTTP 200 + esquema HTTP 404, esquema HTTP 200 y fallo de red REST.
 - Smoke móvil 390 px: advertencia visible, registro y Google desactivados, login activo, 0 errores JS y 0 scroll horizontal.
 - Evitar desplegar a público hasta que el diagnóstico completo deje de bloquear el lanzamiento.
+
+## Estado de despliegue · 12/10/2026, posterior a la primera vista previa
+- Vercel CLI quedó autorizado para la cuenta del equipo y se publicó una **vista previa** desde el commit `7bb8323`.
+- Vista previa comprobada: `https://bayona-c8jgypp80-sevisionari-3740s-projects.vercel.app/` (HTTP 200, pantalla de acceso correcta, 0 errores JS, registro público pausado).
+- La vista previa no es producción. El dominio `bayona-app-one.vercel.app` y la instalación del móvil permanecen intactos.
+- Nuevo cambio pendiente de probar e instalar: `0009_single_owner_google_auth.sql` sincroniza `profiles.role` mediante trigger en `bayona_owner`.
+- La autorización interactiva de Supabase continúa fallando por CAPTCHA; no se han aplicado las migraciones.
+- Una contraseña enviada por conversación no debe usarse para iniciar sesión; credenciales y CAPTCHA se gestionan exclusivamente en el panel seguro del servicio.
