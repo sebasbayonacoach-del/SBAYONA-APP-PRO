@@ -106,7 +106,11 @@ check(migration.includes("auth.uid() = user_id"), "RLS limita bloques y conexion
 check(migration.includes("connected_sources") && migration.includes("not (metadata ? 'access_token')"), "metadatos de conexiones rechazan access tokens");
 
 const account = readFileSync(resolve(root, "js/sync/account.js"), "utf8");
-check(account.includes("async function pushPlanner()") && account.includes('remove("planner_items"'), "sincronización cloud incluye el planificador");
+check(account.includes("async function pushPlanner()") &&
+  account.includes('upsert("planner_items"') &&
+  account.includes('remove("planner_items"') &&
+  account.indexOf('await remove("planner_items"') > account.indexOf('await save(rows)'),
+  "sincronización guarda filas con upsert antes de borrar las obsoletas");
 check(account.includes('addEventListener("bayona:planner", sincroSuave)'), "cambios del día entran en la cola de sync");
 
 const sw = readFileSync(resolve(root, "sw.js"), "utf8");

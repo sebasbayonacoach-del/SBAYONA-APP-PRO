@@ -178,11 +178,10 @@ async function pushAvatar() {
 /** espejo del PLANIFICADOR PERSONAL (0006_life_os.sql). */
 async function pushPlanner() {
   const u = currentUser();
+  const userId = u.id;
   const items = S.data.life?.planner?.items || [];
-  await remove("planner_items", { user_id: `eq.${u.id}` });
-  if (!items.length) return;
   const rows = items.map((item) => ({
-    user_id: u.id,
+    user_id: userId,
     client_id: item.id,
     day: item.date,
     start_time: item.start || null,
@@ -198,14 +197,60 @@ async function pushPlanner() {
     location: item.location || "",
     notes: item.notes || "",
     source_url: item.url || null,
+    subtasks: item.subtasks || [],
+    recurrence: item.recurrence || "none",
+    repeat_until: item.repeatUntil || null,
+    recurrence_exceptions: item.exceptions || {},
   }));
-  try {
-    await insert("planner_items", rows);
-  } catch (error) {
-    // Migración 0007 aún no aplicada: mantener el espejo 0006 funcionando.
-    // No afirmamos que el área sincronizó si falta su columna remota.
-    if (!(error?.status === 400 && /area/i.test(error?.message || "") && /column|schema|cache/i.test(error?.message || ""))) throw error;
-    await insert("planner_items", rows.map(({ area, ...legacy }) => legacy));
+  const legacyKeys = ["subtasks", "recurrence", "repeat_until", "recurrence_exceptions"];
+  const strip = (entries, columns) => entries.map((row) =>
+    Object.fromEntries(Object.entries(row).filter(([key]) => !columns.includes(key))));
+  const missingSchema = (error) => error?.status === 400 &&
+    /column|schema|cache/i.test(error?.message || "");
+  const requiresPro = rows.some((row) =>
+    row.recurrence !== "none" || row.repeat_until ||
+    row.subtasks.length || Object.keys(row.recurrence_exceptions).length);
+  const requiresAreas = rows.some((row) => row.area != null);
+
+  // Leer primero: ninguna operación elimina datos existentes antes de que
+  // los registros deseados hayan podido persistirse en el servidor.
+  const cloudRows = await select("planner_items", {
+    user_id: `eq.${userId}`,
+    select: "client_id",
+  });
+  if (rows.length) {
+    const save = (batch) => upsert("planner_items", batch, {
+      on_conflict: "user_id,client_id",
+    });
+    try {
+      await save(rows);
+    } catch (error) {
+      if (!missingSchema(error)) throw error;
+      if (requiresPro) {
+        throw new Error("BAYONA: instala la migración 0008 para sincronizar subtareas y recurrencias sin pérdida de datos.");
+      }
+      try {
+        await save(strip(rows, legacyKeys));
+      } catch (legacyError) {
+        if (!missingSchema(legacyError)) throw legacyError;
+        if (requiresAreas) {
+          throw new Error("BAYONA: instala la migración 0007 antes de sincronizar áreas de vida.");
+        }
+        await save(strip(rows, [...legacyKeys, "area"]));
+      }
+    }
+  }
+
+  // Eliminar solo filas realmente ausentes de este dispositivo, y siempre al
+  // FINAL de un guardado exitoso. Mantiene la política de espejo local-first.
+  const desired = new Set(rows.map((row) => row.client_id));
+  const stale = (Array.isArray(cloudRows) ? cloudRows : [])
+    .filter((row) => row.client_id && !desired.has(row.client_id));
+  for (const old of stale) {
+    await remove("planner_items", {
+      user_id: `eq.${userId}`,
+      client_id: `eq.${old.client_id}`,
+    });
   }
 }
 

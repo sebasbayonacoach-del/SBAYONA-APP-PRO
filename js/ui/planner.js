@@ -5,12 +5,14 @@
 // Lo que llega de otra app conserva su fuente; BAYONA no lo finge propio.
 // ============================================================
 import { S } from "../state.js";
+import { planDelDia } from "../hoy.js";
 import { LIFE_AREAS, growthSuggestions, areaSummary } from "../game/areas.js";
 import { t, esc } from "../i18n.js";
 import {
   addPlannerItem, completePlannerItem, datePlusDays, dayProgress,
   exportICS, findConflicts, importICSIntoLife, inboxItems, localDateKey,
-  plannerItemsForDate, removeInboxItem, removePlannerItem, updatePlannerItem,
+  plannerItemsForDate, plannerItemsForRange, plannerPendingItems, plannerItemIsEditable,
+  reprogramPlannerItem, removeInboxItem, removePlannerItem, togglePlannerSubtask, updatePlannerItem,
 } from "../planner.js";
 import { INTEGRATIONS, INTEGRATION_GROUPS, integrationStatus } from "../integrations/catalog.js";
 import {
@@ -22,6 +24,7 @@ import {
 
 let selectedDate = localDateKey();
 let growthExpanded = false;
+let plannerView = "day";
 
 const TYPE_KEYS = {
   work: "planner.type.work",
@@ -65,7 +68,7 @@ function humanDate(date) {
 }
 
 function timeRange(item) {
-  if (item.allDay || !item.start) return t("planner.allDay");
+  if (!item.start) return t(item.allDay ? "planner.allDay" : "planner.noTime");
   return item.end ? `${item.start}–${item.end}` : item.start;
 }
 
@@ -84,6 +87,12 @@ function editModal(item = null) {
   const areaOptions = ['<option value="">' + esc(t("planner.area.none")) + '</option>']
     .concat(LIFE_AREAS.map((area) => `<option value="${area.id}" ${existing.area === area.id ? "selected" : ""}>${esc(area.short)}</option>`))
     .join("");
+
+  const priorities = ["low", "normal", "high", "critical"].map((key) =>
+    `<option value="${key}" ${existing.priority === key ? "selected" : ""}>${esc(t(`planner.priority.${key}`))}</option>`).join("");
+  const recurrence = ["none", "daily", "weekdays", "weekly"].map((key) =>
+    `<option value="${key}" ${existing.recurrence === key ? "selected" : ""}>${esc(t(`planner.repeat.${key}`))}</option>`).join("");
+  const existingSteps = existing.subtasks || [];
 
   showModal(`
     <div class="planner-modal">
@@ -117,6 +126,25 @@ function editModal(item = null) {
           <input id="pl-end" type="time" value="${esc(existing.end || "")}">
         </label>
       </div>
+      <div class="planner-form-row">
+        <label class="planner-field">
+          <span>${esc(t("planner.priority.label"))}</span>
+          <select id="pl-priority">${priorities}</select>
+        </label>
+        <label class="planner-field">
+          <span>${esc(t("planner.repeat.label"))}</span>
+          <select id="pl-repeat" ${existing.seriesId ? "disabled" : ""}>${recurrence}</select>
+        </label>
+      </div>
+      ${existing.seriesId ? `<p class="planner-hint">${esc(t("planner.repeat.onlyOne"))}</p>` : `
+      <label class="planner-field">
+        <span>${esc(t("planner.repeat.until"))}</span>
+        <input id="pl-until" type="date" min="${esc(existing.date || selectedDate)}" value="${esc(existing.repeatUntil || "")}">
+      </label>`}
+      <label class="planner-field">
+        <span>${esc(t("planner.steps.label"))}</span>
+        <textarea id="pl-steps" maxlength="950" rows="3" placeholder="${esc(t("planner.steps.placeholder"))}">${esc(existingSteps.map((step) => step.title).join("\n"))}</textarea>
+      </label>
       <label class="planner-field">
         <span>${esc(t("planner.field.location"))}</span>
         <input id="pl-location" maxlength="180" value="${esc(existing.location || "")}" placeholder="${esc(t("planner.field.locationPlaceholder"))}">
@@ -140,6 +168,10 @@ function editModal(item = null) {
     const area = document.getElementById("pl-area");
     const location = document.getElementById("pl-location");
     const notes = document.getElementById("pl-notes");
+    const priority = document.getElementById("pl-priority");
+    const repeat = document.getElementById("pl-repeat");
+    const until = document.getElementById("pl-until");
+    const steps = document.getElementById("pl-steps");
     const error = document.getElementById("pl-error");
 
     document.getElementById("pl-cancel").onclick = hideModal;
@@ -156,25 +188,38 @@ function editModal(item = null) {
         return;
       }
 
+      const subtasks = steps.value.split(/\r?\n/)
+        .map((label) => label.trim()).filter(Boolean).slice(0, 12)
+        .map((label, i) => {
+          const previous = existingSteps[i];
+          return previous?.title === label ? { ...previous } :
+            { id: "step_" + (i + 1), title: label, done: false };
+        });
       const input = {
         title: rawTitle,
         date: date.value || selectedDate,
         start: start.value || null,
         end: end.value || null,
-        allDay: !start.value,
+        allDay: Boolean(existing.allDay && !start.value),
         type: type.value,
         area: area.value || null,
         location: location.value.trim(),
         notes: notes.value.trim(),
         source: existing.source || "manual",
         externalId: existing.externalId || null,
-        priority: existing.priority || "normal",
+        priority: priority.value,
+        subtasks,
+        ...(!existing.seriesId ? { recurrence: repeat.value, repeatUntil: until?.value || null } : {}),
         status: existing.status || "planned",
       };
 
       const result = isEdit
         ? updatePlannerItem(S.data.life, existing.id, input)
         : addPlannerItem(S.data.life, input);
+      if (isEdit && !result.changed) {
+        error.textContent = t("planner.external.readonly");
+        return;
+      }
       persist(result.life, isEdit ? "update" : "create");
       selectedDate = input.date;
       hideModal();
@@ -185,6 +230,7 @@ function editModal(item = null) {
 }
 
 function removeItem(item) {
+  if (!plannerItemIsEditable(item)) return;
   const result = removePlannerItem(S.data.life, item.id);
   persist(result.life, "delete");
   toast(t("planner.toast.deletedTitle"), t("planner.toast.deletedBody"));
@@ -192,7 +238,9 @@ function removeItem(item) {
 }
 
 function toggleDone(item) {
+  if (!plannerItemIsEditable(item)) return;
   const result = completePlannerItem(S.data.life, item.id, item.status !== "done");
+  if (!result.changed) return;
   persist(result.life, "complete");
   BUILDERS.planner(document.getElementById("drawer-body"));
 }
@@ -211,7 +259,7 @@ function renderTimeline(body, items) {
   for (const item of items) {
     const row = el("article", `planner-item type-${item.type} ${item.status === "done" ? "is-done" : ""}`);
     row.innerHTML = `
-      <div class="planner-time">${esc(timeRange(item))}</div>
+      <div class="planner-time">${plannerView !== "day" ? `<small>${esc(item.date.slice(5))}</small>` : ""}${esc(timeRange(item))}</div>
       <div class="planner-item-main">
         <div class="planner-item-top">
           <span class="planner-type">${esc(typeLabel(item.type))}</span>
@@ -221,10 +269,33 @@ function renderTimeline(body, items) {
         <h4>${esc(item.title)}</h4>
         ${item.location ? `<div class="planner-meta">${esc(item.location)}</div>` : ""}
         ${item.notes ? `<div class="planner-meta">${esc(item.notes)}</div>` : ""}
+        ${item.priority === "high" || item.priority === "critical"
+          ? `<div class="planner-priority-tag">${esc(t(`planner.priority.${item.priority}`))}</div>` : ""}
+        ${item.recurrence !== "none" ? `<span class="planner-repeat-badge">${esc(t(`planner.repeat.${item.recurrence}`))}</span>` : ""}
+        ${item.subtasks?.length ? `<div class="planner-subtasks"><small>${item.subtasks.filter((x) => x.done).length}/${item.subtasks.length} ${esc(t("planner.steps.short"))}</small></div>` : ""}
       </div>
       <div class="planner-item-actions"></div>
     `;
 
+    if (item.subtasks?.length) {
+      const subList = row.querySelector(".planner-subtasks");
+      for (const step of item.subtasks) {
+        const label = el("label", "planner-subtask");
+        const box = document.createElement("input");
+        box.type = "checkbox";
+        box.checked = step.done;
+        box.disabled = !plannerItemIsEditable(item);
+        box.setAttribute("aria-label", step.title);
+        box.onchange = () => {
+          const result = togglePlannerSubtask(S.data.life, item.id, step.id);
+          if (!result.changed) return;
+          persist(result.life, "subtask");
+          BUILDERS.planner(document.getElementById("drawer-body"));
+        };
+        label.append(box, elT("span", "", step.title));
+        subList.append(label);
+      }
+    }
     const actions = row.querySelector(".planner-item-actions");
     const done = el("button", "planner-icon-btn", item.status === "done" ? "↺" : "✓");
     done.type = "button";
@@ -244,7 +315,8 @@ function renderTimeline(body, items) {
     del.setAttribute("aria-label", del.title);
     del.onclick = () => removeItem(item);
 
-    actions.append(done);
+    const editable = plannerItemIsEditable(item);
+    if (editable) actions.append(done);
     if (item.location) {
       const map = el("button", "planner-icon-btn", "↗");
       map.type = "button";
@@ -264,7 +336,19 @@ function renderTimeline(body, items) {
       };
       actions.append(cal);
     }
-    actions.append(edit, del);
+    if (editable) {
+      const move = el("button", "planner-icon-btn", "→");
+      move.type = "button";
+      move.title = t("planner.move.tomorrow");
+      move.setAttribute("aria-label", move.title);
+      move.onclick = () => {
+        const result = reprogramPlannerItem(S.data.life, item.id, datePlusDays(item.date, 1));
+        if (!result.changed) return;
+        persist(result.life, "reschedule");
+        BUILDERS.planner(document.getElementById("drawer-body"));
+      };
+      actions.append(move, edit, del);
+    }
     list.appendChild(row);
   }
   body.appendChild(list);
@@ -414,9 +498,73 @@ function renderInbox(body) {
   body.appendChild(wrap);
 }
 
+function renderQuickAdd(body) {
+  const form = el("form", "planner-quick-add");
+  const input = document.createElement("input");
+  input.type = "text";
+  input.maxLength = 90;
+  input.required = true;
+  input.placeholder = t("planner.quick.placeholder");
+  input.setAttribute("aria-label", t("planner.quick.placeholder"));
+  const add = el("button", "planner-quick-submit", t("planner.quick.add"));
+  add.type = "submit";
+  form.onsubmit = (event) => {
+    event.preventDefault();
+    const title = input.value.trim();
+    if (!title) return;
+    const result = addPlannerItem(S.data.life, {
+      title, date: selectedDate, source: "manual",
+      allDay: false, start: null, end: null, priority: "normal",
+    });
+    persist(result.life, "quick-add");
+    plannerView = "day";
+    BUILDERS.planner(body);
+  };
+  form.append(input, add);
+  body.append(form);
+}
+
+function renderDailyMissions(body) {
+  if (selectedDate !== localDateKey() || plannerView !== "day") return;
+  const missions = planDelDia(S).misiones || [];
+  if (!missions.length) return;
+  const wrap = el("section", "planner-missions");
+  const head = el("div", "planner-missions-head");
+  head.append(elT("strong", "", t("planner.missions.title")));
+  head.append(elT("small", "", t("planner.missions.sub")));
+  wrap.append(head);
+  for (const mission of missions) {
+    const row = el("div", "planner-mission");
+    const info = el("div");
+    info.append(elT("strong", "", mission.name));
+    info.append(elT("small", "", mission.hint));
+    const b = el("button", "", mission.claimed ? t("planner.missions.claimed") :
+      mission.done ? t("planner.missions.claim", { xp: mission.xp }) : t("planner.missions.open"));
+    b.type = "button";
+    b.disabled = Boolean(mission.claimed);
+    b.onclick = () => {
+      if (mission.done && !mission.claimed) {
+        const claimed = S.claimMission(mission.id);
+        if (claimed) {
+          toast(t("planner.missions.title"), claimed.text + " · +" + claimed.xp + " XP");
+          BUILDERS.planner(body);
+        }
+        return;
+      }
+      if (mission.id === "m_mente") return openSection("mind");
+      if (mission.id === "m_pasos") return openSection("training");
+      return openSection("nutrition");
+    };
+    row.append(info, b);
+    wrap.append(row);
+  }
+  body.append(wrap);
+}
+
 function renderGrowthIdeas(body) {
-  const ideas = growthSuggestions({ life: S.data.life, date: selectedDate });
-  const summary = areaSummary(S.data.life, selectedDate);
+  const visibleItems = plannerItemsForDate(S.data.life, selectedDate);
+  const ideas = growthSuggestions({ life: S.data.life, date: selectedDate, visibleItems });
+  const summary = areaSummary(S.data.life, selectedDate, visibleItems);
   const wrap = el("details", "planner-growth");
   wrap.open = growthExpanded;
   wrap.addEventListener("toggle", () => { growthExpanded = wrap.open; });
@@ -461,9 +609,15 @@ BUILDERS.planner = (body) => {
   body.textContent = "";
   S.data.life = S.data.life || { planner:{ items:[] }, integrations:{ connections:{} } };
 
-  const items = plannerItemsForDate(S.data.life, selectedDate);
-  const progress = dayProgress(S.data.life, selectedDate);
-  const conflicts = findConflicts(S.data.life, selectedDate);
+  const items = plannerView === "week"
+    ? plannerItemsForRange(S.data.life, selectedDate, 7)
+    : plannerView === "pending" ? plannerPendingItems(S.data.life) : plannerItemsForDate(S.data.life, selectedDate);
+  const progress = plannerView === "day" ? dayProgress(S.data.life, selectedDate) : {
+    done: items.filter((x) => x.status === "done").length,
+    total: items.length,
+    pct: items.length ? Math.round(items.filter((x) => x.status === "done").length / items.length * 100) : 0,
+  };
+  const conflicts = plannerView === "day" ? findConflicts(S.data.life, selectedDate) : [];
 
   const head = el("section", "planner-head");
   head.innerHTML = `
@@ -480,11 +634,11 @@ BUILDERS.planner = (body) => {
     </div>
   `;
   head.querySelector('[data-day="-1"]').onclick = () => {
-    selectedDate = datePlusDays(selectedDate, -1);
+    selectedDate = datePlusDays(selectedDate, plannerView === "week" ? -7 : -1);
     BUILDERS.planner(body);
   };
   head.querySelector('[data-day="1"]').onclick = () => {
-    selectedDate = datePlusDays(selectedDate, 1);
+    selectedDate = datePlusDays(selectedDate, plannerView === "week" ? 7 : 1);
     BUILDERS.planner(body);
   };
   head.querySelector('[data-day="0"]').onclick = () => {
@@ -492,6 +646,16 @@ BUILDERS.planner = (body) => {
     BUILDERS.planner(body);
   };
   body.appendChild(head);
+  const views = el("div", "planner-view-tabs");
+  for (const [key, label] of [["day", "planner.view.day"], ["week", "planner.view.week"], ["pending", "planner.view.pending"]]) {
+    const button = el("button", plannerView === key ? "active" : "", t(label));
+    button.type = "button";
+    button.setAttribute("aria-pressed", String(plannerView === key));
+    button.onclick = () => { plannerView = key; BUILDERS.planner(body); };
+    views.append(button);
+  }
+  body.append(views);
+  renderQuickAdd(body);
   renderInbox(body);
 
   const score = el("section", "planner-progress");
@@ -501,6 +665,7 @@ BUILDERS.planner = (body) => {
     ${conflicts.length ? `<small>${esc(t("planner.conflicts", { count: conflicts.length }))}</small>` : ""}
   `;
   body.appendChild(score);
+  renderDailyMissions(body);
   renderGrowthIdeas(body);
 
   const actions = el("section", "planner-actions");

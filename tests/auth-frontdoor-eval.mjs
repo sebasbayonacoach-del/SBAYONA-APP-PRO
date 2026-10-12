@@ -132,9 +132,9 @@ const index = readFileSync(resolve(root, "index.html"), "utf8");
 check(index.includes('href="css/auth.css?v=1"'), "estilos Front Door forman parte del documento");
 
 const sw = readFileSync(resolve(root, "sw.js"), "utf8");
-check(sw.includes("bayona-shell-v40") && sw.includes('"./js/ui/auth-gate.js"') && sw.includes('"./js/sync/identity.js"'), "PWA cachea puerta e identidad multiusuario");
+check(sw.includes("bayona-shell-v41") && sw.includes('"./js/ui/auth-gate.js"') && sw.includes('"./js/sync/identity.js"'), "PWA cachea puerta e identidad multiusuario");
 
 const gradle = readFileSync(resolve(root, "mobile/android/app/build.gradle"), "utf8");
-check(gradle.includes("versionCode 8") && gradle.includes('versionName "1.0.7-beta"'), "Android queda versionado como 1.0.7-beta");
+check(gradle.includes("versionCode 9") && gradle.includes('versionName "1.0.8-beta"'), "Android queda versionado como 1.0.8-beta");
 
 console.log("\n📊 RESULTADO: " + ok + " comprobaciones · 0 fallos\n");

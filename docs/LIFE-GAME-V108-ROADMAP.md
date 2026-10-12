@@ -17,13 +17,15 @@ Rutas secundarias (sin pestañas extra): **Mi Día** desde Ahora; **Misiones dia
 - [x] Etiqueta de área en tareas nuevas y legacy; se puede quitar.
 - [x] SQL 0007 para campo area; no aplicado en remoto.
 - [x] Prueba de flujo real Mi Día → Progreso en Playwright a 390 px.
-- [ ] Sistema PRO de tareas: subtareas, recurrencias, drag/reprogramar, prioridades visuales.
+- [x] Mi Día PRO: subtareas, repeticiones diarias/laborables/semanales, aplazamiento con excepción por instancia, prioridades, Hoy/Semana/Pendientes y creación rápida.
+- [ ] Drag-and-drop táctil y filtros avanzados (NO implementados; no son prerrequisitos para las tareas actuales).
 - [ ] Misiones por áreas conectadas a registros verificables y límites de XP.
 - [ ] Integración de misión prioritaria en BAYONA NOW.
 - [ ] Insignias/animaciones 3D/artefactos originales por rango.
 - [ ] Sincronización incremental y RLS producción verificados.
 - [ ] Capturas nuevas, copy y marketing de WEB.
-- [ ] APK de esta rama empaquetado e instalado (no realizado; no confundir con beta 1.0.7).
+- [x] APK 1.0.8-beta compilado en Descargas/BAYONA (debug para pruebas).
+- [ ] Instalación en Android real: pendiente de reconectar ADB. No equivale a versión de tienda.
 
 ## ARQUITECTURA
 - **js/state.js** sigue siendo economía, nivel, inventario, racha, habilidades.
@@ -37,15 +39,20 @@ Rutas secundarias (sin pestañas extra): **Mi Día** desde Ahora; **Misiones dia
 - **js/ui/planner.js** aloja tareas y objetivos por área, sin forzar diez obligaciones.
 - **js/ui/one.js** conserva Coach Studio separado de la experiencia del cliente.
 
-## ENTREGABLE SIGUIENTE — TAREAS PRO
-Incorporar a la agenda existente:
-1. subtareas opcionales con progreso;
-2. fecha límite sin hora + recurrencia diaria/semanal;
-3. filtros Hoy / Semana / Pendientes;
-4. reprogramar sin crear tareas duplicadas;
-5. pruebas de calendario externo, privacidad y no alteración de eventos sincronizados.
+## ENTREGABLE TERMINADO — MI DÍA PRO
+Se amplió el planificador existente, sin otra app dentro de BAYONA:
+1. Tarea rápida en una línea (sin abrir el modal).
+2. Formulario completo conserva fecha, hora, categoría, área, ubicación y notas; añade prioridad, recurrencia y hasta 12 subtareas.
+3. Recurrencia diaria, laborables y semanal, con fin opcional.
+4. Excepciones por fecha para terminar, reprogramar o cancelar una sola aparición.
+5. Tres vistas compactas: Hoy / Semana / Pendientes.
+6. Pendientes concentra las apariciones futuras de una serie en una tarjeta útil, no decenas de filas repetidas.
+7. Eventos externos aparecen con fuente identificada y son solo lectura.
+8. Dos misiones diarias verificadas se reutilizan desde js/hoy.js, con su fuente de XP original (sin premios por marcar tareas manuales).
+9. SQL 0008 añade datos al esquema existente, sin aplicarse automáticamente al servidor.
+10. Sync nube usa upsert por (user_id,client_id), luego eliminación de filas ausentes; requiere migraciones antes de almacenar funciones PRO. Sigue siendo espejo local-first, no sincronización multi-dispositivo certificada.
 
-No empezar una app nueva ni volver a pedir onboarding.
+**Comprobación:** 50 suites de Node en verde, smoke Playwright móvil 390px (crear rápido, recurrencia, subtareas, 3 vistas, 0 errores y 0 overflow).
 
 ## DESPUÉS — GAMIFICACIÓN VERIFICABLE
 1. Vista de misiones plegable en Mi Día, máximo 3-5 sugeridas en Ahora.

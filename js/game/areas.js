@@ -42,8 +42,9 @@ export const GROWTH_LIBRARY = Object.freeze([
 ]);
 
 /** Dos propuestas por área, nunca 10 obligaciones automáticas. */
-export function growthSuggestions({ life = {}, date, includedAreas = LIFE_AREAS.map((a) => a.id) } = {}) {
-  const saved = Array.isArray(life?.planner?.items) ? life.planner.items : [];
+export function growthSuggestions({ life = {}, date, includedAreas = LIFE_AREAS.map((a) => a.id), visibleItems = null } = {}) {
+  const saved = Array.isArray(visibleItems) ? visibleItems :
+    (Array.isArray(life?.planner?.items) ? life.planner.items : []);
   const areas = new Set(includedAreas.filter((a) => IDS.has(a)));
   return GROWTH_LIBRARY
     .filter((entry) => areas.has(entry.area))
@@ -57,8 +58,9 @@ export function growthSuggestions({ life = {}, date, includedAreas = LIFE_AREAS.
     });
 }
 
-export function areaSummary(life, date) {
-  const items = (life?.planner?.items || []).filter((i) => i.date === date && i.area && IDS.has(i.area) && i.status !== "cancelled");
+export function areaSummary(life, date, visibleItems = null) {
+  const source = Array.isArray(visibleItems) ? visibleItems : (life?.planner?.items || []);
+  const items = source.filter((i) => i.date === date && i.area && IDS.has(i.area) && i.status !== "cancelled");
   return LIFE_AREAS.map((a) => ({
     ...a,
     total: items.filter((i) => i.area === a.id).length,

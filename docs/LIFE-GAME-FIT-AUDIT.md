@@ -31,12 +31,12 @@ El juego debe añadir un motivo para volver y ejecutar acciones, no menús adici
 1. Ya hay dos "Hoy": el motor legado de dos misiones de salud en js/hoy.js y la portada única en js/ui/fitness.js. NO lanzar un tercer "Hoy": después unificar las misiones existentes como fuente que alimenta la portada y Mi Día.
 2. RANKS en js/data.js tenía 7. Cambiamos a **26 rangos** desde js/game/ranks.js exportados por la fuente existente. S.level, S.rank y las recompensas siguen funcionando igual.
 3. En js/state.js el nivel usa una curva específica (250 + 180 por nivel) y los cosméticos se desbloquean por niveles concretos. La escalera nueva conserva los nombres históricos en sus umbrales, sin recalcular XP.
-4. "Mi Día" no era todavía un clon de TickTick: hoy no tiene recurrencias ni subtareas ni arrastre, aunque sí tareas y eventos. Agregamos campo area opcional + 2 propuestas por área, NO inserción automática.
+4. Mi Día 2.0 ya dispone de recurrencia y subtareas y una vista condensada de pendientes. Todavía NO dispone de arrastre táctil avanzado. Las 2 propuestas por área son opcionales; no se insertan automáticamente.
 5. El propósito/espiritualidad es una opción personal. Las propuestas neutrales de propósito están disponibles; no inferir fe ni exigir prácticas espirituales.
 6. Marcar una tarea manual como hecha NO da XP todavía. Esto evita recompensas fáciles e inflación. Un motor posterior puede conceder un BONUS diario idempotente, limitado y reversible, con la fuente en js/rewards.js.
 7. Las tareas sincronizadas de Android con origen device_calendar deben mantener etiqueta de origen; los cambios de eventos externos vuelven por sincronización, no por editar la copia local como si fuera fuente principal.
-8. La migración 0007 está en el repositorio pero NO aplicada a Supabase remoto ni sometida a certificación RLS de producción. El cliente usa fallback de inserción 0006 si la columna aún no existe.
-9. El espejo planner actual usa borrar/reinsertar por usuario y no es transaccional. Para multi-dispositivo y millones de usuarios, hay que introducir upsert incremental con tombstones y resolver conflictos; no afirmar que hoy existe sincronización robusta bidireccional.
+8. Las migraciones 0007 y 0008 están en el repositorio, NO aplicadas a Supabase remoto ni certificadas en producción. Si hay datos PRO o área, el cliente exige el esquema correspondiente para no perderlos silenciosamente en nube; datos locales intactos.
+9. El espejo planner se cambió de borrar-todo-primero a leer IDs, hacer upsert por (user_id,client_id) y borrar solo filas obsoletas DESPUÉS del éxito. Sigue sin tombstones versionados ni resolución de conflictos multi-dispositivo; no afirmar sincronización robusta bidireccional.
 10. El sitio WEB aún mezcla discurso conceptual BAYONA+ con la APP viva. Rediseño web después de confirmar visuales y estados del producto; nunca inventar capturas ni métricas.
 
 ## Fase compatible ya codificada
@@ -51,7 +51,7 @@ El juego debe añadir un motivo para volver y ejecutar acciones, no menús adici
 - tests/life-game-eval.mjs: regresiones y compatibilidad. Smoke Playwright de Mi Día + Progreso a 390 px.
 
 ## Siguientes fases — por prioridad
-1. **Tareas PRO (sin rediseñar navegación):** subtareas, recurrencia, prioridades, filtros Hoy/7 días, reprogramar sin perder historial, fechas sin hora.
+1. **Tareas PRO: IMPLEMENTADO** creación rápida, subtareas, recurrencia, prioridades, Hoy/Semana/Pendientes, aplazamiento por instancia. Pendiente para fase ulterior: arrastre táctil y búsqueda avanzada.
 2. **Unificar misiones:** conservar las 2 extras de js/hoy.js, añadir un solo conjunto de objetivos voluntarios por área, no reclamar dos veces ni premiar dolor/agotamiento.
 3. **Progresión y avatar:** XP por áreas solo desde eventos verificados, badge SVG/CSS original BAYONA, logros, cosméticos con gating real en armory.
 4. **NOW + misiones:** sólo si no existe cita activa, sesión abierta ni necesidad de recuperación; entregar una sola acción.
