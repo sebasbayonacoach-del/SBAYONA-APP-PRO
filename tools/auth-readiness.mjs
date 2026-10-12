@@ -54,16 +54,24 @@ if (!cfg.ready) {
     }
   }
 
-  report.readyForPublicRegistration = Boolean(
+  report.backendPrerequisitesPassed = Boolean(
     report.checks.supabase_auth.ok &&
     report.checks.google_provider.ok &&
     report.checks.profiles_schema.ok &&
     report.checks.google_redirect_android.ok &&
     report.checks.google_redirect_web.ok
   );
-  status("release_gate", report.readyForPublicRegistration,
-    report.readyForPublicRegistration ? "Backend/API basic checks pass; still verify OAuth consent, owner RLS, and end-to-end." :
-    "Do not enable public registration: backend prerequisites incomplete.");
+  status("oauth_callback_web_e2e", false,
+    "Observed OAuth login returned to marketing bayona-jet.vercel.app, not APP; fix Supabase redirect allowlist.");
+  status("oauth_callback_android_e2e", false,
+    "Android deep-link return not yet completed with a real Google test account.");
+  status("owner_role_production", false,
+    "SQL function is_bayona_coach missing while public schema is absent.");
+  status("vercel_preview", false,
+    "Deployment API denied access to team scope (HTTP 403).");
+  report.readyForPublicRegistration = false;
+  status("release_gate", false,
+    "Release blocked until schema/RLS, final OAuth callbacks, coach owner, and app deployment pass.");
   if (!report.readyForPublicRegistration) process.exitCode = 2;
 }
 console.log("REPORT " + JSON.stringify(report));

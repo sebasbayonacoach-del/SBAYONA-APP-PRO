@@ -49,3 +49,10 @@ El conector lista inicialmente bppjzewgqdrghexazgcj, pero también permite consu
 - Ejecutar node tools/auth-readiness.mjs para verificar el estado público sin credenciales secretas.
 
 No se debe declarar listo para usuarios externos hasta que se validen las migraciones, RLS, OAuth completo y despliegue correcto.
+
+## VERIFICACIONES ADICIONALES · 12/10/2026
+- Una prueba interactiva del flujo OAuth web terminó en https://bayona-jet.vercel.app/ (marketing), no en bayona-app-one.vercel.app. El retorno debe corregirse y certificarse antes del lanzamiento.
+- Vercel reconoce el proyecto bayona-app, pero rechaza la creación de una preview deployment con HTTP 403 por alcance/autorización de equipo. El CLI no está instalado y no hay sesión local autenticada disponible; no se ha desplegado nada.
+- Nueva corrección ya guardada en la rama de desarrollo: si falla el espejo de cualquier dominio, la sincronización deja el outbox pendiente y muestra fallo parcial, sin borrar la cola ni afirmar éxito.
+- Google solo tiene acceso de prueba para el correo verificado. El consentimiento general no está publicado.
+- La beta de producción del móvil permanece sin sustituir. No dar acceso público hasta que pasen la base de datos y la RLS.
