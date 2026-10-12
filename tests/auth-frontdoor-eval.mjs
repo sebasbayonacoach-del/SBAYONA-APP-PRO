@@ -137,9 +137,9 @@ check(authCss.includes("#bayona-auth-gate .auth-field input") && authCss.include
 check(authCss.includes("#bayona-auth-gate .auth-text-button") && authCss.includes("min-height: 44px"), "recuperar contraseña conserva objetivo táctil de 44 px");
 
 const sw = readFileSync(resolve(root, "sw.js"), "utf8");
-check(sw.includes("bayona-shell-v43") && sw.includes('"./js/ui/auth-gate.js"') && sw.includes('"./js/sync/identity.js"'), "PWA cachea puerta e identidad multiusuario");
+check(sw.includes("bayona-shell-v44") && sw.includes('"./js/ui/auth-gate.js"') && sw.includes('"./js/sync/identity.js"'), "PWA cachea puerta e identidad multiusuario");
 
 const gradle = readFileSync(resolve(root, "mobile/android/app/build.gradle"), "utf8");
-check(gradle.includes("versionCode 11") && gradle.includes('versionName "1.0.10-beta"'), "Android queda versionado como 1.0.10-beta");
+check(gradle.includes("versionCode 12") && gradle.includes('versionName "1.0.11-beta"'), "Android queda versionado como 1.0.11-beta");
 
 console.log("\n📊 RESULTADO: " + ok + " comprobaciones · 0 fallos\n");

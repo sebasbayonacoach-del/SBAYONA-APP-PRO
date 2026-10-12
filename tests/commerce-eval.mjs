@@ -60,6 +60,6 @@ check(sw.includes('"./js/shop-catalog.js"'), "catálogo comercial disponible en 
 const pack = readFileSync(resolve(root, "mobile/pack-web.mjs"), "utf8");
 check(pack.includes("'trainingym'"), "la APK empaqueta también el catálogo PROPLAYER");
 const gradle = readFileSync(resolve(root, "mobile/android/app/build.gradle"), "utf8");
-check(gradle.includes('versionCode 11') && gradle.includes('versionName "1.0.10-beta"'), "Android queda versionado como 1.0.10-beta");
+check(gradle.includes('versionCode 12') && gradle.includes('versionName "1.0.11-beta"'), "Android queda versionado como 1.0.11-beta");
 
 console.log(`\n📊 RESULTADO: ${ok} comprobaciones · 0 fallos\n`);

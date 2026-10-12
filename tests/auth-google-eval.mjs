@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { accountRole, googleOAuthUrl } from "../js/sync/supabase.js";
+import { accountRole, googleOAuthUrl, probeBackend } from "../js/sync/supabase.js";
 
 let n=0;
 function check(ok,label){assert.ok(ok,label);n++;console.log("  ✅ "+label);}
@@ -67,4 +67,23 @@ check(sql.includes("enforce_bayona_profile_role") && sql.includes("before insert
 check(sql.includes("enable row level security") && sql.includes("revoke all"),"tabla de propietarios no es consultable por usuarios");
 check(sql.includes("as restrictive for insert") && sql.includes("as restrictive for update") && sql.includes("as restrictive for delete"),"RLS prohíbe escritura Coach fuera de la cuenta dueña");
 check(!sql.includes("UUID_REAL_DEL_PROPIETARIO"),"no se ha inventado ni sembrado el UUID del dueño");
+const originalFetch=globalThis.fetch;
+try {
+  globalThis.fetch=async(url)=>({status:String(url).includes("/rest/v1/profiles")?404:200});
+  const missing=await probeBackend({force:true});
+  check(missing.ok===true && missing.schemaReady===false && missing.schemaStatus===404,
+    "Auth sano no oculta la ausencia de public.profiles");
+  globalThis.fetch=async()=>({status:200});
+  const ready=await probeBackend({force:true});
+  check(ready.ok===true && ready.schemaReady===true,
+    "RLS instalado desbloquea registros nuevos");
+  globalThis.fetch=async(url)=>{
+    if(String(url).includes("/rest/v1/"))throw new Error("network");
+    return {status:200};
+  };
+  const degraded=await probeBackend({force:true});
+  check(degraded.ok===true && degraded.schemaReady===false,
+    "Auth existente sigue accesible si solo falla la comprobación REST");
+}finally{globalThis.fetch=originalFetch;}
+
 console.log("\n"+n+" comprobaciones · 0 fallos\n");

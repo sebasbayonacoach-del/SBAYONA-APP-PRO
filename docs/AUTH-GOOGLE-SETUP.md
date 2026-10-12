@@ -56,3 +56,11 @@ No se debe declarar listo para usuarios externos hasta que se validen las migrac
 - Nueva corrección ya guardada en la rama de desarrollo: si falla el espejo de cualquier dominio, la sincronización deja el outbox pendiente y muestra fallo parcial, sin borrar la cola ni afirmar éxito.
 - Google solo tiene acceso de prueba para el correo verificado. El consentimiento general no está publicado.
 - La beta de producción del móvil permanece sin sustituir. No dar acceso público hasta que pasen la base de datos y la RLS.
+
+## 1.0.11-BETA · BLOQUEO SEGURO DE ALTAS
+- El cliente compara el servicio Auth con la disponibilidad de public.profiles.
+- Si falta profiles o no se pudo verificar RLS, se pausan los registros nuevos con correo y Google.
+- El acceso de cuentas existentes y el progreso local no se borran por una ausencia del esquema.
+- Las pruebas verifican Auth HTTP 200 + esquema HTTP 404, esquema HTTP 200 y fallo de red REST.
+- Smoke móvil 390 px: advertencia visible, registro y Google desactivados, login activo, 0 errores JS y 0 scroll horizontal.
+- Evitar desplegar a público hasta que el diagnóstico completo deje de bloquear el lanzamiento.

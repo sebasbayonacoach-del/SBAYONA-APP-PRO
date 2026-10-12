@@ -752,3 +752,5 @@ body.fitness-app #bayona-auth-gate .auth-text-button {
   align-items: center;
   padding: 0 2px;
 }
+#bayona-auth-gate .auth-pause-notice{margin:12px 0;border:1px solid #805c39;border-radius:10px;padding:12px;color:#f8c99f;background:rgba(142,89,39,.11);font:500 11px/1.45 Inter,system-ui,sans-serif}
+#bayona-auth-gate .auth-tabs button:disabled{cursor:not-allowed;opacity:.45}

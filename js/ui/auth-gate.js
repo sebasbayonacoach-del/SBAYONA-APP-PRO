@@ -137,6 +137,7 @@ async function consumeGoogleCallback() {
 }
 
 async function startGoogle() {
+  if (!accountCreationReady()) return setMessage(registrationsPausedMessage, "error");
   if (state.busy) return;
   state.busy = true;
   state.message = "";
@@ -412,8 +413,12 @@ function messageHtml() {
   return `<div class="auth-message ${state.tone === "error" ? "is-error" : "is-ok"}" role="status">${esc(state.message)}</div>`;
 }
 
+const accountCreationReady = () => state.cloud?.ok === true && state.cloud?.schemaReady === true;
+const registrationsPausedMessage = "El alta de cuentas está temporalmente pausada mientras completamos la protección de los datos. Las cuentas existentes pueden entrar.";
+
 function authForm() {
   const signup = state.mode === "signup";
+  const canRegister = accountCreationReady();
   return `
     <section class="auth-card" aria-label="${signup ? "Crear cuenta BAYONA" : "Entrar a BAYONA"}">
       ${authHeader(
@@ -425,9 +430,10 @@ function authForm() {
       )}
       <div class="auth-tabs" role="tablist">
         <button type="button" data-auth-mode="login" class="${!signup ? "is-active" : ""}" role="tab" aria-selected="${!signup}">Entrar</button>
-        <button type="button" data-auth-mode="signup" class="${signup ? "is-active" : ""}" role="tab" aria-selected="${signup}">Crear cuenta</button>
+        <button type="button" data-auth-mode="signup" class="${signup ? "is-active" : ""}" role="tab" aria-selected="${signup}" ${canRegister ? "" : "disabled"}>Crear cuenta</button>
       </div>
 
+      ${!canRegister ? '<p class="auth-pause-notice" role="status">' + esc(registrationsPausedMessage) + '</p>' : ""}
       <form id="auth-form" novalidate>
         ${signup ? `
           <label class="auth-field"><span>Nombre</span><input id="auth-name" name="name" autocomplete="name" maxlength="40" value="${esc(state.pendingName)}" placeholder="Cómo quieres que te llamemos"></label>
@@ -443,7 +449,7 @@ function authForm() {
         </button>
       </form>
       <div class="auth-google-divider"><span>O CONTINÚA CON</span></div>
-      <button class="auth-google-button" type="button" data-auth-action="google" ${state.busy ? "disabled" : ""}><span class="auth-google-mark">G</span> Continuar con Google</button>
+      <button class="auth-google-button" type="button" data-auth-action="google" ${state.busy || !canRegister ? "disabled" : ""}><span class="auth-google-mark">G</span> Continuar con Google</button>
       <div class="auth-security"><span>●</span> Conexión segura · datos separados por cuenta</div>
       ${legacyProgress() ? '<button type="button" class="auth-local" data-auth-action="local">Continuar con el progreso guardado en este dispositivo</button>' : ""}
     </section>`;
@@ -636,6 +642,8 @@ function render() {
 
 async function submitAuth(event) {
   event.preventDefault();
+  if (state.mode === "signup" && !accountCreationReady())
+    return setMessage(registrationsPausedMessage, "error");
   if (state.busy) return;
 
   const signup = state.mode === "signup";

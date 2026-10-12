@@ -277,17 +277,36 @@ export async function probeBackend({ force = false, timeoutMs = 3500 } = {}) {
         cache: "no-store",
         signal: ctrl?.signal,
       });
+      const authReady = res.status === 200;
+      // La salud de Auth no prueba que exista el dominio privado de la APP.
+      let schemaReady = false;
+      let schemaStatus = null;
+      if (authReady) {
+        try {
+          const schema = await fetch(url + "/rest/v1/profiles?select=id&limit=0", {
+            method: "GET",
+            headers: { apikey: anonKey, Accept: "application/json" },
+            cache: "no-store",
+            signal: ctrl?.signal,
+          });
+          schemaStatus = schema.status;
+          schemaReady = schemaStatus === 200;
+        } catch {
+          // Auth puede seguir atendiendo cuentas existentes durante un fallo
+          // aislado del REST. No permitir altas nuevas sin verificar RLS.
+          schemaReady = false;
+        }
+      }
       return {
-        ok: res.status >= 200 && res.status < 500,
-        configured: true,
-        status: res.status,
-        reason: res.status >= 200 && res.status < 500 ? null : "upstream_" + res.status,
+        ok: authReady, configured: true, status: res.status,
+        schemaReady, schemaStatus,
+        reason: authReady ? null : "upstream_" + res.status,
       };
     } catch (e) {
       return {
         ok: false,
         configured: true,
-        status: null,
+        status: null, schemaReady: false, schemaStatus: null,
         reason: e?.name === "AbortError" ? "timeout" : "network",
       };
     } finally {
