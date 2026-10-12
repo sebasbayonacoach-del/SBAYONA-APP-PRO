@@ -1,3 +1,5 @@
+import { areaForPlannerType, normalizeLifeArea } from "./game/areas.js";
+
 // ============================================================
 // BAYONA LIFE OS · planificador diario universal (dominio puro)
 // ------------------------------------------------------------
@@ -141,6 +143,9 @@ export function normalizePlannerItem(raw = {}, fallback = {}) {
     allDay: Boolean(raw.allDay || (!start && raw.allDay !== false)),
     title,
     type,
+    area: Object.prototype.hasOwnProperty.call(raw, "area")
+      ? normalizeLifeArea(raw.area, null)
+      : areaForPlannerType(type, title),
     priority,
     status,
     source,

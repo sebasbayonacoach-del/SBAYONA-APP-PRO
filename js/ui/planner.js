@@ -5,6 +5,7 @@
 // Lo que llega de otra app conserva su fuente; BAYONA no lo finge propio.
 // ============================================================
 import { S } from "../state.js";
+import { LIFE_AREAS, growthSuggestions, areaSummary } from "../game/areas.js";
 import { t, esc } from "../i18n.js";
 import {
   addPlannerItem, completePlannerItem, datePlusDays, dayProgress,
@@ -20,6 +21,7 @@ import {
 } from "./shared.js";
 
 let selectedDate = localDateKey();
+let growthExpanded = false;
 
 const TYPE_KEYS = {
   work: "planner.type.work",
@@ -79,6 +81,9 @@ function editModal(item = null) {
   const typeOptions = Object.keys(TYPE_KEYS)
     .map((key) => `<option value="${key}" ${existing.type === key ? "selected" : ""}>${esc(typeLabel(key))}</option>`)
     .join("");
+  const areaOptions = ['<option value="">' + esc(t("planner.area.none")) + '</option>']
+    .concat(LIFE_AREAS.map((area) => `<option value="${area.id}" ${existing.area === area.id ? "selected" : ""}>${esc(area.short)}</option>`))
+    .join("");
 
   showModal(`
     <div class="planner-modal">
@@ -98,6 +103,10 @@ function editModal(item = null) {
           <select id="pl-type">${typeOptions}</select>
         </label>
       </div>
+      <label class="planner-field">
+        <span>${esc(t("planner.area.label"))}</span>
+        <select id="pl-area">${areaOptions}</select>
+      </label>
       <div class="planner-form-row">
         <label class="planner-field">
           <span>${esc(t("planner.field.start"))}</span>
@@ -128,6 +137,7 @@ function editModal(item = null) {
     const start = document.getElementById("pl-start");
     const end = document.getElementById("pl-end");
     const type = document.getElementById("pl-type");
+    const area = document.getElementById("pl-area");
     const location = document.getElementById("pl-location");
     const notes = document.getElementById("pl-notes");
     const error = document.getElementById("pl-error");
@@ -153,6 +163,7 @@ function editModal(item = null) {
         end: end.value || null,
         allDay: !start.value,
         type: type.value,
+        area: area.value || null,
         location: location.value.trim(),
         notes: notes.value.trim(),
         source: existing.source || "manual",
@@ -204,6 +215,7 @@ function renderTimeline(body, items) {
       <div class="planner-item-main">
         <div class="planner-item-top">
           <span class="planner-type">${esc(typeLabel(item.type))}</span>
+          ${item.area ? `<span class="planner-area">${esc(LIFE_AREAS.find((a) => a.id === item.area)?.short || "")}</span>` : ""}
           <span class="planner-source">${esc(sourceName(item.source))}</span>
         </div>
         <h4>${esc(item.title)}</h4>
@@ -402,6 +414,49 @@ function renderInbox(body) {
   body.appendChild(wrap);
 }
 
+function renderGrowthIdeas(body) {
+  const ideas = growthSuggestions({ life: S.data.life, date: selectedDate });
+  const summary = areaSummary(S.data.life, selectedDate);
+  const wrap = el("details", "planner-growth");
+  wrap.open = growthExpanded;
+  wrap.addEventListener("toggle", () => { growthExpanded = wrap.open; });
+  const header = el("summary", "planner-growth-summary");
+  header.append(elT("strong", "", t("planner.growth.title")));
+  header.append(elT("small", "", t("planner.growth.sub")));
+  wrap.append(header);
+  const grid = el("div", "planner-growth-grid");
+  for (const area of LIFE_AREAS) {
+    const count = summary.find((x) => x.id === area.id);
+    const group = el("section", "planner-growth-area");
+    const title = el("div", "planner-growth-area-head");
+    title.append(elT("strong", "", area.short));
+    title.append(elT("small", "", `${count.done}/${count.total} · ${area.description}`));
+    group.append(title);
+    for (const idea of ideas.filter((entry) => entry.area === area.id)) {
+      const row = el("div", "planner-growth-idea");
+      row.append(elT("span", "", idea.title));
+      const add = el("button", "planner-growth-add", idea.existingId ? (idea.done ? "✓" : t("planner.growth.added")) : "+");
+      add.type = "button";
+      add.disabled = Boolean(idea.existingId);
+      add.setAttribute("aria-label", idea.existingId ? t("planner.growth.added") : t("planner.growth.addAria", { title: idea.title }));
+      add.onclick = () => {
+        const result = addPlannerItem(S.data.life, {
+          date: selectedDate, title: idea.title, type: idea.type, area: idea.area,
+          start: null, end: null, allDay: false, source: "manual",
+        });
+        persist(result.life, "growth-idea-added");
+        growthExpanded = true;
+        BUILDERS.planner(body);
+      };
+      row.append(add);
+      group.append(row);
+    }
+    grid.append(group);
+  }
+  wrap.append(grid);
+  body.append(wrap);
+}
+
 BUILDERS.planner = (body) => {
   body.textContent = "";
   S.data.life = S.data.life || { planner:{ items:[] }, integrations:{ connections:{} } };
@@ -446,6 +501,7 @@ BUILDERS.planner = (body) => {
     ${conflicts.length ? `<small>${esc(t("planner.conflicts", { count: conflicts.length }))}</small>` : ""}
   `;
   body.appendChild(score);
+  renderGrowthIdeas(body);
 
   const actions = el("section", "planner-actions");
   const add = el("button", "btn btn-primary", t("planner.add.button"));

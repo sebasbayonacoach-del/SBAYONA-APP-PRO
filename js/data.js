@@ -2,15 +2,7 @@
 // BAYONA — DATA: exercises, workouts, items, ranks, messages
 // ============================================================
 
-export const RANKS = [
-  { min: 1,  name: "INICIADO" },
-  { min: 6,  name: "ATLETA" },
-  { min: 14, name: "VANGUARDIA" },
-  { min: 25, name: "ÉLITE" },
-  { min: 40, name: "TITÁN" },
-  { min: 60, name: "ASCENDIENTE" },
-  { min: 85, name: "LEYENDA" },
-];
+export { LIFE_RANKS as RANKS } from "./game/ranks.js";
 
 export const RARITY = {
   COMMON:    { color: "#8a8a8a", weight: 1,   label: "COMÚN" },

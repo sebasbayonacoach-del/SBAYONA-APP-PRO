@@ -181,7 +181,7 @@ async function pushPlanner() {
   const items = S.data.life?.planner?.items || [];
   await remove("planner_items", { user_id: `eq.${u.id}` });
   if (!items.length) return;
-  await insert("planner_items", items.map((item) => ({
+  const rows = items.map((item) => ({
     user_id: u.id,
     client_id: item.id,
     day: item.date,
@@ -190,6 +190,7 @@ async function pushPlanner() {
     all_day: Boolean(item.allDay),
     title: item.title,
     item_type: item.type || "other",
+    area: item.area || null,
     priority: item.priority || "normal",
     status: item.status || "planned",
     source: item.source || "manual",
@@ -197,7 +198,15 @@ async function pushPlanner() {
     location: item.location || "",
     notes: item.notes || "",
     source_url: item.url || null,
-  })));
+  }));
+  try {
+    await insert("planner_items", rows);
+  } catch (error) {
+    // Migración 0007 aún no aplicada: mantener el espejo 0006 funcionando.
+    // No afirmamos que el área sincronizó si falta su columna remota.
+    if (!(error?.status === 400 && /area/i.test(error?.message || "") && /column|schema|cache/i.test(error?.message || ""))) throw error;
+    await insert("planner_items", rows.map(({ area, ...legacy }) => legacy));
+  }
 }
 
 /** orquestador */

@@ -3,6 +3,7 @@
 // Las fotos son PRIVADAS por defecto: solo en tu dispositivo, sin publicación.
 // ============================================================
 import { S, todayKey } from "../state.js";
+import { LIFE_RANKS, rankProgress, xpForLevel } from "../game/ranks.js";
 import { EXERCISES } from "../data.js";
 import { recoveryScore, project1RM, volumeStatus } from "../engine.js";
 import { isGranted, setConsent } from "../consents.js";
@@ -13,13 +14,14 @@ import {
 } from "../progreso.js";
 import { esc, fmtDate, fmtInt, t } from "../i18n.js";
 import {
-  UI, $, el, showModal, hideModal, toast, BUILDERS,
+  UI, $, el, elT, showModal, hideModal, toast, BUILDERS,
 } from "./shared.js";
 
 BUILDERS.progress = (body) => {
   body = body || $("#drawer-body");
   const d = S.data;
   body.textContent = "";
+  body.appendChild(lifeRankCard(d.xp));
   body.appendChild(el("div", "sec-label", "TU ENTRENAMIENTO EN NÚMEROS"));
   const grid = el("div", "stat-grid");
   const L = S.level();
@@ -75,6 +77,43 @@ BUILDERS.progress = (body) => {
   body.appendChild(tl);
 
 };
+
+function lifeRankCard(totalXp) {
+  const rank = rankProgress(totalXp);
+  const card = el("section", `life-rank-card tier-${rank.current.tier}`);
+  const top = el("div", "life-rank-top");
+  const badge = el("div", "life-rank-badge", `<span aria-hidden="true">◇</span><small>${esc(rank.current.id.slice(-2))}</small>`);
+  const info = el("div", "life-rank-info");
+  info.append(elT("small", "life-rank-kicker", t("game.rank.kicker")));
+  info.append(elT("h3", "", rank.current.name));
+  info.append(elT("p", "", rank.next
+    ? t("game.rank.next", { name: rank.next.name, xp: fmtInt(rank.remaining) })
+    : t("game.rank.max")));
+  top.append(badge, info);
+  card.append(top);
+  const meter = el("div", "life-rank-meter");
+  meter.setAttribute("role", "progressbar");
+  meter.setAttribute("aria-valuemin", "0");
+  meter.setAttribute("aria-valuemax", "100");
+  meter.setAttribute("aria-valuenow", String(rank.percent));
+  meter.setAttribute("aria-label", t("game.rank.progressAria"));
+  meter.append(el("i", "", `<b style="width:${rank.percent}%"></b>`));
+  card.append(meter);
+  const details = el("details", "life-rank-details");
+  details.append(elT("summary", "", t("game.rank.all", { count: LIFE_RANKS.length })));
+  const list = el("ol", "life-rank-ladder");
+  for (const step of LIFE_RANKS) {
+    const reached = Number(totalXp || 0) >= xpForLevel(step.min);
+    const li = el("li", `${step.id === rank.current.id ? "is-current" : ""} ${reached ? "is-reached" : ""}`);
+    li.append(elT("span", "life-rank-step-badge", "◇"));
+    li.append(elT("strong", "", step.name));
+    li.append(elT("small", "", t("game.rank.level", { lvl: step.min })));
+    list.append(li);
+  }
+  details.append(list);
+  card.append(details);
+  return card;
+}
 
 // ---------------- ANALÍTICA ----------------
 function analyticsBlock() {
