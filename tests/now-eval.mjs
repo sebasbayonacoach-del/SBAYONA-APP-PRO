@@ -33,6 +33,7 @@ ok(d.action === "recover" && /suficiente/i.test(d.title), "de noche y tras entre
 
 d = decideNow({ ...base, workout: null, readinessDetail: { score: null } });
 ok(d.action === "recover", "sin sesión programada no inventa entrenamiento");
+ok(d.status.score === null && d.status.label === "SIN CALCULAR", "sin registros no inventa puntuación de preparación");
 
 const s = recentSummary([
   { date: "2026-10-04", workouts: 1, sets: 9, sleep: 7, strain: 8, prPoints: [] },

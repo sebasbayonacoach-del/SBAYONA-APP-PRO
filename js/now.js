@@ -8,7 +8,7 @@ import { t } from "./i18n.js";
 // ============================================================
 
 const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
-const validNum = (v) => Number.isFinite(Number(v)) ? Number(v) : null;
+const validNum = (v) => v == null || v === "" ? null : (Number.isFinite(Number(v)) ? Number(v) : null);
 
 function dayPart(hour) {
   if (hour < 5) return "noche";
