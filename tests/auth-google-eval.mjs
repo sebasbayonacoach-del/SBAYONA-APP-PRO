@@ -23,6 +23,9 @@ try{
  const web=new URL(googleOAuthUrl({webOrigin:"https://bayona-app-one.vercel.app"}));
  check(web.searchParams.get("provider")==="google" && web.searchParams.get("redirect_to").startsWith("https://bayona-app-one.vercel.app/?source=pwa&auth_state="),
    "la PWA vuelve a su Front Door en el dominio oficial");
+ const integrated=new URL(googleOAuthUrl({webOrigin:"https://bayona-jet.vercel.app/mi-app/"}));
+ check(integrated.searchParams.get("redirect_to").startsWith("https://bayona-jet.vercel.app/mi-app/?source=pwa&auth_state="),
+   "la app integrada conserva su subruta al volver de Google");
 }finally{globalThis.sessionStorage=oldSessionStorage;}
 const source=read("js/ui/auth-gate.js");
 const backend=read("js/sync/supabase.js");

@@ -14,6 +14,7 @@ La conexión Supabase disponible en ChatGPT es otro proyecto: bppjzewgqdrghexazg
 4. En Supabase > Authentication > URL Configuration > Redirect URLs autoriza:
    - bayonafit://auth/callback**
    - https://bayona-app-one.vercel.app/**
+   - https://bayona-jet.vercel.app/mi-app/**
 5. Confirma en el panel los dominios de producción y las URLs de retorno. El callback Android contiene un auth_state vinculado al intento actual.
 
 ## Autorizar al único entrenador (acción administrativa)

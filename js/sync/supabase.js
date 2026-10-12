@@ -143,7 +143,7 @@ export function googleOAuthUrl({ native = false, webOrigin = "" } = {}) {
   if (!cfg.ready) throw new Error("Supabase sin configurar.");
   const redirect = native
     ? "bayonafit://auth/callback"
-    : new URL("/?source=pwa", webOrigin || location.origin).href;
+    : new URL("./?source=pwa", webOrigin || location.href).href;
   const callback = new URL(redirect);
   const attempt = globalThis.crypto?.randomUUID?.();
   if (!attempt) throw new Error("Este dispositivo no admite el acceso seguro con Google.");
