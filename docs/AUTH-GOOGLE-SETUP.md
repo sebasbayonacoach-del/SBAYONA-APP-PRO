@@ -5,12 +5,12 @@ Registro público obligatorio como usuario: nombre, correo y contraseña, o Goog
 
 ## Proyecto correcto
 La app usa actualmente: https://otkhozruunouimjgvvun.supabase.co
-La conexión Supabase disponible en ChatGPT es otro proyecto: bppjzewgqdrghexazgcj (inactivo). NO ejecutar allí las migraciones de BAYONA.
+El conector lista inicialmente bppjzewgqdrghexazgcj, pero también permite consultar por ID el proyecto correcto otkhozruunouimjgvvun. Consulta administrativa realizada el 12/10/2026; esquema público todavía ausente.
 
 ## Activar Google
-1. En Google Cloud Console > Google Auth Platform / Credentials, configura consentimiento OAuth y crea un Client ID de tipo Web application.
+1. El cliente Google OAuth existente BAYONA Web ya está asociado a Supabase. NO crear otro sin necesidad.
 2. En Google Cloud incluye el redirect de Supabase: https://otkhozruunouimjgvvun.supabase.co/auth/v1/callback
-3. En Supabase del proyecto correcto > Authentication > Providers > Google, activa Google y guarda Client ID y Client Secret exclusivamente allí.
+3. El proveedor Google ya está habilitado en el Supabase correcto y coincide con el cliente BAYONA Web. Los secretos permanecen en los paneles privados.
 4. En Supabase > Authentication > URL Configuration > Redirect URLs autoriza:
    - bayonafit://auth/callback**
    - https://bayona-app-one.vercel.app/**
@@ -38,4 +38,14 @@ La conexión Supabase disponible en ChatGPT es otro proyecto: bppjzewgqdrghexazg
 - RLS y aislamiento entre clientes.
 - Google OAuth real, inicio/cierre de sesión y enlace de restablecimiento.
 
-No se ha configurado el proveedor de Google en el proyecto real ni se ha aplicado la migración allí. No considerar el acceso Google listo para usuarios hasta completar el checklist.
+## DIAGNÓSTICO VERIFICADO · 12/10/2026
+- Google habilitado (Supabase Auth HTTP 200; ajustes external.google=true).
+- Los redirect a Google para Android y web responden HTTP 302 hacia accounts.google.com; el retorno final aún requiere prueba real.
+- La tabla public.profiles no existe (HTTP 404, PGRST205), ni tampoco la función SQL is_bayona_coach; falta aplicar el esquema de BAYONA.
+- Google Cloud permite el correo de prueba autorizado, pero sigue en modo Prueba. No hay consentimiento publicado para todos.
+- bayona-app-one.vercel.app presenta el despliegue antiguo sin el Front Door nuevo.
+- El intento de aplicar la migración base por el conector fue bloqueado por los controles de seguridad de la herramienta: no evadir ese bloqueo.
+- NO se ha modificado el esquema de producción ni activado Coach Studio allí.
+- Ejecutar node tools/auth-readiness.mjs para verificar el estado público sin credenciales secretas.
+
+No se debe declarar listo para usuarios externos hasta que se validen las migraciones, RLS, OAuth completo y despliegue correcto.

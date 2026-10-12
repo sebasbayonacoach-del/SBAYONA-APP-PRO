@@ -267,16 +267,26 @@ export async function syncNow(opts = {}) {
     await pushProfile();
     await pushReadiness();
     await pushWorkouts();
-    // espejo ampliado: BEST-EFFORT (si falta la migración, el resto sincroniza igual)
-    try { await pushMedidas(); await pushAsignaciones(); await pushAvatar(); await pushPlanner(); }
-    catch { /* tablas nuevas pendientes de migración: no rompe el espejo principal */ }
+    // Los fallos parciales no se disfrazan de éxito: es obligatorio conservar
+    // el outbox hasta que todas las colecciones queden confirmadas por la nube.
+    const failures = [];
+    for (const [name, push] of [
+      ["mediciones", pushMedidas],
+      ["asignaciones", pushAsignaciones],
+      ["avatar", pushAvatar],
+      ["planificador", pushPlanner],
+    ]) {
+      try { await push(); }
+      catch (error) { failures.push(name + ": " + (error?.message || String(error))); }
+    }
+    if (failures.length) throw new Error("Sincronización parcial; pendientes: " + failures.join(" | "));
     STATE.last = new Date().toISOString();
     outbox.limpiar();
     if (!opts.silent) toast("SINCRONIZADO", "Tus datos están en la nube.");
   } catch (e) {
     STATE.error = e.message || String(e);
     outbox.registrarFallo(STATE.error);
-    if (!opts.silent) toast("SIN PA CONEXIÓN", `No se pudo sincronizar: ${STATE.error}`, "danger");
+    if (!opts.silent) toast("SINCRONIZACIÓN PENDIENTE", `No se pudo sincronizar: ${STATE.error}`, "danger");
   } finally {
     STATE.busy = false;
     buildIfOpen();

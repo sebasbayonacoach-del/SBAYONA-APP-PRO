@@ -42,6 +42,9 @@ const main=read("js/main.js");
 const shared=read("js/ui/shared.js");
 const landing=read("js/ui/landing-boot.js");
 const account=read("js/sync/account.js");
+check(account.includes('if (failures.length) throw new Error("Sincronización parcial; pendientes: "') &&
+  account.includes("outbox.registrarFallo(STATE.error)"),
+  "los fallos de sincronización conservan el outbox y no confirman éxito");
 const manifest=read("mobile/android/app/src/main/AndroidManifest.xml");
 const plugin=read("mobile/android/app/src/main/java/app/bayona/fit/LifeOSPlugin.java");
 const sql=read("api/supabase/migrations/0009_single_owner_google_auth.sql");
