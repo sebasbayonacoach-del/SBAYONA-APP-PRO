@@ -41,7 +41,7 @@ ok(!sitemap.includes("<loc>./"), "sitemap no usa URLs relativas");
 
 console.log("\n— PWA —");
 ok(manifest.display === "standalone", "manifest standalone");
-ok(manifest.start_url === "./?source=pwa", "arranque PWA estable");
+ok(manifest.start_url === "./index.html?source=pwa", "arranque PWA estable");
 ok(landingBoot.includes('const appShell = source === "pwa"')
     && landingBoot.includes("if (appShell || nativeShell)")
     && landingBoot.includes('import("./auth-gate.js")'),
@@ -49,8 +49,8 @@ ok(landingBoot.includes('const appShell = source === "pwa"')
 ok(Array.isArray(manifest.icons) && manifest.icons.length >= 3, "manifest tiene iconos");
 ok(manifest.icons.every((x) => existsSync(join(root, String(x.src).replace(/^\.\//, "")))), "todos los iconos del manifest existen");
 ok(manifest.icons.some((x) => String(x.purpose || "").includes("maskable")), "hay icono maskable");
-ok(manifest.shortcuts?.some((x) => x.url === "./?go=training"), "shortcut de entrenamiento");
-ok(manifest.shortcuts?.some((x) => x.url === "./?go=coachos"), "shortcut de Coach Studio");
+ok(manifest.shortcuts?.some((x) => x.url === "./index.html?go=training"), "shortcut de entrenamiento");
+ok(manifest.shortcuts?.some((x) => x.url === "./index.html?go=coachos"), "shortcut de Coach Studio");
 
 const shellVersion = Number((sw.match(/bayona-shell-v(\d+)/) || [])[1]);
 ok(shellVersion >= 30, `service worker actualizado (v${shellVersion || "?"})`);

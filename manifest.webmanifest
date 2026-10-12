@@ -3,7 +3,7 @@
   "short_name": "BAYONA",
   "lang": "es-ES",
   "dir": "ltr",
-  "start_url": "./?source=pwa",
+  "start_url": "./index.html?source=pwa",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
@@ -40,13 +40,13 @@
       "name": "Entrenamiento de hoy",
       "short_name": "Entrenar",
       "description": "Abrir la sesión del día",
-      "url": "./?go=training"
+      "url": "./index.html?go=training"
     },
     {
       "name": "Coach Studio",
       "short_name": "Coach",
       "description": "Abrir el centro de mando del coach",
-      "url": "./?go=coachos"
+      "url": "./index.html?go=coachos"
     }
   ],
   "prefer_related_applications": false
