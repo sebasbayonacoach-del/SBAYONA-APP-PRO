@@ -64,6 +64,7 @@ check(landing.includes('inferredRole === "coach" && accountRole() === "coach"'),
 check(account.includes("Escribe tu nombre para registrarte.") && !account.includes("bayona_role: accountRole()"),"registro legado pide nombre y no fija metadata privilegiada");
 check(sql.includes("bayona_owner") && sql.includes("primary key") && sql.includes("is_bayona_coach"),"una sola identidad se autoriza desde Supabase");
 check(sql.includes("enforce_bayona_profile_role") && sql.includes("before insert or update"),"trigger impide autoproclamación desde profiles");
+check(sql.includes("sync_bayona_owner_role") && sql.includes("after insert or update or delete on public.bayona_owner"),"alta o revocación del propietario sincroniza automáticamente el rol");
 check(sql.includes("enable row level security") && sql.includes("revoke all"),"tabla de propietarios no es consultable por usuarios");
 check(sql.includes("as restrictive for insert") && sql.includes("as restrictive for update") && sql.includes("as restrictive for delete"),"RLS prohíbe escritura Coach fuera de la cuenta dueña");
 check(!sql.includes("UUID_REAL_DEL_PROPIETARIO"),"no se ha inventado ni sembrado el UUID del dueño");
