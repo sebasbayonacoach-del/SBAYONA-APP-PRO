@@ -26,6 +26,15 @@ try{
  const integrated=new URL(googleOAuthUrl({webOrigin:"https://bayona-jet.vercel.app/mi-app/"}));
  check(integrated.searchParams.get("redirect_to").startsWith("https://bayona-jet.vercel.app/mi-app/?source=pwa&auth_state="),
    "la app integrada conserva su subruta al volver de Google");
+ const oldWindow=globalThis.window;
+ const oldLocation=globalThis.location;
+ globalThis.window={BAYONA_AUTH_ENTRY_URL:"/mi-app/index.html?source=pwa"};
+ globalThis.location={origin:"https://bayona-jet.vercel.app",href:"https://bayona-jet.vercel.app/mi-app/index.html?source=pwa"};
+ const explicit=new URL(googleOAuthUrl({webOrigin:"https://bayona-jet.vercel.app"}));
+ check(explicit.searchParams.get("redirect_to").startsWith("https://bayona-jet.vercel.app/mi-app/index.html?source=pwa&auth_state="),
+   "la integración puede fijar una entrada física estable para OAuth");
+ globalThis.window=oldWindow;
+ globalThis.location=oldLocation;
 }finally{globalThis.sessionStorage=oldSessionStorage;}
 const source=read("js/ui/auth-gate.js");
 const backend=read("js/sync/supabase.js");
