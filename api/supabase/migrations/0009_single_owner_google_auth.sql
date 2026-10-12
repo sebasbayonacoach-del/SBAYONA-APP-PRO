@@ -48,6 +48,38 @@ create trigger bayona_single_owner_role
 before insert or update on public.profiles
 for each row execute function public.enforce_bayona_profile_role();
 
+-- Sincroniza inmediatamente el rol al dar, cambiar o revocar el único dueño.
+-- El rol se actualiza desde el servidor; nunca depende de metadata pública.
+create or replace function public.sync_bayona_owner_role()
+returns trigger
+language plpgsql security definer
+set search_path = ''
+as $
+begin
+  if tg_op = 'DELETE' or tg_op = 'UPDATE' then
+    update public.profiles
+    set role = 'athlete'
+    where id = old.user_id
+      and not exists (select 1 from public.bayona_owner where user_id = old.user_id);
+  end if;
+
+  if tg_op = 'INSERT' or tg_op = 'UPDATE' then
+    update public.profiles
+    set role = 'coach'
+    where id = new.user_id;
+  end if;
+
+  if tg_op = 'DELETE' then return old; end if;
+  return new;
+end;
+$;
+revoke all on function public.sync_bayona_owner_role() from public, anon, authenticated;
+
+drop trigger if exists bayona_owner_sync_role on public.bayona_owner;
+create trigger bayona_owner_sync_role
+  after insert or update or delete on public.bayona_owner
+  for each row execute function public.sync_bayona_owner_role();
+
 -- Reconciliación defensiva de perfiles existentes. Si el propietario aún
 -- no se ha configurado, todos pasan a athlete hasta que se le autorice.
 update public.profiles p
