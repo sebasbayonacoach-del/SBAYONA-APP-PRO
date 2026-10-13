@@ -13,6 +13,7 @@ const mirror = read("js/sync/mirror.js");
 const setup = read("api/supabase/setup.sql");
 const owner = read("api/supabase/migrations/0009_single_owner_google_auth.sql");
 const migration = read("api/supabase/migrations/0010_safe_sync.sql");
+const guard = read("api/supabase/migrations/0011_owner_guard.sql");
 
 assert.doesNotMatch(account, /await\s+remove\s*\(/,
   "No volver a borrar datos remotos antes de una escritura");
@@ -36,6 +37,12 @@ assert.match(setup, /sets_log_session_client_unique/);
 assert.doesNotMatch(setup, /^\s*(?:as|do) \$\s*$/m);
 assert.doesNotMatch(setup, /^\s*\$;\s*$/m);
 assert.doesNotMatch(owner, /^\s*as \$\s*$/m);
+assert.match(setup, /BAYONA 0011_owner_guard/);
+assert.match(guard, /as restrictive for select to authenticated/g);
+assert.match(guard, /create trigger bayona_owner_coach_clients/i);
+assert.match(guard, /create trigger bayona_owner_coach_invites/i);
+assert.match(guard, /create trigger bayona_owner_coach_routines/i);
+assert.match(guard, /create trigger bayona_owner_coach_assignments/i);
 
 const medidas = payloadMedidas("usuario", [
   { fecha: "2026-10-11", pesoKg: 70 },
