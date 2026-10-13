@@ -412,7 +412,7 @@ alter table profiles add column if not exists goals jsonb default '[]'::jsonb;
 alter table profiles add column if not exists role text not null default 'athlete';
 alter table profiles add column if not exists updated_at timestamptz not null default now();
 
-do $
+do $$
 begin
   if not exists (
     select 1 from pg_constraint
@@ -423,7 +423,7 @@ begin
       add constraint profiles_role_check check (role in ('athlete','coach'));
   end if;
 end
-$;
+$$;
 
 create table if not exists coach_clients (
   coach_id    uuid not null references auth.users (id) on delete cascade,
@@ -503,7 +503,7 @@ begin
   new.updated_at = now();
   return new;
 end;
-$;
+$$;
 
 drop trigger if exists coach_clients_immutable on coach_clients;
 create trigger coach_clients_immutable
@@ -516,7 +516,7 @@ begin
   new.updated_at = now();
   return new;
 end;
-$;
+$$;
 
 drop trigger if exists coach_routines_touch on coach_routines;
 create trigger coach_routines_touch
@@ -578,7 +578,7 @@ returns text
 language plpgsql
 security definer
 set search_path = public
-as $
+as $$
 declare
   v_code text;
   v_hours int := greatest(1, least(coalesce(p_hours,72), 168));
@@ -607,14 +607,14 @@ begin
 
   return v_code;
 end;
-$;
+$$;
 
 create or replace function accept_coach_invite(p_code text)
 returns table (coach_id uuid, coach_name text)
 language plpgsql
 security definer
 set search_path = public
-as $
+as $$
 declare
   v_inv coach_invites%rowtype;
 begin
@@ -651,7 +651,7 @@ begin
   from profiles p
   where p.id = v_inv.coach_id;
 end;
-$;
+$$;
 
 revoke all on function create_coach_invite(int) from public;
 grant execute on function create_coach_invite(int) to authenticated;
@@ -766,7 +766,7 @@ returns boolean
 language plpgsql
 security definer
 set search_path = public
-as $
+as $$
 declare
   v_rows int;
 begin
@@ -783,7 +783,7 @@ begin
   get diagnostics v_rows = row_count;
   return v_rows = 1;
 end;
-$;
+$$;
 
 revoke all on function complete_coach_assignment(uuid) from public;
 grant execute on function complete_coach_assignment(uuid) to authenticated;
@@ -1031,7 +1031,10 @@ CREATE INDEX IF NOT EXISTS planner_items_user_area_day_idx
   WHERE area IS NOT NULL;
 
 -- RLS de 0006 sigue intacto: auth.uid() = user_id.
--- No hay nueva tabla de XP; la economía sigue en la fuente original.\n\n-- BAYONA MI DÍA 2.0 · 0008_planner_pro.sql\n-- BAYONA · Mi Día 2.0 (aditivo sobre 0006/0007).
+-- No hay nueva tabla de XP; la economía sigue en la fuente original.
+
+-- BAYONA MI DÍA 2.0 · 0008_planner_pro.sql
+-- BAYONA · Mi Día 2.0 (aditivo sobre 0006/0007).
 -- Guarda la plantilla recurrente una sola vez y las excepciones por fecha.
 ALTER TABLE public.planner_items
   ADD COLUMN IF NOT EXISTS subtasks jsonb NOT NULL DEFAULT '[]'::jsonb,
@@ -1052,7 +1055,10 @@ BEGIN
   END IF;
 END $$;
 
--- Mantener políticas RLS del planificador. No se crea una economía nueva.\n\n\n-- BAYONA AUTH 1.0.10 · 0009_single_owner_google_auth.sql
+-- Mantener políticas RLS del planificador. No se crea una economía nueva.
+
+
+-- BAYONA AUTH 1.0.10 · 0009_single_owner_google_auth.sql
 -- BAYONA Auth 1.0.10 · un único propietario puede ser Coach.
 -- IMPORTANTE: ejecuta esta migración solo en el proyecto real de BAYONA.
 -- Se crea vacía a propósito: el propietario se activa después desde el
@@ -1103,6 +1109,38 @@ create trigger bayona_single_owner_role
 before insert or update on public.profiles
 for each row execute function public.enforce_bayona_profile_role();
 
+-- Sincroniza inmediatamente el rol al dar, cambiar o revocar el único dueño.
+-- El rol se actualiza desde el servidor; nunca depende de metadata pública.
+create or replace function public.sync_bayona_owner_role()
+returns trigger
+language plpgsql security definer
+set search_path = ''
+as $$
+begin
+  if tg_op = 'DELETE' or tg_op = 'UPDATE' then
+    update public.profiles
+    set role = 'athlete'
+    where id = old.user_id
+      and not exists (select 1 from public.bayona_owner where user_id = old.user_id);
+  end if;
+
+  if tg_op = 'INSERT' or tg_op = 'UPDATE' then
+    update public.profiles
+    set role = 'coach'
+    where id = new.user_id;
+  end if;
+
+  if tg_op = 'DELETE' then return old; end if;
+  return new;
+end;
+$$;
+revoke all on function public.sync_bayona_owner_role() from public, anon, authenticated;
+
+drop trigger if exists bayona_owner_sync_role on public.bayona_owner;
+create trigger bayona_owner_sync_role
+  after insert or update or delete on public.bayona_owner
+  for each row execute function public.sync_bayona_owner_role();
+
 -- Reconciliación defensiva de perfiles existentes. Si el propietario aún
 -- no se ha configurado, todos pasan a athlete hasta que se le autorice.
 update public.profiles p
@@ -1142,3 +1180,20 @@ begin
     execute format('create policy bayona_owner_only_insert on public.%I as restrictive for insert to authenticated with check (public.is_bayona_coach())', tbl);
   end loop;
 end $$;
+
+-- BAYONA 0010_safe_sync: claves de idempotencia, sin eliminar datos heredados.
+-- Ejecutar después de 0001/0002 y antes de activar la sincronización incremental.
+-- Los registros existentes quedan intactos. NULL mantiene compatibilidad con históricos.
+alter table public.sets_log
+  add column if not exists client_id uuid;
+create unique index if not exists sets_log_session_client_unique
+  on public.sets_log (session_id, client_id);
+
+alter table public.entrenamientos_asignados
+  add column if not exists client_sync_id text;
+create unique index if not exists entrenamientos_asignados_client_sync_unique
+  on public.entrenamientos_asignados (user_id, client_sync_id);
+
+-- Importante: los registros anteriores carecen de clave y se conservan.
+-- Revisar posibles duplicados históricos tras exportar una copia completa.
+-- No ejecutar borrados automáticos ni conciliaciones destructivas.
