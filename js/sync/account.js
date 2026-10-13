@@ -1,10 +1,9 @@
 // ============================================================
 // BAYONA · SYNC/account — cuenta en la nube + sincronización
 // ------------------------------------------------------------
-// Política de la v1: "espejo". La verdad vive en el dispositivo y se
-// refleja en Supabase de forma IDEMPOTENTE (borrar-y-reinsertar por
-// alcance: usuario completo o sesión concreta). Así un reenvío o una
-// red caída nunca duplican datos.
+// Estrategia protectora: escrituras incrementales e idempotentes.
+// Una copia local incompleta o una caída de red NUNCA borra registros cloud.
+// Las eliminaciones explícitas requerirán tombstones/versionado posterior.
 //
 // Dominios sincronizados (los del esquema 0001_core.sql):
 //   profiles · consents · readiness_daily · workout_sessions · sets_log
@@ -24,7 +23,7 @@ import {
   isConfigured, probeBackend, currentSession, currentUser, accountRole, onAuth,
   signInWithPassword, signUpWithPassword, signInWithMagicLink,
   signOut, ensureFreshSession, refreshUser, completeAuthFromHash, updateUserMetadata,
-  select, insert, upsert, remove,
+  select, upsert,
 } from "./supabase.js";
 import { portableProfile } from "./profile.js";
 
@@ -77,16 +76,9 @@ async function pushProfile() {
     height_cm: d.profile.heightCm || null,
     goals: [d.profile.goal].filter(Boolean),
   };
-  try {
-    await upsert("profiles", [{ ...profileRow, role: accountRole() }]);
-  } catch (e) {
-    // Compatibilidad con instalaciones que aún no aplicaron 0005_launch_coaching.sql.
-    if (e?.status === 400 && /role|column|schema cache/i.test(e.message || "")) {
-      await upsert("profiles", [profileRow]);
-    } else {
-      throw e;
-    }
-  }
+  // Nunca intentar escribir el rol desde el navegador.
+  // El propietario de Coach Studio se autoriza únicamente en servidor.
+  await upsert("profiles", [profileRow]);
   await updateUserMetadata({
     display_name: d.profile.name || null,
     bayona_profile: portableProfile(d.profile),
@@ -114,14 +106,16 @@ async function pushReadiness() {
   }]);
 }
 
-/** 4-5. workout_sessions + sets_log (espejo total del usuario: borra y reinserta) */
+/** 4-5. Entrenamientos y series: upsert sin borrar registros anteriores. */
 async function pushWorkouts() {
   const u = currentUser();
   const sessions = [];
   const sets = [];
+  let identitiesChanged = false;
 
   for (const h of S.data.history || []) {
-    const sid = h.sid || (h.sid = crypto.randomUUID());
+    if (!h.sid) { h.sid = crypto.randomUUID(); identitiesChanged = true; }
+    const sid = h.sid;
     sessions.push({
       id: sid,
       user_id: u.id,
@@ -132,46 +126,55 @@ async function pushWorkouts() {
       rpe_out: h.rpe ?? null,
       status: h.status || "completada",
     });
-    (h.sets || []).forEach((s, i) => sets.push({
-      session_id: sid,
-      exercise_id: s.ex || s.exKey || null,
-      set_no: s.setIdx ?? i + 1,
-      reps: s.reps ?? null,
-      load_kg: s.kg ?? null,
-      rir: s.rir ?? null,
-      form_score: s.formScore ?? null,
-      rep_vel_loss: s.velLoss ?? null,
-      landmarks_summary: s.landmarks || null,
-    }));
+    // En partidas antiguas history.sets es un número, no una lista.
+    const loggedSets = Array.isArray(h.sets) ? h.sets :
+      (Array.isArray(h.setLog) ? h.setLog : []);
+    loggedSets.forEach((s, i) => {
+      if (!s || typeof s !== "object") return;
+      if (!s.cloudSetId) { s.cloudSetId = crypto.randomUUID(); identitiesChanged = true; }
+      sets.push({
+        session_id: sid,
+        client_id: s.cloudSetId,
+        exercise_id: s.ex || s.exKey || null,
+        set_no: s.setIdx ?? i + 1,
+        reps: s.reps ?? null,
+        load_kg: s.kg ?? null,
+        rir: s.rir ?? null,
+        form_score: s.formScore ?? null,
+        rep_vel_loss: s.velLoss ?? null,
+        landmarks_summary: s.landmarks || null,
+      });
+    });
   }
 
-  await remove("workout_sessions", { user_id: `eq.${u.id}` }); // cascada → sets_log
-  if (sessions.length) await insert("workout_sessions", sessions);
-  if (sets.length) await insert("sets_log", sets);
+  // Guardar los identificadores ANTES de usar la red: tras recargar o reintentar
+  // deben ser los mismos. Si falla el guardado local, no subir una copia inestable.
+  if (identitiesChanged && !S.save()) {
+    throw new Error("No se pudieron conservar los identificadores de sincronización.");
+  }
+  if (sessions.length) await upsert("workout_sessions", sessions, { on_conflict: "id" });
+  if (sets.length) await upsert("sets_log", sets, { on_conflict: "session_id,client_id" });
 }
 
-/** espejo de MEDICIONES (tabla nueva: requiere migración 0002 aplicada) */
+/** Mediciones: PK estable (user_id, fecha); nunca borrar datos de otro dispositivo. */
 async function pushMedidas() {
   const u = currentUser();
   const p = payloadMedidas(u.id, S.medidasList());
-  await remove(p.tabla, p.del);
-  if (p.filas.length) await insert(p.tabla, p.filas);
+  if (p.filas.length) await upsert(p.tabla, p.filas, { on_conflict: "user_id,fecha" });
 }
 
-/** espejo de ASIGNACIONES del entrenador (solo reales: la demo nunca se sube) */
+/** Asignaciones: identificador local persistente, sin inserciones duplicadas. */
 async function pushAsignaciones() {
   const u = currentUser();
   const p = payloadAsignaciones(u.id, S.asignacionesDe("local"));
-  await remove(p.tabla, p.del);
-  if (p.filas.length) await insert(p.tabla, p.filas);
+  if (p.filas.length) await upsert(p.tabla, p.filas, { on_conflict: "user_id,client_sync_id" });
 }
 
-/** espejo del AVATAR 3D (tabla avatars: existe en el esquema base) */
+/** Avatar 3D: PK estable (user_id, provider); una ausencia local no es una baja. */
 async function pushAvatar() {
   const u = currentUser();
   const p = payloadAvatar(u.id, S.data.profile);
-  await remove(p.tabla, p.del);
-  if (p.filas.length) await insert(p.tabla, p.filas);
+  if (p.filas.length) await upsert(p.tabla, p.filas, { on_conflict: "user_id,provider" });
 }
 
 /** espejo del PLANIFICADOR PERSONAL (0006_life_os.sql). */
@@ -211,12 +214,8 @@ async function pushPlanner() {
     row.subtasks.length || Object.keys(row.recurrence_exceptions).length);
   const requiresAreas = rows.some((row) => row.area != null);
 
-  // Leer primero: ninguna operación elimina datos existentes antes de que
-  // los registros deseados hayan podido persistirse en el servidor.
-  const cloudRows = await select("planner_items", {
-    user_id: `eq.${userId}`,
-    select: "client_id",
-  });
+  // Sin borrados automáticos: otro dispositivo puede tener eventos que aún
+  // no existen en esta copia local. Las bajas exigirán tombstones en servidor.
   if (rows.length) {
     const save = (batch) => upsert("planner_items", batch, {
       on_conflict: "user_id,client_id",
@@ -240,17 +239,6 @@ async function pushPlanner() {
     }
   }
 
-  // Eliminar solo filas realmente ausentes de este dispositivo, y siempre al
-  // FINAL de un guardado exitoso. Mantiene la política de espejo local-first.
-  const desired = new Set(rows.map((row) => row.client_id));
-  const stale = (Array.isArray(cloudRows) ? cloudRows : [])
-    .filter((row) => row.client_id && !desired.has(row.client_id));
-  for (const old of stale) {
-    await remove("planner_items", {
-      user_id: `eq.${userId}`,
-      client_id: `eq.${old.client_id}`,
-    });
-  }
 }
 
 /** orquestador */

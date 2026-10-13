@@ -1,9 +1,8 @@
 // ============================================================
 // BAYONA — ESPEJO NUBE · planificación de subida (dominio puro)
 // ------------------------------------------------------------
-// «La verdad vive en el dispositivo; la nube es un espejo idempotente»
-// (ADR de arquitectura). Cada payload declara su SCOPE de borrado
-// (usuario completo) y sus filas con dueño: reenviar nunca duplica.
+// Subida incremental: las filas llevan dueño y claves naturales o IDs
+// locales persistentes. Una copia parcial no puede borrar la nube.
 // Reglas: solo datos REALES del usuario local; la cartera demo jamás se
 // sube; ADR-003 = cero vídeo/frames, solo resúmenes numéricos.
 // ============================================================
@@ -39,6 +38,8 @@ export function payloadAsignaciones(userId, asignaciones = []) {
     .map((a) => ({
       user_id: userId,
       cliente_id: a.clienteId,
+      // Misma clave entre reintentos; el ID local se genera en state.js.
+      client_sync_id: String(a.id || [a.clienteId, a.workoutId, a.dia, a.creada || ""].join("|")),
       workout_id: a.workoutId,
       dia: a.dia,
       nota: a.nota || "",
