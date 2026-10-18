@@ -8,7 +8,8 @@ const db = source("api/supabase/migrations/0015_mandatory_athlete_onboarding.sql
 const gate = source("api/supabase/migrations/0016_server_enforced_onboarding_access.sql");
 
 assert.ok(!oauth.includes("BAYONA_AUTH_ENTRY_URL"), "External presentation site cannot override APP OAuth destination");
-assert.ok(oauth.includes('new URL("/?source=pwa", appOrigin)'), "OAuth ends in APP root for the initiating origin");
+assert.ok(oauth.includes('new URL(appPath + "?source=pwa", appOrigin)'), "OAuth returns to the APP path within the initiating origin");
+assert.ok(oauth.includes('"/mi-app/index.html"'), "Local integrated APP preserves its own callback and never points to WEB home");
 assert.ok(oauth.includes('callback.searchParams.set("auth_state", attempt)'), "OAuth state correlation is retained");
 assert.ok(auth.includes('const total = 4'), "Athlete onboarding has four steps");
 assert.ok(auth.includes('auth-privacy-ack'), "Privacy notice acknowledgement is explicit");
@@ -25,4 +26,4 @@ assert.ok(db.includes('bayona_create_profile_for_auth_user') && db.includes('SEC
 assert.ok(gate.includes('public.bayona_may_use_product') && gate.includes('bayona_completed_onboarding_required'), "RLS blocks unonboarded users");
 assert.ok(gate.includes('AS RESTRICTIVE FOR ALL TO authenticated'), "Policies are restrictive on reads and writes");
 assert.ok(gate.includes("'coach_clients'") && gate.includes("'health_samples'") && gate.includes("'planner_items'"), "Coaching, health and planning are guarded");
-console.log("BAYONA OAuth/app onboarding server contract: 18 checks passed.");
+console.log("BAYONA OAuth/app onboarding server contract: 19 checks passed.");
