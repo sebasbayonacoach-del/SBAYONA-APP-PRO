@@ -24,6 +24,6 @@ assert.ok(css.includes("BAYONA ACCESS 2.0"), "Premium design layer is installed"
 assert.ok(css.includes("grid-template-columns: minmax(0, 1fr) minmax(410px, 475px)"), "Desktop layout is controlled");
 assert.ok(css.includes("@media (max-width: 900px)") && css.includes(".auth-editorial"), "Phone layout collapses");
 assert.ok(css.includes("#f4a261") && !css.includes("#ff6a00"), "WEB palette is retained in front door");
-assert.ok(html.includes('href="css/auth.css?v=3"'), "HTML does not reuse old stylesheet cache");
+assert.ok(html.includes('href="css/auth.css?v=4"'), "HTML does not reuse old stylesheet cache");
 assert.ok(sw.includes('bayona-shell-v48'), "PWA shell cache changes for the new design");
 console.log("BAYONA premium auth: 17 regression checks passed.");
