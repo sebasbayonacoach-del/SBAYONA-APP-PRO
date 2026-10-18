@@ -84,7 +84,7 @@ check(authGate.includes("SÍ, USAR MI PROGRESO") && authGate.includes("NO, CREAR
 check(!authGate.includes("Soy coach") && authGate.includes("Continuar con Google") &&
   authGate.includes('signUpWithPassword(email, password, "athlete"'),
   "registro público siempre usuario normal con Google opcional");
-check(authGate.includes("Conexión segura · datos separados por cuenta"), "la UI comunica seguridad sin afirmar cifrado local inexistente");
+check(authGate.includes("Acceso protegido · cada cuenta conserva su progreso") && !authGate.includes("cifrado local garantizado"), "la UI comunica protección sin afirmar cifrado local inexistente");
 check(authGate.includes("Después te pediremos seguridad, permisos o datos de salud solo cuando una función realmente los necesite."), "datos sensibles salen del registro inicial");
 
 const landing = readFileSync(resolve(root, "js/ui/landing-boot.js"), "utf8");
@@ -131,7 +131,7 @@ check((account.match(/location\.reload\(\)/g) || []).length >= 2, "cambiar o cer
 check(account.includes('on("profile", sincroSuave)'), "cambios de perfil entran en cola de sincronización");
 
 const index = readFileSync(resolve(root, "index.html"), "utf8");
-check(index.includes('href="css/auth.css?v=1"'), "estilos Front Door forman parte del documento");
+check(/href="css\/auth\.css\?v=\d+"/.test(index), "estilos Front Door forman parte del documento");
 const authCss = readFileSync(resolve(root, "css/auth.css"), "utf8");
 const authGateSource = readFileSync(resolve(root, "js/ui/auth-gate.js"), "utf8");
 check(authCss.includes("#bayona-auth-gate .auth-field input") && authCss.includes("height: 48px"), "inputs del acceso conservan objetivo táctil de 48 px");
