@@ -6252,3 +6252,32 @@ body[data-section="hoy"] .fit-bayona-fab{display:none}
 .life-areas-progress-row{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:10px 14px;border-top:1px solid var(--hair)}
 .life-areas-progress-row>span{font:700 10px/1.2 var(--sans);color:var(--fit-ink)}
 .life-areas-progress-row small{font:500 9px/1.2 var(--sans);color:var(--fit-muted);text-align:right}
+
+/* BAYONA APP · Trainingym catalog audit for verified coach UI. */
+.tg-app-audit{margin:20px 0 24px;padding:22px;border:1px solid #48515b;border-radius:18px;background:linear-gradient(160deg,#181e23,#101419)}
+.tg-app-audit-head{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:18px}
+.tg-app-audit-head h3{font-size:clamp(22px,2.6vw,30px);line-height:1.18;letter-spacing:-.035em;color:#f1d1b1;margin:10px 0}
+.tg-app-audit-head p{font-size:12px;line-height:1.6;color:#acb3b8;margin:0;max-width:680px}
+.tg-app-audit-lock{border:1px solid #615241;color:#e6c3a0;border-radius:30px;padding:8px 10px;font-size:10px;white-space:nowrap}
+.tg-app-audit-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px;margin-bottom:18px}
+.tg-app-audit-kpi{text-align:left;min-width:0;display:flex;flex-direction:column;gap:8px;background:#20262b;border:1px solid #48515b;color:#e8cfb1;border-radius:12px;padding:14px 12px;cursor:pointer}
+.tg-app-audit-kpi strong{font-size:clamp(19px,2vw,28px);font-variant-numeric:tabular-nums;line-height:1}
+.tg-app-audit-kpi small{font-size:9px;letter-spacing:.05em;color:#aeb9be}
+.tg-app-audit-kpi.active{background:#513421;border-color:#e6a169}
+.tg-app-audit-kpi:focus-visible,.tg-app-audit-open:focus-visible{outline:2px solid #f4a261;outline-offset:3px}
+.tg-app-audit-toolbar{display:flex;gap:15px;align-items:center;justify-content:space-between;margin-bottom:10px}
+.tg-app-audit-toolbar input{min-width:0;flex:1;border:1px solid #53606b;border-radius:10px;background:#141b21;color:#f3e6d6;padding:12px 14px}
+.tg-app-audit-count{color:#edc5a1;white-space:nowrap;font-size:12px}
+.tg-app-audit-row{display:grid;grid-template-columns:56px minmax(0,1fr) 175px auto;gap:12px;align-items:center;padding:13px 0;border-bottom:1px solid #354047}
+.tg-app-audit-id{color:#d3ab83;font-family:monospace}
+.tg-app-audit-info{min-width:0;display:flex;flex-direction:column;gap:5px;overflow-wrap:anywhere}
+.tg-app-audit-info strong{color:#f3e7d9;font-size:13px}
+.tg-app-audit-info span{color:#9aabb7;font-size:11px}
+.tg-app-audit-state{font-size:10px;color:#c5b7a8}
+.tg-app-audit-state-error{color:#ffa88b}
+.tg-app-audit-open{white-space:nowrap}
+.tg-app-audit-pager{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-top:16px;font-size:12px;color:#b0bec8}
+.tg-app-audit-empty{padding:20px;color:#c4b4a8}
+.tg-app-audit-note{font-size:10px;line-height:1.6;color:#9facb6;margin:17px 0 0}
+@media(max-width:900px){.tg-app-audit-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.tg-app-audit-row{grid-template-columns:55px 1fr auto}.tg-app-audit-state{grid-column:2}}
+@media(max-width:600px){.tg-app-audit{padding:15px}.tg-app-audit-head{display:block}.tg-app-audit-lock{display:inline-block;margin-top:13px}.tg-app-audit-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.tg-app-audit-toolbar{align-items:stretch;flex-direction:column}.tg-app-audit-count{text-align:right}.tg-app-audit-row{grid-template-columns:45px minmax(0,1fr);gap:8px}.tg-app-audit-state{grid-column:2}.tg-app-audit-open{grid-column:2;justify-self:start}.tg-app-audit-pager{gap:5px}.tg-app-audit-pager button{padding:8px 10px}}

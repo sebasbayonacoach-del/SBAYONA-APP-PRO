@@ -451,7 +451,7 @@ function authForm() {
       <div class="auth-google-divider"><span>O CONTINÚA CON</span></div>
       <button class="auth-google-button" type="button" data-auth-action="google" ${state.busy || !canRegister ? "disabled" : ""}><span class="auth-google-mark">G</span> Continuar con Google</button>
       <div class="auth-security"><span>●</span> Conexión segura · datos separados por cuenta</div>
-      ${legacyProgress() ? '<button type="button" class="auth-local" data-auth-action="local">Continuar con el progreso guardado en este dispositivo</button>' : ""}
+      ${localEntryHtml()}
     </section>`;
 }
 
@@ -597,13 +597,21 @@ async function startFreshProfile() {
   render();
 }
 
+function localEntryHtml() {
+  const returning = Boolean(legacyProgress());
+  return `<div class="auth-local-entry">
+    <button type="button" class="auth-local" data-auth-action="local">${returning ? "Continuar con el progreso guardado en este dispositivo" : "PROBAR SIN CUENTA"}</button>
+    <p>Solo en este dispositivo. Sin cuenta ni sincronización. Puedes guardar una copia desde Perfil.</p>
+  </div>`;
+}
+
 function offlineView() {
   return `
     <section class="auth-card auth-center">
       <div class="auth-big-mark">⌁</div>
-      ${authHeader("SIN CONEXIÓN", "BAYONA sigue aquí.", "No pudimos contactar con la nube. Si ya tienes progreso en este teléfono puedes continuar; para crear una cuenta necesitamos conexión.")}
-      ${legacyProgress() ? '<button class="auth-primary" type="button" data-auth-action="local">CONTINUAR EN ESTE DISPOSITIVO</button>' : ""}
-      <button class="auth-secondary" type="button" data-auth-action="retry">REINTENTAR</button>
+      ${authHeader("CONEXIÓN NO DISPONIBLE", "Puedes empezar aquí.", "No hemos podido conectar con tu cuenta. Puedes reintentar o usar tu espacio local sin sincronización.")}
+      ${localEntryHtml()}
+      <button class="auth-secondary" type="button" data-auth-action="retry">REINTENTAR CONEXIÓN</button>
     </section>`;
 }
 

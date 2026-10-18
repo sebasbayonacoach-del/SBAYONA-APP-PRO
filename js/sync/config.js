@@ -23,7 +23,7 @@ const INLINE = {
   anonKey: "sb_publishable_ZaBblymo5dRZZJNNOAUXeA_T2-7S1to",
 };
 
-/** resuelve la configuración: inline → window → localStorage */
+/** Runtime público del servidor → fallback incluido → configuración local. */
 export function supabaseConfig() {
   const fromWindow = (typeof window !== "undefined" && window.BAYONA_SUPABASE) || null;
   let fromStore = null;
@@ -31,10 +31,11 @@ export function supabaseConfig() {
     fromStore = JSON.parse(localStorage.getItem("bayona.supabase.v1") || "null");
   } catch (e) { /* sin almacenamiento */ }
 
-  const url = INLINE.url || fromWindow?.url || fromStore?.url;
-  const anonKey = (INLINE.anonKey && !INLINE.anonKey.startsWith("PEGA_AQUI"))
-    ? INLINE.anonKey
-    : (fromWindow?.anonKey || fromStore?.anonKey);
-
-  return { url, anonKey, ready: Boolean(url && anonKey) };
+  // Keep URL and public key from the same source; partial overrides cannot
+  // silently authenticate against a different project.
+  const complete = (value) => value?.url && value?.anonKey && !value.anonKey.startsWith("PEGA_AQUI");
+  const selected = complete(fromWindow) ? fromWindow : complete(INLINE) ? INLINE : fromStore;
+  const url = selected?.url;
+  const anonKey = selected?.anonKey;
+  return { url, anonKey, ready: Boolean(complete(selected)) };
 }

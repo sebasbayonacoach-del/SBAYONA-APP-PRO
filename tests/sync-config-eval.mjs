@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import { supabaseConfig } from '../js/sync/config.js';
+globalThis.localStorage = { getItem: () => null };
+globalThis.window = { BAYONA_SUPABASE: {url:'https://runtime.example',anonKey:'public-runtime'} };
+assert.deepEqual(supabaseConfig(), {url:'https://runtime.example',anonKey:'public-runtime',ready:true});
+window.BAYONA_SUPABASE = { url:'https://partial.example' };
+assert.notEqual(supabaseConfig().url, 'https://partial.example');
+window.BAYONA_SUPABASE = { anonKey:'partial-key' };
+assert.notEqual(supabaseConfig().anonKey, 'partial-key');
+delete globalThis.window;
+assert.equal(supabaseConfig().ready, true);
+console.log('✅ Configuración pública: prioridad runtime y pares indivisibles de URL/clave.');

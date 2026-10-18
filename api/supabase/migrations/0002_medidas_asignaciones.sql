@@ -44,3 +44,10 @@ create policy "asignaciones propias: select" on entrenamientos_asignados for sel
 create policy "asignaciones propias: insert" on entrenamientos_asignados for insert with check (auth.uid() = user_id);
 create policy "asignaciones propias: update" on entrenamientos_asignados for update using (auth.uid() = user_id);
 create policy "asignaciones propias: delete" on entrenamientos_asignados for delete using (auth.uid() = user_id);
+
+-- Explicit Data API privileges; the policies above continue to scope each row.
+revoke all privileges on public.body_medidas, public.entrenamientos_asignados from anon;
+grant select, insert, update, delete on public.body_medidas, public.entrenamientos_asignados
+  to authenticated;
+grant all privileges on public.body_medidas, public.entrenamientos_asignados
+  to service_role;

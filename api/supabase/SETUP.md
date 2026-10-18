@@ -10,7 +10,7 @@
 
 | Pieza | Valor |
 |---|---|
-| Base de datos PostgreSQL 15 | 18 tablas con RLS (aislamiento por usuario + Coach ↔ cliente) |
+| Base de datos Supabase/PostgreSQL | 20 tablas con RLS (aislamiento por usuario + Coach ↔ cliente) |
 | Auth | Magic link (email) + Google |
 | API instantánea | REST + Realtime por tabla |
 | Credenciales | `Project URL` + `anon key` (las que me pasas) |
@@ -63,22 +63,41 @@
 
 1. En el menú lateral → **SQL Editor**.
 2. **New query**.
-3. Abre el fichero **[`api/supabase/setup.sql`](./setup.sql)** de este repo,
+3. Para regenerar el instalador desde la fuente de verdad, ejecuta en la raíz del repo `node tools/build-supabase-setup.mjs`.
+4. Abre el fichero generado **[`api/supabase/setup.sql`](./setup.sql)**,
    copia **todo** su contenido y pégalo en el editor.
-4. Pulsa **Run** (⌘/Ctrl + Enter).
-5. Debe salir: **`Success. No rows returned`**.
+5. Pulsa **Run** (⌘/Ctrl + Enter). Debe terminar con **`Success. No rows returned`**.
 
-   Al final del mismo script hay una consulta de verificación; si la seleccionas
-   y la ejecutas sola, debe devolverte **18 filas**:
-   `profiles, consents, avatars, exercises, plans, workout_sessions, sets_log,
-   health_samples, readiness_daily, scans, red_flags, xp_ledger, body_medidas,
-   entrenamientos_asignados, coach_clients, coach_invites, coach_routines,
-   coach_assignments`.
+   Este instalador se genera concatenando, en orden, las nueve migraciones de
+   `api/supabase/migrations/`. Está pensado para **un proyecto vacío** y no es
+   idempotente: ejecútalo una sola vez. Si falla, guarda el error y revisa el
+   estado de las migraciones antes de hacer otra ejecución.
 
-> El script es **idempotente**: `create table if not exists` + `drop policy if
-> exists`. Puedes re-ejecutarlo sin miedo si algo falla a medias.
+   Para un proyecto existente, consulta `supabase_migrations.schema_migrations`
+   y aplica solo migraciones pendientes, en orden. No ejecutes el instalador
+   completo sobre tablas que ya existen.
 
-6. Comprueba también en **Table Editor** que las tablas aparecen y que el
+6. Ejecuta esta consulta de comprobación. Deben aparecer `20` tablas y `20`
+   con RLS activado:
+
+   ```sql
+   select count(*) as tablas,
+          count(*) filter (where c.relrowsecurity) as tablas_con_rls
+   from pg_class c
+   join pg_namespace n on n.oid = c.relnamespace
+   where n.nspname = 'public' and c.relkind in ('r', 'p')
+     and c.relname in (
+       'profiles','consents','avatars','exercises','plans','workout_sessions',
+       'sets_log','health_samples','readiness_daily','scans','red_flags','xp_ledger',
+       'body_medidas','entrenamientos_asignados','coach_clients','coach_invites',
+       'coach_routines','coach_assignments','planner_items','connected_sources'
+     );
+   ```
+
+   `anon` tiene permiso SQL para alcanzar la ruta `profiles` del diagnóstico,
+   pero RLS no contiene política para `anon`, así que no puede leer perfiles.
+
+7. Comprueba también en **Table Editor** que las tablas aparecen y que el
    interruptor **RLS enabled** está en verde en todas.
 
 ## 5. Habilitar Auth (magic link)
@@ -140,7 +159,7 @@ on conflict (id) do nothing;
 - [ ] `Project URL` copiada
 - [ ] `anon` `public` key copiada (**no** la `service_role`)
 - [ ] `setup.sql` ejecutado → `Success`
-- [ ] 18 tablas en Table Editor con RLS en verde
+- [ ] 20 tablas en Table Editor con RLS en verde
 - [ ] Auth → Email activo, Site URL = `http://localhost:8080`
 - [ ] `rls_basic.sql` → todo `OK`
 - [ ] (opcional) Google OAuth configurado
@@ -163,8 +182,8 @@ estado local a la nube, cola offline → servidor y export/borrado GDPR.
 
 | Síntoma | Causa típica | Solución |
 |---|---|---|
-| `relation "profiles" does not exist` | El script no terminó | Re-ejecuta `setup.sql` (es idempotente) |
-| `permission denied for table ...` | RLS activo y sin policy | Re-ejecuta `setup.sql`; revisa que las 15 policies existen |
+| `PGRST205` al consultar `profiles` | PostgREST no ve la relación: migración pendiente o `public` no expuesto | Revisa historia de migraciones y exposición Data API; no repitas el instalador completo |
+| `42501` / `permission denied for table ...` | Falta un GRANT para el rol solicitado | Revisa grants y RLS por separado; aplica solo la corrección pendiente |
 | `new row violates row-level security` | `user_id` no coincide con `auth.uid()` | En el insert, `user_id` debe ser el id del usuario autenticado |
 | El email de login no lleva a la app | Redirect URL mal puesto | §5.3 — Site URL + `http://localhost:8080/**` |
 | `401 Unauthorized` | anon key incorrecta/cortada | Copia la clave entera, es un JWT largo |

@@ -141,5 +141,9 @@ create policy "usuario elimina sus conexiones" on connected_sources
   for delete to authenticated
   using (auth.uid() = user_id);
 
--- Sin GRANT a anon. authenticated hereda los permisos de tabla de Supabase
--- y RLS decide cada fila.
+-- Data API privileges are explicit; RLS decides which rows authenticated sees.
+revoke all privileges on public.planner_items, public.connected_sources from anon;
+grant select, insert, update, delete on public.planner_items, public.connected_sources
+  to authenticated;
+grant all privileges on public.planner_items, public.connected_sources
+  to service_role;

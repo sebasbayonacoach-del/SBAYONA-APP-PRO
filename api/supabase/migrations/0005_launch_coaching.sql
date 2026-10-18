@@ -445,3 +445,15 @@ create policy "coach reads linked sets" on sets_log
 
 -- No se abre readiness, health_samples ni medidas corporales al Coach en esta
 -- migración: esos dominios requieren consentimiento explícito adicional.
+
+-- Explicit Data API privileges; RLS above still governs every client row.
+revoke all privileges on
+  public.coach_clients, public.coach_invites, public.coach_routines, public.coach_assignments
+from anon;
+grant select, insert, update, delete on
+  public.coach_clients, public.coach_routines, public.coach_assignments
+to authenticated;
+grant select, delete on public.coach_invites to authenticated;
+grant all privileges on
+  public.coach_clients, public.coach_invites, public.coach_routines, public.coach_assignments
+to service_role;

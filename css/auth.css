@@ -824,3 +824,7 @@ body.fitness-app #bayona-auth-gate .auth-text-button {
     display: none;
   }
 }
+
+.auth-local-entry { margin-top:24px; padding-top:18px; border-top:1px solid #ffffff24; }
+.auth-local-entry .auth-local { min-height:48px; width:100%; }
+.auth-local-entry p { color:#bbb7b0; font-size:.78rem; line-height:1.55; margin:10px 0 0; }

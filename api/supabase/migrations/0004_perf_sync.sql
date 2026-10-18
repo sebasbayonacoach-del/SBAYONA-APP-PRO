@@ -115,3 +115,8 @@ drop trigger if exists plans_touch on plans;
 create trigger plans_touch
   before update on plans
   for each row execute function touch_updated_at();
+
+-- Views use security_invoker and inherit the caller's RLS on source tables.
+revoke all privileges on public.v_hoy_resumen, public.v_progreso_semanal, public.v_flags_activas from anon;
+grant select on public.v_hoy_resumen, public.v_progreso_semanal, public.v_flags_activas
+  to authenticated, service_role;

@@ -54,7 +54,7 @@ create or replace function public.sync_bayona_owner_role()
 returns trigger
 language plpgsql security definer
 set search_path = ''
-as $
+as $$
 begin
   if tg_op = 'DELETE' or tg_op = 'UPDATE' then
     update public.profiles
@@ -72,7 +72,7 @@ begin
   if tg_op = 'DELETE' then return old; end if;
   return new;
 end;
-$;
+$$;
 revoke all on function public.sync_bayona_owner_role() from public, anon, authenticated;
 
 drop trigger if exists bayona_owner_sync_role on public.bayona_owner;
