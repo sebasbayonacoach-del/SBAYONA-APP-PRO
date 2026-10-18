@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import { normalizeArchive, findProjects, archiveSummary, encryptArchive, decryptArchive, validateFileSize, VAULT_KEY } from '../js/personal/archive.js';
+const data={format:'bayona-personal-archive',version:1,owner:'Titular privado',projects:[{id:'bayona-life-os',name:'BAYONA Life OS',area:'Producto',status:'En curso',description:'Plataforma de entrenamiento y salud',since:'2025'},{id:'humano-ia',name:'HUMANO × IA',area:'Contenido',status:'Piloto',description:'Hacer sentir bien a las personas'}],milestones:[{date:'2026-10-18',title:'Pacto creativo'}],principles:['Verdad'],mission:'Hacer sentir bien a las personas'};
+const norm=normalizeArchive(data);
+assert.deepEqual(archiveSummary(norm),{projects:2,milestones:1,areas:2});
+assert.equal(findProjects(norm,'entrenamiento').length,1);
+assert.equal(findProjects(norm,'Húmáno').length,1);
+assert.equal(findProjects(norm,'','Contenido').length,1);
+assert.throws(()=>normalizeArchive({...data,projects:[data.projects[0],data.projects[0]]}),/identificadores/);
+assert.throws(()=>normalizeArchive({...data,format:'invalid'}),/archivo privado/);
+assert.throws(()=>validateFileSize(3_000_000),/2 MB/);
+assert.ok(VAULT_KEY.includes('private'));
+const saved=await encryptArchive(norm,'frase muy larga y privada');
+assert.equal(saved.algorithm,'AES-256-GCM');
+assert.ok(!JSON.stringify(saved).includes('BAYONA Life OS'));
+assert.deepEqual(await decryptArchive(saved,'frase muy larga y privada'),norm);
+await assert.rejects(decryptArchive(saved,'frase incorrecta de prueba'),/Frase incorrecta/);
+console.log('BAYONA archivo personal: validación, búsqueda, cifrado y separación OK');
