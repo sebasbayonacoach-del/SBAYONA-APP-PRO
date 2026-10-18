@@ -55,3 +55,13 @@
   .proplayer-teaser-open-text{font-size:10px}
 }
 @media(prefers-reduced-motion:reduce){.proplayer-teaser-video{transition:none}}
+
+
+/* Lightweight one-frame canvas; the MP4 element is released after decoding. */
+.proplayer-teaser-frame {
+  position:absolute;inset:0;display:block;width:100%;height:100%;
+  object-fit:cover;opacity:0;pointer-events:none;
+}
+.proplayer-teaser[data-preview="ready"] .proplayer-teaser-frame {opacity:1}
+.proplayer-teaser-video {opacity:0}
+.proplayer-teaser[data-preview="ready"] .proplayer-teaser-video {opacity:0}

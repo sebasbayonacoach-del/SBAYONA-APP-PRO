@@ -4,7 +4,7 @@
 // Con esto la app abre sin red y el registro de series funciona offline
 // (los datos viven en el dispositivo y se sincronizan después).
 // ============================================================
-const CACHE = "bayona-shell-v49";
+const CACHE = "bayona-shell-v50";
 const SHELL = [
   "./css/pro.css", "./css/proplayer-video-preview.css", "./css/coach-elite.css", "./css/coach-visual-360.css",
   "./css/luxe.css",

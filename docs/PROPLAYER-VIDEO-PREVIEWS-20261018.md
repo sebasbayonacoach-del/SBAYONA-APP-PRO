@@ -31,3 +31,20 @@ No publicar la versión oficial sin aclarar derechos.
 - 21 pruebas estructurales del módulo.
 - 56 suites automáticas PASS.
 - Sin modificar backend, datos personales ni permisos de Supabase.
+
+## Control adicional de estabilidad (19:37, 18/10)
+- Tras observar saturación de renderizadores Brave durante un pegado,
+  la previsualización se rediseñó para usar **un solo decodificador de vídeo
+  a la vez**, mediante una cola y una captura local de fotograma en canvas
+  de 320 píxeles de ancho.
+- El fotograma permanece visible mientras que el elemento MP4 libera su
+  fuente inmediatamente después de dibujarlo.
+- Reproducción dinámica solo a petición (hover), con pausa si se detecta
+  Ctrl+V o la pestaña deja de estar visible.
+- No se exportan imágenes desde canvas, no se crean ficheros multimedia
+  y no se suben contenidos a servidores.
+- Verificado en Chromium 1440 y 390 px: respectivamente 5 y 2 fotogramas
+  listos después de ~7 segundos, cero fuentes MP4 activas tras la extracción,
+  cero errores JS y cero overflow horizontal.
+- Esto reduce el riesgo de bloqueo del navegador; no demuestra que los vídeos
+  fueran la causa exclusiva del problema de pegado.
