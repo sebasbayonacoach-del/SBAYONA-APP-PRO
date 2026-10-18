@@ -25,5 +25,5 @@ assert.ok(css.includes("grid-template-columns: minmax(0, 1fr) minmax(410px, 475p
 assert.ok(css.includes("@media (max-width: 900px)") && css.includes(".auth-editorial"), "Phone layout collapses");
 assert.ok(css.includes("#f4a261") && !css.includes("#ff6a00"), "WEB palette is retained in front door");
 assert.ok(html.includes('href="css/auth.css?v=4"'), "HTML does not reuse old stylesheet cache");
-assert.ok(sw.includes('bayona-shell-v48'), "PWA shell cache changes for the new design");
+assert.ok(sw.includes('bayona-shell-v49'), "PWA shell cache changes for the new design");
 console.log("BAYONA premium auth: 17 regression checks passed.");
