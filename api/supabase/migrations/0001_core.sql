@@ -260,3 +260,34 @@ create policy "health update requires consent" on health_samples
 -- Lectura/exportación de datos propios siempre permitida (derecho de acceso
 -- y portabilidad GDPR): revocar consentimiento corta la INGESTA, no el acceso
 -- a los datos ya recogidos, que el usuario puede exportar o borrar.
+
+-- Data API access is explicit; RLS above remains the row-level boundary.
+-- Profiles gets a metadata-free schema probe for auth readiness. Its RLS
+-- policies are authenticated-only, so anon can reach the route but sees no rows.
+grant usage on schema public to anon, authenticated, service_role;
+revoke all privileges on
+  public.profiles, public.consents, public.avatars, public.exercises,
+  public.plans, public.workout_sessions, public.sets_log, public.health_samples,
+  public.readiness_daily, public.scans, public.red_flags, public.xp_ledger
+from anon;
+grant select on public.profiles to anon;
+grant select, insert, update, delete on
+  public.profiles, public.consents, public.avatars, public.plans,
+  public.workout_sessions, public.sets_log, public.health_samples,
+  public.readiness_daily, public.scans, public.red_flags
+to authenticated;
+grant select on public.exercises to authenticated;
+grant select, insert on public.xp_ledger to authenticated;
+grant all privileges on
+  public.profiles, public.consents, public.avatars, public.exercises,
+  public.plans, public.workout_sessions, public.sets_log, public.health_samples,
+  public.readiness_daily, public.scans, public.red_flags, public.xp_ledger
+to service_role;
+grant usage, select on sequence
+  public.sets_log_id_seq, public.health_samples_id_seq,
+  public.red_flags_id_seq, public.xp_ledger_id_seq
+to authenticated, service_role;
+revoke all privileges on sequence
+  public.sets_log_id_seq, public.health_samples_id_seq,
+  public.red_flags_id_seq, public.xp_ledger_id_seq
+from anon;

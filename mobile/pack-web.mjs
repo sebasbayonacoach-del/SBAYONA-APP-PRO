@@ -7,7 +7,8 @@ import { fileURLToPath } from 'node:url';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const out = join(root, 'mobile', 'web-build');
 
-const INCLUDE = ['index.html', 'manifest.webmanifest', 'css', 'js', 'media', 'trainingym', 'vendor', 'docs', 'fonts', 'sw.js', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png'];
+// Keep internal documentation, diagnostics and admin-only files out of the APK.
+const INCLUDE = ['index.html', 'manifest.webmanifest', 'css', 'js', 'media', 'trainingym', 'vendor', 'fonts', 'sw.js', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png'];
 
 if (existsSync(out)) rmSync(out, { recursive: true });
 mkdirSync(out, { recursive: true });

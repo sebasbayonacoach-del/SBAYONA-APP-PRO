@@ -1,7 +1,7 @@
 // ============================================================
 // BAYONA — ONBOARDING v3 · conocer sin interrogar
 // ------------------------------------------------------------
-// 9 pantallas cortas. Perfil v4 por dentro, compatibilidad v2 por fuera.
+// Seis pasos esenciales; tres ajustes adicionales opcionales. Perfil v4 por dentro, compatibilidad v2 por fuera.
 // Seguridad = screening, nunca diagnóstico. Permisos del sistema se piden
 // después, cuando existe contexto.
 // ============================================================
@@ -16,7 +16,10 @@ import {
   scoreParQ, PAR_Q_ITEMS, contextualizeTrainingScreening,
 } from "./health/healthMap.js";
 
-const TOTAL = 9;
+const ESSENTIAL_STEPS = Object.freeze([0, 1, 2, 3, 5, 8]);
+const EXTENDED_STEPS = Object.freeze([0, 1, 2, 3, 5, 4, 6, 7, 8]);
+export function onboardingRoute(extended = false) { return extended ? EXTENDED_STEPS : ESSENTIAL_STEPS; }
+function steps() { return onboardingRoute(st.extended); }
 const DAYS = ["L","M","X","J","V","S","D"];
 const WINDOWS = [
   ["morning","Mañana"],
@@ -69,6 +72,7 @@ const PLANS = ["free","raiz","performance","elite"];
 
 const st = {
   step:0,
+  extended:false,
   name:"",
   goals:["BIENESTAR Y ADHERENCIA"],
   goalPrimary:"BIENESTAR Y ADHERENCIA",
@@ -99,14 +103,16 @@ const el = (html) => {
 };
 
 function progress() {
-  const pct=Math.round(((st.step+1)/TOTAL)*100);
+  const current = Math.max(0, steps().indexOf(st.step)) + 1;
+  const total = steps().length;
+  const pct=Math.round((current/total)*100);
   return `
     <div class="ob-top">
       <span>BAYONA</span>
-      <span>${st.step+1} / ${TOTAL}</span>
+      <span>${current} / ${total}</span>
     </div>
     <div class="ob-progress" aria-hidden="true"><i style="width:${pct}%"></i></div>
-    <span class="sr-only">Paso ${st.step+1} de ${TOTAL}</span>`;
+    <span class="sr-only">Paso ${current} de ${total}</span>`;
 }
 
 function footer({done=false,back=true,next=true}={}) {
@@ -334,9 +340,9 @@ function view() {
   if (st.step===7) return `
     ${progress()}
     <div class="ob-stage">
-      <div class="ob-kicker">TU ACCESO</div>
+      <div class="ob-kicker">ACOMPAÑAMIENTO · OPCIONAL</div>
       <h2>Empieza donde tenga sentido.</h2>
-      <p>Lo bloqueado seguirá visible como preview. Siempre sabrás qué incluye el siguiente nivel antes de cambiar.</p>
+      <p>Puedes indicar tu interés. Esta elección no contrata ni activa una membresía; confirmaremos contigo las condiciones.</p>
       <div class="ob-plans" role="group" aria-label="${esc(t("onboarding.plan.aria"))}">
         ${PLANS.map((id)=>{
           const p=PLAN_META[id];
@@ -367,13 +373,14 @@ function view() {
       <div class="ob-ready-mark">✓</div>
       <div class="ob-kicker">TU PUNTO DE PARTIDA</div>
       <h2>Ya tenemos suficiente para empezar.</h2>
-      <p>No es un contrato con tu yo de hoy. BAYONA irá aprendiendo de lo que realmente haces.</p>
+      <p>Podrás cambiarlo desde Perfil. Empieza con tu primera acción de hoy.</p>
+      ${!st.extended ? '<button class="ob-optional" id="ob-optional" type="button">PERSONALIZAR MÁS · OPCIONAL</button>' : ""}
       <div class="ob-summary-v3">
         <span><small>PRIORIDAD</small><b>${esc(GOAL_LABEL[st.goalPrimary]?.[1]||st.goalPrimary)}</b></span>
         <span><small>SEMANA</small><b>${st.weeklyDays.length} día${st.weeklyDays.length===1?"":"s"} · ~${esc(st.sessionMinutes)} min</b></span>
         <span><small>ENTORNO</small><b>${esc(selectedPlaces.slice(0,2).join(" · ")||"Por definir")}</b></span>
         <span><small>COACH</small><b>${esc(COACHES.find((c)=>c.id===st.coachPersona)?.name||"Sebastián")}</b></span>
-        <span><small>PLAN</small><b>${esc(PLAN_META[st.membershipPlan]?.label||"FREE")}</b></span>
+        <span><small>INTERÉS</small><b>${esc(PLAN_META[st.membershipPlan]?.label||"FREE")}</b></span>
         <span><small>SEGURIDAD</small><b>${health.clearance==="cleared"?"Sin alertas":health.clearance==="conditional"?"Adaptar":"Revisar antes"}</b></span>
       </div>
       ${a.minor?'<div class="ob-context-note"><b>Perfil juvenil</b><span>El sistema tratará la etapa de desarrollo como contexto específico y evitará aplicar reglas de adulto por defecto.</span></div>':""}
@@ -473,11 +480,13 @@ function render(box) {
       st.customPlace=q("#ob-custom-place")?.value.trim()||st.customPlace;
       st.equipmentText=q("#ob-equipment")?.value.trim()||st.equipmentText;
     }
-    st.step=Math.min(TOTAL-1,st.step+1);
+    st.step=steps()[Math.min(steps().length-1, steps().indexOf(st.step)+1)];
     render(box);
   });
 
-  q("#ob-back")&&(q("#ob-back").onclick=()=>{st.step=Math.max(0,st.step-1);render(box);});
+  q("#ob-back")&&(q("#ob-back").onclick=()=>{st.step=steps()[Math.max(0,steps().indexOf(st.step)-1)];render(box);});
+
+  q("#ob-optional")&&(q("#ob-optional").onclick=()=>{st.extended=true;st.step=4;render(box);});
 
   q("#ob-done")&&(q("#ob-done").onclick=()=>{
     const a=ageInfo();
@@ -504,12 +513,13 @@ function render(box) {
       developmentProfile:a.age===null?null:{age:a.age,minor:a.minor,requiresGuardianReview:a.minor},
       physiologySex:st.physiologySex,
       coachPersona:st.coachPersona,
-      membershipPlan:st.membershipPlan,
+      membershipPlan:normalizePlan(S.data?.profile?.membershipPlan || "free"),
       onboardingVersion:3,
       onboardingCompletedAt:new Date().toISOString(),
     });
     completar({
       ...profile,
+      requestedMembershipPlan:st.membershipPlan,
       healthScreening:{
         clearance:health.clearance,
         redFlags:health.redFlags,
@@ -575,6 +585,7 @@ export function perfilRapido() {
 export const G2_TOQUES_RAPIDO=null;
 
 const css=`
+#ob-layer .ob-optional{padding:12px 0;margin:0 0 16px;border:0;background:transparent;color:#f4a261;text-decoration:underline;text-underline-offset:4px;min-height:44px;font:600 11px var(--sans);cursor:pointer}
 #ob-layer{position:fixed;inset:0;z-index:120;display:grid;place-items:center;padding:18px;background:rgba(4,5,6,.96);font-family:var(--sans)}
 #ob-box{width:min(650px,100%);max-height:calc(100dvh - 36px);min-height:min(720px,calc(100dvh - 36px));display:grid;grid-template-rows:auto minmax(0,1fr) auto;padding:22px;border:1px solid #292d30;border-radius:22px;background:#0b0d0e;color:#f3f1ec;overflow:hidden}
 .ob-top{display:flex;justify-content:space-between;gap:12px;color:#777f84;font:800 8px/1 var(--sans);letter-spacing:.16em}.ob-top span:first-child{color:#e0ddd7}

@@ -1,0 +1,30 @@
+import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
+import {coachExperienceRegions} from "../js/ui/coach-experience.js";
+
+const one=readFileSync(new URL("../js/ui/one.js",import.meta.url),"utf8");
+const layout=readFileSync(new URL("../css/coach-elite.css",import.meta.url),"utf8");
+const html=readFileSync(new URL("../index.html",import.meta.url),"utf8");
+const sw=readFileSync(new URL("../sw.js",import.meta.url),"utf8");
+const moduleSource=readFileSync(new URL("../js/ui/coach-experience.js",import.meta.url),"utf8");
+
+assert.deepEqual(coachExperienceRegions().map(x=>x.id),["upper","core","lower"]);
+assert.match(one,/renderCoachExperience\(body, \{/);
+assert.match(one,/body\.classList\.add\("one-coach-body", "one-elite-body"\)/);
+assert.match(one,/renderCorePriorities\(body, clients\)/);
+assert.match(one,/renderRoster\(body, clients\)/);
+assert.match(one,/renderTemplateLibrary\(body\)/);
+assert.match(one,/renderCloudCoachState\(body\)/);
+assert.match(one,/renderMacroPreview\(body\)/);
+assert.match(layout,/\.one-elite-deck/);
+assert.match(layout,/\.one-elite-anatomy/);
+assert.match(layout,/html\[data-surface-theme="light"\]/);
+assert.match(layout,/@media\(max-width:700px\)/);
+assert.match(layout,/prefers-reduced-motion/);
+assert.match(html,/css\/coach-elite\.css/);
+assert.match(sw,/"\.\/css\/coach-elite\.css"/);
+assert.match(sw,/"\.\/js\/ui\/coach-experience\.js"/);
+assert.match(moduleSource,/ESQUEMA ORIENTATIVO · NO MODELO 3D/);
+assert.match(moduleSource,/No representa agenda real/);
+assert.ok(!/muscleandmotion\.com|player\.vimeo\.com/.test(moduleSource),"No borrowed assets");
+console.log("BAYONA Coach Experience: 19 verifications PASS");

@@ -2,9 +2,9 @@
 // Reutiliza dominio, videos y acciones existentes; no duplica lógica de negocio.
 import { S, todayKey, on } from "../state.js";
 import { WORKOUTS, EXERCISES } from "../data.js";
-import { posterFor, videoFor, tipFor } from "../media.js";
+import { posterFor, videoFor, tipFor, bindVideoRecovery, pauseVideoWhenRemoved } from "../media.js";
 import { esc, t } from "../i18n.js";
-import { BUILDERS, UI, el, openSection } from "./shared.js";
+import { BUILDERS, UI, $, el, elT, openSection, showModal, hideModal } from "./shared.js";
 import { checkInModal } from "./hoy.js";
 
 const NAV_ICONS = {
@@ -81,39 +81,52 @@ function guideCard(workout,pending,today){
   return card;
 }
 
+function openExerciseVideo(source, poster, name){
+  showModal('<div class="affiliate-video-modal" data-affiliate-video></div>',()=>{
+    const host=document.querySelector("[data-affiliate-video]");
+    if(!host)return;
+    const head=el("div","proplayer-video-head");
+    head.append(elT("div","proplayer-kicker","BAYONA / DEMOSTRACIÓN"));
+    const close=elT("button","btn","CERRAR");close.type="button";close.onclick=hideModal;head.append(close);
+    const title=elT("h3","proplayer-video-title",name);
+    const frame=el("div","media-hero");
+    const fallback=document.createElement("img");fallback.alt="";fallback.hidden=true;
+    if(poster)fallback.src=poster;
+    const video=document.createElement("video");video.src=source;video.poster=poster||"";video.muted=true;video.setAttribute("aria-label",t("media.demonstration", {name}));
+    const status=elT("p","proplayer-video-state","Cargando demostración…");
+    const retry=elT("button","btn secondary","REINTENTAR VÍDEO");retry.type="button";retry.hidden=true;
+    frame.append(fallback,video);host.append(head,title,frame,status,retry);
+    const cleanupVideo=bindVideoRecovery(video,{status,retryButton:retry,fallback});
+    pauseVideoWhenRemoved(video,$("#modal-box"),cleanupVideo);
+    close.focus({preventScroll:true});
+  });
+}
+
 function exerciseCard(item,index){
   const ex=EXERCISES[item.ex]||{name:item.ex,muscle:""};
   const poster=posterFor(item.ex);
   const video=videoFor(item.ex);
-  const card=el("button","affiliate-ex-card-v12");
-  card.type="button";
+  const card=el("article","affiliate-ex-card-v12");
   card.dataset.exercise=item.ex;
   const media=poster
     ? `<span class="affiliate-ex-media-v12"><img src="${poster}" loading="lazy" alt="${esc(ex.name)}"><i></i>${video?'<b>▶</b>':''}</span>`
     : '<span class="affiliate-ex-media-v12 missing"><em>◈</em></span>';
   const unit=item.timed||["plank","mobility","breathing"].includes(item.ex)?t("affiliate.unit.seconds"):t("affiliate.unit.reps");
   const mediaLabel=video?t("affiliate.exercise.video"):t("affiliate.exercise.technique");
-  card.innerHTML=`${media}<span class="affiliate-ex-copy-v12"><small>${String(index+1).padStart(2,"0")} · ${esc(ex.muscle)}</small><strong>${esc(ex.name)}</strong><span>${item.sets} × ${item.reps}${esc(unit)}</span><em>${esc(mediaLabel)}</em></span>`;
-  card.addEventListener("click",()=>{
-    const mediaBox=card.querySelector(".affiliate-ex-media-v12");
-    const current=mediaBox?.querySelector("video");
-    if(current){
-      current.paused?current.play().catch(()=>{}):current.pause();
-      return;
-    }
-    if(video && mediaBox){
-      mediaBox.innerHTML=`<video src="${video}" poster="${poster||""}" muted loop playsinline autoplay></video><i></i><b>Ⅱ</b>`;
-      return;
-    }
-    openSection("training");
-  });
+  const copy=el("div","affiliate-ex-copy-v12");
+  copy.append(elT("small","",`${String(index+1).padStart(2,"0")} · ${ex.muscle}`),elT("strong","",ex.name),elT("span","",`${item.sets} × ${item.reps}${unit}`),elT("em","",mediaLabel));
+  const action=elT("button","affiliate-mini-action-v12",video?"VER DEMOSTRACIÓN":"VER TÉCNICA");action.type="button";
+  action.setAttribute("aria-label",t(video ? "media.viewDemo" : "media.viewTechnique", {name:ex.name}));
+  action.addEventListener("click",()=>video?openExerciseVideo(video,poster||"",ex.name):openSection("training"));
+  copy.append(action);card.innerHTML=media;card.append(copy);
   return card;
 }
 
 function heroMedia(exercises){
-  const mediaEx=exercises.find((x)=>videoFor(x.ex))?.ex;
-  if(!mediaEx) return '<div class="affiliate-hero-fallback-v12">◈</div>';
-  return `<video class="affiliate-hero-video-v12" src="${videoFor(mediaEx)}" poster="${posterFor(mediaEx)||""}" autoplay muted loop playsinline preload="metadata"></video>`;
+  const mediaEx=exercises.find((x)=>posterFor(x.ex))?.ex;
+  const poster=mediaEx?posterFor(mediaEx):null;
+  if(!poster) return '<div class="affiliate-hero-fallback-v12">◈</div>';
+  return `<img alt="" src="${poster}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:saturate(.72) contrast(1.06) brightness(.72)">`;
 }
 
 function statsStrip(){

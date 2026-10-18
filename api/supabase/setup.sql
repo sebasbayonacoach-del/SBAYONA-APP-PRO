@@ -1,17 +1,11 @@
--- =====================================================================
--- BAYONA · SETUP SUPABASE (v1) — SCRIPT ÚNICO PARA EL SQL EDITOR
--- ---------------------------------------------------------------------
--- CÓMO USARLO:
---   1. Supabase Dashboard → tu proyecto → SQL Editor
---   2. New query → pega TODO este archivo → Run
---   3. Debe terminar con "Success. No rows returned"
---
--- Es IDEMPOTENTE: puedes ejecutarlo tantas veces como quieras
--- (create table if not exists / drop policy if exists).
--- Requiere: PostgreSQL 15 (el que trae Supabase) y auth.users ya creada
--- por Supabase Auth (viene por defecto en todo proyecto).
--- =====================================================================
+-- GENERATED FILE: run `node tools/build-supabase-setup.mjs` to rebuild.
+-- Source of truth: api/supabase/migrations/0001_core.sql through 0009_single_owner_google_auth.sql.
+-- Fresh Supabase project only. Do not rerun on an existing database.
+-- For an existing project, inspect migration history and apply only pending migrations.
 
+-- ============================================================
+-- MIGRACIÓN 0001_core.sql
+-- ============================================================
 -- =====================================================================
 -- BAYONA — 0001_core.sql · Esquema de dominio completo (Sprint 0, tarea 0.4)
 -- PostgreSQL 15 / Supabase. Basado en PLAN_NIVEL_3_PRO.md §3.
@@ -26,7 +20,7 @@
 -- DOMINIO IDENTIDAD
 -- ---------------------------------------------------------------------
 
-create table if not exists profiles (
+create table profiles (
   id           uuid primary key references auth.users (id) on delete cascade,
   display_name text,
   birth        date,
@@ -37,17 +31,17 @@ create table if not exists profiles (
 );
 
 -- GDPR art. 9: un consentimiento granular y revocable por dominio de salud.
-create table if not exists consents (
+create table consents (
   user_id    uuid references profiles (id) on delete cascade,
   domain     text not null check (domain in ('vision','body_scan','health_wearables',
-                                             'health_clinical','nutrition_photo','voice','avatar_3d')),
+                                             'health_clinical','nutrition_photo','voice')),
   granted    boolean not null,
   granted_at timestamptz default now(),
   revoked_at timestamptz,
   primary key (user_id, domain)
 );
 
-create table if not exists avatars (
+create table avatars (
   user_id         uuid references profiles (id) on delete cascade,
   provider        text not null,
   glb_path        text,
@@ -62,7 +56,7 @@ create table if not exists avatars (
 -- DOMINIO ENTRENAMIENTO
 -- ---------------------------------------------------------------------
 
-create table if not exists exercises (
+create table exercises (
   id                 text primary key,
   name               text,
   pattern            text,                 -- squat/hinge/push/pull/...
@@ -71,7 +65,7 @@ create table if not exists exercises (
   contraindications  text[]
 );
 
-create table if not exists plans (
+create table plans (
   id         uuid primary key default gen_random_uuid(),
   user_id    uuid references profiles (id) on delete cascade,
   macrocycle jsonb not null,               -- 24 semanas (formato de la app)
@@ -79,7 +73,7 @@ create table if not exists plans (
   created_at timestamptz default now()
 );
 
-create table if not exists workout_sessions (
+create table workout_sessions (
   id             uuid primary key default gen_random_uuid(),
   user_id        uuid references profiles (id) on delete cascade,
   plan_day_id    text,
@@ -90,7 +84,7 @@ create table if not exists workout_sessions (
   status         text
 );
 
-create table if not exists sets_log (
+create table sets_log (
   id                bigserial primary key,
   session_id        uuid references workout_sessions (id) on delete cascade,
   exercise_id       text references exercises (id),
@@ -108,7 +102,7 @@ create table if not exists sets_log (
 -- DOMINIO SALUD (serie temporal → TimescaleDB en fase 2, ver cabecera)
 -- ---------------------------------------------------------------------
 
-create table if not exists health_samples (
+create table health_samples (
   id      bigserial primary key,
   user_id uuid references profiles (id) on delete cascade,
   source  text not null,                  -- 'apple_watch','garmin','withings','manual','camera'...
@@ -119,7 +113,7 @@ create table if not exists health_samples (
   meta    jsonb
 );
 
-create table if not exists readiness_daily (
+create table readiness_daily (
   user_id  uuid references profiles (id) on delete cascade,
   day      date not null,
   score    numeric(4,1),
@@ -128,7 +122,7 @@ create table if not exists readiness_daily (
 );
 
 -- Progress Vault: escaneos cifrados por usuario (claves del usuario).
-create table if not exists scans (
+create table scans (
   id         uuid primary key default gen_random_uuid(),
   user_id    uuid references profiles (id) on delete cascade,
   kind       text check (kind in ('body_3d','posture','face')),
@@ -141,7 +135,7 @@ create table if not exists scans (
 -- SEGURIDAD / SALUD MENTAL — trazabilidad 100% (KPI del comité)
 -- ---------------------------------------------------------------------
 
-create table if not exists red_flags (
+create table red_flags (
   id           bigserial primary key,
   user_id      uuid references profiles (id) on delete cascade,
   domain       text,
@@ -156,7 +150,7 @@ create table if not exists red_flags (
 -- GAMIFICACIÓN — ledger inmutable (sin saldo mutable)
 -- ---------------------------------------------------------------------
 
-create table if not exists xp_ledger (
+create table xp_ledger (
   id         bigserial primary key,
   user_id    uuid references profiles (id) on delete cascade,
   kind       text check (kind in ('xp','skill_xp','credits','points')),
@@ -169,8 +163,8 @@ create table if not exists xp_ledger (
 -- ÍNDICES
 -- ---------------------------------------------------------------------
 
-create index if not exists health_samples_user_ts_idx on health_samples (user_id, ts);
-create index if not exists sets_log_session_idx   on sets_log (session_id);
+create index health_samples_user_ts_idx on health_samples (user_id, ts);
+create index sets_log_session_idx       on sets_log (session_id);
 -- readiness_daily: el índice (user_id, day) lo aporta la primary key; no se duplica.
 
 -- =====================================================================
@@ -191,53 +185,43 @@ alter table red_flags       enable row level security;
 alter table xp_ledger       enable row level security;
 
 -- Patrón "own rows" (permissive) — tablas con user_id directo
-drop policy if exists "own rows" on profiles;
 create policy "own rows" on profiles
   for all to authenticated
   using (auth.uid() = id) with check (auth.uid() = id);
 
-drop policy if exists "own rows" on consents;
 create policy "own rows" on consents
   for all to authenticated
   using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
-drop policy if exists "own rows" on avatars;
 create policy "own rows" on avatars
   for all to authenticated
   using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
-drop policy if exists "own rows" on plans;
 create policy "own rows" on plans
   for all to authenticated
   using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
-drop policy if exists "own rows" on workout_sessions;
 create policy "own rows" on workout_sessions
   for all to authenticated
   using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
-drop policy if exists "own rows" on readiness_daily;
 create policy "own rows" on readiness_daily
   for all to authenticated
   using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
-drop policy if exists "own rows" on scans;
 create policy "own rows" on scans
   for all to authenticated
   using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
-drop policy if exists "own rows" on red_flags;
 create policy "own rows" on red_flags
   for all to authenticated
   using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
-drop policy if exists "own rows" on xp_ledger;
 create policy "own rows" on xp_ledger
   for all to authenticated
   using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 -- sets_log: propiedad derivada de la sesión (no tiene user_id propio)
-drop policy if exists "own rows" on sets_log;
 create policy "own rows" on sets_log
   for all to authenticated
   using (exists (select 1 from workout_sessions ws
@@ -246,7 +230,6 @@ create policy "own rows" on sets_log
                       where ws.id = sets_log.session_id and ws.user_id = auth.uid()));
 
 -- exercises: catálogo público de solo lectura (el inserto un seed admin/service_role)
-drop policy if exists "catalog read" on exercises;
 create policy "catalog read" on exercises
   for select to authenticated
   using (true);
@@ -254,14 +237,12 @@ create policy "catalog read" on exercises
 -- health_samples: "own rows" + política EXTRA restrictiva de consentimiento.
 -- Nota: las policies permissive se combinan con OR; para EXIGIR consentimiento
 -- hace falta una policy RESTRICTIVE (se combina con AND desde PG 10+).
-drop policy if exists "own rows" on health_samples;
 create policy "own rows" on health_samples
   for all to authenticated
   using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 -- Escritura de muestras de salud solo con consentimiento activo en
 -- 'health_wearables' o 'health_clinical' (granted=true y sin revocar).
-drop policy if exists "health ingest requires consent" on health_samples;
 create policy "health ingest requires consent" on health_samples
   as restrictive
   for insert to authenticated
@@ -273,7 +254,6 @@ create policy "health ingest requires consent" on health_samples
       and c.revoked_at is null
   ));
 
-drop policy if exists "health update requires consent" on health_samples;
 create policy "health update requires consent" on health_samples
   as restrictive
   for update to authenticated
@@ -289,33 +269,179 @@ create policy "health update requires consent" on health_samples
 -- y portabilidad GDPR): revocar consentimiento corta la INGESTA, no el acceso
 -- a los datos ya recogidos, que el usuario puede exportar o borrar.
 
+-- Data API access is explicit; RLS above remains the row-level boundary.
+-- Profiles gets a metadata-free schema probe for auth readiness. Its RLS
+-- policies are authenticated-only, so anon can reach the route but sees no rows.
+grant usage on schema public to anon, authenticated, service_role;
+revoke all privileges on
+  public.profiles, public.consents, public.avatars, public.exercises,
+  public.plans, public.workout_sessions, public.sets_log, public.health_samples,
+  public.readiness_daily, public.scans, public.red_flags, public.xp_ledger
+from anon;
+grant select on public.profiles to anon;
+grant select, insert, update, delete on
+  public.profiles, public.consents, public.avatars, public.plans,
+  public.workout_sessions, public.sets_log, public.health_samples,
+  public.readiness_daily, public.scans, public.red_flags
+to authenticated;
+grant select on public.exercises to authenticated;
+grant select, insert on public.xp_ledger to authenticated;
+grant all privileges on
+  public.profiles, public.consents, public.avatars, public.exercises,
+  public.plans, public.workout_sessions, public.sets_log, public.health_samples,
+  public.readiness_daily, public.scans, public.red_flags, public.xp_ledger
+to service_role;
+grant usage, select on sequence
+  public.sets_log_id_seq, public.health_samples_id_seq,
+  public.red_flags_id_seq, public.xp_ledger_id_seq
+to authenticated, service_role;
+revoke all privileges on sequence
+  public.sets_log_id_seq, public.health_samples_id_seq,
+  public.red_flags_id_seq, public.xp_ledger_id_seq
+from anon;
 
+
+-- ============================================================
+-- MIGRACIÓN 0002_medidas_asignaciones.sql
+-- ============================================================
+-- =====================================================================
+-- BAYONA — 0002_medidas_asignaciones.sql
+-- Ampliación del espejo: mediciones corporales y asignaciones del entrenador.
+-- PostgreSQL 15 / Supabase. Mismo patrón que 0001_core.sql: RLS por usuario
+-- (auth.uid()) y borrado-y-reinserción por scope (espejo idempotente).
+-- ADR-003: solo datos numéricos y notas cortas. Sin fotos, sin vídeo.
+-- =====================================================================
+
+create table if not exists body_medidas (
+  user_id     uuid not null references auth.users (id) on delete cascade,
+  fecha       date not null,
+  peso_kg     numeric(5,2),
+  cintura_cm  numeric(5,2),
+  cadera_cm   numeric(5,2),
+  brazo_cm    numeric(5,2),
+  muslo_cm    numeric(5,2),
+  grasa_pct   numeric(4,1),        -- ESTIMACIÓN de balanza, nunca dato clínico
+  primary key (user_id, fecha)     -- una medición por día: idempotente por diseño
+);
+
+create table if not exists entrenamientos_asignados (
+  id          uuid not null default gen_random_uuid() primary key,
+  user_id     uuid not null references auth.users (id) on delete cascade,
+  cliente_id  text not null,        -- 'local' (real). La cartera demo NUNCA se sube.
+  workout_id  text not null,
+  dia         date not null,
+  nota        text not null default '',
+  estado      text not null default 'pendiente',   -- pendiente | completada
+  creada      timestamptz
+);
+
+-- ---------------------------------------------------------------------
+-- RLS: cada fila es solo de su dueño (mismo patrón que 0001_core.sql)
+-- ---------------------------------------------------------------------
+alter table body_medidas enable row level security;
+alter table entrenamientos_asignados enable row level security;
+
+create policy "medidas propias: select"   on body_medidas for select using (auth.uid() = user_id);
+create policy "medidas propias: insert"   on body_medidas for insert with check (auth.uid() = user_id);
+create policy "medidas propias: update"   on body_medidas for update using (auth.uid() = user_id);
+create policy "medidas propias: delete"   on body_medidas for delete using (auth.uid() = user_id);
+
+create policy "asignaciones propias: select" on entrenamientos_asignados for select using (auth.uid() = user_id);
+create policy "asignaciones propias: insert" on entrenamientos_asignados for insert with check (auth.uid() = user_id);
+create policy "asignaciones propias: update" on entrenamientos_asignados for update using (auth.uid() = user_id);
+create policy "asignaciones propias: delete" on entrenamientos_asignados for delete using (auth.uid() = user_id);
+
+-- Explicit Data API privileges; the policies above continue to scope each row.
+revoke all privileges on public.body_medidas, public.entrenamientos_asignados from anon;
+grant select, insert, update, delete on public.body_medidas, public.entrenamientos_asignados
+  to authenticated;
+grant all privileges on public.body_medidas, public.entrenamientos_asignados
+  to service_role;
+
+
+-- ============================================================
+-- MIGRACIÓN 0003_avatar_3d.sql
+-- ============================================================
+-- =====================================================================
+-- BAYONA — 0003_avatar_3d.sql
+-- Avatar 3D (Avaturn): nuevo dominio de consentimiento 'avatar_3d'
+-- (la selfie se procesa en servidores de Avaturn, revocable).
+-- La tabla `avatars` ya existe en el esquema base: aquí solo se amplía
+-- el CHECK de dominios. Idempotente: se puede aplicar dos veces.
+-- =====================================================================
+
+do $$
+declare
+  c record;
+begin
+  -- suelta cualquier CHECK antiguo sobre consents(domain) que no conozca avatar_3d
+  for c in
+    select conname
+    from pg_constraint
+    where conrelid = 'consents'::regclass
+      and contype = 'c'
+      and pg_get_constraintdef(oid) ilike '%voice%'
+      and pg_get_constraintdef(oid) not ilike '%avatar_3d%'
+  loop
+    execute format('alter table consents drop constraint %I', c.conname);
+  end loop;
+
+  -- añade el CHECK ampliado si aún no existe
+  if not exists (
+    select 1 from pg_constraint
+    where conrelid = 'consents'::regclass
+      and contype = 'c'
+      and pg_get_constraintdef(oid) ilike '%avatar_3d%'
+  ) then
+    alter table consents add constraint consents_domain_check
+      check (domain in ('vision','body_scan','health_wearables',
+                        'health_clinical','nutrition_photo','voice','avatar_3d'));
+  end if;
+end $$;
+
+
+-- ============================================================
+-- MIGRACIÓN 0004_perf_sync.sql
+-- ============================================================
 -- =====================================================================
 -- BAYONA — 0004_perf_sync.sql · rendimiento, inmutabilidad del ledger y vistas
--- (idempotente) — índices calientes · xp_ledger inmutable + idempotencia ·
--- vistas de tablero con security_invoker · updated_at en planes
+-- PostgreSQL 15 / Supabase. Idempotente (se puede ejecutar N veces).
+-- Sobre 0001_core.sql y 0002_medidas_asignaciones.sql.
+-- Incluye:
+--   1. Índices para las consultas calientes del panel lateral (INICIO / HOY)
+--   2. xp_ledger: clave de idempotencia + ledger realmente INMUTABLE
+--   3. Vistas de tablero con security_invoker (heredan el RLS del usuario)
+--   4. updated_at automático en planes (autoregulación versionada)
 -- =====================================================================
 
+-- ---------------------------------------------------------------------
+-- 1. ÍNDICES · consultas del día a día
+-- ---------------------------------------------------------------------
 create index if not exists workout_sessions_user_start_idx
-  on workout_sessions (user_id, started_at desc);
+  on workout_sessions (user_id, started_at desc);          -- historial / reanudar
 create index if not exists workout_sessions_user_status_idx
-  on workout_sessions (user_id, status);
+  on workout_sessions (user_id, status);                   -- sesión activa
 create index if not exists sets_log_exercise_ts_idx
-  on sets_log (exercise_id, created_at desc);
+  on sets_log (exercise_id, created_at desc);              -- PRs y progresión
 create index if not exists xp_ledger_user_ts_idx
-  on xp_ledger (user_id, created_at desc);
+  on xp_ledger (user_id, created_at desc);                 -- wallet / resumen
 create index if not exists health_samples_user_kind_ts_idx
-  on health_samples (user_id, kind, ts desc);
+  on health_samples (user_id, kind, ts desc);              -- serie por métrica
 create index if not exists red_flags_user_open_idx
-  on red_flags (user_id, resolved_at) where resolved_at is null;
+  on red_flags (user_id, resolved_at) where resolved_at is null; -- alertas vivas
 create index if not exists asignaciones_user_dia_idx
-  on entrenamientos_asignados (user_id, dia, estado);
+  on entrenamientos_asignados (user_id, dia, estado);      -- plan del día (COACH OS)
 
+-- ---------------------------------------------------------------------
+-- 2. XP_LEDGER · sin dobles XP y sin reescritura de la historia
+-- ---------------------------------------------------------------------
+-- clave de idempotencia del cliente (offline queue → reintentos seguros)
 alter table xp_ledger add column if not exists idempotency_key text;
 create unique index if not exists xp_ledger_idem_uidx
   on xp_ledger (user_id, kind, idempotency_key)
   where idempotency_key is not null;
 
+-- ledger inmutable: ni UPDATE ni DELETE (solo se agregan hechos)
 create or replace function xp_ledger_guard() returns trigger
 language plpgsql as $$
 begin
@@ -328,6 +454,9 @@ create trigger xp_ledger_no_update
   before update or delete on xp_ledger
   for each row execute function xp_ledger_guard();
 
+-- ---------------------------------------------------------------------
+-- 3. VISTAS DE TABlero (security_invoker: respetan el RLS del usuario)
+-- ---------------------------------------------------------------------
 create or replace view v_hoy_resumen
 with (security_invoker = true) as
 select
@@ -374,6 +503,9 @@ select id, user_id, domain, severity, action_taken, referral_url, created_at
 from red_flags
 where resolved_at is null;
 
+-- ---------------------------------------------------------------------
+-- 4. PLANES · updated_at automático (la autoregulación versiona el plan)
+-- ---------------------------------------------------------------------
 alter table plans add column if not exists updated_at timestamptz default now();
 
 create or replace function touch_updated_at() returns trigger
@@ -389,10 +521,15 @@ create trigger plans_touch
   before update on plans
   for each row execute function touch_updated_at();
 
+-- Views use security_invoker and inherit the caller's RLS on source tables.
+revoke all privileges on public.v_hoy_resumen, public.v_progreso_semanal, public.v_flags_activas from anon;
+grant select on public.v_hoy_resumen, public.v_progreso_semanal, public.v_flags_activas
+  to authenticated, service_role;
 
--- =====================================================================
--- MIGRACIÓN 0005 · NÚCLEO DE LANZAMIENTO COACH ↔ CLIENTE
--- =====================================================================
+
+-- ============================================================
+-- MIGRACIÓN 0005_launch_coaching.sql
+-- ============================================================
 -- =====================================================================
 -- BAYONA — 0005_launch_coaching.sql
 -- Núcleo de lanzamiento Coach <-> cliente.
@@ -412,7 +549,7 @@ alter table profiles add column if not exists goals jsonb default '[]'::jsonb;
 alter table profiles add column if not exists role text not null default 'athlete';
 alter table profiles add column if not exists updated_at timestamptz not null default now();
 
-do $
+do $$
 begin
   if not exists (
     select 1 from pg_constraint
@@ -423,7 +560,7 @@ begin
       add constraint profiles_role_check check (role in ('athlete','coach'));
   end if;
 end
-$;
+$$;
 
 create table if not exists coach_clients (
   coach_id    uuid not null references auth.users (id) on delete cascade,
@@ -495,7 +632,7 @@ alter table coach_assignments enable row level security;
 -- IDs del vínculo son inmutables: evita convertir una relación autorizada
 -- en otra relación distinta mediante UPDATE.
 create or replace function coach_link_ids_immutable() returns trigger
-language plpgsql as $
+language plpgsql as $$
 begin
   if new.coach_id <> old.coach_id or new.client_id <> old.client_id then
     raise exception 'coach_id/client_id son inmutables';
@@ -503,7 +640,7 @@ begin
   new.updated_at = now();
   return new;
 end;
-$;
+$$;
 
 drop trigger if exists coach_clients_immutable on coach_clients;
 create trigger coach_clients_immutable
@@ -511,12 +648,12 @@ create trigger coach_clients_immutable
   for each row execute function coach_link_ids_immutable();
 
 create or replace function coach_touch_updated_at() returns trigger
-language plpgsql as $
+language plpgsql as $$
 begin
   new.updated_at = now();
   return new;
 end;
-$;
+$$;
 
 drop trigger if exists coach_routines_touch on coach_routines;
 create trigger coach_routines_touch
@@ -578,7 +715,7 @@ returns text
 language plpgsql
 security definer
 set search_path = public
-as $
+as $$
 declare
   v_code text;
   v_hours int := greatest(1, least(coalesce(p_hours,72), 168));
@@ -607,14 +744,14 @@ begin
 
   return v_code;
 end;
-$;
+$$;
 
 create or replace function accept_coach_invite(p_code text)
 returns table (coach_id uuid, coach_name text)
 language plpgsql
 security definer
 set search_path = public
-as $
+as $$
 declare
   v_inv coach_invites%rowtype;
 begin
@@ -651,7 +788,7 @@ begin
   from profiles p
   where p.id = v_inv.coach_id;
 end;
-$;
+$$;
 
 revoke all on function create_coach_invite(int) from public;
 grant execute on function create_coach_invite(int) to authenticated;
@@ -766,7 +903,7 @@ returns boolean
 language plpgsql
 security definer
 set search_path = public
-as $
+as $$
 declare
   v_rows int;
 begin
@@ -783,7 +920,7 @@ begin
   get diagnostics v_rows = row_count;
   return v_rows = 1;
 end;
-$;
+$$;
 
 revoke all on function complete_coach_assignment(uuid) from public;
 grant execute on function complete_coach_assignment(uuid) to authenticated;
@@ -841,23 +978,22 @@ create policy "coach reads linked sets" on sets_log
 -- No se abre readiness, health_samples ni medidas corporales al Coach en esta
 -- migración: esos dominios requieren consentimiento explícito adicional.
 
--- =====================================================================
--- VERIFICACIÓN RÁPIDA (ejecuta esto después de Run)
--- =====================================================================
-select table_name,
-       (select count(*) from information_schema.columns c
-         where c.table_schema='public' and c.table_name = t.table_name) as columnas
-  from information_schema.tables t
- where table_schema = 'public'
- order by table_name;
--- Esperado: 18 filas —
---   profiles, consents, avatars, exercises, plans, workout_sessions, sets_log,
---   health_samples, readiness_daily, scans, red_flags, xp_ledger, body_medidas,
---   entrenamientos_asignados, coach_clients, coach_invites, coach_routines, coach_assignments
--- =====================================================================
+-- Explicit Data API privileges; RLS above still governs every client row.
+revoke all privileges on
+  public.coach_clients, public.coach_invites, public.coach_routines, public.coach_assignments
+from anon;
+grant select, insert, update, delete on
+  public.coach_clients, public.coach_routines, public.coach_assignments
+to authenticated;
+grant select, delete on public.coach_invites to authenticated;
+grant all privileges on
+  public.coach_clients, public.coach_invites, public.coach_routines, public.coach_assignments
+to service_role;
 
 
--- BAYONA LIFE OS · 0006_life_os.sql
+-- ============================================================
+-- MIGRACIÓN 0006_life_os.sql
+-- ============================================================
 -- =====================================================================
 -- BAYONA — 0006_life_os.sql
 -- Planificador diario + metadatos de conectores externos.
@@ -1001,10 +1137,17 @@ create policy "usuario elimina sus conexiones" on connected_sources
   for delete to authenticated
   using (auth.uid() = user_id);
 
--- Sin GRANT a anon. authenticated hereda los permisos de tabla de Supabase
--- y RLS decide cada fila.
+-- Data API privileges are explicit; RLS decides which rows authenticated sees.
+revoke all privileges on public.planner_items, public.connected_sources from anon;
+grant select, insert, update, delete on public.planner_items, public.connected_sources
+  to authenticated;
+grant all privileges on public.planner_items, public.connected_sources
+  to service_role;
 
--- BAYONA LIFE GAME · 0007_life_game_areas.sql
+
+-- ============================================================
+-- MIGRACIÓN 0007_life_game_areas.sql
+-- ============================================================
 -- BAYONA Life Game 1.0.8 — área opcional de vida en tareas existentes.
 -- Se añade sobre 0006 sin rehacer ni borrar filas actuales.
 ALTER TABLE public.planner_items
@@ -1031,7 +1174,13 @@ CREATE INDEX IF NOT EXISTS planner_items_user_area_day_idx
   WHERE area IS NOT NULL;
 
 -- RLS de 0006 sigue intacto: auth.uid() = user_id.
--- No hay nueva tabla de XP; la economía sigue en la fuente original.\n\n-- BAYONA MI DÍA 2.0 · 0008_planner_pro.sql\n-- BAYONA · Mi Día 2.0 (aditivo sobre 0006/0007).
+-- No hay nueva tabla de XP; la economía sigue en la fuente original.
+
+
+-- ============================================================
+-- MIGRACIÓN 0008_planner_pro.sql
+-- ============================================================
+-- BAYONA · Mi Día 2.0 (aditivo sobre 0006/0007).
 -- Guarda la plantilla recurrente una sola vez y las excepciones por fecha.
 ALTER TABLE public.planner_items
   ADD COLUMN IF NOT EXISTS subtasks jsonb NOT NULL DEFAULT '[]'::jsonb,
@@ -1052,7 +1201,12 @@ BEGIN
   END IF;
 END $$;
 
--- Mantener políticas RLS del planificador. No se crea una economía nueva.\n\n\n-- BAYONA AUTH 1.0.10 · 0009_single_owner_google_auth.sql
+-- Mantener políticas RLS del planificador. No se crea una economía nueva.
+
+
+-- ============================================================
+-- MIGRACIÓN 0009_single_owner_google_auth.sql
+-- ============================================================
 -- BAYONA Auth 1.0.10 · un único propietario puede ser Coach.
 -- IMPORTANTE: ejecuta esta migración solo en el proyecto real de BAYONA.
 -- Se crea vacía a propósito: el propietario se activa después desde el
@@ -1102,6 +1256,38 @@ drop trigger if exists bayona_single_owner_role on public.profiles;
 create trigger bayona_single_owner_role
 before insert or update on public.profiles
 for each row execute function public.enforce_bayona_profile_role();
+
+-- Sincroniza inmediatamente el rol al dar, cambiar o revocar el único dueño.
+-- El rol se actualiza desde el servidor; nunca depende de metadata pública.
+create or replace function public.sync_bayona_owner_role()
+returns trigger
+language plpgsql security definer
+set search_path = ''
+as $$
+begin
+  if tg_op = 'DELETE' or tg_op = 'UPDATE' then
+    update public.profiles
+    set role = 'athlete'
+    where id = old.user_id
+      and not exists (select 1 from public.bayona_owner where user_id = old.user_id);
+  end if;
+
+  if tg_op = 'INSERT' or tg_op = 'UPDATE' then
+    update public.profiles
+    set role = 'coach'
+    where id = new.user_id;
+  end if;
+
+  if tg_op = 'DELETE' then return old; end if;
+  return new;
+end;
+$$;
+revoke all on function public.sync_bayona_owner_role() from public, anon, authenticated;
+
+drop trigger if exists bayona_owner_sync_role on public.bayona_owner;
+create trigger bayona_owner_sync_role
+  after insert or update or delete on public.bayona_owner
+  for each row execute function public.sync_bayona_owner_role();
 
 -- Reconciliación defensiva de perfiles existentes. Si el propietario aún
 -- no se ha configurado, todos pasan a athlete hasta que se le autorice.

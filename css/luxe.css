@@ -899,3 +899,16 @@ html[data-surface-theme="light"] .luxe-device {
 .luxe-pricing{grid-template-columns:repeat(4,1fr)}
 @media(max-width:980px){.luxe-demo-shell{grid-template-columns:1fr}.luxe-device-stage{min-height:620px}.luxe-pricing{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:620px){.luxe-demo-section{padding-left:12px;padding-right:12px}.luxe-device-stage{min-height:0;padding:16px 8px;border-radius:18px}.luxe-device{height:610px;border-width:6px;border-radius:30px}.luxe-demo-focus{grid-template-columns:100px 1fr}.luxe-demo-orbit{height:132px}.luxe-pricing{grid-template-columns:1fr}}
+
+/* Product-first entry: a real screen, quiet claims and one commercial source. */
+#luxe-landing .luxe-real-product { margin:0 auto; width:min(100%,330px); padding:12px; background:#111412; border:1px solid #49483f; border-radius:22px; box-shadow:0 24px 80px #0004; }
+#luxe-landing .luxe-real-product img { display:block; width:100%; height:auto; border-radius:12px; }
+#luxe-landing .luxe-real-product figcaption { padding:15px 5px 5px; color:#b7b0a6; font:500 9px/1.5 var(--mono); letter-spacing:.06em; }
+#luxe-landing .luxe-pricing--clear { grid-template-columns:repeat(2,minmax(0,1fr)); max-width:960px; margin-inline:auto; }
+#luxe-landing .luxe-price-card>p { color:#c8c2ba; line-height:1.65; font-size:14px; }
+#luxe-landing .luxe-price-card h3 { margin-bottom:20px; }
+#luxe-landing .luxe-price-card a.luxe-price-cta { display:flex; align-items:center; justify-content:center; text-decoration:none; text-align:center; }
+@media(max-width:680px){#luxe-landing .luxe-pricing--clear{grid-template-columns:1fr}#luxe-landing .luxe-real-product{width:280px}}
+#luxe-landing .luxe-hero-visual { aspect-ratio:auto; padding:24px 12px; }
+#luxe-landing .luxe-real-product { width:min(100%,270px); }
+@media(max-width:680px){#luxe-landing .luxe-real-product{width:230px}}

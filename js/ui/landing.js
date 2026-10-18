@@ -27,12 +27,9 @@ export function contenidoLanding(t) {
       cta: t("luxe.hero.cta"),
       ctaGhost: t("luxe.hero.ctaGhost"),
       proof: [
-        { n: "100%", k: t("luxe.proof.local") },
-        { n: "0", k: t("luxe.proof.nube") },
-        /* 44 = 43 suites de tests/ + el golden set de biomecánica, que es lo
-           que cuenta el propio runner ("44 suites"). Antes ponía 41 aquí y 44 en
-           la tarjeta de features: la misma cifra, dos números distintos. */
-        { n: "44", k: t("luxe.proof.suites") },
+        { n: "Entrena", k: t("luxe.proof.local") },
+        { n: "Registra", k: t("luxe.proof.nube") },
+        { n: "Cuida", k: t("luxe.proof.suites") },
       ],
       visualHint: t("luxe.hero.visualHint"),
     },
@@ -102,17 +99,11 @@ export function heroHTML(c) {
         ${c.hero.proof.map((p) => `<span><b>${p.n}</b> ${p.k}</span>`).join("")}
       </div>
     </div>
-    <div class="luxe-hero-visual luxe-reveal" aria-hidden="true">
-      <div class="luxe-hero-visual-inner">
-        <div class="luxe-orbits">
-          <span></span><span></span><span></span>
-          <b></b>
-          <i class="luxe-orbits-sat luxe-orbits-sat--a"></i>
-          <i class="luxe-orbits-sat luxe-orbits-sat--b"></i>
-          <i class="luxe-orbits-sat luxe-orbits-sat--c"></i>
-        </div>
-        <div class="luxe-hint">${c.hero.visualHint}</div>
-      </div>
+    <div class="luxe-hero-visual luxe-reveal">
+      <figure class="luxe-real-product">
+        <img src="media/app-now-20261015.webp" alt="${t("luxe.hero.screenAlt")}" width="390" height="844" decoding="async" fetchpriority="high">
+        <figcaption>${c.hero.visualHint}</figcaption>
+      </figure>
     </div>`;
 }
 
@@ -147,22 +138,20 @@ export function planesHTML(c) {
       <h2>${c.planesHead.titulo}</h2>
       <p>${c.planesHead.sub}</p>
     </div>
-    <div class="luxe-pricing">
-      ${c.planes
-        .map(
-          (p) => `
-        <div class="luxe-price-card${p.destacado ? " featured" : ""} luxe-reveal">
-          <div class="luxe-price-card-top">
-            <h3>${p.nombre}</h3>
-            ${p.destacado ? '<span class="luxe-price-flag">★ MÁS ELEGIDO</span>' : ""}
-          </div>
-          <div class="luxe-price">${p.precio}€ <span>/${p.periodo}</span></div>
-          <ul>${p.perks.map((x) => `<li>${x}</li>`).join("")}</ul>
-          <button class="luxe-btn-primary luxe-price-cta" data-plan="${p.id}">${p.cta}</button>
-          <p class="luxe-price-note">${p.tagline}</p>
-        </div>`
-        )
-        .join("")}
+    <div class="luxe-pricing luxe-pricing--clear">
+      <article class="luxe-price-card luxe-reveal">
+        <h3>Tu espacio personal</h3>
+        <div class="luxe-price">0 €</div>
+        <p>Organiza tu día, registra tus sesiones y consulta tu progreso en este dispositivo.</p>
+        <button class="luxe-btn-primary luxe-price-cta" data-plan="free">EMPEZAR SIN CUENTA</button>
+        <p class="luxe-price-note">Uso local. Sin tarjeta ni contratación.</p>
+      </article>
+      <article class="luxe-price-card luxe-reveal">
+        <h3>Acompañamiento con Sebastián</h3>
+        <p>Un plan de entrenamiento y seguimiento personal. Consulta lo que incluye cada opción.</p>
+        <a class="luxe-btn-primary luxe-price-cta" href="https://bayona-jet.vercel.app/programs" target="_blank" rel="noopener noreferrer">VER PLANES Y PRECIOS ↗</a>
+        <p class="luxe-price-note">Contratación y condiciones en la web de BAYONA.</p>
+      </article>
     </div>
     <div id="luxe-faq" class="luxe-section-head luxe-reveal luxe-section-head--spaced">
       <div class="luxe-label">FAQ</div>
@@ -222,7 +211,6 @@ export function montarLanding({ t, esc, onEntrar } = {}) {
         ${c.nav.map((n) => `<a href="${e(n.href)}">${e(n.label)}</a>`).join("")}
       </div>
       <div class="luxe-nav-cta">
-        <button class="luxe-theme-toggle" id="luxe-theme-toggle" type="button" aria-label="${t("theme.toggle.aria")}">◐</button>
         <button class="luxe-cta" id="luxe-nav-entrar">${e(c.hero.cta)}</button>
       </div>
     </nav>
@@ -255,12 +243,6 @@ export function montarLanding({ t, esc, onEntrar } = {}) {
   const demo = document.getElementById("luxe-cta-demo");
   if (demo) demo.addEventListener("click", () => root.querySelector("#luxe-demo")?.scrollIntoView({ behavior:"smooth", block:"start" }));
 
-  const themeToggle = document.getElementById("luxe-theme-toggle");
-  if (themeToggle) themeToggle.addEventListener("click", () => {
-    const next = readTheme() === "light" ? "dark" : "light";
-    applyTheme(next);
-  });
-
   installDemo(root);
   instalarReveal(root);
   return root;
@@ -290,11 +272,7 @@ export function demoHTML(plan = "free") {
         <div class="luxe-demo-plan-tabs" role="group" aria-label="${t("demo.plan.aria")}">
           ${PLANS.map((id)=>`<button type="button" data-demo-plan="${id}" class="${id===plan?"on":""}">${PLAN_META[id].label}</button>`).join("")}
         </div>
-        <div class="luxe-demo-theme">
-          <span>${t("demo.theme.aria")}</span>
-          <button type="button" data-demo-theme="dark">NOCHE</button>
-          <button type="button" data-demo-theme="light">DÍA</button>
-        </div>
+
         <div class="luxe-demo-meta"><strong>${meta.label}</strong><span>${meta.tagline}</span></div>
       </div>
       <div class="luxe-device-stage">

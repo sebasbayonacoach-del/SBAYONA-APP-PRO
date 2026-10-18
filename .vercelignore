@@ -29,3 +29,7 @@ api/*.md
 .DS_Store
 .vscode/
 .idea/
+
+# Local recovery snapshots are preserved on disk only.
+_brand-backup-*/
+_safety-*/

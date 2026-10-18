@@ -10,7 +10,7 @@ import {
   nextLoad, warmupSets, plateMath, todaysSession, archiveSet,
 } from "../engine.js";
 import { previewWorkoutXP, workoutCompleteReward, setReward, prReward } from "../rewards.js";
-import { videoFor, posterFor, tipFor, DAY_ICONS } from "../media.js";
+import { videoFor, posterFor, tipFor, DAY_ICONS, bindVideoRecovery, pauseVideoWhenRemoved } from "../media.js";
 import { esc, fmtDec, fmtInt, fmtDate, t } from "../i18n.js";
 import {
   UI, $, el, elT, openDrawer, openSection, showModal, hideModal, toast,
@@ -55,6 +55,34 @@ function sessionPosterFor(e) {
 function sessionTip(e) {
   if (EXERCISES[e.ex]) return tipFor(e.ex);
   return "Ejercicio PROPLAYER seleccionado por el Coach. Sigue la demostración y los parámetros de la rutina asignada.";
+}
+
+function attachVideoPlayer(host, source, poster, label, badge = "", observeModal = false) {
+  const frame = el("div", "media-hero");
+  frame.style.marginTop = "14px";
+  if (badge) frame.append(elT("span", "badge demo", badge));
+  const fallback = document.createElement("img");
+  fallback.alt = "";
+  fallback.hidden = true;
+  if (poster) fallback.src = poster;
+  const video = document.createElement("video");
+  video.src = source;
+  video.poster = poster || "";
+  video.muted = true;
+  video.setAttribute("aria-label", label);
+  const status = elT("p", "media-caption", "Cargando demostración…");
+  status.style.fontFamily = "var(--sans)";
+  status.style.fontSize = "12px";
+  status.style.letterSpacing = "normal";
+  status.style.textTransform = "none";
+  const retry = elT("button", "btn", "REINTENTAR VÍDEO");
+  retry.type = "button";
+  retry.hidden = true;
+  frame.append(fallback, video);
+  host.append(frame, status, retry);
+  const cleanupVideo = bindVideoRecovery(video, { status, retryButton: retry, fallback });
+  pauseVideoWhenRemoved(video, observeModal ? $("#modal-box") : document.body, cleanupVideo);
+  return video;
 }
 
 // ============================================================
@@ -119,10 +147,10 @@ function proplayerGateway() {
   copy.append(
     elT("span", "proplayer-kicker", "BAYONA / PROPLAYER"),
     elT("h3", "", "Biblioteca técnica · 3.141 ejercicios"),
-    elT("p", "", "Fuerza, movilidad y cardio. 2.255 fichas reproducibles usando 1.607 MP4 únicos, sin cargar la biblioteca completa en memoria.")
+    elT("p", "", "Fuerza, movilidad y cardio. El catálogo registra 2.255 fichas con referencia a vídeo y 1.607 nombres de archivo distintos; la disponibilidad depende del origen.")
   );
   const stats = el("div", "proplayer-gateway-stats");
-  [["3.141","EJERCICIOS"],["2.255","CON VÍDEO"],["1.607","MP4 ÚNICOS"]].forEach(([value,label]) => {
+  [["3.141","EJERCICIOS"],["2.255","CON REFERENCIA"],["1.607","NOMBRES DE ARCHIVO"]].forEach(([value,label]) => {
     const item = el("span");
     item.append(elT("strong", "", value), elT("small", "", label));
     stats.append(item);
@@ -155,11 +183,7 @@ function openExerciseDetail(exKey) {
   const E = EXERCISES[exKey];
   const vid = videoFor(exKey);
   const media = vid
-    ? `<div class="media-hero" style="margin-top:14px">
-        <span class="badge demo">DEMO PREGRABADA</span>
-        <video src="${vid}" autoplay loop muted playsinline poster="${posterFor(exKey) || ""}"></video>
-      </div>
-      <div class="media-caption">Vídeo de demostración pregrabado · no es una transmisión en vivo</div>`
+    ? `<div id="training-video-player"></div>`
     : `<div class="media-hero missing" style="margin-top:14px"><span class="badge demo">SIN VÍDEO</span>
         <div class="media-missing">Sin demostración en vídeo para este ejercicio.<br>Sigue las instrucciones escritas.</div></div>`;
   showModal(`
@@ -170,7 +194,10 @@ function openExerciseDetail(exKey) {
     <div class="reward-line"><span>MÚSCULO</span><b>${esc(E.muscle)}</b></div>
     <div class="reward-line"><span>XP POR SERIE</span><b>~+${setReward({ reps: 8, exercise: exKey }).xp} XP (8 reps)</b></div>
     <button class="btn btn-primary btn-block btn-big" id="m-ok" style="margin-top:16px">ENTENDIDO</button>
-  `, () => { $("#m-ok").onclick = hideModal; });
+  `, () => {
+    $("#m-ok").onclick = hideModal;
+    if (vid) attachVideoPlayer($("#training-video-player"), vid, posterFor(exKey) || "", `Demostración de ${E.name}`, "DEMO PREGRABADA", true);
+  });
 }
 
 function openSessionExerciseDetail(e) {
@@ -178,7 +205,7 @@ function openSessionExerciseDetail(e) {
   const E = exerciseDef(e);
   const vid = sessionVideoFor(e);
   const media = vid
-    ? `<div class="media-hero" style="margin-top:14px"><span class="badge demo">PROPLAYER</span><video src="${vid}" autoplay loop muted playsinline></video></div><div class="media-caption">Demostración PROPLAYER · propiedad BAYONA</div>`
+    ? `<div id="training-video-player"></div>`
     : `<div class="media-hero missing" style="margin-top:14px"><span class="badge demo">SIN VÍDEO</span><div class="media-missing">La ficha no tiene MP4 asociado.</div></div>`;
   showModal(`
     <div class="cine-tag">PROPLAYER · ${esc(E.muscle)}</div>
@@ -187,7 +214,10 @@ function openSessionExerciseDetail(e) {
     <div class="cine-sub" style="text-align:left">${esc(sessionTip(e))}</div>
     <div class="reward-line"><span>PAUTA</span><b>${esc(schemeText(e))}</b></div>
     <button class="btn btn-primary btn-block btn-big" id="m-ok" style="margin-top:16px">ENTENDIDO</button>
-  `, () => { $("#m-ok").onclick = hideModal; });
+  `, () => {
+    $("#m-ok").onclick = hideModal;
+    if (vid) attachVideoPlayer($("#training-video-player"), vid, sessionPosterFor(e), `Demostración de ${E.name}`, "PROPLAYER", true);
+  });
 }
 
 // ---------------- CALENDARIO SEMANAL ----------------
@@ -387,8 +417,10 @@ function renderSession() {
   technique.append(el("summary", "", "Técnica e instrucciones"));
   const vid = sessionVideoFor(s);
   if (vid) {
-    technique.append(el("div", "media-hero", `<video src="${vid}" controls muted playsinline preload="none" poster="${sessionPosterFor(s)}"></video>`));
-    technique.append(el("div", "media-caption", s.videoFile ? "Demostración PROPLAYER" : "Demostración pregrabada"));
+    const playerHost = el("div", "fit-video-player");
+    technique.append(playerHost);
+    const video = attachVideoPlayer(playerHost, vid, sessionPosterFor(s), `Demostración de ${E.name}`);
+    technique.addEventListener("toggle", () => { if (!technique.open) video.pause(); });
   }
   technique.append(el("p", "media-caption", esc(sessionTip(s))));
   body.append(technique);

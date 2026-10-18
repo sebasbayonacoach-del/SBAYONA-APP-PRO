@@ -121,10 +121,16 @@ function boot() {
     removeLanding();
     const nativePlatform = String(globalThis.Capacitor?.getPlatform?.() || "").toUpperCase();
     const surface = nativeShell ? (nativePlatform || "APP") : "PWA";
-    import("./auth-gate.js")
+    import("/api/runtime-config.js").catch(() => null)
+      .then(() => import("./auth-gate.js"))
       .then(({ launchAuthGate }) => launchAuthGate({ platform: surface }))
       .catch((error) => {
         console.error("BAYONA: la puerta de acceso no pudo arrancar", error);
+        const entry = document.getElementById("entry");
+        if (entry) {
+          entry.innerHTML = '<section class="auth-card" role="alert"><h1>' + esc(t("boot.error.title")) + '</h1><p>' + esc(t("boot.error.body")) + '</p><button type="button" class="auth-primary" id="entry-reload">VOLVER A INTENTAR</button></section>';
+          entry.querySelector("#entry-reload")?.addEventListener("click", () => location.reload());
+        }
       });
     return;
   }

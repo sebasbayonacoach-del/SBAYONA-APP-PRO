@@ -141,9 +141,11 @@ check(authCss.includes(".auth-body") && authCss.includes("minmax(440px, 520px)")
 check(authCss.includes("@media (max-width: 900px)") && authCss.includes(".auth-editorial"), "móvil conserva una única columna de acceso");
 
 const sw = readFileSync(resolve(root, "sw.js"), "utf8");
-check(sw.includes("bayona-shell-v44") && sw.includes('"./js/ui/auth-gate.js"') && sw.includes('"./js/sync/identity.js"'), "PWA cachea puerta e identidad multiusuario");
+check(/bayona-shell-v\d+/.test(sw) && sw.includes('"./js/ui/auth-gate.js"') && sw.includes('"./js/sync/identity.js"'), "PWA cachea puerta e identidad multiusuario");
+
+check(sw.includes("./js/backup.js") && sw.includes("./js/progreso.js") && sw.includes("./js/shoot.js"), "PWA incluye dependencias de copias y progreso para el arranque offline");
 
 const gradle = readFileSync(resolve(root, "mobile/android/app/build.gradle"), "utf8");
-check(gradle.includes("versionCode 12") && gradle.includes('versionName "1.0.11-beta"'), "Android queda versionado como 1.0.11-beta");
+check(gradle.includes("versionCode 14") && gradle.includes('versionName "1.0.13-beta"'), "Android queda versionado como 1.0.13-beta");
 
 console.log("\n📊 RESULTADO: " + ok + " comprobaciones · 0 fallos\n");

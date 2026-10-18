@@ -1,6 +1,6 @@
 // BAYONA · onboarding v3 contract
 import { readFileSync } from "node:fs";
-import { __obState, __obView, perfilRapido, __obAgeInfo, __obSafetyResult } from "../js/onboarding.js";
+import { __obState, __obView, perfilRapido, onboardingRoute, __obAgeInfo, __obSafetyResult } from "../js/onboarding.js";
 import { GOALS, TRAINING_PLACES } from "../js/personalization.js";
 import { PLANS } from "../js/entitlements.js";
 
@@ -29,7 +29,7 @@ assert(main.includes('resume.hidden = !storedRole'),"acceso rápido solo con rol
 
 console.log("\n— nueve pantallas —");
 assert(html.length===9,"nueve pantallas progresivas");
-assert(html.every((h)=>h.includes("Paso ")&&h.includes("de 9")),"progreso accesible 1/9 → 9/9");
+assert(html.every((h)=>h.includes("Paso ")&&h.includes("de 6")),"progreso accesible del recorrido esencial");
 assert(html[0].includes('id="ob-name"')&&!html[0].includes("ob-choice-grid"),"1 · nombre");
 assert((html[1].match(/data-toggle="goals"/g)||[]).length===GOALS.length,"2 · todos los objetivos");
 assert(html[1].includes('id="ob-custom-goal"')&&html[1].includes('id="ob-primary-goal"'),"2 · objetivo escrito + prioridad principal");
@@ -86,3 +86,6 @@ __obState.name=saved;
 
 console.log("\n📊 RESULTADO: "+pass+" pass · "+fail+" fail\n");
 process.exit(fail?1:0);
+
+assert(onboardingRoute().join(",") === "0,1,2,3,5,8", "inicio esencial conserva preferencias y cribado antes de entrar");
+assert(onboardingRoute(true).includes(4) && onboardingRoute(true).includes(6) && onboardingRoute(true).includes(7), "personalización adicional conserva etapa, Coach e interés comercial");
