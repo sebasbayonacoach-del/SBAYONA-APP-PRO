@@ -141,17 +141,19 @@ export async function signUpWithPassword(email, password, _role = "athlete", met
  */
 export function googleOAuthUrl({ native = false, webOrigin = "" } = {}) {
   if (!cfg.ready) throw new Error("Supabase sin configurar.");
-  // OAuth de BAYONA APP siempre regresa a la APP que inició el flujo.
-  // Un valor inyectable como BAYONA_AUTH_ENTRY_URL podía enviarlo a la WEB.
-  const appOrigin = webOrigin || (typeof location !== "undefined" ? location.origin : "");
-  if (!native && !/^https?:\/\//i.test(appOrigin)) throw new Error("Origen de BAYONA APP no válido.");
-  // La web local también aloja la APP en /mi-app/index.html. Mantener
-  // esa ruta de producto sin enviar tokens a la portada pública.
-  const pathname = typeof location === "undefined" ? "/" : location.pathname;
-  const appPath = /^\/mi-app\/(?:index\.html)?$/.test(pathname) ? "/mi-app/index.html" : "/";
+  // El destino del OAuth es siempre la APP que lo inicia, nunca la portada
+  // ni variables globales mutables inyectadas por la WEB.
+  const base = webOrigin || (typeof location !== "undefined" ? location.href : "");
+  const baseUrl = !native ? new URL(base) : null;
+  if (!native && !/^https?:$/.test(baseUrl.protocol)) throw new Error("Origen de BAYONA APP no válido.");
+  // La APP puede estar integrada en /mi-app/ (WEB local) o ser independiente.
+  // Se conserva exclusivamente una ruta conocida y verificada del producto.
+  const currentPath = typeof location !== "undefined" ? new URL(location.href).pathname : "/";
+  const candidate = baseUrl && baseUrl.pathname !== "/" ? baseUrl.pathname : currentPath;
+  const appPath = /^\/mi-app\/(?:index\.html)?$/.test(candidate) ? candidate : "/";
   const redirect = native
     ? "bayonafit://auth/callback"
-    : new URL(appPath + "?source=pwa", appOrigin).href;
+    : new URL(appPath + "?source=pwa", baseUrl.origin).href;
   const callback = new URL(redirect);
   const attempt = globalThis.crypto?.randomUUID?.();
   if (!attempt) throw new Error("Este dispositivo no admite el acceso seguro con Google.");
