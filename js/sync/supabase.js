@@ -141,15 +141,13 @@ export async function signUpWithPassword(email, password, _role = "athlete", met
  */
 export function googleOAuthUrl({ native = false, webOrigin = "" } = {}) {
   if (!cfg.ready) throw new Error("Supabase sin configurar.");
-  const integratedEntry =
-    typeof window !== "undefined" && typeof window.BAYONA_AUTH_ENTRY_URL === "string"
-      ? window.BAYONA_AUTH_ENTRY_URL
-      : "";
+  // OAuth de BAYONA APP siempre regresa a la APP que inició el flujo.
+  // Un valor inyectable como BAYONA_AUTH_ENTRY_URL podía enviarlo a la WEB.
+  const appOrigin = webOrigin || (typeof location !== "undefined" ? location.origin : "");
+  if (!native && !/^https?:\/\//i.test(appOrigin)) throw new Error("Origen de BAYONA APP no válido.");
   const redirect = native
     ? "bayonafit://auth/callback"
-    : integratedEntry
-      ? new URL(integratedEntry, webOrigin || location.origin).href
-      : new URL("./?source=pwa", webOrigin || location.href).href;
+    : new URL("/?source=pwa", appOrigin).href;
   const callback = new URL(redirect);
   const attempt = globalThis.crypto?.randomUUID?.();
   if (!attempt) throw new Error("Este dispositivo no admite el acceso seguro con Google.");
