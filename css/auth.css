@@ -12,8 +12,8 @@
   overscroll-behavior: contain;
   color: #f7f5f1;
   background:
-    radial-gradient(circle at 78% 12%, rgba(244, 162, 97, .12), transparent 28rem),
-    radial-gradient(circle at 10% 88%, rgba(244, 162, 97, .06), transparent 24rem),
+    radial-gradient(circle at 78% 12%, rgba(255, 106, 0, .12), transparent 28rem),
+    radial-gradient(circle at 10% 88%, rgba(255, 106, 0, .06), transparent 24rem),
     #050505;
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -61,7 +61,7 @@ body.auth-gate-active > :not(#bayona-auth-gate):not(script):not(style) {
 }
 
 .auth-brand > span {
-  color: #f4a261;
+  color: #ff6a00;
   font-size: 18px;
 }
 
@@ -119,7 +119,7 @@ body.auth-gate-active > :not(#bayona-auth-gate):not(script):not(style) {
 .auth-section-label {
   display: block;
   margin-bottom: 10px;
-  color: #f4a261;
+  color: #ff6a00;
   font: 750 10px/1.2 "DM Mono", ui-monospace, monospace;
   letter-spacing: .14em;
   text-transform: uppercase;
@@ -219,9 +219,9 @@ body.auth-gate-active > :not(#bayona-auth-gate):not(script):not(style) {
 }
 
 .auth-field input:focus {
-  border-color: #d88648;
+  border-color: #ff6a00;
   background: #0d0d0d;
-  box-shadow: 0 0 0 3px rgba(244, 162, 97, .08);
+  box-shadow: 0 0 0 3px rgba(255, 106, 0, .08);
 }
 
 .auth-primary,
@@ -235,16 +235,16 @@ body.auth-gate-active > :not(#bayona-auth-gate):not(script):not(style) {
 
 .auth-primary {
   width: 100%;
-  border: 1px solid #f4a261;
-  background: #f4a261;
+  border: 1px solid #ff6a00;
+  background: #ff6a00;
   color: #0b0b0b;
-  box-shadow: 0 9px 30px rgba(244, 162, 97, .12);
+  box-shadow: 0 9px 30px rgba(255, 106, 0, .12);
 }
 
 .auth-primary:hover:not(:disabled),
 .auth-primary:focus-visible {
-  background: #ffad6d;
-  border-color: #ffad6d;
+  background: #ff8c40;
+  border-color: #ff8c40;
 }
 
 .auth-primary:disabled {
@@ -330,12 +330,12 @@ body.auth-gate-active > :not(#bayona-auth-gate):not(script):not(style) {
 }
 
 .auth-role.is-active {
-  border-color: #b66e37;
+  border-color: #d45500;
   background: #130f0c;
 }
 
 .auth-role-icon {
-  color: #f4a261;
+  color: #ff6a00;
   font-size: 18px;
   text-align: center;
 }
@@ -378,7 +378,7 @@ body.auth-gate-active > :not(#bayona-auth-gate):not(script):not(style) {
 .auth-profile-progress b {
   display: block;
   height: 100%;
-  background: #f4a261;
+  background: #ff6a00;
   transition: width .2s ease;
 }
 
@@ -422,7 +422,7 @@ body.auth-gate-active > :not(#bayona-auth-gate):not(script):not(style) {
 .auth-choice-grid button.is-active,
 .auth-pills button.is-active,
 .auth-number-grid button.is-active {
-  border-color: #c9783c;
+  border-color: #d45500;
   background: #15100c;
   box-shadow: inset 0 0 0 1px rgba(244,162,97,.08);
 }
@@ -449,7 +449,7 @@ body.auth-gate-active > :not(#bayona-auth-gate):not(script):not(style) {
 }
 
 .auth-choice-list i {
-  color: #f4a261;
+  color: #ff6a00;
   font-style: normal;
 }
 
@@ -495,7 +495,7 @@ body.auth-gate-active > :not(#bayona-auth-gate):not(script):not(style) {
 }
 
 .auth-number-grid b {
-  color: #f4a261;
+  color: #ff6a00;
   font-size: 20px;
 }
 
@@ -566,7 +566,7 @@ body.auth-gate-active > :not(#bayona-auth-gate):not(script):not(style) {
   border: 1px solid #39302a;
   border-radius: 18px;
   background: #120e0b;
-  color: #f4a261;
+  color: #ff6a00;
   font-size: 24px;
 }
 
@@ -609,7 +609,7 @@ body.auth-gate-active > :not(#bayona-auth-gate):not(script):not(style) {
   margin-bottom: 9px;
   border: 1px solid #403126;
   border-radius: 22px;
-  color: #f4a261;
+  color: #ff6a00;
   font-size: 31px;
 }
 
@@ -617,7 +617,7 @@ body.auth-gate-active > :not(#bayona-auth-gate):not(script):not(style) {
   position: absolute;
   inset: -1px;
   border: 1px solid transparent;
-  border-top-color: #f4a261;
+  border-top-color: #ff6a00;
   border-radius: inherit;
   animation: bayona-auth-spin 1.2s linear infinite;
 }
@@ -648,7 +648,7 @@ body.auth-gate-active > :not(#bayona-auth-gate):not(script):not(style) {
   .auth-splash-mark i {
     animation: none;
     border-color: #403126;
-    border-top-color: #f4a261;
+    border-top-color: #ff6a00;
   }
 }
 
@@ -772,7 +772,7 @@ body.fitness-app #bayona-auth-gate .auth-text-button {
   padding: clamp(24px, 4vw, 56px) 0;
 }
 .auth-editorial > span {
-  color: #f4a261;
+  color: #ff6a00;
   font: 750 10px/1.2 "DM Mono", ui-monospace, monospace;
   letter-spacing: .16em;
   text-transform: uppercase;
@@ -783,7 +783,7 @@ body.fitness-app #bayona-auth-gate .auth-text-button {
   letter-spacing: -.065em;
 }
 .auth-editorial > strong em {
-  color: #f4a261;
+  color: #ff6a00;
   font-style: normal;
 }
 .auth-editorial > p {
