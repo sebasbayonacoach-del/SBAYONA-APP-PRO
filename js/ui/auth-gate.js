@@ -91,11 +91,11 @@ const state = {
   profileStep: 0,
   profile: {
     name: "",
-    goal: "BIENESTAR Y ADHERENCIA",
-    experience: "ALGO DE EXPERIENCIA",
-    place: "GIMNASIO",
-    frequency: 3,
-    minutes: 45,
+    goal: "",
+    experience: "",
+    place: "",
+    frequency: null,
+    minutes: null,
     privacyAck: false,
   },
 };
@@ -282,11 +282,13 @@ function prepareProfileState({ user, row }) {
   const rowGoal = Array.isArray(row?.goals) ? row.goals[0] : null;
   state.profile = {
     name: meta?.name || row?.display_name || metaName || state.pendingName || "",
-    goal: row?.onboarding_goal || meta?.goalPrimary || rowGoal || "BIENESTAR Y ADHERENCIA",
-    experience: row?.onboarding_experience || meta?.experience || "ALGO DE EXPERIENCIA",
-    place: row?.onboarding_place || meta?.trainingPlaces?.[0] || "GIMNASIO",
-    frequency: Math.max(2, Math.min(5, row?.onboarding_frequency || meta?.weeklyAvailability?.days?.length || 3)),
-    minutes: [15, 30, 45, 60].includes(Number(row?.onboarding_minutes || meta?.sessionMinutes)) ? Number(row?.onboarding_minutes || meta?.sessionMinutes) : 45,
+    goal: row?.onboarding_goal || meta?.goalPrimary || rowGoal || "",
+    experience: row?.onboarding_experience || meta?.experience || "",
+    place: row?.onboarding_place || meta?.trainingPlaces?.[0] || "",
+    frequency: FREQUENCIES.some(([n]) => n === Number(row?.onboarding_frequency || meta?.weeklyAvailability?.days?.length))
+      ? Number(row?.onboarding_frequency || meta?.weeklyAvailability?.days?.length) : null,
+    minutes: [15, 30, 45, 60].includes(Number(row?.onboarding_minutes || meta?.sessionMinutes))
+      ? Number(row?.onboarding_minutes || meta?.sessionMinutes) : null,
     privacyAck: false,
   };
   state.profileStep = 0;
@@ -603,6 +605,7 @@ function profileView() {
       <div class="auth-choice-list" role="group" aria-label="Objetivo principal">
         ${GOALS.map(([value, label, copy]) => `<button type="button" data-profile-goal="${esc(value)}" class="${p.goal === value ? "is-active" : ""}"><span><strong>${esc(label)}</strong><small>${esc(copy)}</small></span><i>${p.goal === value ? "✓" : "→"}</i></button>`).join("")}
       </div>
+      ${messageHtml()}
       <button class="auth-primary" type="button" data-profile-next>CONTINUAR</button>
     </section>`;
 
@@ -618,6 +621,7 @@ function profileView() {
       <div class="auth-choice-grid" role="group" aria-label="Lugar de entrenamiento">
         ${PLACES.map(([value, label, copy]) => `<button type="button" data-profile-place="${esc(value)}" class="${p.place === value ? "is-active" : ""}"><strong>${esc(label)}</strong><small>${esc(copy)}</small></button>`).join("")}
       </div>
+      ${messageHtml()}
       <div class="auth-step-actions"><button class="auth-secondary" type="button" data-profile-back>ATRÁS</button><button class="auth-primary" type="button" data-profile-next>CONTINUAR</button></div>
     </section>`;
 
@@ -831,6 +835,12 @@ async function finishAthleteProfile() {
   const name = root.querySelector("#profile-name")?.value.trim() || state.profile.name;
   if (name) state.profile.name = name;
   if (!state.profile.name || state.profile.name.trim().length < 2) return setMessage("Escribe un nombre de al menos dos caracteres.", "error");
+  if (!GOALS.some(([v]) => v === state.profile.goal)
+    || !EXPERIENCE.some(([v]) => v === state.profile.experience)
+    || !PLACES.some(([v]) => v === state.profile.place)
+    || !FREQUENCIES.some(([v]) => v === Number(state.profile.frequency))
+    || ![15, 30, 45, 60].includes(Number(state.profile.minutes)))
+    return setMessage("Completa los pasos anteriores para crear tu espacio.", "error");
   if (!state.profile.privacyAck) return setMessage("Lee y confirma la información de privacidad antes de continuar.", "error");
 
   state.busy = true;
@@ -1001,6 +1011,16 @@ function wire() {
       state.profile.name = input.value.trim();
       if (!state.profile.name) return setMessage("Escribe tu nombre para continuar.", "error");
     }
+    if (state.profileStep === 0 && !GOALS.some(([value]) => value === state.profile.goal))
+      return setMessage("Selecciona un objetivo principal para continuar.", "error");
+    if (state.profileStep === 1 && !EXPERIENCE.some(([value]) => value === state.profile.experience))
+      return setMessage("Selecciona tu experiencia entrenando.", "error");
+    if (state.profileStep === 1 && !PLACES.some(([value]) => value === state.profile.place))
+      return setMessage("Elige dónde sueles entrenar.", "error");
+    if (state.profileStep === 2 && !FREQUENCIES.some(([value]) => value === Number(state.profile.frequency)))
+      return setMessage("Selecciona cuántos días quieres entrenar.", "error");
+    if (state.profileStep === 2 && ![15, 30, 45, 60].includes(Number(state.profile.minutes)))
+      return setMessage("Selecciona cuánto tiempo tienes para entrenar.", "error");
     state.message = "";
     state.profileStep = Math.min(3, state.profileStep + 1);
     render();
