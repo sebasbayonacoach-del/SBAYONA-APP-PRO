@@ -1,0 +1,103 @@
+/* BAYONA LIFE RPG • native, accessible game-like dashboard.
+   Athlete scope only; no extra video/3D workload. */
+body.fitness-app:not([data-entry-role="coach"]) .bayona-rpg{
+  --r-ink:#fbf6ed;--r-soft:#ccd4d4;--r-tangerine:#f2a66f;--r-stroke:#39464a;
+  min-width:0;margin:0 0 20px;isolation:isolate;color:var(--r-ink);
+  font-family:"Inter",system-ui,sans-serif;
+}
+body.fitness-app .bayona-rpg *{box-sizing:border-box}
+body.fitness-app .bayona-rpg-header{display:flex;justify-content:space-between;align-items:center;gap:15px;margin:0 0 10px;padding:0 4px}
+body.fitness-app .bayona-rpg-brand{display:flex;align-items:center;gap:10px}
+body.fitness-app .bayona-rpg-b{display:grid;place-items:center;width:37px;height:37px;flex:none;border-radius:10px;font-weight:900;font-size:22px;color:#1e1410;background:linear-gradient(135deg,#ffca8e,#de7552)}
+body.fitness-app .bayona-rpg-brand>div{display:grid;gap:1px}
+body.fitness-app .bayona-rpg-brand strong{font-size:10px;letter-spacing:.11em;font-weight:850;color:#f9ddc1!important}
+body.fitness-app .bayona-rpg-brand small{font-size:9px;letter-spacing:.09em;color:#b7c6c8!important}
+body.fitness-app .bayona-rpg-edition{font-size:9px;color:#d1a57c!important;letter-spacing:.1em;font-weight:850}
+body.fitness-app .bayona-rpg-hero{display:grid;grid-template-columns:minmax(0,1.14fr) minmax(195px,.8fr);gap:18px;align-items:stretch;
+ background:radial-gradient(circle at 76% 30%,rgba(232,147,94,.22),transparent 38%),linear-gradient(138deg,#212a2d,#101719 68%);
+ border:1px solid #475458;border-radius:19px;overflow:hidden;min-width:0;padding:clamp(18px,2.25vw,31px);
+ box-shadow:0 16px 45px rgba(0,0,0,.2);
+}
+body.fitness-app .bayona-rpg-kicker{font-size:10px;letter-spacing:.16em;font-weight:900;color:#ffc18a!important}
+body.fitness-app .bayona-rpg-story{min-width:0;align-self:center}
+body.fitness-app .bayona-rpg-story h2{color:#fff4e5!important;font:900 clamp(30px,3.2vw,50px)/1.04 "Montserrat",system-ui,sans-serif;letter-spacing:-.057em;margin:10px 0 12px;text-wrap:balance}
+body.fitness-app .bayona-rpg-lead{font-size:clamp(12px,.98vw,15px);line-height:1.7;color:#d0dadd!important;max-width:500px;margin:0 0 20px}
+body.fitness-app .bayona-rpg-quest{border-left:3px solid #ee9e69;padding:7px 0 8px 14px;margin-bottom:18px;display:grid;gap:6px;max-width:470px}
+body.fitness-app .bayona-rpg-quest small{font-size:9px;letter-spacing:.13em;font-weight:850;color:#f2bd90!important}
+body.fitness-app .bayona-rpg-quest strong{color:#fff6e9!important;font-size:clamp(16px,1.45vw,23px);font-weight:850;line-height:1.25}
+body.fitness-app .bayona-rpg-quest p{margin:0;font-size:12px;color:#bfcdd0!important;line-height:1.5}
+body.fitness-app .bayona-rpg-quest-actions{display:flex;gap:9px;flex-wrap:wrap}
+body.fitness-app .bayona-rpg button{font-family:inherit;cursor:pointer;transition:background .15s ease,border-color .15s ease,transform .15s}
+body.fitness-app .bayona-rpg button:focus-visible{outline:3px solid #ffc18a;outline-offset:3px}
+body.fitness-app .bayona-rpg button:hover{transform:translateY(-1px)}
+body.fitness-app .bayona-rpg-primary{padding:12px 17px;border-radius:10px;min-height:45px;background:#f4aa73;color:#20120c!important;border:1px solid #f4aa73;font-size:11px;font-weight:900}
+body.fitness-app .bayona-rpg-secondary{padding:12px 15px;border-radius:10px;min-height:45px;background:#222d30;color:#fff1e3!important;border:1px solid #596569;font-size:11px;font-weight:850}
+body.fitness-app .bayona-rpg-level{min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:11px;position:relative}
+body.fitness-app .bayona-rpg-orb{position:relative;display:grid;place-items:center;width:clamp(175px,18vw,240px);height:clamp(175px,18vw,240px);overflow:hidden;border-radius:50%;background:radial-gradient(circle at 48% 42%,#40352b,#111a20 61%,#090f13);box-shadow:inset 0 0 35px rgba(224,138,80,.14),0 16px 44px rgba(0,0,0,.23)}
+body.fitness-app .bayona-rpg-orb .ring{position:absolute;border:1px solid rgba(253,186,127,.6);border-radius:50%;inset:11%;transform:rotate(-27deg) scaleY(.79)}
+body.fitness-app .bayona-rpg-orb .ring-2{inset:18%;transform:rotate(28deg) scaleY(.81);border-color:rgba(242,179,131,.29)}
+body.fitness-app .bayona-rpg-orb .ring-3{inset:29%;border-style:dashed;border-color:rgba(242,179,131,.5);transform:rotate(66deg) scaleY(.92)}
+body.fitness-app .bayona-rpg-orb b{font:900 clamp(68px,7vw,90px)/1 "Montserrat",system-ui,sans-serif;letter-spacing:-.12em;color:#ffbd87;text-shadow:0 0 30px rgba(236,134,85,.4);padding-right:8px}
+body.fitness-app .bayona-rpg-rank{display:grid;gap:2px;text-align:center}
+body.fitness-app .bayona-rpg-rank span{color:#c4aa94!important;font-size:9px;letter-spacing:.12em;font-weight:850}
+body.fitness-app .bayona-rpg-rank strong{color:#fff0de!important;font-size:18px;font-weight:900;letter-spacing:.035em}
+body.fitness-app .bayona-rpg-rank small,.bayona-rpg-levelnext{color:#c2cdcb!important;font-size:10px}
+body.fitness-app .bayona-rpg-progress{width:min(225px,95%);height:8px;border-radius:30px;border:1px solid #576063;background:#20292c;overflow:hidden}
+body.fitness-app .bayona-rpg-progress i{display:block;height:100%;background:linear-gradient(90deg,#d77852,#ffcc93);border-radius:inherit}
+body.fitness-app .bayona-rpg-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;margin:10px 0;border-radius:12px;overflow:hidden;background:#3c494d;border:1px solid #3c494d}
+body.fitness-app .bayona-rpg-stat{background:#1c2529;padding:14px;display:flex;flex-direction:column;gap:5px;min-width:0}
+body.fitness-app .bayona-rpg-stat strong{font-weight:900;font-size:22px;line-height:1.05;color:#f7d3af!important;white-space:nowrap}
+body.fitness-app .bayona-rpg-stat small{font-size:9px;letter-spacing:.07em;color:#bac8cb!important;font-weight:750}
+body.fitness-app .bayona-rpg-map{min-width:0;background:#151e22;border:1px solid #3b4a4d;border-radius:16px;padding:clamp(15px,2vw,24px)}
+body.fitness-app .bayona-rpg-maphead{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:14px;margin-bottom:17px}
+body.fitness-app .bayona-rpg-maphead h3{margin:6px 0 0;font:850 clamp(19px,2vw,27px)/1.1 "Montserrat",system-ui,sans-serif;color:#fff4e5!important;letter-spacing:-.035em}
+body.fitness-app .bayona-rpg-mode-row{display:flex;gap:5px;padding:4px;border:1px solid #485759;border-radius:11px;background:#1c272c}
+body.fitness-app .bayona-rpg-mode{border:1px solid transparent;background:transparent;color:#b8c6c9!important;border-radius:7px;padding:8px 11px;font-size:10px;font-weight:800}
+body.fitness-app .bayona-rpg-mode[aria-pressed="true"]{border-color:#d49a73;background:#5a3828;color:#ffe2bc!important}
+body.fitness-app .bayona-rpg-zones{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}
+body.fitness-app .bayona-rpg-zone{position:relative;display:flex;align-items:start;flex-direction:column;gap:7px;min-width:0;min-height:145px;text-align:left;padding:12px 11px;border:1px solid #475358;border-radius:12px;background:linear-gradient(135deg,#242f33,#1b2328);color:#f2ebe2!important}
+body.fitness-app .bayona-rpg-zone[data-state="claimed"]{border-color:#618879}
+body.fitness-app .bayona-rpg-zone[data-state="done"]{border-color:#bd986d}
+body.fitness-app .bayona-rpg-zone.selected{border-color:#f7b47f;background:linear-gradient(140deg,#60412f,#283033);box-shadow:inset 0 0 18px rgba(236,147,95,.12)}
+body.fitness-app .bayona-rpg-zone-icon{font-size:27px;line-height:1;color:#f6bf89!important}
+body.fitness-app .bayona-rpg-zone-no{position:absolute;top:12px;right:11px;color:#879ca1!important;font-size:9px;font-weight:850}
+body.fitness-app .bayona-rpg-zone strong{font-size:12px;font-weight:900;color:#fff0e1!important;line-height:1.25}
+body.fitness-app .bayona-rpg-zone-state{font-size:9px;letter-spacing:.055em;color:#b8c9c8!important;font-weight:750}
+body.fitness-app .bayona-rpg-detail{display:flex;flex-direction:column;gap:7px;margin-top:13px;padding:14px 16px;border:1px solid #425358;border-radius:11px;background:#202b2e}
+body.fitness-app .bayona-rpg-detail h4{margin:0;color:#ffe9d5!important;font-size:20px;font-weight:900}
+body.fitness-app .bayona-rpg-detail p{margin:0;color:#c3cdcf!important;font-size:12px;line-height:1.55}
+body.fitness-app .bayona-rpg-area-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:5px}
+body.fitness-app .bayona-rpg-area-primary{border-radius:8px;padding:11px 13px;border:1px solid #f2aa70;background:#f2aa70;color:#1d120d!important;font-weight:900;font-size:10px}
+body.fitness-app .bayona-rpg-area-minor{border:1px solid #6d6a62;border-radius:8px;background:#2a3235;padding:11px 13px;color:#f9e6d5!important;font-weight:850;font-size:10px}
+body.fitness-app .bayona-rpg-claimed{font-size:11px;color:#b9dbc7!important}
+body.fitness-app .bayona-rpg-foot{display:flex;align-items:center;flex-wrap:wrap;justify-content:space-between;gap:9px;margin-top:15px}
+body.fitness-app .bayona-rpg-foot small{color:#b4c2c4!important;font-size:10px;line-height:1.5}
+body.fitness-app .bayona-rpg-plan{border:0;background:transparent;color:#ffc18a!important;font-size:11px;font-weight:900;padding:8px}
+body.fitness-app .bayona-rpg[data-mode="simple"] .bayona-rpg-orb{width:145px;height:145px}
+body.fitness-app .bayona-rpg[data-mode="simple"] .bayona-rpg-stats,
+body.fitness-app .bayona-rpg[data-mode="simple"] .bayona-rpg-foot{display:none}
+body.fitness-app .bayona-rpg[data-mode="expert"] .bayona-rpg-zone{min-height:160px}
+@media(max-width:1000px){
+ body.fitness-app .bayona-rpg-zones{grid-template-columns:repeat(3,minmax(0,1fr))}
+ body.fitness-app .bayona-rpg-hero{grid-template-columns:minmax(0,1fr) 195px}
+}
+@media(max-width:640px){
+ body.fitness-app .bayona-rpg-edition{display:none}
+ body.fitness-app .bayona-rpg-hero{grid-template-columns:1fr}
+ body.fitness-app .bayona-rpg-level{display:grid;grid-template-columns:95px minmax(0,1fr);gap:7px 13px;justify-items:stretch}
+ body.fitness-app .bayona-rpg-orb,body.fitness-app .bayona-rpg[data-mode="simple"] .bayona-rpg-orb{grid-row:span 3;width:93px;height:93px}
+ body.fitness-app .bayona-rpg-orb b{font-size:48px}
+ body.fitness-app .bayona-rpg-rank{text-align:left}
+ body.fitness-app .bayona-rpg-progress{width:100%}
+ body.fitness-app .bayona-rpg-zones{grid-template-columns:repeat(2,minmax(0,1fr))}
+ body.fitness-app .bayona-rpg-zone{min-height:122px}
+ body.fitness-app .bayona-rpg-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+ body.fitness-app .bayona-rpg-stat:last-child{grid-column:span 2}
+ body.fitness-app .bayona-rpg-quest-actions{flex-direction:column}
+ body.fitness-app .bayona-rpg-mode{font-size:9px;padding:8px}
+}
+@media(prefers-reduced-motion:reduce){body.fitness-app .bayona-rpg *{transition:none!important;animation:none!important}}
+
+/* Recommendation is now the primary mission above; avoid repeating a second
+   identical hero lower on the same page. Other tools remain visible. */
+body.fitness-app:not([data-entry-role="coach"]) .bayona-rpg ~ .fit-now-card{display:none}

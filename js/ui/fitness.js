@@ -7,6 +7,7 @@ import { renderHoy } from './hoy.js';
 import { todaysSession } from '../engine.js';
 import { decideNow } from '../now.js';
 import { lifeMissions } from '../game/missions.js';
+import {renderLifeRpg, lifeRpgSnapshot, lifeRpgAreaRoute} from './life-rpg.js';
 import { activeOrNextItem, dayProgress, localDateKey, plannerItemsForDate } from '../planner.js';
 import {
   PLAN_META, planFromProfile, featureForSection, hasFeature, featureTier,
@@ -165,6 +166,29 @@ function home(body){
     <button class="fit-profile-chip" type="button" aria-label="Abrir mi perfil">${avatar}</button>`);
   head.querySelector('.fit-profile-chip').onclick=()=>openSection('profile');
   body.append(head);
+
+  // RPG as a visual layer over the proven, single XP source.
+  // Opening/choosing an area never awards XP; verified actions do.
+  const story = lifeRpgSnapshot({
+    profile:p,today,life:S.data.life,xp:S.data.xp,level:S.level(),decision
+  });
+  renderLifeRpg(body,{
+    snapshot:story,rank:S.rank(),
+    onMode:mode=>{
+      if(!['simple','adventure','expert'].includes(mode))return;
+      S.data.profile.lifeRpgView=mode;
+      S.save();
+      home(body);
+    },
+    onMain:()=>runNowAction(decision,w),
+    onArea:(id,mission)=>openSection(mission?.next?'planner':lifeRpgAreaRoute(id)),
+    onClaim:id=>{
+      const reward=S.claimAreaMission(id);
+      if(reward)toast('MISIÓN VERIFICADA','+'+reward.xp+' XP por acción real');
+      home(body);
+    },
+    onExplore:()=>openSection('planner')
+  });
 
   if(detail.score==null&&today.energy==null){
     body.append(moodStrip(today,()=>home(body)));
