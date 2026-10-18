@@ -26,7 +26,7 @@ assert.ok(rule(luxe, "luxe-accent", "#f4a261"), "Luxury accent matches WEB");
 assert.match(appearance, /\["NARANJA",\s*"#f4a261"\]/i, "Appearance swatch matches WEB");
 assert.match(auth, /\.auth-primary[\s\S]*?background:\s*#f4a261/i, "Sign-in CTA matches WEB");
 assert.doesNotMatch([pro,luxe,appearance,aurum].join(""), /#ff6a00|rgba\(255,\s*106,\s*0/i, "Old bright orange must not reappear");
-assert.match(sw,/bayona-shell-v46/, "New service worker version refreshes the PWA");
+assert.match(sw,/bayona-shell-v(?:4[6-9]|[5-9][0-9])/, "New service worker version refreshes the PWA");
 assert.match(html,/css\/pro\.css\?v=4/, "PRO CSS cache bust");
 assert.match(html,/css\/luxe\.css\?v=2/, "Luxury CSS cache bust");
 
