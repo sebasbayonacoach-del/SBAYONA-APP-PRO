@@ -1,9 +1,12 @@
-// BAYONA / PROPLAYER — biblioteca técnica propiedad de BAYONA.
-// El catálogo se integra como dominio de entrenamiento; los MP4 se cargan bajo demanda.
+// BAYONA / PROPLAYER — catálogo técnico integrado en la app.
+// Los vídeos se solicitan al origen bajo demanda; el catálogo no acredita titularidad.
 import { S } from "../state.js";
 import { esc } from "../i18n.js";
+import { bindVideoRecovery, pauseVideoWhenRemoved } from "../media.js";
 import { BUILDERS, $, el, elT, openSection, showModal, hideModal, toast } from "./shared.js";
 import { linkedClients, saveCloudRoutine, assignCloudRoutine } from "../sync/coaching.js";
+import { accountRole } from "../sync/supabase.js";
+import { renderTrainingymAudit } from "./trainingym-audit.js";
 
 const CATALOG_URL = "./trainingym/catalog.json";
 const MEDIA_BASE = "./private-trainingym/media/";
@@ -279,20 +282,20 @@ function playVideo(record) {
     );
 
     const video = document.createElement("video");
-    video.controls = true;
-    video.playsInline = true;
-    video.preload = "metadata";
     video.src = mediaUrl(record);
+    video.muted = true;
     video.setAttribute("aria-label", "Demostración de " + record.nombre);
+    const state = elT("p", "proplayer-video-state", "Cargando demostración…");
+    const fallback = elT("p", "proplayer-video-state", "La ficha conserva el nombre y los datos técnicos del ejercicio.");
+    fallback.hidden = true;
+    const retry = elT("button", "btn secondary", "REINTENTAR VÍDEO");
+    retry.type = "button";
+    retry.hidden = true;
 
-    const state = elT("p", "proplayer-video-state", "MP4 verificado · propiedad BAYONA · carga bajo demanda.");
-    video.addEventListener("error", () => {
-      state.textContent = "No se pudo abrir este MP4 desde la biblioteca local.";
-      state.classList.add("danger");
-    });
-
-    host.append(modalHead, title, meta, video, state);
-    video.focus({ preventScroll: true });
+    host.append(modalHead, title, meta, fallback, video, state, retry);
+    const cleanupVideo = bindVideoRecovery(video, { status: state, retryButton: retry, fallback });
+    pauseVideoWhenRemoved(video, $("#modal-box"), cleanupVideo);
+    close.focus({ preventScroll: true });
   });
 }
 
@@ -322,7 +325,7 @@ function exportSelection(rows) {
 
 function renderLibrary(body, data) {
   const root = el("div", "proplayer-library");
-  const isCoach = document.body.dataset.oneContext === "coach";
+  const isCoach = document.body.dataset.oneContext === "coach" && accountRole() === "coach";
   const selected = new Map();
   let buildButton = null;
 
@@ -364,17 +367,32 @@ function renderLibrary(body, data) {
   hero.append(heroCopy);
   root.append(hero);
 
-  const playable = data.filter((x) => x.video_disponible_local).length;
+  const referenced = data.filter((x) => x.video_archivo_local || x.video_url).length;
   const uniqueMedia = new Set(data.filter((x) => x.video_archivo_local).map((x) => x.video_archivo_local)).size;
-  const missing = data.length - playable;
+  const missing = data.length - referenced;
   const metrics = el("div", "proplayer-metrics");
   metrics.append(
     makeMetric("EJERCICIOS", formatCount(data.length), "catálogo auditado"),
-    makeMetric("FICHAS CON VÍDEO", formatCount(playable), "incluye duplicados reutilizados"),
-    makeMetric("MP4 ÚNICOS", formatCount(uniqueMedia), "sin duplicar almacenamiento"),
-    makeMetric("SIN MP4", formatCount(missing), "ausente o con incidencia")
+    makeMetric("FICHAS CON REFERENCIA", formatCount(referenced), "el origen puede no responder"),
+    makeMetric("NOMBRES DE ARCHIVO", formatCount(uniqueMedia), "según catálogo; disponibilidad externa"),
+    makeMetric("SIN REFERENCIA", formatCount(missing), "ausente en los datos del catálogo")
   );
   root.append(metrics);
+
+  // Only the server-verified coach sees this view; no extra private assets
+  // or third-party video is bundled, and the audit uses existing app data.
+  if (isCoach) {
+    const audit = renderTrainingymAudit(data, {
+      onFind: record => {
+        search.value = record.nombre;
+        availability.value = "";
+        view.page = 1;
+        draw();
+        workspace.scrollIntoView({ behavior: "smooth", block: "start" });
+      },
+    });
+    root.append(audit);
+  }
 
   const workspace = el("div", "proplayer-workspace");
   const filters = el("aside", "proplayer-filters");
@@ -404,9 +422,9 @@ function renderLibrary(body, data) {
   fillSelect(tag, distinct(data, "etiquetas"), "Todas las etiquetas");
   availability.append(
     new Option("Todos los registros", ""),
-    new Option("Con vídeo reproducible", "video"),
-    new Option("MP4 original verificado", "ok"),
-    new Option("Duplicado reutilizado", "duplicate"),
+    new Option("Referencia marcada disponible", "video"),
+    new Option("Estado catálogo: OK", "ok"),
+    new Option("Archivo compartido por varias fichas", "duplicate"),
     new Option("Sin vídeo en origen", "no_video"),
     new Option("Incidencia de descarga", "error")
   );
@@ -442,7 +460,7 @@ function renderLibrary(body, data) {
   const disclaimer = elT(
     "div",
     "proplayer-disclaimer",
-    "Biblioteca confirmada por su propietario para uso en BAYONA. Los vídeos se mantienen separados del código y se cargan bajo demanda para no inflar la aplicación."
+    "Catálogo técnico con 3.141 ejercicios. Las referencias y estados provienen del catálogo; cada vídeo debe cargar desde su origen para poder reproducirse."
   );
   resultsArea.append(controls, cards, pager, disclaimer);
   workspace.append(filters, resultsArea);
@@ -514,16 +532,16 @@ function renderLibrary(body, data) {
       record.etiquetas.slice(0, 2).forEach((x) => chips.append(makeChip(x)));
 
       const foot = el("div", "proplayer-card-bottom");
-      const mediaState = record.estado_media === "duplicate"
-        ? "MP4 reutilizado"
-        : record.video_disponible_local
-          ? "MP4 verificado"
-          : record.estado_media === "error"
-            ? "Incidencia"
-            : "Sin MP4";
+      const mediaState = record.estado_media === "error"
+        ? "Incidencia registrada"
+        : record.estado_media === "duplicate"
+          ? "Referencia compartida"
+          : record.video_archivo_local || record.video_url
+            ? "Referencia de vídeo"
+            : "Sin referencia";
       foot.append(elT("span", "", mediaState));
       const playableHere = canPlay(record);
-      const play = elT("button", "", playableHere ? "REPRODUCIR" : record.video_disponible_local ? "VÍDEO EN CDN" : "NO DISPONIBLE");
+      const play = elT("button", "", playableHere ? "PROBAR VÍDEO" : record.video_archivo_local ? "PROBAR CDN" : "SIN VÍDEO");
       play.type = "button";
       play.disabled = !playableHere;
       if (!play.disabled) play.addEventListener("click", () => playVideo(record));
