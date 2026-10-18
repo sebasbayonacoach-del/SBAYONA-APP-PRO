@@ -1,0 +1,189 @@
+/* BAYONA COACH · panorama visual 360. Scoped to the verified coach view. */
+body.fitness-app .one-elite-body .one-v360{
+  --vtext:#F5EFE8;--vsub:#C5CDD0;--vline:#374247;--vmuted:#E5B88D;
+  margin:0 0 22px;min-width:0;color:var(--vtext);
+}
+body.fitness-app .one-elite-body .one-v360 *{box-sizing:border-box}
+body.fitness-app .one-elite-body .one-v360-lead{
+  display:flex;align-items:end;justify-content:space-between;gap:20px;
+  margin:0 0 16px;padding:0 6px;flex-wrap:wrap;
+}
+body.fitness-app .one-elite-body .one-v360-eyebrow{
+  color:#F1B17B!important;font-size:10px!important;letter-spacing:.13em;font-weight:850;
+}
+body.fitness-app .one-elite-body .one-v360-lead h2{
+  color:#F9EDE3!important;font:800 clamp(25px,2.8vw,37px)/1.12 "Montserrat","Inter",system-ui,sans-serif;
+  letter-spacing:-.04em;margin:8px 0 5px;
+}
+body.fitness-app .one-elite-body .one-v360-lead p,
+body.fitness-app .one-elite-body .one-v360-panel-head p{
+  margin:0;color:#BECACD!important;font-size:12px!important;line-height:1.5;
+}
+body.fitness-app .one-elite-body .one-v360-nav{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+body.fitness-app .one-elite-body .one-v360-navlink,
+body.fitness-app .one-elite-body .one-v360-open,
+body.fitness-app .one-elite-body .one-v360-panel-action,
+body.fitness-app .one-elite-body .one-v360-expand,
+body.fitness-app .one-elite-body .one-v360-person-open,
+body.fitness-app .one-elite-body .one-v360-menu{
+  appearance:none;cursor:pointer;font-family:"Inter",system-ui,sans-serif;
+  background:#1D292D;color:#F8DAC1!important;border:1px solid #65513E;
+  border-radius:8px;padding:10px 12px;min-height:36px;
+  font-size:10px;font-weight:850;letter-spacing:.045em;
+}
+body.fitness-app .one-elite-body .one-v360 button:focus-visible{outline:2px solid #FAC28B;outline-offset:3px}
+body.fitness-app .one-elite-body .one-v360 button:hover{border-color:#E8AA78;background:#304046}
+body.fitness-app .one-elite-body .one-v360-layout{
+  display:grid;grid-template-columns:minmax(0,1.52fr) minmax(0,.96fr);align-items:stretch;gap:14px;
+}
+body.fitness-app .one-elite-body .one-v360-panel{
+  min-width:0;overflow:hidden;background:linear-gradient(155deg,#151E21,#11181B);
+  color:#F5EFE8!important;border:1px solid #3D4D52;border-radius:16px;
+  padding:clamp(15px,1.65vw,23px);
+  box-shadow:0 12px 37px rgba(0,0,0,.15);
+}
+body.fitness-app .one-elite-body .one-v360-panel-head{
+  display:flex;align-items:start;justify-content:space-between;gap:12px;margin-bottom:17px;
+}
+body.fitness-app .one-elite-body .one-v360-panel-head>div{min-width:0}
+body.fitness-app .one-elite-body .one-v360-panel-head h3{
+  color:#F9EEE2!important;font:800 clamp(20px,1.8vw,26px)/1.15 "Montserrat",system-ui,sans-serif;
+  letter-spacing:-.035em;margin:8px 0;
+}
+body.fitness-app .one-elite-body .one-v360-open{white-space:nowrap;flex:0 0 auto;margin-top:3px}
+body.fitness-app .one-elite-body .one-v360-media-strip{
+  display:flex;width:100%;height:21px;border-radius:7px;overflow:hidden;background:#253034;
+  border:1px solid #3C4C4E;gap:2px;
+}
+body.fitness-app .one-elite-body .one-v360-strip-part{display:block;height:100%;flex-shrink:0}
+body.fitness-app .one-elite-body .one-v360-ok{background:#93C0AE}
+body.fitness-app .one-elite-body .one-v360-duplicate{background:#D2A16C}
+body.fitness-app .one-elite-body .one-v360-no_video{background:#6589A3}
+body.fitness-app .one-elite-body .one-v360-error{background:#DF806F}
+body.fitness-app .one-elite-body .one-v360-legend{
+  margin:15px 0 26px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;
+}
+body.fitness-app .one-elite-body .one-v360-legend-item{
+  display:grid;grid-template-columns:8px auto 1fr;align-items:center;gap:7px;min-width:0;
+}
+body.fitness-app .one-elite-body .one-v360-dot{
+  display:inline-block;width:8px;height:8px;border-radius:50%;
+}
+body.fitness-app .one-elite-body .one-v360-legend-item strong{
+  color:#F7ECE1;font-weight:850;font-size:17px;letter-spacing:-.03em;
+  font-variant-numeric:tabular-nums;
+}
+body.fitness-app .one-elite-body .one-v360-legend-item span{
+  color:#B7C3C5;font-size:9px!important;font-weight:730;line-height:1.4;
+}
+body.fitness-app .one-elite-body .one-v360-subhead{
+  display:flex;align-items:baseline;justify-content:space-between;gap:9px;
+  padding:13px 0 9px;border-top:1px solid #3B464B;
+}
+body.fitness-app .one-elite-body .one-v360-subhead strong{color:#FAE8D7;font-size:13px}
+body.fitness-app .one-elite-body .one-v360-subhead small{color:#BDCBCE;font-size:10px}
+body.fitness-app .one-elite-body .one-v360-muscles{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 16px;
+}
+body.fitness-app .one-elite-body .one-v360-muscle{
+  display:grid;gap:6px;text-align:left;min-width:0;padding:7px;
+  color:#F3E7D9!important;background:transparent;border:1px solid transparent;border-radius:7px;cursor:pointer;
+}
+body.fitness-app .one-elite-body .one-v360-muscle.more{display:none}
+body.fitness-app .one-elite-body .one-v360-muscles.expanded .one-v360-muscle.more{display:grid}
+body.fitness-app .one-elite-body .one-v360-muscle-top{display:flex;justify-content:space-between;align-items:center;gap:9px;min-width:0}
+body.fitness-app .one-elite-body .one-v360-muscle-top span{
+  color:#D6DFDC!important;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+body.fitness-app .one-elite-body .one-v360-muscle-top strong{
+  color:#F8BD88!important;font:800 12px/1 "Inter",system-ui,sans-serif;flex:0 0 auto;
+}
+body.fitness-app .one-elite-body .one-v360-meter{
+  height:6px;width:100%;background:#334247;border-radius:999px;overflow:hidden;
+}
+body.fitness-app .one-elite-body .one-v360-meter i{
+  display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#D98156,#F5BB82);
+}
+body.fitness-app .one-elite-body .one-v360-expand{margin-top:12px}
+body.fitness-app .one-elite-body .one-v360-counters{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:16px;
+}
+body.fitness-app .one-elite-body .one-v360-counter{
+  display:flex;flex-direction:column;gap:5px;background:#202B2E;border:1px solid #3F4B51;border-radius:10px;padding:14px;
+}
+body.fitness-app .one-elite-body .one-v360-counter strong{
+  font-size:clamp(23px,2.5vw,34px);font-weight:850;letter-spacing:-.04em;color:#FFE3CB;line-height:1;
+}
+body.fitness-app .one-elite-body .one-v360-counter small{color:#C0C8CB;font-size:9px;font-weight:800;letter-spacing:.05em}
+body.fitness-app .one-elite-body .one-v360-people{display:grid;gap:10px}
+body.fitness-app .one-elite-body .one-v360-person{
+  display:grid;gap:12px;padding:14px;background:#1B272A;border:1px solid #4A575A;border-radius:10px;
+}
+body.fitness-app .one-elite-body .one-v360-person-head{
+  display:flex;justify-content:space-between;align-items:center;gap:9px;
+}
+body.fitness-app .one-elite-body .one-v360-person-head strong{color:#F9EEE3;font-size:14px;overflow-wrap:anywhere}
+body.fitness-app .one-elite-body .one-v360-person-head span{
+  color:#F8B783;border:1px solid #7B5838;border-radius:100px;padding:3px 7px;font-size:9px;font-weight:850;
+}
+body.fitness-app .one-elite-body .one-v360-person-bar{display:grid;gap:6px}
+body.fitness-app .one-elite-body .one-v360-person-bar>div:first-child{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+}
+body.fitness-app .one-elite-body .one-v360-person-bar span{color:#BBC9CA;font-size:10px;font-weight:750}
+body.fitness-app .one-elite-body .one-v360-person-bar strong{color:#FFE5CF;font-size:11px}
+body.fitness-app .one-elite-body .one-v360-person-bar.unknown .one-v360-meter i{background:#667276}
+body.fitness-app .one-elite-body .one-v360-person-open{justify-self:start}
+body.fitness-app .one-elite-body .one-v360-demo-people{padding:12px;border:1px solid #414F53;border-radius:10px;background:#192124}
+body.fitness-app .one-elite-body .one-v360-demo-people summary{
+  color:#EAC19B;font-size:11px;cursor:pointer;font-weight:800;letter-spacing:.04em;
+}
+body.fitness-app .one-elite-body .one-v360-demo-rows{display:grid;gap:9px;margin-top:13px}
+body.fitness-app .one-elite-body .one-v360-demo-mini{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;padding-top:9px;border-top:1px solid #394347}
+body.fitness-app .one-elite-body .one-v360-demo-mini strong{color:#F6E7DA;font-size:12px}
+body.fitness-app .one-elite-body .one-v360-demo-mini span{color:#B9C5C6;font-size:10px}
+body.fitness-app .one-elite-body .one-v360-panel-action{width:100%;margin-top:14px}
+body.fitness-app .one-elite-body .one-v360-cycle{margin-top:14px}
+body.fitness-app .one-elite-body .one-v360-timeline{display:flex;align-items:stretch;gap:6px;min-height:111px;max-width:100%}
+body.fitness-app .one-elite-body .one-v360-phase{
+  position:relative;min-width:0;padding:11px;border:1px solid #4A575A;background:#1B282B;
+  border-radius:10px;display:flex;flex-direction:column;justify-content:space-between;gap:8px;
+}
+body.fitness-app .one-elite-body .one-v360-phase.actual{border-color:#F2AC73;background:#513526}
+body.fitness-app .one-elite-body .one-v360-phase.pasada{border-color:#56776A;background:#1D312E}
+body.fitness-app .one-elite-body .one-v360-phase>div:first-child{display:flex;gap:5px;flex-wrap:wrap;justify-content:space-between}
+body.fitness-app .one-elite-body .one-v360-phase strong{color:#F9EBDC;font-size:12px;line-height:1.2;overflow-wrap:anywhere}
+body.fitness-app .one-elite-body .one-v360-phase span{color:#EBC5A3;font-size:10px;white-space:nowrap}
+body.fitness-app .one-elite-body .one-v360-phase-fill{height:6px;background:#596A71;border-radius:999px}
+body.fitness-app .one-elite-body .one-v360-phase.actual .one-v360-phase-fill{background:#F4A261}
+body.fitness-app .one-elite-body .one-v360-phase.pasada .one-v360-phase-fill{background:#82B09B}
+body.fitness-app .one-elite-body .one-v360-phase small{color:#D1D9D6;font-size:9px;font-weight:800;letter-spacing:.05em}
+body.fitness-app .one-elite-body .one-v360-cycle-footer{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin:12px 0}
+body.fitness-app .one-elite-body .one-v360-cycle-footer span{color:#F4B983;font-size:11px;font-weight:800}
+body.fitness-app .one-elite-body .one-v360-cycle-footer strong{color:#CBD6D4;font-size:12px;font-weight:700}
+body.fitness-app .one-elite-body .one-v360-footer{display:flex;gap:8px;align-items:center;flex-wrap:wrap;border-top:1px solid #3B4B4F;margin-top:19px;padding-top:14px}
+body.fitness-app .one-elite-body .one-v360-footer>span{margin-right:auto;color:#ECB684;font-size:10px;font-weight:850;letter-spacing:.08em}
+body.fitness-app .one-elite-body .one-v360-empty{padding:12px;color:#D3D8D6;font-size:12px}
+@media(max-width:1180px){
+ body.fitness-app .one-elite-body .one-v360-layout{grid-template-columns:1fr}
+ body.fitness-app .one-elite-body .one-v360-muscles{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:730px){
+ body.fitness-app .one-elite-body .one-v360-lead{align-items:stretch}
+ body.fitness-app .one-elite-body .one-v360-nav{justify-content:flex-start}
+ body.fitness-app .one-elite-body .one-v360-navlink{font-size:9px;padding:9px}
+ body.fitness-app .one-elite-body .one-v360-panel-head{flex-direction:column}
+ body.fitness-app .one-elite-body .one-v360-open{align-self:start}
+ body.fitness-app .one-elite-body .one-v360-muscles{grid-template-columns:repeat(2,minmax(0,1fr))}
+ body.fitness-app .one-elite-body .one-v360-timeline{flex-direction:column}
+ body.fitness-app .one-elite-body .one-v360-phase{min-height:65px}
+ body.fitness-app .one-elite-body .one-v360-phase>div:first-child{justify-content:flex-start;gap:12px}
+ body.fitness-app .one-elite-body .one-v360-phase-fill{display:none}
+ body.fitness-app .one-elite-body .one-v360-footer>span{flex-basis:100%}
+}
+@media(max-width:370px){
+ body.fitness-app .one-elite-body .one-v360-legend-item{grid-template-columns:8px auto;gap:5px}
+ body.fitness-app .one-elite-body .one-v360-legend-item span{grid-column:2}
+ body.fitness-app .one-elite-body .one-v360-muscle-top span{font-size:10px}
+}
+@media(prefers-reduced-motion:reduce){body.fitness-app .one-elite-body .one-v360 *{transition:none!important;animation:none!important}}

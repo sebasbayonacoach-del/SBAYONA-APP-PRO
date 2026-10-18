@@ -568,6 +568,15 @@ function renderLibrary(body, data) {
     }
   }
 
+  // A visual muscle selection is applied only after the asynchronous
+  // catalog finishes loading. No private data is stored in this handoff.
+  const requestedMuscle = window.__bayonaProplayerMuscle;
+  delete window.__bayonaProplayerMuscle;
+  if (typeof requestedMuscle === "string" &&
+      [...muscle.options].some(option => option.value === requestedMuscle)) {
+    muscle.value = requestedMuscle;
+  }
+
   const controlsList = [search, type, muscle, effort, resistance, tag, availability];
   controlsList.forEach((control) => {
     control.addEventListener(control === search ? "input" : "change", () => {

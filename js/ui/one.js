@@ -13,6 +13,7 @@ import {
 import { currentSession, accountRole, probeBackend } from "../sync/supabase.js";
 import { linkedClients } from "../sync/coaching.js";
 import { renderCoachExperience } from "./coach-experience.js";
+import { renderCoachVisual360 } from "./coach-visual-360.js";
 
 const COACH_SECTIONS = new Set([
   "coachos","centro","socios","cuotas","agenda","acceso","portal","informes"
@@ -550,6 +551,18 @@ function renderCoachStudio(body) {
     metrics: resumenCartera(clients),
     openSection,
     onRoster: () => body.querySelector(".one-roster")?.scrollIntoView({ behavior: "smooth", block: "start" }),
+  });
+  renderCoachVisual360(body, {
+    clients,
+    plan: planificacion(S),
+    onLibrary: () => openSection("library"),
+    onMuscle: (name) => {
+      window.__bayonaProplayerMuscle = name === "Sin clasificar" ? "SIN ASIGNAR" : name;
+      openSection("library");
+    },
+    onAgenda: () => openSection("agenda"),
+    onTraining: () => openSection("library"),
+    onRealClient: (client) => renderCoachClient(body, client),
   });
   renderCorePriorities(body, clients);
   renderRoster(body, clients);
