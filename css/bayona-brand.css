@@ -6,7 +6,8 @@
    cascada, de modo que gana sobre style/aurum/luxe/motion/personal/fitness/
    coach/dashboard/pro.
 
-   Origen de verdad (copiado literalmente de SBAYONA-WEB-PRIME-20261004):
+   Referencia tipografica y de superficies: SBAYONA-WEB-PRIME-20261004.
+   El acento en la APP recupera #FF6A00; la WEB tiene un naranja propio.
      src/styles.css      → --black #050505 · --deep-blue #0B0B0C · --black-2
                            #0c0c0d · --mediterranean #111111 · --black-3 #141416
                            · --white #FFFFFF · --muted #C4C4C4 · --gray-dim #949494
@@ -327,16 +328,16 @@ html[data-theme] {
   --white: #ffffff;
   --cream: #141416;
   --metal: #e76f51;
-  --orange: #f4a261;
+  --orange: #ff6a00;
   --orange-deep: #d45d38;
   --orange-soft: #ffc08a;
   --orange-on-dark: #ffc08a;
   --orange-on-light: #9c4f1f;
   --acc-1: #ffc08a;
-  --acc-2: #f4a261;
+  --acc-2: #ff6a00;
   --acc-deep: #d45d38;
   --acc-ink: #050505;
-  --gold: #f4a261;
+  --gold: #ff6a00;
 
   /* escalera de superficies: fondo → hundido → elevado → contenido → capa */
   --fit-bg: #050505;
@@ -364,8 +365,8 @@ html[data-theme] {
   --hair-strong: #3a3a3f;
   --line-strong: #3a3a3f;
 
-  --fit-accent: #f4a261;
-  --one-copper: #f4a261;
+  --fit-accent: #ff6a00;
+  --one-copper: #ff6a00;
   --one-copper-soft: #ffc08a;
   --one-coach-bg: #050505;
   --one-coach-surface: #111111;
@@ -382,19 +383,19 @@ html[data-theme] {
   --luxe-muted-2: #949494;
   --luxe-line: #1f1f22;
   --luxe-line-2: #3a3a3f;
-  --luxe-accent: #f4a261;
+  --luxe-accent: #ff6a00;
   /* Estos dos los consumía luxe.css para los brillos y los tintes suaves del
      acento (glow del CTA, píldoras, aura del móvil de demo) y seguían
      congelados en rgba(255,106,0,…) — el naranja anterior. Sin ellos, el
      resplandor de los botones era del otro color que el botón. */
-  --luxe-accent-soft: rgba(244, 162, 97, 0.12);
-  --luxe-accent-glow: rgba(244, 162, 97, 0.22);
+  --luxe-accent-soft: rgba(255, 106, 0, 0.12);
+  --luxe-accent-glow: rgba(255, 106, 0, 0.22);
 
   /* cristal y sombra, recalibrados al negro de la web */
   --glass-bg: rgba(17, 17, 17, 0.66);
   --glass-hi: rgba(255, 255, 255, 0.06);
   --shadow-lift: 0 34px 80px -34px rgba(0, 0, 0, 0.9),
-    0 0 0 1px rgba(244, 162, 97, 0.3);
+    0 0 0 1px rgba(255, 106, 0, 0.3);
 
   /* estado: NO se tocan. Son funcionales (peligro / bien / aviso) y la web
      no define semántica de estado; se conservan los de la app. */
@@ -414,7 +415,7 @@ body.fitness-app {
   --fit-muted: #c4c4c4;
   --fit-line: #1f1f22;
   --fit-dark: #0b0b0c;
-  --fit-accent: #f4a261;
+  --fit-accent: #ff6a00;
   --paper: #050505;
   --paper-2: #111111;
   --panel: #111111;
@@ -423,11 +424,11 @@ body.fitness-app {
   --mute: #c4c4c4;
   --hair: #1f1f22;
   --hair-strong: #3a3a3f;
-  --orange: #f4a261;
-  --acc-2: #f4a261;
+  --orange: #ff6a00;
+  --acc-2: #ff6a00;
   --acc-ink: #050505;
 
-  --one-copper: #f4a261;
+  --one-copper: #ff6a00;
   --one-copper-soft: #ffc08a;
   --one-coach-bg: #050505;
   --one-coach-surface: #111111;
@@ -445,7 +446,7 @@ html[data-mode="noche"] body.fitness-app {
   --fit-muted: #c4c4c4;
   --fit-line: #1f1f22;
   --fit-dark: #0b0b0c;
-  --fit-accent: #f4a261;
+  --fit-accent: #ff6a00;
 
   --paper: #050505;
   --paper-2: #111111;
@@ -455,11 +456,11 @@ html[data-mode="noche"] body.fitness-app {
   --mute: #c4c4c4;
   --hair: #1f1f22;
   --hair-strong: #3a3a3f;
-  --orange: #f4a261;
-  --acc-2: #f4a261;
+  --orange: #ff6a00;
+  --acc-2: #ff6a00;
   --acc-ink: #050505;
 
-  --one-copper: #f4a261;
+  --one-copper: #ff6a00;
   --one-copper-soft: #ffc08a;
   --one-coach-bg: #050505;
   --one-coach-surface: #111111;
