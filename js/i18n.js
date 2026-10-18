@@ -8,6 +8,10 @@
 export const locale = "es-ES";
 
 const es = {
+  "coach.elite.upper": "Tren superior",
+  "coach.elite.core": "Zona media",
+  "coach.elite.lower": "Tren inferior",
+  "coach.elite.aria": "Explorador de zonas musculares",
   "trainingym.audit.searchAria": "Buscar fichas de la auditoría",
   "boot.error.title": "No pudimos abrir BAYONA.",
   "boot.error.body": "Tu progreso sigue guardado. Comprueba la conexión y vuelve a intentarlo.",

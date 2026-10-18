@@ -12,6 +12,7 @@ import {
 } from "./shared.js";
 import { currentSession, accountRole, probeBackend } from "../sync/supabase.js";
 import { linkedClients } from "../sync/coaching.js";
+import { renderCoachExperience } from "./coach-experience.js";
 
 const COACH_SECTIONS = new Set([
   "coachos","centro","socios","cuotas","agenda","acceso","portal","informes"
@@ -432,7 +433,7 @@ function renderCorePriorities(body, clients) {
   const text = n("div");
   text.append(n("span", "one-kicker", "CORE COACH / EXPLICABLE"));
   text.append(n("h4", "", "Prioridades de hoy"));
-  head.append(text, tag("REGLAS LOCALES","copper"));
+  head.append(text, tag(clients.some((c) => c.demo) ? "INCLUYE EJEMPLOS DEMO" : "REGLAS LOCALES","copper"));
   shell.append(head);
 
   const list = n("div", "one-priority-list");
@@ -539,13 +540,17 @@ function renderMacroPreview(body) {
 
 function renderCoachStudio(body) {
   body.textContent = "";
-  body.classList.add("one-coach-body");
+  body.classList.add("one-coach-body", "one-elite-body");
   const clients = coachClients();
 
   // Operación primero: lo que el coach necesita decidir y ejecutar hoy
   // queda por encima de configuración, nube y material reutilizable.
-  renderCoachOps(body, clients);
-  renderCoachHero(body, clients);
+  renderCoachExperience(body, {
+    clients,
+    metrics: resumenCartera(clients),
+    openSection,
+    onRoster: () => body.querySelector(".one-roster")?.scrollIntoView({ behavior: "smooth", block: "start" }),
+  });
   renderCorePriorities(body, clients);
   renderRoster(body, clients);
   renderTemplateLibrary(body);
