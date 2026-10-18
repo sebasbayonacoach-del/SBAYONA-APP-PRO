@@ -81,6 +81,7 @@ const FREQUENCIES = [
 const state = {
   mode: "login",
   busy: false,
+  busyAction: "",
   message: "",
   tone: "",
   cloud: null,
@@ -137,24 +138,35 @@ async function consumeGoogleCallback() {
 }
 
 async function startGoogle() {
-  if (!accountCreationReady()) return setMessage(registrationsPausedMessage, "error");
   if (state.busy) return;
   state.busy = true;
+  state.busyAction = "google";
   state.message = "";
   render();
   try {
+    // Google may create a first-time Auth user. Do not begin OAuth while the
+    // protected profiles schema is missing, but let users retry the health
+    // check without refreshing the entire screen.
+    state.cloud = await probeBackend({ force: true, timeoutMs: 3500 });
+    if (!accountCreationReady()) {
+      state.busy = false;
+      state.busyAction = "";
+      return setMessage("Google está configurado, pero el registro de perfiles aún no está disponible. Mientras tanto, entra con el correo y la contraseña de tu cuenta existente.", "error");
+    }
     const plugin = globalThis.Capacitor?.Plugins?.LifeOS;
     const url = googleOAuthUrl({ native: Boolean(plugin?.openOAuth) });
     if (plugin?.openOAuth) {
       await plugin.openOAuth({ url });
       if (!googlePolling) googlePolling = setInterval(consumeGoogleCallback, 750);
       state.busy = false;
+      state.busyAction = "";
       render();
     } else {
       location.assign(url);
     }
   } catch (error) {
     state.busy = false;
+    state.busyAction = "";
     setMessage(errorText(error), "error");
   }
 }
@@ -410,7 +422,7 @@ function authHeader(kicker, title, copy) {
 
 function messageHtml() {
   if (!state.message) return "";
-  return `<div class="auth-message ${state.tone === "error" ? "is-error" : "is-ok"}" role="status">${esc(state.message)}</div>`;
+  return `<div class="auth-message ${state.tone === "error" ? "is-error" : "is-ok"}" role="${state.tone === "error" ? "alert" : "status"}" aria-live="polite">${esc(state.message)}</div>`;
 }
 
 const accountCreationReady = () => state.cloud?.ok === true && state.cloud?.schemaReady === true;
@@ -420,7 +432,7 @@ function authForm() {
   const signup = state.mode === "signup";
   const canRegister = accountCreationReady();
   return `
-    <section class="auth-card" aria-label="${signup ? "Crear cuenta BAYONA" : "Entrar a BAYONA"}">
+    <section class="auth-card auth-signin-card" aria-label="${signup ? "Crear cuenta BAYONA" : "Entrar a BAYONA"}">
       ${authHeader(
         signup ? "NUEVA CUENTA" : "BIENVENIDO DE VUELTA",
         signup ? "Crea tu BAYONA." : "Continúa donde lo dejaste.",
@@ -433,24 +445,36 @@ function authForm() {
         <button type="button" data-auth-mode="signup" class="${signup ? "is-active" : ""}" role="tab" aria-selected="${signup}" ${canRegister ? "" : "disabled"}>Crear cuenta</button>
       </div>
 
-      ${!canRegister ? '<p class="auth-pause-notice" role="status">' + esc(registrationsPausedMessage) + '</p>' : ""}
+      ${!canRegister ? '<p class="auth-pause-notice" role="status"><span aria-hidden="true">●</span> El registro de cuentas está temporalmente pausado. Puedes entrar con tu cuenta existente.</p>' : ""}
+      <div class="auth-google-group">
+        <button class="auth-google-button ${!canRegister ? "is-pending" : ""}" type="button" data-auth-action="google" ${state.busy ? "disabled" : ""} aria-describedby="auth-google-hint" aria-busy="${state.busy && state.busyAction === "google"}">
+          <svg class="auth-google-logo" viewBox="0 0 48 48" width="21" height="21" aria-hidden="true" focusable="false">
+            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.27 5.48-4.79 7.18l7.73 6C44.4 38.04 46.98 31.91 46.98 24.55z"/>
+            <path fill="#FBBC05" d="M10.53 28.59A14.41 14.41 0 0 1 9.75 24c0-1.59.27-3.13.76-4.59l-7.98-6.2A23.9 23.9 0 0 0 0 24c0 3.87.92 7.52 2.56 10.78l7.97-6.19z"/>
+            <path fill="#34A853" d="M24 48c6.48 0 11.92-2.13 15.88-5.8l-7.73-6c-2.15 1.45-4.92 2.3-8.15 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+          </svg>
+          <span>${state.busy && state.busyAction === "google" ? "Comprobando Google…" : "Continuar con Google"}</span>
+          <span class="auth-google-arrow" aria-hidden="true">↗</span>
+        </button>
+        <p id="auth-google-hint" class="auth-google-hint">${canRegister ? "Accede de forma segura sin recordar otra contraseña." : "Google pendiente de activación. Pulsa para comprobar el estado."}</p>
+      </div>
+      <div class="auth-google-divider"><span>O ENTRA CON TU CORREO</span></div>
       <form id="auth-form" novalidate>
         ${signup ? `
           <label class="auth-field"><span>Nombre</span><input id="auth-name" name="name" autocomplete="name" maxlength="40" value="${esc(state.pendingName)}" placeholder="Cómo quieres que te llamemos"></label>
           <p class="auth-entry-note">Tu espacio personal. Coach Studio está reservado al propietario de BAYONA.</p>
         ` : ""}
         <label class="auth-field"><span>Email</span><input id="auth-email" name="email" type="email" autocomplete="email" inputmode="email" value="${esc(state.pendingEmail)}" placeholder="tu@email.com"></label>
-        <label class="auth-field"><span>Contraseña</span><input id="auth-password" name="password" type="password" autocomplete="${signup ? "new-password" : "current-password"}" minlength="8" placeholder="Mínimo 8 caracteres"></label>
+        <div class="auth-field auth-password-field"><div class="auth-label-row"><label for="auth-password">Contraseña</label><button class="auth-reveal" type="button" data-auth-action="reveal-password" aria-controls="auth-password" aria-pressed="false">Mostrar</button></div><input id="auth-password" name="password" type="password" autocomplete="${signup ? "new-password" : "current-password"}" minlength="8" placeholder="${signup ? "Mínimo 8 caracteres" : "Introduce tu contraseña"}"></div>
         ${signup ? '<label class="auth-field"><span>Repite la contraseña</span><input id="auth-confirm" name="confirm" type="password" autocomplete="new-password" minlength="8" placeholder="Repite tu contraseña"></label>' : ""}
         ${!signup ? '<button class="auth-text-button" type="button" data-auth-action="forgot">He olvidado mi contraseña</button>' : ""}
         ${messageHtml()}
         <button class="auth-primary" type="submit" ${state.busy ? "disabled" : ""}>
-          ${state.busy ? "UN MOMENTO…" : signup ? "CREAR MI CUENTA" : "ENTRAR"}
+          ${state.busy && state.busyAction !== "google" ? "ACCEDE A BAYONA…" : signup ? "CREAR MI CUENTA" : "ENTRAR A BAYONA"}
         </button>
       </form>
-      <div class="auth-google-divider"><span>O CONTINÚA CON</span></div>
-      <button class="auth-google-button" type="button" data-auth-action="google" ${state.busy || !canRegister ? "disabled" : ""}><span class="auth-google-mark">G</span> Continuar con Google</button>
-      <div class="auth-security"><span>●</span> Conexión segura · datos separados por cuenta</div>
+      <div class="auth-security"><span aria-hidden="true">●</span> Acceso protegido · cada cuenta conserva su progreso</div>
       ${legacyProgress() ? '<button type="button" class="auth-local" data-auth-action="local">Continuar con el progreso guardado en este dispositivo</button>' : ""}
     </section>`;
 }
@@ -622,13 +646,13 @@ function shell(content) {
       <div class="auth-brand"><span>◈</span><strong>BAYONA</strong><small>${esc(surface)}</small></div>
       <div class="auth-body">
         <aside class="auth-editorial" aria-hidden="true">
-          <span>BAYONA APP / TU ESPACIO</span>
+          <span>BAYONA / TU SISTEMA PERSONAL</span>
           <strong>ENTRENA.<br>REGISTRA.<br><em>EVOLUCIONA.</em></strong>
-          <p>Tu entrenamiento, tus hábitos y tu progreso en un solo lugar. La tecnología acompaña; el proceso sigue siendo tuyo.</p>
+          <p>Tu entrenamiento, tus hábitos y tu progreso conectados. Una experiencia hecha para avanzar cada día.</p>
           <div class="auth-editorial-points">
-            <small>01 · TU RUTINA</small>
-            <small>02 · TU PROGRESO</small>
-            <small>03 · TU COACH</small>
+            <small><b>01</b> ENTRENAMIENTO</small>
+            <small><b>02</b> PROGRESO REAL</small>
+            <small><b>03</b> TU COACH</small>
           </div>
         </aside>
         <main class="auth-stage">${content}</main>
@@ -674,6 +698,7 @@ async function submitAuth(event) {
   if (signup && password !== confirm) return setMessage("Las contraseñas no coinciden.", "error");
 
   state.busy = true;
+  state.busyAction = "email";
   state.message = "";
   render();
 
@@ -829,6 +854,16 @@ function wire() {
 
   root?.querySelector("#auth-form")?.addEventListener("submit", submitAuth);
   root?.querySelector('[data-auth-action="google"]')?.addEventListener("click", startGoogle);
+  root?.querySelector('[data-auth-action="reveal-password"]')?.addEventListener("click", (event) => {
+    const input = root?.querySelector("#auth-password");
+    if (!input) return;
+    const showing = input.type === "password";
+    input.type = showing ? "text" : "password";
+    const trigger = event.currentTarget;
+    trigger.textContent = showing ? "Ocultar" : "Mostrar";
+    trigger.setAttribute("aria-pressed", String(showing));
+    input.focus({ preventScroll: true });
+  });
   root?.querySelector("#auth-reset-form")?.addEventListener("submit", saveNewPassword);
 
   root?.querySelector('[data-auth-action="forgot"]')?.addEventListener("click", forgotPassword);
