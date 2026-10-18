@@ -14,6 +14,7 @@ import { currentSession, accountRole, probeBackend } from "../sync/supabase.js";
 import { linkedClients } from "../sync/coaching.js";
 import { renderCoachExperience } from "./coach-experience.js";
 import { renderCoachVisual360 } from "./coach-visual-360.js";
+import {renderLifeRpg,lifeRpgSnapshot} from "./life-rpg.js";
 
 const COACH_SECTIONS = new Set([
   "coachos","centro","socios","cuotas","agenda","acceso","portal","informes"
@@ -539,6 +540,47 @@ function renderMacroPreview(body) {
   body.append(box);
 }
 
+function openCoachRpgPreview() {
+  if (accountRole() !== "coach") return;
+  const content = '<section class="one-rpg-demo" aria-label="Simulación de la experiencia de atleta">' +
+    '<header class="one-rpg-demo-header"><strong>VISTA PREVIA · ATLETA DEMO</strong>' +
+    '<button id="one-rpg-demo-close" type="button">CERRAR ✕</button></header>' +
+    '<p>Ejemplo sin datos reales. No cambia tu rol, usuarios ni recompensas.</p>' +
+    '<div id="one-rpg-demo-host"></div></section>';
+  showModal(content, () => {
+    $("#one-rpg-demo-close").onclick = hideModal;
+    let mode = "adventure";
+    const render = () => {
+      const host=$("#one-rpg-demo-host");
+      if (!host) return;
+      host.replaceChildren();
+      const model=lifeRpgSnapshot({
+        profile:{lifeRpgView:mode},today:{date:todayKey(),trained:false,missionKeys:[]},
+        life:{planner:{items:[]}},xp:340,level:{lvl:2,cur:90,need:430},
+        decision:{title:"Elige tu misión de hoy",body:"Empieza con una acción sencilla y adaptada a tu ritmo.",actionLabel:"Ver opciones"}
+      });
+      renderLifeRpg(host,{snapshot:model,rank:"EXPLORADOR · DEMO",
+        onMode:value=>{mode=value;render();},
+        onMain:()=>toast("VISTA DEMO","El atleta abriría su siguiente acción real."),
+        onArea:()=>toast("VISTA DEMO","Aquí se abriría la misión o planificación correspondiente."),
+        onExplore:()=>toast("VISTA DEMO","El atleta abriría su planificación."),
+      });
+    };
+    render();
+  });
+}
+
+function renderCoachRpgPreview(body) {
+  if (accountRole() !== "coach") return;
+  const panel=n("section","one-rpg-preview-launch");
+  const info=n("div");
+  info.append(n("small","","NUEVO / BAYONA LIFE RPG"),
+    n("strong","","Así vivirá BAYONA cada atleta."),
+    n("p","","Explora la experiencia antes del lanzamiento. Los datos son simulados."));
+  panel.append(info,btn("PROBAR EXPERIENCIA ATLETA ↗","one-rpg-preview-action",openCoachRpgPreview));
+  body.append(panel);
+}
+
 function renderCoachStudio(body) {
   body.textContent = "";
   body.classList.add("one-coach-body", "one-elite-body");
@@ -552,6 +594,7 @@ function renderCoachStudio(body) {
     openSection,
     onRoster: () => body.querySelector(".one-roster")?.scrollIntoView({ behavior: "smooth", block: "start" }),
   });
+  renderCoachRpgPreview(body);
   renderCoachVisual360(body, {
     clients,
     plan: planificacion(S),

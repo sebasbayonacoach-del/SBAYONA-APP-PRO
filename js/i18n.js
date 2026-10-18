@@ -8,6 +8,9 @@
 export const locale = "es-ES";
 
 const es = {
+  "rpg.aria": "Tu aventura de hoy",
+  "rpg.progressAria": "Progreso hacia el próximo nivel",
+  "rpg.modesAria": "Elegir presentación de BAYONA",
   "proplayer.preview.loading": "Cargando fotograma…",
   "proplayer.preview.open": "Abrir vídeo de {name}",
   "proplayer.preview.watch": "Ver vídeo",

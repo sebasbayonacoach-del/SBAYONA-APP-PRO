@@ -4,12 +4,12 @@
 // Con esto la app abre sin red y el registro de series funciona offline
 // (los datos viven en el dispositivo y se sincronizan después).
 // ============================================================
-const CACHE = "bayona-shell-v51";
+const CACHE = "bayona-shell-v52";
 const SHELL = [
   "./media/app-now-20261015.webp",
   "./js/data/proplayer-catalog-audit.js",
   "./js/backup.js", "./js/progreso.js", "./js/shoot.js",
-  "./css/pro.css", "./css/proplayer-video-preview.css", "./css/coach-elite.css", "./css/coach-visual-360.css",
+  "./css/pro.css", "./css/life-rpg.css", "./css/proplayer-video-preview.css", "./css/coach-elite.css", "./css/coach-visual-360.css",
   "./css/luxe.css",
   // Marca unificada con la web: capa de tipografía y paleta + sus .woff2.
   "./css/bayona-brand.css", "./css/auth.css",
@@ -32,7 +32,7 @@ const SHELL = [
   "./js/ui/centro.js", "./js/ui/cuotas.js", "./js/ui/agenda.js",
   "./js/ui/acceso.js",  "./js/ui/portal.js", "./js/ui/informes.js",
   "./js/comandos.js", "./js/ui/command.js",
-  "./css/fitness.css", "./js/ui/fitness.js", "./js/ui/planner.js",
+  "./css/fitness.css", "./js/ui/fitness.js", "./js/ui/life-rpg.js", "./js/ui/planner.js",
   "./css/dashboard.css", "./js/ui/dashboard.js", "./js/recipeImage.js",
   "./css/coach.css", "./js/coach/ai-core.js", "./js/coach/ai.js",
   "./js/personalization.js", "./js/cycle.js", "./js/ui/personal.js", "./css/personal.css",
