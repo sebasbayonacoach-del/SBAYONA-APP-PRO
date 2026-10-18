@@ -215,27 +215,24 @@ function hasUserLocalState(user) {
   return Boolean(user?.id && hasScopedState(user.id));
 }
 
+const PROFILE_FIELDS = [
+  "id", "display_name", "role", "goals",
+  "onboarding_version", "onboarding_completed_at", "privacy_notice_ack_at",
+  "onboarding_goal", "onboarding_experience", "onboarding_place",
+  "onboarding_frequency", "onboarding_minutes",
+].join(",");
+
 async function cloudProfile(user) {
   if (!user?.id) return null;
-  try {
-    const rows = await select("profiles", {
-      id: "eq." + user.id,
-      select: "id,display_name,role,goals",
-      limit: "1",
-    });
-    return Array.isArray(rows) ? rows[0] || null : null;
-  } catch {
-    try {
-      const rows = await select("profiles", {
-        id: "eq." + user.id,
-        select: "id,display_name,goals",
-        limit: "1",
-      });
-      return Array.isArray(rows) ? rows[0] || null : null;
-    } catch {
-      return null;
-    }
-  }
+  // El servidor es la fuente de verdad del onboarding. Las consultas
+  // parciales antes omitían completion y obligaban a repetir el alta.
+  // Un error del backend NO se interpreta como "perfil sin completar".
+  const rows = await select("profiles", {
+    id: "eq." + user.id,
+    select: PROFILE_FIELDS,
+    limit: "1",
+  });
+  return Array.isArray(rows) ? rows[0] || null : null;
 }
 
 async function saveCoreProfile(user, name, role, profile = null) {
@@ -267,10 +264,16 @@ async function saveCoreProfile(user, name, role, profile = null) {
       throw error;
     }
   }
-  await updateUserMetadata({
-    display_name: core.display_name,
-    ...(profile ? { bayona_profile: portableProfile({ ...profile, onboarded: true }) } : {}),
-  });
+  // Auth metadata es un respaldo no autoritativo. Si falla la actualización,
+  // el onboarding ya validado por PostgreSQL continúa siendo válido.
+  try {
+    await updateUserMetadata({
+      display_name: core.display_name,
+      ...(profile ? { bayona_profile: portableProfile({ ...profile, onboarded: true }) } : {}),
+    });
+  } catch {
+    marcarPendiente("metadatos portables del perfil");
+  }
 }
 
 function prepareProfileState({ user, row }) {
@@ -1056,7 +1059,14 @@ async function bootstrap() {
     await ensureFreshSession().catch(() => existing);
     const user = await refreshUser().catch(() => null) || currentUser();
     if (user?.id) {
-      await afterAuthenticated();
+      try {
+        await afterAuthenticated();
+      } catch (error) {
+        // No abrir el producto ni borrar la cuenta ante fallos temporales.
+        state.mode = "login";
+        state.busy = false;
+        setMessage(errorText(error), "error");
+      }
       return;
     }
     // No confiar en una sesión vencida/local para saltarse el onboarding.
