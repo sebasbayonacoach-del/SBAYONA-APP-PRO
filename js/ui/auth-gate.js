@@ -151,7 +151,9 @@ async function startGoogle() {
     if (!accountCreationReady()) {
       state.busy = false;
       state.busyAction = "";
-      return setMessage("Google está configurado, pero el registro de perfiles aún no está disponible. Mientras tanto, entra con el correo y la contraseña de tu cuenta existente.", "error");
+      // OAuth may create users. Never start it without the verified profile schema.
+      // Explain the configuration status beside Google, not as an email-form error.
+      return refreshGoogleControls();
     }
     const plugin = globalThis.Capacitor?.Plugins?.LifeOS;
     const url = googleOAuthUrl({ native: Boolean(plugin?.openOAuth) });
@@ -428,6 +430,68 @@ function messageHtml() {
 const accountCreationReady = () => state.cloud?.ok === true && state.cloud?.schemaReady === true;
 const registrationsPausedMessage = "El alta de cuentas está temporalmente pausada mientras completamos la protección de los datos. Las cuentas existentes pueden entrar.";
 
+// La disponibilidad de Google no se deduce solo de que el proveedor OAuth esté
+// encendido: la APP exige su esquema de perfiles y aislamiento de usuarios.
+function googleReadinessMessage() {
+  if (accountCreationReady()) return "Google disponible. Puedes continuar.";
+  if (state.cloud?.schemaStatus === 404)
+    return "Google y las cuentas nuevas estarán disponibles cuando termine la configuración de perfiles.";
+  if (state.cloud?.ok === false)
+    return "No se ha podido comprobar el servicio. Puedes acceder con tu correo.";
+  return "Google y las cuentas nuevas están pendientes de activación.";
+}
+
+function refreshGoogleControls() {
+  const google = root?.querySelector('[data-auth-action="google"]');
+  if (google) {
+    google.disabled = state.busy || !accountCreationReady();
+    google.setAttribute("aria-busy", String(state.busy && state.busyAction === "google"));
+    const text = google.querySelector(".auth-google-label");
+    if (text) text.textContent = state.busy && state.busyAction === "google" ? "Conectando con Google…" : "Continuar con Google";
+  }
+  const copy = root?.querySelector('[data-google-status-text]');
+  if (copy) copy.textContent = googleReadinessMessage();
+  const retry = root?.querySelector('[data-auth-action="retry-google"]');
+  if (retry) {
+    retry.hidden = accountCreationReady();
+    retry.disabled = state.busy;
+    retry.textContent = "Comprobar de nuevo";
+  }
+}
+
+async function retryGoogleReadiness() {
+  if (state.busy) return;
+  state.busy = true;
+  state.busyAction = "google-check";
+  const retry = root?.querySelector('[data-auth-action="retry-google"]');
+  if (retry) {
+    retry.disabled = true;
+    retry.textContent = "Comprobando…";
+  }
+  try {
+    state.cloud = await probeBackend({ force: true, timeoutMs: 3500 });
+  } catch {
+    state.cloud = { ok: false, schemaReady: false, reason: "network" };
+  } finally {
+    state.busy = false;
+    state.busyAction = "";
+    if (accountCreationReady()) {
+      // Only re-render when registration just became available. Retain text
+      // typed in the local form; never persist passwords to storage.
+      const fields = ["auth-email", "auth-password", "auth-name", "auth-confirm"];
+      const draft = fields.map((id) => [id, root?.querySelector("#" + id)?.value]);
+      render();
+      draft.forEach(([id, value]) => {
+        const input = root?.querySelector("#" + id);
+        if (input && typeof value === "string") input.value = value;
+      });
+      root?.querySelector('[data-auth-action="google"]')?.focus({ preventScroll: true });
+    } else {
+      refreshGoogleControls();
+    }
+  }
+}
+
 function authForm() {
   const signup = state.mode === "signup";
   const canRegister = accountCreationReady();
@@ -445,19 +509,22 @@ function authForm() {
         <button type="button" data-auth-mode="signup" class="${signup ? "is-active" : ""}" role="tab" aria-selected="${signup}" ${canRegister ? "" : "disabled"}>Crear cuenta</button>
       </div>
 
-      ${!canRegister ? '<p class="auth-pause-notice" role="status"><span aria-hidden="true">●</span> El registro de cuentas está temporalmente pausado. Puedes entrar con tu cuenta existente.</p>' : ""}
       <div class="auth-google-group">
-        <button class="auth-google-button ${!canRegister ? "is-pending" : ""}" type="button" data-auth-action="google" ${state.busy ? "disabled" : ""} aria-describedby="auth-google-hint" aria-busy="${state.busy && state.busyAction === "google"}">
+        <button class="auth-google-button ${!canRegister ? "is-pending" : ""}" type="button" data-auth-action="google" ${state.busy || !canRegister ? "disabled" : ""} aria-describedby="auth-google-hint" aria-busy="${state.busy && state.busyAction === "google"}">
           <svg class="auth-google-logo" viewBox="0 0 48 48" width="21" height="21" aria-hidden="true" focusable="false">
             <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
             <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.27 5.48-4.79 7.18l7.73 6C44.4 38.04 46.98 31.91 46.98 24.55z"/>
             <path fill="#FBBC05" d="M10.53 28.59A14.41 14.41 0 0 1 9.75 24c0-1.59.27-3.13.76-4.59l-7.98-6.2A23.9 23.9 0 0 0 0 24c0 3.87.92 7.52 2.56 10.78l7.97-6.19z"/>
             <path fill="#34A853" d="M24 48c6.48 0 11.92-2.13 15.88-5.8l-7.73-6c-2.15 1.45-4.92 2.3-8.15 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
           </svg>
-          <span>${state.busy && state.busyAction === "google" ? "Comprobando Google…" : "Continuar con Google"}</span>
+          <span class="auth-google-label">${state.busy && state.busyAction === "google" ? "Conectando con Google…" : "Continuar con Google"}</span>
           <span class="auth-google-arrow" aria-hidden="true">↗</span>
         </button>
-        <p id="auth-google-hint" class="auth-google-hint">${canRegister ? "Accede de forma segura sin recordar otra contraseña." : "Google pendiente de activación. Pulsa para comprobar el estado."}</p>
+        <div id="auth-google-hint" class="auth-google-hint" role="status" aria-live="polite">
+          <span class="auth-google-state-dot" aria-hidden="true"></span>
+          <span data-google-status-text>${canRegister ? "Accede con tu cuenta de Google." : googleReadinessMessage()}</span>
+          ${!canRegister ? '<button type="button" class="auth-google-retry" data-auth-action="retry-google">Comprobar de nuevo</button>' : ""}
+        </div>
       </div>
       <div class="auth-google-divider"><span>O ENTRA CON TU CORREO</span></div>
       <form id="auth-form" novalidate>
@@ -474,7 +541,7 @@ function authForm() {
           ${state.busy && state.busyAction !== "google" ? "ACCEDE A BAYONA…" : signup ? "CREAR MI CUENTA" : "ENTRAR A BAYONA"}
         </button>
       </form>
-      <div class="auth-security"><span aria-hidden="true">●</span> Acceso protegido · cada cuenta conserva su progreso</div>
+      <div class="auth-security"><span aria-hidden="true">●</span> Tus datos permanecen asociados a tu cuenta</div>
       ${legacyProgress() ? '<button type="button" class="auth-local" data-auth-action="local">Continuar con el progreso guardado en este dispositivo</button>' : ""}
     </section>`;
 }
@@ -854,6 +921,7 @@ function wire() {
 
   root?.querySelector("#auth-form")?.addEventListener("submit", submitAuth);
   root?.querySelector('[data-auth-action="google"]')?.addEventListener("click", startGoogle);
+  root?.querySelector('[data-auth-action="retry-google"]')?.addEventListener("click", retryGoogleReadiness);
   root?.querySelector('[data-auth-action="reveal-password"]')?.addEventListener("click", (event) => {
     const input = root?.querySelector("#auth-password");
     if (!input) return;
