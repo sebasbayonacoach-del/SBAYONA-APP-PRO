@@ -693,12 +693,17 @@ async function migrateLegacyProgress() {
   try {
     importLegacyUserDataToActive();
     const role = await verifyCoachRole();
-    try {
-      await saveCoreProfile(user, legacy.profile?.name || displayNameFromUser(user), role, legacy.profile || null);
-    } catch {
-      marcarPendiente("migración de perfil local");
+    if (role === "coach") {
+      await enterProduct({ roleOverride: "coach" });
+      return;
     }
-    await enterProduct({ roleOverride: role });
+    // La migración local no equivale al onboarding exigido por el servidor.
+    const row = await cloudProfile(user);
+    prepareProfileState({ user, row });
+    state.profile.name = String(legacy.profile?.name || state.profile.name || "").trim().slice(0, 40);
+    state.mode = "profile";
+    state.busy = false;
+    render();
   } catch (error) {
     state.busy = false;
     setMessage(errorText(error), "error");
@@ -1054,10 +1059,8 @@ async function bootstrap() {
       await afterAuthenticated();
       return;
     }
-    if (hasUserLocalState(existing?.user)) {
-      await enterProduct({ roleOverride: "athlete" });
-      return;
-    }
+    // No confiar en una sesión vencida/local para saltarse el onboarding.
+    // Para entrar de forma autenticada hace falta revalidar usuario y perfil.
   }
 
   if (health?.ok === false && !legacyProgress()) {
