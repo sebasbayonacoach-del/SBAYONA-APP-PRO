@@ -180,3 +180,22 @@ html[data-surface-theme="light"] body.fitness-app .one-elite-body .one-elite-dec
 @media(prefers-reduced-motion:reduce){body.fitness-app .one-elite-body .one-elite-deck *{transition:none!important;animation:none!important}}
 
 body.fitness-app .one-elite-body .one-elite-disclosure{margin:13px 0 0;color:#D0C0B5;font-size:11px;line-height:1.5;max-width:550px}
+
+/* Outside the board, the old Coach OS drawer title also needs a stable
+   dark surface. This fixes illegible black-on-black text in mixed themes. */
+html body.fitness-app.one-coach-mode #drawer[data-section="coachos"] {
+  background:#080B0D!important;
+  color:#F6F4F0!important;
+}
+html body.fitness-app.one-coach-mode #drawer[data-section="coachos"] .drawer-head {
+  background:#080B0D!important;
+  border-color:#364046!important;
+}
+html body.fitness-app.one-coach-mode #drawer[data-section="coachos"] #drawer-title,
+html body.fitness-app.one-coach-mode #drawer[data-section="coachos"] .drawer-head h2 {
+  color:#F6F4F0!important;
+  opacity:1!important;
+}
+html body.fitness-app.one-coach-mode #drawer[data-section="coachos"] #drawer-body {
+  background:#080B0D!important;
+}
