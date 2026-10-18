@@ -16,7 +16,7 @@ const KEY = "bayona.appearance.v1";
 
 /** firma única de identidad visual (sin variantes de color) */
 export const THEMES = [
-  { id: "naranja", name: "MONO NARANJA", dot: "linear-gradient(120deg,#ff6a00 0 50%,#ffffff 50% 75%,#000000 75% 100%)" },
+  { id: "naranja", name: "MONO NARANJA", dot: "linear-gradient(120deg,#f4a261 0 50%,#ffffff 50% 75%,#000000 75% 100%)" },
 ];
 
 const DEFAULTS = {
@@ -77,7 +77,7 @@ export function applyAppearance() {
   if (mn) mn.textContent = AP.mode === "noche" ? "NOCHE" : "CINE";
   // color del tema de sistema del navegador (barra móvil)
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute("content", AP.mode === "noche" ? "#0a0806" : "#f1ede5");
+  if (meta) meta.setAttribute("content", AP.mode === "noche" ? "#050505" : "#f2efe8");
 }
 
 /** interruptor rápido CINE / NOCHE (HUD y portada) */
@@ -180,7 +180,7 @@ BUILDERS.appearance = (body) => {
   body.appendChild(el("div", "sec-label", "PALETA"));
   const sw = el("div", "swatches");
   [
-    ["NARANJA", "#ff6a00"],
+    ["NARANJA", "#f4a261"],
     ["BLANCO", "#ffffff"],
     ["NEGRO", "#000000"],
   ].forEach(([nm, col], i) => {
