@@ -8,6 +8,11 @@
 export const locale = "es-ES";
 
 const es = {
+  "proplayer.preview.loading": "Cargando fotograma…",
+  "proplayer.preview.open": "Abrir vídeo de {name}",
+  "proplayer.preview.watch": "Ver vídeo",
+  "proplayer.preview.ready": "Vista previa real",
+  "proplayer.preview.error": "No se pudo cargar",
   "coach.visual.stateAria": "Distribución de las 3.141 fichas por estado",
   "coach.visual.aria": "Visión general de entrenamiento y contenidos",
   "coach.visual.navAria": "Ir a las secciones de Coach Studio",

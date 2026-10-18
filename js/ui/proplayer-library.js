@@ -7,6 +7,7 @@ import { BUILDERS, $, el, elT, openSection, showModal, hideModal, toast } from "
 import { linkedClients, saveCloudRoutine, assignCloudRoutine } from "../sync/coaching.js";
 import { accountRole } from "../sync/supabase.js";
 import { renderTrainingymAudit } from "./trainingym-audit.js";
+import { makeProplayerPreview, disposeProplayerPreviews } from "./proplayer-preview.js";
 
 const CATALOG_URL = "./trainingym/catalog.json";
 const MEDIA_BASE = "./private-trainingym/media/";
@@ -513,6 +514,7 @@ function renderLibrary(body, data) {
       buildButton.disabled = selected.size === 0;
       stateText.textContent = selected.size ? selected.size + " ejercicio(s) seleccionados para rutina" : "Catálogo validado · selecciona hasta 12 ejercicios";
     }
+    disposeProplayerPreviews(cards);
     cards.replaceChildren();
     const pageRows = view.rows.slice((view.page - 1) * PAGE_SIZE, view.page * PAGE_SIZE);
     for (const record of pageRows) {
@@ -523,6 +525,14 @@ function renderLibrary(body, data) {
         elT("span", "", "#" + String(record.pos).padStart(4, "0") + (record.source_id ? " · ID " + record.source_id : " · SIN ID")),
         elT("strong", "", record.tipo === "Cardio" ? "C" : record.tipo === "Movilidad" ? "M" : "F")
       );
+      if (canPlay(record)) {
+        art.classList.add("has-video-preview");
+        art.append(makeProplayerPreview({
+          url: mediaUrl(record),
+          name: record.nombre,
+          openVideo: () => playVideo(record),
+        }));
+      }
       const titleNode = elT("h3", "", record.nombre);
       const chips = el("div", "proplayer-chips");
       chips.append(makeChip(record.tipo || "SIN TIPO", "amber"));
