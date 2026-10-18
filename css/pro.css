@@ -2487,7 +2487,7 @@ html[data-mode="noche"] body.fitness-app {
   --fit-muted: #91969a;
   --fit-line: #24272a;
   --fit-dark: #000000;
-  --fit-accent: #ff6a00;
+  --fit-accent: #f4a261;
 
   --paper: #050505;
   --paper-2: #0d0e10;
@@ -2497,12 +2497,12 @@ html[data-mode="noche"] body.fitness-app {
   --mute: #91969a;
   --hair: #24272a;
   --hair-strong: #3a3e42;
-  --orange: #ff6a00;
-  --acc-2: #ff6a00;
+  --orange: #f4a261;
+  --acc-2: #f4a261;
   --acc-ink: #090909;
 
-  --one-copper: #ff6a00;
-  --one-copper-soft: #ffb074;
+  --one-copper: #f4a261;
+  --one-copper-soft: #ffc08a;
   --one-coach-bg: #050505;
   --one-coach-surface: #0d0e10;
   --one-coach-surface-2: #141619;

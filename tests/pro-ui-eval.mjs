@@ -75,9 +75,9 @@ assert(/--fit-bg:\s*#050505/i.test(css),
   "el fondo final de BAYONA ONE es negro profundo");
 assert(/--fit-surface:\s*#0d0e10/i.test(css),
   "las superficies finales son grafito oscuro");
-assert(/--fit-accent:\s*#ff6a00/i.test(css),
+assert(/--fit-accent:\s*#f4a261/i.test(css),
   "el acento final es naranja BAYONA");
-assert(/--orange:\s*#ff6a00/i.test(css),
+assert(/--orange:\s*#f4a261/i.test(css),
   "el alias naranja de la app apunta al naranja BAYONA");
 assert(/color-scheme:\s*dark/i.test(css),
   "la interfaz final declara esquema oscuro");
