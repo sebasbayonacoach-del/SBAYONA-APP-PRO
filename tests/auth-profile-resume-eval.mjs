@@ -7,7 +7,7 @@ const profileFields = [
   "onboarding_frequency", "onboarding_minutes",
 ];
 for (const field of profileFields) {
-  assert.match(src, new RegExp('["\\']' + field + '["\\']'), "Missing persisted field in profile query: " + field);
+  assert.ok(src.includes('"' + field + '"'), "Missing persisted field in profile query: " + field);
 }
 assert.ok(src.includes('select: PROFILE_FIELDS'), "Full onboarding projection is used by cloudProfile");
 assert.ok(!src.includes('select: "id,display_name,role,goals"'), "No truncated profile projection remains");
