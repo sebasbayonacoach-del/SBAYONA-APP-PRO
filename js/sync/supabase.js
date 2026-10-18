@@ -141,15 +141,19 @@ export async function signUpWithPassword(email, password, _role = "athlete", met
  */
 export function googleOAuthUrl({ native = false, webOrigin = "" } = {}) {
   if (!cfg.ready) throw new Error("Supabase sin configurar.");
-  const integratedEntry =
-    typeof window !== "undefined" && typeof window.BAYONA_AUTH_ENTRY_URL === "string"
-      ? window.BAYONA_AUTH_ENTRY_URL
-      : "";
+  // El destino del OAuth es siempre la APP que lo inicia, nunca la portada
+  // ni variables globales mutables inyectadas por la WEB.
+  const base = webOrigin || (typeof location !== "undefined" ? location.href : "");
+  const baseUrl = !native ? new URL(base) : null;
+  if (!native && !/^https?:$/.test(baseUrl.protocol)) throw new Error("Origen de BAYONA APP no válido.");
+  // La APP puede estar integrada en /mi-app/ (WEB local) o ser independiente.
+  // Se conserva exclusivamente una ruta conocida y verificada del producto.
+  const currentPath = typeof location !== "undefined" ? new URL(location.href).pathname : "/";
+  const candidate = baseUrl && baseUrl.pathname !== "/" ? baseUrl.pathname : currentPath;
+  const appPath = /^\/mi-app\/(?:index\.html)?$/.test(candidate) ? candidate : "/";
   const redirect = native
     ? "bayonafit://auth/callback"
-    : integratedEntry
-      ? new URL(integratedEntry, webOrigin || location.origin).href
-      : new URL("./?source=pwa", webOrigin || location.href).href;
+    : new URL(appPath + "?source=pwa", baseUrl.origin).href;
   const callback = new URL(redirect);
   const attempt = globalThis.crypto?.randomUUID?.();
   if (!attempt) throw new Error("Este dispositivo no admite el acceso seguro con Google.");

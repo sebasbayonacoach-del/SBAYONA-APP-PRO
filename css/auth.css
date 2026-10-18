@@ -1290,3 +1290,50 @@ body.fitness-app #bayona-auth-gate .auth-text-button {
     animation: none;
   }
 }
+
+/* BAYONA onboarding v5: clear separation of required profile and optional health. */
+#bayona-auth-gate .auth-privacy-summary {
+  display: grid;
+  gap: 12px;
+  padding: 17px;
+  margin: 12px 0 18px;
+  border: 1px solid #302920;
+  border-radius: 12px;
+  background: rgba(244, 162, 97, .045);
+}
+#bayona-auth-gate .auth-privacy-summary p {
+  margin: 0;
+  font: 400 12px/1.65 Inter, system-ui, sans-serif;
+  color: #c4bbb2;
+}
+#bayona-auth-gate .auth-privacy-summary strong {
+  color: #f4a261;
+  font-weight: 750;
+}
+#bayona-auth-gate .auth-privacy-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  margin: 6px 0 16px;
+  padding: 10px 0;
+  font: 500 12px/1.6 Inter, system-ui, sans-serif;
+  color: #eee5df;
+  cursor: pointer;
+}
+#bayona-auth-gate .auth-privacy-check input {
+  appearance: auto;
+  flex: none;
+  width: 19px;
+  height: 19px;
+  margin-top: 2px;
+  accent-color: #f4a261;
+}
+#bayona-auth-gate .auth-privacy-check:focus-within {
+  outline: 2px solid #f4a261;
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+#bayona-auth-gate [data-profile-finish]:disabled {
+  opacity: .65;
+  cursor: not-allowed;
+}
