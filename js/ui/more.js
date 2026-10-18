@@ -15,6 +15,7 @@ import { diagnostico, instantaneas, previsualizar, restaurar } from "../backup.j
 import { currentSession, isConfigured } from "../sync/supabase.js";
 import { openAccount } from "../sync/account.js";
 import { showDayRecap } from "./cinematics.js";
+import { renderPersonalArchive } from "./archive.js";
 
 BUILDERS.more = (body) => {
   body = body || $("#drawer-body");
@@ -101,6 +102,16 @@ BUILDERS.more = (body) => {
   bCo.addEventListener("click", () => openSection("coachos"));
   coCard.appendChild(bCo);
   body.appendChild(coCard);
+
+  // MI UNIVERSO: el perfil longitudinal solo aparece tras importar un archivo privado.
+  const universe = el("div", "card");
+  universe.innerHTML = `<div class="card-row"><h4>MI UNIVERSO</h4><span class="pill">ARCHIVO PRIVADO</span></div>
+    <div class="sub">Tu historia, proyectos y línea de tiempo. Importación voluntaria, cifrado local y sin sincronización con clientes.</div>`;
+  const openUniverse = el("button", "btn btn-block", "VER MI UNIVERSO");
+  openUniverse.type = "button";
+  openUniverse.addEventListener("click", () => renderPersonalArchive($("#drawer-body")));
+  universe.appendChild(openUniverse);
+  body.appendChild(universe);
 
   body.appendChild(el("div", "sec-label", "APARIENCIA"));
   const ap = getAppearance();
