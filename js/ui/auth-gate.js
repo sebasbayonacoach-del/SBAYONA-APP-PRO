@@ -42,7 +42,7 @@ import {
   validateProfile,
 } from "../personalization.js";
 
-const APP_URL = "https://bayona-app-one.vercel.app/?source=pwa";
+const APP_URL = () => new URL("./?source=pwa", location.href).href;
 const LEGACY_KEY = "bayona.save.v2";
 const ROLE_KEY = "bayona.entry.role.v1";
 
@@ -96,6 +96,7 @@ const state = {
     place: "GIMNASIO",
     frequency: 3,
     minutes: 45,
+    privacyAck: false,
   },
 };
 
@@ -241,10 +242,21 @@ async function saveCoreProfile(user, name, role, profile = null) {
   if (!user?.id) return;
   if (role === "coach" && accountRole() !== "coach")
     throw new Error("Coach Studio requiere la autorización del propietario.");
+  const completedAt = profile ? new Date().toISOString() : null;
   const core = {
     id: user.id,
     display_name: String(name || "").trim().slice(0, 40) || null,
     goals: profile?.goals?.length ? profile.goals : [],
+    ...(profile ? {
+      onboarding_version: 5,
+      onboarding_completed_at: completedAt,
+      privacy_notice_ack_at: completedAt,
+      onboarding_goal: profile.goalPrimary,
+      onboarding_experience: profile.experience,
+      onboarding_place: profile.trainingPlaces?.[0],
+      onboarding_frequency: profile.weeklyAvailability?.days?.length,
+      onboarding_minutes: profile.sessionMinutes,
+    } : {}),
   };
   try {
     await upsert("profiles", [{ ...core, role: role === "coach" ? "coach" : "athlete" }]);
@@ -267,11 +279,12 @@ function prepareProfileState({ user, row }) {
   const rowGoal = Array.isArray(row?.goals) ? row.goals[0] : null;
   state.profile = {
     name: meta?.name || row?.display_name || metaName || state.pendingName || "",
-    goal: meta?.goalPrimary || rowGoal || "BIENESTAR Y ADHERENCIA",
-    experience: meta?.experience || "ALGO DE EXPERIENCIA",
-    place: meta?.trainingPlaces?.[0] || "GIMNASIO",
-    frequency: Math.max(2, Math.min(5, meta?.weeklyAvailability?.days?.length || 3)),
-    minutes: [15, 30, 45, 60].includes(Number(meta?.sessionMinutes)) ? Number(meta.sessionMinutes) : 45,
+    goal: row?.onboarding_goal || meta?.goalPrimary || rowGoal || "BIENESTAR Y ADHERENCIA",
+    experience: row?.onboarding_experience || meta?.experience || "ALGO DE EXPERIENCIA",
+    place: row?.onboarding_place || meta?.trainingPlaces?.[0] || "GIMNASIO",
+    frequency: Math.max(2, Math.min(5, row?.onboarding_frequency || meta?.weeklyAvailability?.days?.length || 3)),
+    minutes: [15, 30, 45, 60].includes(Number(row?.onboarding_minutes || meta?.sessionMinutes)) ? Number(row?.onboarding_minutes || meta?.sessionMinutes) : 45,
+    privacyAck: false,
   };
   state.profileStep = 0;
 }
@@ -305,7 +318,7 @@ function makeProfile() {
     preferredSessionRange: [String(state.profile.minutes)],
     coachPersona: "sebastian",
     membershipPlan: "free",
-    onboardingVersion: 4,
+    onboardingVersion: 5,
     onboardingCompletedAt: new Date().toISOString(),
   });
 }
@@ -384,14 +397,13 @@ async function afterAuthenticated() {
     return;
   }
 
-  if (hasUserLocalState(user)) {
-    await enterProduct({ roleOverride: "athlete" });
-    return;
-  }
-
-  const portable = portableProfileFromUser(user);
-  if (portable?.onboarded) {
-    await hydratePortableProfile(user, portable);
+  // La fuente de verdad del onboarding es Supabase, no un dato local
+  // o user_metadata editable. Sin confirmación de servidor no hay atajos.
+  if (row?.onboarding_version >= 5 && row?.onboarding_completed_at && row?.privacy_notice_ack_at) {
+    if (!hasUserLocalState(user)) {
+      prepareProfileState({ user, row });
+      await persistLocalProfile(makeProfile());
+    }
     await enterProduct({ roleOverride: "athlete" });
     return;
   }
@@ -578,7 +590,7 @@ function profileProgress(step, total) {
 function profileView() {
   const p = state.profile;
   const step = state.profileStep;
-  const total = 3;
+  const total = 4;
 
   if (step === 0) return `
     <section class="auth-card auth-profile-card">
@@ -606,7 +618,7 @@ function profileView() {
       <div class="auth-step-actions"><button class="auth-secondary" type="button" data-profile-back>ATRÁS</button><button class="auth-primary" type="button" data-profile-next>CONTINUAR</button></div>
     </section>`;
 
-  return `
+  if (step === 2) return `
     <section class="auth-card auth-profile-card">
       ${profileProgress(step, total)}
       ${authHeader("TU SEMANA", "Haz que BAYONA quepa en tu vida.", "Elige una frecuencia y una duración realistas. El sistema podrá adaptarlas después.")}
@@ -623,8 +635,22 @@ function profileView() {
         <span><small>RITMO</small><strong>${esc(String(p.frequency))} días · ${esc(String(p.minutes))} min</strong></span>
       </div>
       ${messageHtml()}
-      <div class="auth-step-actions"><button class="auth-secondary" type="button" data-profile-back>ATRÁS</button><button class="auth-primary" type="button" data-profile-finish ${state.busy ? "disabled" : ""}>${state.busy ? "CREANDO TU ESPACIO…" : "ENTRAR A BAYONA"}</button></div>
-      <p class="auth-progressive-note">Después te pediremos seguridad, permisos o datos de salud solo cuando una función realmente los necesite.</p>
+      <div class="auth-step-actions"><button class="auth-secondary" type="button" data-profile-back>ATRÁS</button><button class="auth-primary" type="button" data-profile-next>CONTINUAR</button></div>
+    </section>`;
+
+  return `
+    <section class="auth-card auth-profile-card">
+      ${profileProgress(step, total)}
+      ${authHeader("TU PRIVACIDAD", "Tú decides sobre tus datos.", "Antes de empezar, revisa cómo se utilizará la información básica del entrenamiento.")}
+      <div class="auth-privacy-summary">
+        <p><strong>Datos necesarios:</strong> cuenta, nombre, objetivo, experiencia, lugar y tiempo de entrenamiento. Se usan para personalizar tu espacio y conservar tu progreso.</p>
+        <p><strong>Datos sensibles:</strong> cámara, imágenes, patologías y registros de salud son opcionales. Se pedirán permisos y consentimientos separados cuando utilices cada función. No son obligatorios para entrar.</p>
+        <p><strong>Control:</strong> puedes consultar y modificar tus datos desde tu cuenta. Los datos de otros usuarios no forman parte de tu espacio.</p>
+      </div>
+      <label class="auth-privacy-check"><input id="auth-privacy-ack" type="checkbox" ${p.privacyAck ? "checked" : ""}><span>He leído esta información sobre el uso de mis datos para crear mi perfil de entrenamiento.</span></label>
+      ${messageHtml()}
+      <div class="auth-step-actions"><button class="auth-secondary" type="button" data-profile-back>ATRÁS</button><button class="auth-primary" type="button" data-profile-finish ${state.busy || !p.privacyAck ? "disabled" : ""}>${state.busy ? "GUARDANDO…" : "CREAR MI ESPACIO"}</button></div>
+      <p class="auth-progressive-note">Esta confirmación no autoriza el tratamiento de datos de salud ni activa permisos de cámara, micrófono o fotos.</p>
     </section>`;
 }
 
@@ -796,7 +822,8 @@ async function finishAthleteProfile() {
   if (state.busy) return;
   const name = root.querySelector("#profile-name")?.value.trim() || state.profile.name;
   if (name) state.profile.name = name;
-  if (!state.profile.name) return setMessage("Escribe tu nombre para continuar.", "error");
+  if (!state.profile.name || state.profile.name.trim().length < 2) return setMessage("Escribe un nombre de al menos dos caracteres.", "error");
+  if (!state.profile.privacyAck) return setMessage("Lee y confirma la información de privacidad antes de continuar.", "error");
 
   state.busy = true;
   state.message = "";
@@ -808,11 +835,9 @@ async function finishAthleteProfile() {
     // Local primero: crear el perfil no depende de que la red aguante justo este
     // segundo. Si cloud falla, account.js consumirá el outbox al reconectar.
     await persistLocalProfile(profile);
-    try {
-      await saveCoreProfile(user, profile.name, "athlete", profile);
-    } catch {
-      marcarPendiente("perfil inicial");
-    }
+    // Si el servidor rechaza el onboarding no se abre el producto:
+    // evita saltarse pasos al fallar la red o modificar el navegador.
+    await saveCoreProfile(user, profile.name, "athlete", profile);
     await enterProduct({ roleOverride: "athlete" });
   } catch (error) {
     state.busy = false;
@@ -860,7 +885,7 @@ async function forgotPassword() {
   state.busy = true;
   render();
   try {
-    await requestPasswordReset(email, APP_URL);
+    await requestPasswordReset(email, APP_URL());
     state.busy = false;
     setMessage("Te enviamos un enlace para recuperar tu contraseña.", "ok");
   } catch (error) {
@@ -969,13 +994,18 @@ function wire() {
       if (!state.profile.name) return setMessage("Escribe tu nombre para continuar.", "error");
     }
     state.message = "";
-    state.profileStep = Math.min(2, state.profileStep + 1);
+    state.profileStep = Math.min(3, state.profileStep + 1);
     render();
   });
   root?.querySelector("[data-profile-back]")?.addEventListener("click", () => {
     state.message = "";
     state.profileStep = Math.max(0, state.profileStep - 1);
     render();
+  });
+  root?.querySelector("#auth-privacy-ack")?.addEventListener("change", (event) => {
+    state.profile.privacyAck = Boolean(event.target.checked);
+    const finish = root?.querySelector("[data-profile-finish]");
+    if (finish) finish.disabled = !state.profile.privacyAck;
   });
   root?.querySelector("[data-profile-finish]")?.addEventListener("click", finishAthleteProfile);
   root?.querySelector("[data-coach-finish]")?.addEventListener("click", finishCoachProfile);
