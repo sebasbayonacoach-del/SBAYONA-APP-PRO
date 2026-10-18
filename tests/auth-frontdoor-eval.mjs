@@ -85,7 +85,7 @@ check(!authGate.includes("Soy coach") && authGate.includes("Continuar con Google
   authGate.includes('signUpWithPassword(email, password, "athlete"'),
   "registro público siempre usuario normal con Google opcional");
 check(authGate.includes("Tus datos permanecen asociados a tu cuenta") && !authGate.includes("cifrado local garantizado"), "la UI comunica protección sin afirmar cifrado local inexistente");
-check(authGate.includes("Después te pediremos seguridad, permisos o datos de salud solo cuando una función realmente los necesite."), "datos sensibles salen del registro inicial");
+check(authGate.includes("Esta confirmación no autoriza el tratamiento de datos de salud") && authGate.includes("auth-privacy-ack"), "onboarding exige lectura de privacidad y separa consentimientos sensibles");
 
 const landing = readFileSync(resolve(root, "js/ui/landing-boot.js"), "utf8");
 check(landing.includes('import("./auth-gate.js")') && landing.includes("if (appShell || nativeShell)"), "APK/PWA instalada abre Front Door antes del producto");
