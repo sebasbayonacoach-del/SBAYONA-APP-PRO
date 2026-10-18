@@ -73,3 +73,19 @@ No se debe declarar listo para usuarios externos hasta que se validen las migrac
 - Nuevo cambio pendiente de probar e instalar: `0009_single_owner_google_auth.sql` sincroniza `profiles.role` mediante trigger en `bayona_owner`.
 - La autorización interactiva de Supabase continúa fallando por CAPTCHA; no se han aplicado las migraciones.
 - Una contraseña enviada por conversación no debe usarse para iniciar sesión; credenciales y CAPTCHA se gestionan exclusivamente en el panel seguro del servicio.
+
+
+## ACTUALIZACIÓN VERIFICADA · 18/10/2026 — BASE DE DATOS OPERATIVA
+Esta actualización prevalece sobre los diagnósticos del 12/10/2026 más arriba.
+
+- La conexión de ChatGPT "Sebas" tiene permiso sobre la organización **BAYONA**, proyecto **otkhozruunouimjgvvun**; la conexión "Primary" apunta a otro proyecto inactivo y NO debe usarse.
+- Instaladas exitosamente las migraciones **0001–0011** del repositorio en el proyecto real. Hay **21 tablas public** y **21/21 con RLS activo**, con **65 políticas**.
+- Se aplicó adicionalmente `bayona_0012_harden_coach_rpc_permissions`: elimina permisos públicos/anónimos para RPC privilegiadas y fija el search_path de 5 funciones.
+- Se confirmó exactamente una identidad autenticada y verificada que corresponde al propietario. Su perfil se creó con permisos mínimos y el registro exclusivo de `bayona_owner` se asignó **a partir del UUID obtenido de auth.users**, sin almacenar identificadores personales ni contraseñas en GitHub. Resultado: **1 coach**, **1 owner**, otras identidades no pueden obtener ese rol.
+- Prueba SQL con impersonación de rol `authenticated`: el propietario verifica `is_bayona_coach() = true` y puede leer su perfil; una identidad ajena verifica `is_bayona_coach() = false` y no puede leer el perfil. Ninguna cuenta de prueba se creó.
+- `profiles?select=id&limit=0` con clave pública responde **HTTP 200**; anteriormente era 404.
+- La vista previa `https://bayona-hvmwfjwr3-sevisionari-3740s-projects.vercel.app/?source=pwa` habilita registro y Google al detectar el backend. Google devuelve **HTTP 302** hacia Google y conserva la URL de retorno de la APP. **No equivale a completar login interactivo y regreso al producto**.
+- El linter de seguridad conserva avisos esperados por las RPC SECURITY DEFINER autenticadas y la tabla privada `bayona_owner` intencionadamente sin policies. Sigue pendiente configurar `Leaked Password Protection` desde Supabase Auth.
+- NO se ha promovido la rama de GitHub a producción. La versión pública proviene de un despliegue CLI con ficheros propios más recientes; fusionar directamente sustituiría recursos no incluidos en esta rama. Pendiente fusionar/reconciliar y verificar en móvil físico.
+
+Verificaciones recomendadas antes de apertura pública: OAuth completo en cuentas reales, flujos de confirmación/recovery, prueba end-to-end de RLS entre cuentas legítimas y publicación preservando la versión CLI del dominio oficial.

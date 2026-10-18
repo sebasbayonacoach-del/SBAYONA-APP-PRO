@@ -84,7 +84,7 @@ check(authGate.includes("SÍ, USAR MI PROGRESO") && authGate.includes("NO, CREAR
 check(!authGate.includes("Soy coach") && authGate.includes("Continuar con Google") &&
   authGate.includes('signUpWithPassword(email, password, "athlete"'),
   "registro público siempre usuario normal con Google opcional");
-check(authGate.includes("Acceso protegido · cada cuenta conserva su progreso") && !authGate.includes("cifrado local garantizado"), "la UI comunica protección sin afirmar cifrado local inexistente");
+check(authGate.includes("Tus datos permanecen asociados a tu cuenta") && !authGate.includes("cifrado local garantizado"), "la UI comunica protección sin afirmar cifrado local inexistente");
 check(authGate.includes("Después te pediremos seguridad, permisos o datos de salud solo cuando una función realmente los necesite."), "datos sensibles salen del registro inicial");
 
 const landing = readFileSync(resolve(root, "js/ui/landing-boot.js"), "utf8");
