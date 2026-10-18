@@ -39,3 +39,10 @@ Las recompensas no pueden comprarse y descansar no supone penalización.
   real siguen sujetos a prueba.
 - No reemplazar la versión pública Vercel con esta rama sin conciliar el
   código del despliegue CLI y completar pruebas de autenticación.
+
+## Vista previa para el único entrenador
+Coach Studio incluye «Probar experiencia atleta», un modal de demostración
+interactivo con datos sintéticos, accesible sólo cuando accountRole confirma
+rol coach. No conmuta el rol, no cambia perfiles, no registra acciones ni
+concede XP. Permite comprobar Sencillo/Aventura/Detallado desde la misma
+cuenta de entrenador antes de aprobar la experiencia pública.

@@ -101,3 +101,18 @@ body.fitness-app .bayona-rpg[data-mode="expert"] .bayona-rpg-zone{min-height:160
 /* Recommendation is now the primary mission above; avoid repeating a second
    identical hero lower on the same page. Other tools remain visible. */
 body.fitness-app:not([data-entry-role="coach"]) .bayona-rpg ~ .fit-now-card{display:none}
+
+/* Verified coach gets a READ-ONLY athlete experience preview, without role switching. */
+body.fitness-app .one-rpg-preview-launch{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;border:1px solid #a57c51;border-radius:13px;background:linear-gradient(110deg,#2d2621,#171e21);padding:17px 20px;margin:0 0 18px;color:#f9ebda}
+body.fitness-app .one-rpg-preview-launch>div{display:flex;flex-direction:column;gap:4px}
+body.fitness-app .one-rpg-preview-launch small{font-size:10px;letter-spacing:.12em;color:#f2b681!important;font-weight:850}
+body.fitness-app .one-rpg-preview-launch strong{font-size:18px;font-weight:850;color:#ffefe0!important}
+body.fitness-app .one-rpg-preview-launch p{margin:0;color:#c1cecf!important;font-size:11px}
+body.fitness-app .one-rpg-preview-action{border:1px solid #f2ae76;border-radius:9px;background:#f2ae76;color:#24150d!important;padding:13px 15px;font-size:11px;font-weight:900;cursor:pointer}
+html body.fitness-app #modal-box:has(.one-rpg-demo){width:min(1100px,94vw);max-width:min(1100px,94vw);max-height:84vh;overflow:auto;background:#0f171a!important;color:#f9ede2!important;border:1px solid #435357!important}
+body.fitness-app .one-rpg-demo-header{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #46555a}
+body.fitness-app .one-rpg-demo-header strong{font-size:12px;color:#f4b789!important;letter-spacing:.12em}
+body.fitness-app .one-rpg-demo-header button{font-size:11px;border:1px solid #526469;background:#242e32;border-radius:7px;padding:9px;color:#f1e7df;cursor:pointer}
+body.fitness-app .one-rpg-demo>p{color:#bcc7c8!important;font-size:12px;margin:12px 0}
+body.fitness-app .one-rpg-demo .bayona-rpg{color:#f9eee6}
+@media(max-width:650px){body.fitness-app .one-rpg-preview-action{width:100%}}
