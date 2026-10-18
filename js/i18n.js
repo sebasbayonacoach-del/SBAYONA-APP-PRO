@@ -8,6 +8,9 @@
 export const locale = "es-ES";
 
 const es = {
+  "coach.visual.stateAria": "Distribución de las 3.141 fichas por estado",
+  "coach.visual.aria": "Visión general de entrenamiento y contenidos",
+  "coach.visual.navAria": "Ir a las secciones de Coach Studio",
   "coach.elite.upper": "Tren superior",
   "coach.elite.core": "Zona media",
   "coach.elite.lower": "Tren inferior",
