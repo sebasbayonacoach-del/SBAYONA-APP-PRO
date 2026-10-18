@@ -131,7 +131,7 @@ check((account.match(/location\.reload\(\)/g) || []).length >= 2, "cambiar o cer
 check(account.includes('on("profile", sincroSuave)'), "cambios de perfil entran en cola de sincronización");
 
 const index = readFileSync(resolve(root, "index.html"), "utf8");
-check(index.includes('href="css/auth.css?v=1"'), "estilos Front Door forman parte del documento");
+check(/href="css\/auth\.css\?v=\d+"/.test(index), "estilos Front Door forman parte del documento");
 const authCss = readFileSync(resolve(root, "css/auth.css"), "utf8");
 const authGateSource = readFileSync(resolve(root, "js/ui/auth-gate.js"), "utf8");
 check(authCss.includes("#bayona-auth-gate .auth-field input") && authCss.includes("height: 48px"), "inputs del acceso conservan objetivo táctil de 48 px");
