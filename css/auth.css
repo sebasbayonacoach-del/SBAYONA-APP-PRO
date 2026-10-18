@@ -1207,3 +1207,86 @@ body.fitness-app #bayona-auth-gate .auth-text-button {
   #bayona-auth-gate .auth-signin-card .auth-primary:disabled::before,
   #bayona-auth-gate .auth-google-button:disabled::before { animation: none; }
 }
+
+
+/* BAYONA ACCESS 2.1 — accurate, compact Google readiness and recovery. */
+#bayona-auth-gate .auth-signin-card .auth-google-button:disabled {
+  opacity: 1;
+  cursor: not-allowed;
+  border-color: #a9a19a;
+  background: #d5d0ca;
+  color: #4b4540;
+  box-shadow: none;
+  transform: none;
+}
+#bayona-auth-gate .auth-signin-card .auth-google-button:disabled::before {
+  content: none;
+}
+#bayona-auth-gate .auth-signin-card .auth-google-button[aria-busy="true"]:disabled::before {
+  content: "";
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  margin-right: 8px;
+  border: 2px solid #51453b;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: bayona-auth-spin 900ms linear infinite;
+}
+#bayona-auth-gate .auth-google-hint {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  column-gap: 7px;
+  row-gap: 5px;
+  color: #aaa19a;
+  font-size: 10px;
+  line-height: 1.5;
+  text-align: center;
+}
+#bayona-auth-gate .auth-google-state-dot {
+  width: 6px;
+  height: 6px;
+  flex: none;
+  border-radius: 50%;
+  background: #c08b52;
+}
+#bayona-auth-gate .auth-google-button:not(:disabled) + .auth-google-hint .auth-google-state-dot {
+  background: #6bbb8f;
+}
+#bayona-auth-gate .auth-google-retry {
+  min-height: 27px;
+  margin: 0;
+  padding: 3px 4px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #f4a261;
+  font: 700 10px/1.4 Inter, system-ui, sans-serif;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+#bayona-auth-gate .auth-google-retry:hover:not(:disabled) {
+  color: #ffd2ae;
+}
+#bayona-auth-gate .auth-google-retry:focus-visible {
+  outline: 2px solid #f4a261;
+  outline-offset: 2px;
+}
+#bayona-auth-gate .auth-google-retry:disabled {
+  opacity: .75;
+  cursor: progress;
+}
+@media (max-width: 620px) {
+  #bayona-auth-gate .auth-google-hint {
+    gap: 5px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #bayona-auth-gate .auth-signin-card .auth-google-button[aria-busy="true"]:disabled::before {
+    animation: none;
+  }
+}
