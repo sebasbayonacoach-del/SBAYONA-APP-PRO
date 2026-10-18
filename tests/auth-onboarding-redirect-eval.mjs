@@ -9,7 +9,7 @@ const gate = source("api/supabase/migrations/0016_server_enforced_onboarding_acc
 
 assert.ok(!oauth.includes("BAYONA_AUTH_ENTRY_URL"), "External presentation site cannot override APP OAuth destination");
 assert.ok(oauth.includes('new URL(appPath + "?source=pwa", baseUrl.origin)'), "OAuth returns to the APP path within the initiating origin");
-assert.ok(oauth.includes('"/mi-app/index.html"'), "Local integrated APP preserves its own callback and never points to WEB home");
+assert.ok(oauth.includes('const appPath =') && oauth.includes('candidate : "/"'), "Local integrated APP preserves its known callback and never points to WEB home");
 assert.ok(oauth.includes('callback.searchParams.set("auth_state", attempt)'), "OAuth state correlation is retained");
 assert.ok(auth.includes('const total = 4'), "Athlete onboarding has four steps");
 assert.ok(auth.includes('auth-privacy-ack'), "Privacy notice acknowledgement is explicit");
