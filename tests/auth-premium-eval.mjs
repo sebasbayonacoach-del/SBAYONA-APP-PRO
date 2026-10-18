@@ -17,7 +17,7 @@ assert.ok(source.includes('if (!accountCreationReady())'), "OAuth blocks unsafe 
 assert.ok(!source.includes('state.busy || !canRegister ? "disabled"'), "Google action must allow safe retry while blocked");
 assert.ok(source.includes('data-auth-action="reveal-password"'), "Password visibility is controllable");
 assert.ok(source.includes('input.type = showing ? "text" : "password"'), "Visibility control changes input type");
-assert.ok(source.includes('role="\${state.tone === "error" ? "alert" : "status"}"'), "Errors are accessible");
+assert.ok(source.includes('role="${state.tone === "error" ? "alert" : "status"}"'), "Errors are accessible");
 assert.ok(css.includes("BAYONA ACCESS 2.0"), "Premium design layer is installed");
 assert.ok(css.includes("grid-template-columns: minmax(0, 1fr) minmax(410px, 475px)"), "Desktop layout is controlled");
 assert.ok(css.includes("@media (max-width: 900px)") && css.includes(".auth-editorial"), "Phone layout collapses");
