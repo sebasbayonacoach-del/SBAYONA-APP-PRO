@@ -8,12 +8,12 @@ export const TOUR_VERSION = 1;
 export const CHECKIN_MOMENTS = Object.freeze([
   ["morning","Al despertar","Empezar el día con contexto."],
   ["preTraining","Antes de entrenar","Ajustar mejor la sesión."],
-  ["evening","Al final del déa","Cerrar el día y ver tendencias."],
+  ["evening","Al final del día","Cerrar el día y ver tendencias."],
 ]);
 
 const COACH_NAMES = Object.freeze({
   sebastian:"Sebastián",
-  mara:"Mara",
+  mara:"BAYONA IA",
   minimal:"BAYONA",
 });
 
@@ -110,11 +110,18 @@ export function openFirstRunTour({force=false}={}) {
   layer.innerHTML='<div class="tour-dim"></div><div class="tour-focus"></div><div class="tour-card"></div>';
   document.body.appendChild(layer);
 
+  const closeTour=state=>{
+    markTour(state);
+    layer.remove();
+    removeEventListener("resize",paint);
+  };
   const paint=()=>{
+    if (!layer.isConnected) return;
     const step=STEPS[index];
     const rect=targetRect(step);
     if (!rect) {
       if (index<STEPS.length-1) { index++; paint(); }
+      else closeTour({skipped:true,step:index}); // Never strand a blocking overlay.
       return;
     }
     const focus=layer.querySelector(".tour-focus");
@@ -123,20 +130,21 @@ export function openFirstRunTour({force=false}={}) {
     card.style.left=pos.left!=null?pos.left+"px":"auto"; card.style.right="auto";
     card.style.top=pos.top!=null?pos.top+"px":"auto"; card.style.bottom=pos.bottom!=null?pos.bottom+"px":"auto";
     const coach=coachDisplayName(profile);
+    const label=profile.coachPersona==="mara"?"ASISTENTE DIGITAL":t("tour.coach.label");
     card.innerHTML=`
-      <div class="tour-coach"><span class="tour-coach-avatar">${esc(coach.slice(0,1))}</span><span><small>${esc(t("tour.coach.label"))}</small><strong>${esc(coach)}</strong></span><span class="tour-count">${index+1}/${STEPS.length}</span></div>
+      <div class="tour-coach"><span class="tour-coach-avatar">${esc(coach.slice(0,1))}</span><span><small>${esc(label)}</small><strong>${esc(coach)}</strong></span><span class="tour-count">${index+1}/${STEPS.length}</span></div>
       <h3>${esc(t(step.titleKey))}</h3><p>${esc(t(step.bodyKey))}</p>
       <div class="tour-actions"><button type="button" data-tour="skip">SALTAR</button>${index?'<button type="button" data-tour="back">ATRÁS</button>':''}<button type="button" class="tour-next" data-tour="next">${index===STEPS.length-1?'TERMINAR':'SIGUIENTE'}</button></div>`;
-    card.querySelector('[data-tour="skip"]').onclick=()=>{markTour({skipped:true,step:index});layer.remove();};
+    card.querySelector('[data-tour="skip"]').onclick=()=>closeTour({skipped:true,step:index});
     card.querySelector('[data-tour="back"]')?.addEventListener("click",()=>{index=Math.max(0,index-1);markTour({step:index});paint();});
     card.querySelector('[data-tour="next"]').onclick=()=>{
-      if(index>=STEPS.length-1){markTour({completed:true,step:STEPS.length-1});layer.remove();return;}
+      if(index>=STEPS.length-1){closeTour({completed:true,step:STEPS.length-1});return;}
       index++; markTour({step:index}); paint();
     };
   };
-  paint();
   addEventListener("resize",paint,{passive:true});
-  return true;
+  paint();
+  return layer.isConnected;
 }
 
 async function requestSystemNotificationsIfUseful(prefs) {

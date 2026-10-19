@@ -46,7 +46,7 @@ assert(html[5].includes("no un diagnóstico"),"6 · declara límites clínicos")
 assert((html[5].match(/data-health="/g)||[]).length===6,"6 · contexto de salud declarado y opcional");
 assert(html[5].includes("no los convierte en diagnósticos"),"6 · texto libre no se interpreta clínicamente");
 assert((html[6].match(/data-coach=/g)||[]).length===3,"7 · tres estilos de Coach");
-assert(html[6].includes("Sebastián")&&html[6].includes("Mara")&&html[6].includes("Minimal"),"7 · Sebastián, Coach femenina y minimal");
+assert(html[6].includes("Sebastián")&&html[6].includes("BAYONA IA")&&html[6].includes("Minimal")&&!html[6].includes("Coach digital"),"7 · entrenador único, asistente IA y minimal");
 assert((html[7].match(/data-plan=/g)||[]).length===PLANS.length,"8 · cuatro membresías");
 assert(PLANS.every((plan)=>html[7].includes('data-plan="'+plan+'"')),"8 · FREE/RAÍZ/PERFORMANCE/ELITE tienen contrato");
 assert(html[8].includes("Ya tenemos suficiente para empezar.")&&html[8].includes('id="ob-done"'),"9 · resumen + entrada");
