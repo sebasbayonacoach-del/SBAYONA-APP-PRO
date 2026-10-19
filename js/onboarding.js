@@ -59,8 +59,8 @@ const COACHES = [
     copy:"Directo, técnico y cercano. Te explica el porqué y te mantiene enfocado.",
   },
   {
-    id:"mara", initials:"M", name:"Mara", role:"Coach digital",
-    copy:"Calma, claridad y acompañamiento. Misma ciencia, otro estilo de conversación.",
+    id:"mara", initials:"IA", name:"BAYONA IA", role:"Asistente digital",
+    copy:"Recordatorios y ayuda digital. Sebastián sigue siendo tu único entrenador.",
   },
   {
     id:"minimal", initials:"◌", name:"Minimal", role:"Sin personaje",
@@ -324,8 +324,8 @@ function view() {
     ${progress()}
     <div class="ob-stage">
       <div class="ob-kicker">QUIÉN TE ACOMPAÑA</div>
-      <h2>Elige el estilo de tu Coach.</h2>
-      <p>La ciencia no cambia. Cambia la forma de hablarte y guiarte.</p>
+      <h2>Elige cómo te acompaña BAYONA.</h2>
+      <p>Sebastián es el único entrenador. Elige asistencia digital o una experiencia sin personaje.</p>
       <div class="ob-coaches" role="group" aria-label="${esc(t("onboarding.coach.aria"))}">
         ${COACHES.map((c)=>`
           <button type="button" data-coach="${c.id}" class="${st.coachPersona===c.id?"on":""}" aria-pressed="${st.coachPersona===c.id}">
@@ -379,7 +379,7 @@ function view() {
         <span><small>PRIORIDAD</small><b>${esc(GOAL_LABEL[st.goalPrimary]?.[1]||st.goalPrimary)}</b></span>
         <span><small>SEMANA</small><b>${st.weeklyDays.length} día${st.weeklyDays.length===1?"":"s"} · ~${esc(st.sessionMinutes)} min</b></span>
         <span><small>ENTORNO</small><b>${esc(selectedPlaces.slice(0,2).join(" · ")||"Por definir")}</b></span>
-        <span><small>COACH</small><b>${esc(COACHES.find((c)=>c.id===st.coachPersona)?.name||"Sebastián")}</b></span>
+        <span><small>ENTRENADOR</small><b>Sebastián</b></span>
         <span><small>INTERÉS</small><b>${esc(PLAN_META[st.membershipPlan]?.label||"FREE")}</b></span>
         <span><small>SEGURIDAD</small><b>${health.clearance==="cleared"?"Sin alertas":health.clearance==="conditional"?"Adaptar":"Revisar antes"}</b></span>
       </div>

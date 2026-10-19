@@ -11,7 +11,7 @@ console.log("\n🧧 FIRST RUN · TOUR + CHECK-IN\n");
 ok(TOUR_VERSION===1,"versión de tour explícita");
 ok(CHECKIN_MOMENTS.length===3,"tres momentos opcionales");
 ok(coachDisplayName({coachPersona:"sebastian"})==="Sebastián","persona Sebastián");
-ok(coachDisplayName({coachPersona:"mara"})==="Mara","persona femenina");
+ok(coachDisplayName({coachPersona:"mara"})==="BAYONA IA","asistente IA sin segundo entrenador");
 ok(coachDisplayName({coachPersona:"minimal"})==="BAYONA","modo minimal");
 ok(!shouldRunTour({onboarded:false},"affiliate"),"sin onboarding no hay tour");
 ok(!shouldRunTour({onboarded:true},"coach"),"Coach OS no recibe tour personal");
