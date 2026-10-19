@@ -61,6 +61,6 @@ const pack = readFileSync(resolve(root, "mobile/pack-web.mjs"), "utf8");
 check(pack.includes("'trainingym'"), "la APK empaqueta también el catálogo PROPLAYER");
 check(!pack.includes("'vendor', 'docs', 'fonts'"), "la APK excluye documentación interna del paquete móvil");
 const gradle = readFileSync(resolve(root, "mobile/android/app/build.gradle"), "utf8");
-check(gradle.includes('versionCode 19') && gradle.includes('versionName "1.0.18-beta"'), "Android queda versionado como 1.0.18-beta");
+check(gradle.includes('versionCode 20') && gradle.includes('versionName "1.0.19-beta"'), "Android queda versionado como 1.0.19-beta");
 
 console.log(`\n📊 RESULTADO: ${ok} comprobaciones · 0 fallos\n`);

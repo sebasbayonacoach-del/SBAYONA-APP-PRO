@@ -1,3 +1,4 @@
+import {mountVisualWorld} from "./visual-world.js";
 // ============================================================
 // BAYONA — UI/SHELL: mundo persistente, drawer, modales, HUD helpers
 // "BAYONA vive alrededor del personaje": el avatar NO se desmonta
@@ -187,6 +188,12 @@ export function openSection(name) {
   const build = BUILDERS[name] || BUILDERS.home;
   if (personalLocked) renderLockedSection(body, sectionFeature);
   else if (build) build(body);
+  if (!personalLocked && document.body.classList.contains("fitness-app")) {
+    mountVisualWorld(body,name,{
+      coach:document.body.dataset.entryRole==="coach",
+      navigate:next=>openSection(next)
+    });
+  }
   body.scrollTop = 0;
   const coachAccount = document.body.dataset.entryRole === "coach";
   const group = coachAccount && ["coachos","library","agenda","account"].includes(name)

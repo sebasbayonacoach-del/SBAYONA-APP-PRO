@@ -1,0 +1,51 @@
+/* BAYONA WORLD — distinct editorial scenery per real view. Not a wireframe mockup. */
+body.fitness-app .bayona-world{--world-accent:#f4a261;position:relative;isolation:isolate;margin:8px 0 21px;color:#f7eee3}
+body.fitness-app .bayona-world *{box-sizing:border-box}
+body.fitness-app .bayona-world-hero{position:relative;display:flex;align-items:flex-end;min-height:185px;overflow:hidden;padding:22px 23px 20px;border:1px solid color-mix(in srgb,var(--world-accent) 34%,#354149);border-radius:18px;background:#0c1520;box-shadow:0 16px 37px #0003}
+body.fitness-app .bayona-world-home .bayona-world-hero{min-height:222px}
+body.fitness-app .bayona-world-illustration{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:67% center;pointer-events:none;user-select:none}
+body.fitness-app .bayona-world-hero::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#091018 0%,#091018ea 27%,#091018b4 53%,#09101815 93%),linear-gradient(0deg,#070e15a4,transparent 48%);pointer-events:none}
+body.fitness-app .bayona-world-content{position:relative;z-index:1;max-width:min(510px,78%);margin-right:auto;align-self:center}
+body.fitness-app .bayona-world-eyebrow{display:block;color:var(--world-accent)!important;letter-spacing:.14em;font:850 10px/1.5 Inter,system-ui,sans-serif;text-transform:uppercase}
+body.fitness-app .bayona-world h2{margin:9px 0 8px;max-width:530px;color:#fbf1e7!important;font-size:clamp(21px,2.8vw,36px);font-weight:900;letter-spacing:-.04em;line-height:1.1}
+body.fitness-app .bayona-world p{max-width:430px;color:#c6d2d7!important;font-size:clamp(11px,1.2vw,13px);line-height:1.5;margin:0 0 13px}
+body.fitness-app .bayona-world-meta{display:flex;gap:12px;flex-wrap:wrap;color:#c0cbd0;font:850 9px/1.5 Inter,system-ui,sans-serif;letter-spacing:.07em}
+body.fitness-app .bayona-world-meta span:first-child{color:#e3ba9a}
+body.fitness-app .bayona-world-action{z-index:1;position:absolute;bottom:20px;right:20px;display:flex;justify-content:center;align-items:center;max-width:42%;min-height:39px;padding:10px 12px;border:1px solid var(--world-accent);border-radius:9px;color:#0d1318!important;background:var(--world-accent);font:850 11px/1.2 Inter,system-ui,sans-serif;cursor:pointer;box-shadow:0 6px 18px #0003}
+body.fitness-app .bayona-world-action:hover{filter:brightness(1.09)}
+body.fitness-app .bayona-world button:focus-visible{outline:3px solid #fff;outline-offset:3px}
+body.fitness-app .bayona-world-directory-title{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:16px 0 10px;color:#f6eadc}
+body.fitness-app .bayona-world-directory-title strong{font-size:17px;font-weight:850;letter-spacing:-.03em}
+body.fitness-app .bayona-world-directory-title span{font-size:11px;color:#bfcbd1}
+body.fitness-app .bayona-world-directory{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+body.fitness-app .bayona-world-tile{position:relative;display:flex;flex-direction:column;justify-content:flex-end;min-width:0;min-height:150px;overflow:hidden;text-align:left;padding:14px 13px;border:1px solid color-mix(in srgb,var(--world-accent) 38%,#36464e);border-radius:13px;background:#0f1a24;cursor:pointer;transition:border-color .16s,transform .16s}
+body.fitness-app .bayona-world-tile-image{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:71% center;pointer-events:none}
+body.fitness-app .bayona-world-tile::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,#081018f7 2%,#081018b5 40%,#08101800 92%);pointer-events:none}
+body.fitness-app .bayona-world-tile-text,.bayona-world-tile-arrow{position:relative;z-index:1}
+body.fitness-app .bayona-world-tile-text{display:flex;flex-direction:column;gap:3px;max-width:92%}
+body.fitness-app .bayona-world-tile-text strong{font:900 15px/1.1 Inter,system-ui,sans-serif;color:#fff4eb!important}
+body.fitness-app .bayona-world-tile-text small{font:650 10px/1.4 Inter,system-ui,sans-serif;color:#d4e0e0!important}
+body.fitness-app .bayona-world-tile-arrow{position:absolute;right:12px;bottom:12px;font-size:15px;color:var(--world-accent)!important}
+body.fitness-app .bayona-world-tile:hover{transform:translateY(-2px);border-color:var(--world-accent)}
+@media(max-width:1000px){
+ body.fitness-app .bayona-world-directory{grid-template-columns:repeat(2,minmax(0,1fr))}
+ body.fitness-app .bayona-world-tile{min-height:145px}
+}
+@media(max-width:650px){
+ body.fitness-app .bayona-world{margin:6px 0 15px}
+ body.fitness-app .bayona-world-hero{padding:16px 13px;min-height:188px}
+ body.fitness-app .bayona-world-home .bayona-world-hero{min-height:208px}
+ body.fitness-app .bayona-world-content{max-width:78%}
+ body.fitness-app .bayona-world-eyebrow{font-size:8px}
+ body.fitness-app .bayona-world h2{font-size:clamp(21px,6vw,27px)}
+ body.fitness-app .bayona-world p{font-size:10px;max-width:225px}
+ body.fitness-app .bayona-world-meta{font-size:8px;gap:5px}
+ body.fitness-app .bayona-world-action{right:11px;bottom:10px;min-height:29px;padding:6px 8px;font-size:9px;max-width:45%}
+ body.fitness-app .bayona-world-directory-title{align-items:start;flex-direction:column;gap:3px}
+ body.fitness-app .bayona-world-directory{gap:8px}
+ body.fitness-app .bayona-world-tile{min-height:125px;padding:9px}
+ body.fitness-app .bayona-world-tile-text strong{font-size:13px}
+ body.fitness-app .bayona-world-tile-text small{font-size:9px}
+}
+@media(max-width:350px){body.fitness-app .bayona-world-directory{grid-template-columns:1fr 1fr}.bayona-world-tile-text small{display:none}}
+@media(prefers-reduced-motion:reduce){body.fitness-app .bayona-world-tile{transition:none}body.fitness-app .bayona-world-tile:hover{transform:none}}
