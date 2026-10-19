@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const xml=readFileSync(new URL('../mobile/android/app/src/main/AndroidManifest.xml',import.meta.url),'utf8');
+const voice=readFileSync(new URL('../js/character-voice.js',import.meta.url),'utf8');
+const gradle=readFileSync(new URL('../mobile/android/app/build.gradle',import.meta.url),'utf8');
+assert.match(xml,/android.permission.RECORD_AUDIO/);
+assert.match(xml,/android.permission.MODIFY_AUDIO_SETTINGS/);
+assert.match(voice,/getUserMedia\(\{audio:/);
+assert.match(gradle,/versionCode 21/);
+assert.match(gradle,/versionName "1.0.20-beta"/);
+console.log('Android voice permission: 5 PASS');
