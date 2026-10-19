@@ -48,3 +48,18 @@ body.fitness-app .character-actions{gap:11px}
  body.fitness-app .character-studio{padding:14px}
 }
 @media(prefers-reduced-motion:reduce){body.fitness-app .character-studio *{animation:none!important;transition:none!important}}
+
+/* Avatar OS · voice input + narrated exercise presentation */
+body.fitness-app .character-mode{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:4px 0 6px}
+body.fitness-app .character-mode-choice{min-height:43px;padding:10px 9px;border-radius:10px;border:1px solid #5b696e;background:#273338;color:#e9f1ef!important;font-size:11px;font-weight:800;cursor:pointer}
+body.fitness-app .character-mode-choice.selected{background:#68442d;border-color:#f4b078;color:#fff0e4!important}
+body.fitness-app .character-script-title{margin:3px 0 0;color:#ffbb83!important;font-size:10px;letter-spacing:.11em}
+body.fitness-app .character-script{border-left:3px solid #f6aa74;padding:9px 10px!important;border-radius:0 8px 8px 0;background:#28383c;font-size:12px!important;color:#f7e5d5!important}
+body.fitness-app .character-voice-buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+body.fitness-app .character-audio-file{color:#dce8e6!important;display:block;max-width:100%;font-size:11px;padding:9px;border:1px dashed #66767a;border-radius:9px}
+body.fitness-app .character-audio-preview{width:100%;max-width:100%;height:44px;border-radius:9px}
+body.fitness-app .character-audio-preview[hidden]{display:none}
+body.fitness-app .character-voice .character-status{min-height:19px}
+@media(max-width:395px){
+ body.fitness-app .character-mode,.character-voice-buttons{grid-template-columns:1fr}
+}
