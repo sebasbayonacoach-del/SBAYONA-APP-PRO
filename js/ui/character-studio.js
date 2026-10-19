@@ -4,6 +4,8 @@ import {S} from "../state.js";
 import {t} from "../i18n.js";
 import {processFace,loadFaceImage} from "../face.js";
 import {RECETAS} from "../nutricion.js";
+import {AVATAR_EXERCISES,narrationFor} from "../character-exercises.js";
+import {MAX_VOICE_SECONDS,MIN_VOICE_SECONDS,canUseVoice,microphoneSession,prepareVoiceTrack} from "../character-voice.js";
 import {CHARACTER_WIDTH,CHARACTER_HEIGHT,CHARACTER_DURATION_MS,validateAvatarPhoto,
   drawCharacterFrame,videoMime,createVideoRecorder,safeVideoName} from "../character-video.js";
 
@@ -25,8 +27,8 @@ export function mountCharacterStudio(parent){
  const intro=make("div","character-studio-intro");
  const heading=make("div","");
  heading.append(make("span","character-eyebrow","BAYONA / CHARACTER AI · LABORATORIO"),
-  make("h2","","Una foto. Tu personaje. Tu receta."),
-  make("p","","Transforma una foto que tengas permiso para utilizar en un personaje ilustrado. Crea un vídeo vertical de cocina con él, sin subir la fotografía original."));
+  make("h2","","Tu foto. Tu voz. Tu personaje."),
+  make("p","","Crea tu personaje ilustrado, graba tu propia voz y presenta recetas o rutinas en vídeos verticales privados sin enviar tus medios a un servidor externo."));
  intro.append(heading,make("span","character-privacy-chip","LOCAL · CONTROLADO POR TI"));
  root.append(intro);
  const grid=make("div","character-studio-grid");
@@ -55,19 +57,55 @@ export function mountCharacterStudio(parent){
  photoCard.append(consent,files,storeLabel,useSaved,status);
  const recipeCard=make("div","character-box");
  recipeCard.append(make("span","character-step","02 / HISTORIA"),
-  make("h3","","Elige una receta"),
+  make("h3","","Elige qué hará tu avatar"),
   make("p","","Tu personaje te acompaña en una historia breve con ingredientes y pasos. Los valores nutricionales son estimaciones, no un plan clínico."));
+ const mode=make("div","character-mode");
+ const mealMode=press("Cocina y alimentación","character-mode-choice selected",()=>setMode("food"));
+ const exerciseMode=press("Entrenamiento y movimiento","character-mode-choice",()=>setMode("exercise"));
+ mode.append(mealMode,exerciseMode);
  const select=make("select","character-recipe");
  select.setAttribute("aria-label",t("character.recipeAria"));
  for(const recipe of RECETAS){
   const o=make("option","",recipe.nombre);o.value=recipe.id;select.append(o);
  }
  const ingredients=make("div","character-recipe-details");
- recipeCard.append(select,ingredients);
+ const lines=make("p","character-script");
+ lines.setAttribute("aria-label",t("character.voiceScriptAria"));
+ recipeCard.append(mode,select,ingredients,make("strong","character-script-title","GUION SUGERIDO PARA TU VOZ"),lines);
+ const voiceCard=make("div","character-box character-voice");
+ voiceCard.append(make("span","character-step","03 / TU VOZ"),
+   make("h3","","Ponle tu voz a tu personaje"),
+   make("p","","Graba un mensaje de 3 a 30 segundos leyendo el guion, o adjunta un archivo de audio propio. Nunca clonamos tu voz."));
+ const voiceConsent=make("label","character-consent");
+ const voicePermission=make("input");voicePermission.type="checkbox";
+ voicePermission.setAttribute("aria-label",t("character.voiceConsentAria"));
+ voiceConsent.append(voicePermission,make("span","","Autorizo usar mi voz para generar este vídeo. Solo grabaré mi propia voz o una con autorización expresa."));
+ const startVoice=press("Grabar mi voz","character-secondary",()=>startRecording());
+ const stopVoice=press("Detener grabación","character-secondary",()=>stopRecording());
+ stopVoice.disabled=true;
+ const voiceFile=make("input","character-audio-file");voiceFile.type="file";
+ voiceFile.accept="audio/webm,audio/mp4,audio/mpeg,audio/wav,audio/ogg";
+ voiceFile.setAttribute("aria-label",t("character.voiceFileAria"));
+ const voiceStatus=make("p","character-status","Todavía no hay una grabación de voz.");
+ voiceStatus.setAttribute("role","status");
+ const voicePreview=make("audio","character-audio-preview");
+ voicePreview.controls=true;voicePreview.hidden=true;
+ const forgetVoice=press("Eliminar la voz cargada","character-secondary",()=>clearVoice());
+ const voiceButtons=make("div","character-voice-buttons");voiceButtons.append(startVoice,stopVoice);
+ voiceCard.append(voiceConsent,voiceButtons,voiceFile,voicePreview,voiceStatus,forgetVoice);
+ voiceFile.addEventListener("change",async()=>{
+   const file=voiceFile.files?.[0];if(!file)return;
+   if(!voicePermission.checked){voiceStatus.textContent=t("character.voiceNeedConsent");voiceFile.value="";return;}
+   const problem=canUseVoice(file);
+   if(problem){voiceStatus.textContent=problem;voiceFile.value="";return;}
+   const ok=await setVoice(file);
+   if(!ok)voiceStatus.textContent=t("character.voiceInvalid");
+   voiceFile.value="";
+ });
  const actionCard=make("div","character-box character-actions");
- actionCard.append(make("span","character-step","03 / CREA"),
-  make("h3","","Tu reel de cocina"),
-  make("p","","Vídeo de 8 segundos en vertical, con tu personaje, pasos y subtítulos. Se guarda como WebM sin voz sintética."));
+ const videoTitle=make("h3","","Tu reel de cocina");
+ const videoDescription=make("p","","Vídeo vertical WebM con tu avatar hablando con tu grabación original. Sin audio, genera una versión silenciosa de 8 segundos.");
+ actionCard.append(make("span","character-step","04 / CREA"),videoTitle,videoDescription);
  const record=press("Crear vídeo de mi receta","character-primary",()=>recordVideo());
  const poster=press("Guardar portada PNG","character-secondary",()=>savePoster());
  const progress=make("div","character-progress");
@@ -77,7 +115,7 @@ export function mountCharacterStudio(parent){
  const result=make("p","character-status","");
  result.setAttribute("role","status");result.setAttribute("aria-live","polite");
  actionCard.append(record,poster,progress,result);
- setup.append(photoCard,recipeCard,actionCard);
+ setup.append(photoCard,recipeCard,voiceCard,actionCard);
  const stage=make("div","character-stage");
  const frame=make("div","character-stage-inner");
  const canvas=make("canvas","character-canvas");
@@ -85,39 +123,105 @@ export function mountCharacterStudio(parent){
  canvas.setAttribute("aria-label",t("character.canvasAria"));
  const stamp=make("span","character-stage-caption","VISTA PREVIA · 9:16");
  frame.append(canvas,stamp);stage.append(frame);
- const foot=make("p","character-privacy","Vídeos creados localmente. No hay subida automática ni clonación de voz. Si un archivo incluye tu rostro, evita compartirlo sin revisar el resultado.");
+ const foot=make("p","character-privacy","Grabación, foto y voz procesadas localmente. La voz no se guarda en tu perfil. Esto no es clonación de voz ni una demostración biomecánica real.");
  stage.append(foot);
  grid.append(setup,stage);root.append(grid);
  parent.append(root);
 
  const ctx=canvas.getContext("2d",{alpha:false});
- let avatar=null,recipe=RECETAS[0],running=false,alive=true,frameId=0,started=performance.now(),lastDraw=0;
+ let avatar=null,recipe=RECETAS[0],currentMode="food",running=false,alive=true,frameId=0,started=performance.now(),lastDraw=0;
+ let voiceBlob=null,voiceUrl=null,voiceHandle=null,recordTimer=0,voiceDuration=0,latestLevel=0;
  const notice=(value,error=false)=>{
   status.textContent=value;status.dataset.error=String(error);
  };
+ function setMode(next){
+  if(running)return;
+  currentMode=next==="exercise"?"exercise":"food";
+  mealMode.classList.toggle("selected",currentMode==="food");
+  exerciseMode.classList.toggle("selected",currentMode==="exercise");
+  select.replaceChildren();
+  const training=currentMode==="exercise";
+  videoTitle.textContent=training?"Tu mensaje de entrenamiento":"Tu reel de cocina";
+  videoDescription.textContent=training?
+    "Vídeo vertical con el avatar presentando indicaciones generales. Los gestos son ilustrativos; para técnica real consulta la biblioteca PROPLAYER.":
+    "Vídeo vertical con tu avatar narrando la receta. Sin audio, genera una versión silenciosa de 8 segundos.";
+  record.textContent=training?"Crear vídeo de entrenamiento":"Crear vídeo de mi receta";
+  const collection=training?AVATAR_EXERCISES:RECETAS;
+  for(const item of collection){const opt=make("option","",item.nombre);opt.value=item.id;select.append(opt);}
+  refreshRecipe();
+ }
  const refreshRecipe=()=>{
-  recipe=RECETAS.find(r=>r.id===select.value)||RECETAS[0];
-  ingredients.replaceChildren(make("strong","",recipe.tipo+" · "+recipe.kcal+" kcal aprox."));
+  const all=currentMode==="food"?RECETAS:AVATAR_EXERCISES;
+  recipe=all.find(r=>r.id===select.value)||all[0];
+  ingredients.replaceChildren(make("strong","",currentMode==="food"?
+    recipe.tipo+" · "+recipe.kcal+" kcal aprox.":recipe.tipo+" · ORIENTACIÓN GENERAL"));
   const ul=make("ul","");
   for(const item of recipe.ingredientes){ul.append(make("li","",item));}
   ingredients.append(ul);
+  lines.textContent=narrationFor(recipe);
   started=performance.now();
  };
- select.addEventListener("change",refreshRecipe);refreshRecipe();
+ select.addEventListener("change",refreshRecipe);setMode("food");
 
  const draw=(elapsed=0)=>drawCharacterFrame(ctx,{
-  recipe,image:avatar,elapsed,displayName:S.data?.profile?.name||"TU PERSONAJE"
+  recipe,image:avatar,elapsed,displayName:S.data?.profile?.name||"TU PERSONAJE",
+  speaking:Boolean(voiceBlob),voiceLevel:latestLevel,kind:currentMode,
+  durationMs:voiceDuration?voiceDuration*1000:CHARACTER_DURATION_MS
  });
  const loop=(now)=>{
   if(!alive || !root.isConnected || running)return;
-  if(canUse() && now-lastDraw>56){draw((now-started)%CHARACTER_DURATION_MS);lastDraw=now;}
+  if(canUse() && now-lastDraw>56){draw((now-started)%(voiceDuration?voiceDuration*1000:CHARACTER_DURATION_MS));lastDraw=now;}
   frameId=requestAnimationFrame(loop);
  };
  frameId=requestAnimationFrame(loop);
+ async function setVoice(blob){
+  let decoded;
+  try{decoded=await prepareVoiceTrack(blob);}catch(e){
+   voiceStatus.textContent=e.message;return false;
+  }
+  const duration=decoded.durationMs/1000;
+  await decoded.dispose();
+  if(voiceUrl)URL.revokeObjectURL(voiceUrl);
+  voiceBlob=blob;
+  voiceDuration=duration;
+  voiceUrl=URL.createObjectURL(blob);
+  voicePreview.src=voiceUrl;
+  voicePreview.hidden=false;
+  voiceStatus.textContent=t("character.voiceReady")+duration.toFixed(1)+" s.";
+  draw(0);
+  return true;
+ }
+ function clearVoice(){
+   if(voiceUrl)URL.revokeObjectURL(voiceUrl);
+   voiceUrl=null;voiceBlob=null;voiceDuration=0;voicePreview.pause();
+   voicePreview.removeAttribute("src");voicePreview.hidden=true;
+   voiceStatus.textContent=t("character.voiceCleared");
+   draw(0);
+ }
+ async function startRecording(){
+  if(!voicePermission.checked){voiceStatus.textContent=t("character.voiceNeedConsent");return;}
+  if(running||voiceHandle)return;
+  try{
+   voiceHandle=await microphoneSession();
+   voiceStatus.textContent=t("character.voiceRecording");
+   startVoice.disabled=true;stopVoice.disabled=false;
+   recordTimer=setTimeout(()=>stopRecording(),MAX_VOICE_SECONDS*1000);
+  }catch(e){voiceStatus.textContent=t("character.voiceMicError")+e.message;}
+ }
+ async function stopRecording(){
+  if(!voiceHandle)return;
+  const session=voiceHandle;voiceHandle=null;
+  clearTimeout(recordTimer);startVoice.disabled=false;stopVoice.disabled=true;
+  session.stop();
+  try{const blob=await session.done;await setVoice(blob);}
+  catch(e){voiceStatus.textContent=t("character.voiceSaveError")+e.message;}
+ }
  // Clean up when parent content is replaced, with no persistent global listener.
  const watcher=new MutationObserver(()=>{
   if(!root.isConnected){
    alive=false;cancelAnimationFrame(frameId);watcher.disconnect();
+   clearTimeout(recordTimer);voiceHandle?.cancel();voiceHandle=null;
+   if(voiceUrl)URL.revokeObjectURL(voiceUrl);
   }
  });
  watcher.observe(parent,{childList:true});
@@ -173,23 +277,28 @@ export function mountCharacterStudio(parent){
   }
   running=true;cancelAnimationFrame(frameId);
   record.disabled=true;select.disabled=true;poster.disabled=true;
+  mealMode.disabled=true;exerciseMode.disabled=true;
   result.textContent=t("character.recording");
-  let device;
+  let device,voice=null;
   try{
    draw(0);
-   device=createVideoRecorder(canvas,{mime});
+   if(voiceBlob)voice=await prepareVoiceTrack(voiceBlob);
+   const durationMs=voice?.durationMs||CHARACTER_DURATION_MS;
+   device=createVideoRecorder(canvas,{mime,audioTracks:voice?.tracks||[]});
+   voice?.start();
    const start=performance.now();
    await new Promise((resolve,reject)=>{
     const advance=now=>{
-     const elapsed=Math.min(now-start,CHARACTER_DURATION_MS);
+     const elapsed=Math.min(now-start,durationMs);
+     latestLevel=voice?.volume()||0;
      if(!root.isConnected){
       device.recorder.stop();reject(new Error("Se cerró el estudio."));return;
      }
      draw(elapsed);
-     const percent=Math.round(elapsed/CHARACTER_DURATION_MS*100);
+     const percent=Math.round(elapsed/durationMs*100);
      progressFill.style.width=percent+"%";
      progress.setAttribute("aria-valuenow",String(percent));
-     if(elapsed<CHARACTER_DURATION_MS){frameId=requestAnimationFrame(advance);}
+     if(elapsed<durationMs){frameId=requestAnimationFrame(advance);}
      else{device.recorder.stop();resolve();}
     };
     frameId=requestAnimationFrame(advance);
@@ -201,9 +310,12 @@ export function mountCharacterStudio(parent){
    result.textContent=t("character.error")+(error?.message||"error del navegador");
    if(device?.recorder?.state==="recording")device.recorder.stop();
   }finally{
-   running=false;record.disabled=false;select.disabled=false;poster.disabled=false;
+   await voice?.dispose().catch(()=>{});
+   running=false;latestLevel=0;record.disabled=false;select.disabled=false;poster.disabled=false;
+   mealMode.disabled=false;exerciseMode.disabled=false;
    started=performance.now();frameId=requestAnimationFrame(loop);
   }
  }
- return {root,canvas,select,input,permission,store,record,poster,status,result};
+ return {root,canvas,select,input,permission,store,record,poster,status,result,
+   voicePermission,startVoice,stopVoice,voiceFile,voicePreview,voiceStatus,mealMode,exerciseMode};
 }

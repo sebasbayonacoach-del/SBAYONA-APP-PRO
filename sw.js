@@ -4,7 +4,7 @@
 // Con esto la app abre sin red y el registro de series funciona offline
 // (los datos viven en el dispositivo y se sincronizan después).
 // ============================================================
-const CACHE = "bayona-shell-v55";
+const CACHE = "bayona-shell-v56";
 const SHELL = [
   "./media/app-now-20261015.webp",
   "./js/data/proplayer-catalog-audit.js",
@@ -32,7 +32,7 @@ const SHELL = [
   "./js/ui/centro.js", "./js/ui/cuotas.js", "./js/ui/agenda.js",
   "./js/ui/acceso.js",  "./js/ui/portal.js", "./js/ui/informes.js",
   "./js/comandos.js", "./js/ui/command.js",
-  "./css/fitness.css", "./js/ui/fitness.js", "./js/character-video.js", "./js/ui/character-studio.js", "./js/ui/life-rpg.js", "./js/ui/session-exit.js", "./js/ui/planner.js",
+  "./css/fitness.css", "./js/ui/fitness.js", "./js/character-video.js", "./js/character-voice.js", "./js/character-exercises.js", "./js/ui/character-studio.js", "./js/ui/life-rpg.js", "./js/ui/session-exit.js", "./js/ui/planner.js",
   "./css/dashboard.css", "./js/ui/dashboard.js", "./js/recipeImage.js",
   "./css/coach.css", "./js/coach/ai-core.js", "./js/coach/ai.js",
   "./js/personalization.js", "./js/cycle.js", "./js/ui/personal.js", "./css/personal.css",

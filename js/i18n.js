@@ -8,6 +8,17 @@
 export const locale = "es-ES";
 
 const es = {
+  "character.voiceScriptAria": "Guion que puedes grabar con tu voz",
+  "character.voiceConsentAria": "Autorizo grabar mi voz para este vídeo",
+  "character.voiceFileAria": "O seleccionar una grabación de voz propia",
+  "character.voiceNeedConsent": "Autoriza el uso de tu voz primero.",
+  "character.voiceInvalid": "El formato o la duración de voz no son válidos.",
+  "character.voiceReady": "Voz original preparada: ",
+  "character.voiceCleared": "Voz eliminada de esta sesión.",
+  "character.voiceRecording": "Grabando... habla con naturalidad (máximo 30 s).",
+  "character.voiceMicError": "No se pudo abrir el micrófono: ",
+  "character.voiceSaveError": "No se pudo guardar la voz: ",
+
   "character.aria": "BAYONA Character AI: personaje y vídeos de cocina",
   "character.uploadAria": "Subir una foto para crear mi personaje",
   "character.recipeAria": "Elegir receta para el vídeo",
