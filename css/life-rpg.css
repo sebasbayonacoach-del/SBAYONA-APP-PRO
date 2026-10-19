@@ -116,3 +116,36 @@ body.fitness-app .one-rpg-demo-header button{font-size:11px;border:1px solid #52
 body.fitness-app .one-rpg-demo>p{color:#bcc7c8!important;font-size:12px;margin:12px 0}
 body.fitness-app .one-rpg-demo .bayona-rpg{color:#f9eee6}
 @media(max-width:650px){body.fitness-app .one-rpg-preview-action{width:100%}}
+
+/* A permanent, discoverable account action. Both coach and athlete modes. */
+body.fitness-app #topbar .bayona-session-exit{
+  flex:none;min-height:34px;padding:7px 12px;border-radius:8px;
+  border:1px solid #a66e43;background:#33221b;color:#f7ba82!important;
+  font:800 11px/1.2 "Inter",system-ui,sans-serif;letter-spacing:.015em;cursor:pointer;
+}
+body.fitness-app #topbar .bayona-session-exit:hover{background:#583322;border-color:#e6a26c}
+body.fitness-app #topbar .bayona-session-exit:focus-visible,
+body.fitness-app #panel-nav [data-session-exit]:focus-visible{outline:3px solid #f4a261;outline-offset:3px}
+body.fitness-app #panel-nav .one-session-rail-exit{
+  margin-top:14px;color:#e6aa79!important;border:1px solid #7a5943;
+  font-weight:800;justify-content:center;min-height:38px;height:auto;
+}
+body.fitness-app.one-coach-mode #panel-nav .one-session-rail-exit{
+  display:flex!important;
+}
+body.fitness-app #panel-nav .one-session-rail-exit:hover{background:#412d25}
+body.fitness-app .bayona-session-exit:disabled,
+body.fitness-app .one-session-rail-exit:disabled{opacity:.65;cursor:wait}
+@media(max-width:650px){
+ body.fitness-app #topbar .bayona-session-exit{padding:8px 9px;font-size:10px}
+}
+@media(max-width:650px){
+  body.fitness-app #topbar{padding:0 8px;gap:6px}
+  body.fitness-app #topbar .top-right{min-width:0;margin-left:auto;gap:5px}
+  body.fitness-app #topbar .top-right .wallet{display:none}
+  body.fitness-app #topbar .top-right #level-chip{display:none}
+  body.fitness-app #topbar .bayona-session-exit{white-space:nowrap}
+  /* The mobile athlete rail remains four principal destinations. Account
+     exit is permanently available in the topbar instead of a fifth tile. */
+  body.fitness-app.one-athlete-mode #panel-nav .one-session-rail-exit{display:none!important}
+}
