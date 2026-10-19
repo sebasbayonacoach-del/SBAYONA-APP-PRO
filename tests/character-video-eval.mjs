@@ -1,0 +1,45 @@
+import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
+import {RECETAS} from "../js/nutricion.js";
+import {CHARACTER_DURATION_MS,CHARACTER_WIDTH,CHARACTER_HEIGHT,PHOTO_MAX_BYTES,
+ validateAvatarPhoto,storyboard,pickStage,videoMime,safeVideoName} from "../js/character-video.js";
+assert.equal(CHARACTER_DURATION_MS,8000);
+assert.equal(CHARACTER_WIDTH/CHARACTER_HEIGHT,9/16);
+assert.equal(PHOTO_MAX_BYTES,8*1024*1024);
+assert.equal(validateAvatarPhoto({type:"image/jpeg",size:1000}),"");
+assert.equal(validateAvatarPhoto({type:"image/webp",size:1000}),"");
+assert.match(validateAvatarPhoto({type:"image/svg+xml",size:123}),/JPG/);
+assert.match(validateAvatarPhoto({type:"image/png",size:PHOTO_MAX_BYTES+1}),/8 MB/);
+assert.match(validateAvatarPhoto(null),/Selecciona/);
+for(const recipe of RECETAS){
+ const frames=storyboard(recipe);
+ assert.equal(frames.length,6);
+ assert.equal(frames[0].headline,recipe.nombre);
+ assert.equal(frames[2].headline,recipe.pasos[0]);
+ assert.equal(frames[3].headline,recipe.pasos[1]);
+ assert.equal(frames[4].headline,recipe.pasos[2]);
+ assert.deepEqual(pickStage(recipe,-10),frames[0]);
+ assert.deepEqual(pickStage(recipe,3499),frames[2]);
+ assert.deepEqual(pickStage(recipe,10000),frames[5]);
+ assert.match(safeVideoName(recipe),/^BAYONA_[A-Za-z0-9_]+\.webm$/);
+}
+assert.equal(videoMime(null),null);
+assert.equal(videoMime({isTypeSupported:()=>false}),null);
+assert.equal(videoMime({isTypeSupported:t=>t==="video/webm;codecs=vp8"}),"video/webm;codecs=vp8");
+const ui=readFileSync(new URL("../js/ui/character-studio.js",import.meta.url),"utf8");
+const video=readFileSync(new URL("../js/character-video.js",import.meta.url),"utf8");
+const nutrition=readFileSync(new URL("../js/ui/nutrition.js",import.meta.url),"utf8");
+const html=readFileSync(new URL("../index.html",import.meta.url),"utf8");
+const sw=readFileSync(new URL("../sw.js",import.meta.url),"utf8");
+assert.match(ui,/mountCharacterStudio/);
+assert.match(ui,/permission.checked/);
+assert.match(ui,/store.checked/);
+assert.match(ui,/S\.save\(\)/);
+assert.match(ui,/createVideoRecorder/);
+assert.match(nutrition,/mountCharacterStudio\(body\)/);
+assert.match(html,/character-studio\.css/);
+assert.match(sw,/character-video\.js/);
+assert.match(sw,/character-studio\.js/);
+assert.doesNotMatch(video,/fetch\(|XMLHttpRequest|WebSocket|supabase/);
+assert.doesNotMatch(ui,/fetch\(|XMLHttpRequest|WebSocket|supabase/);
+console.log("BAYONA Character AI: 80+ structural and data assertions PASS");

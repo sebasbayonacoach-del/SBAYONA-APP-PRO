@@ -7,6 +7,7 @@ import { S } from "../state.js";
 import { MEALS } from "../data.js";
 import { adherenciaPlan, RECETAS } from "../nutricion.js";
 import { pedirImagen, ilustracion, imagenDisponible } from "../recipeImage.js";
+import {mountCharacterStudio} from "./character-studio.js";
 import { esc, fmtDec, fmtInt, t } from "../i18n.js";
 import {
   UI, $, el, elT, showModal, hideModal, toast, BUILDERS,
@@ -23,6 +24,7 @@ BUILDERS.nutrition = (body) => {
     <div class="card-row"><h4>COCINA BAYONA</h4><span class="pill gold">AUTOCUIDADO</span></div>
     <div class="mc-title" style="margin-top:8px">COMIDA REAL PARA UNA VIDA EXTRAORDINARIA</div>
     <div class="mc-sub">Estás cuidando tu cuerpo y a tu personaje. Registra solo lo que comes de verdad: nada de comida virtual.</div>`));
+  mountCharacterStudio(body);
   body.appendChild(el("div", "sec-label", "NUTRICIÓN DIARIA · OBJETIVO DIARIO"));
   const macros = [
     ["ENERGÍA", td.kcal, GOALS.kcal, "kcal", "var(--orange)"],

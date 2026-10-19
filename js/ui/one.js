@@ -595,6 +595,16 @@ function renderCoachStudio(body) {
     onRoster: () => body.querySelector(".one-roster")?.scrollIntoView({ behavior: "smooth", block: "start" }),
   });
   renderCoachRpgPreview(body);
+  // Owner-only shortcut to test the same personal Character AI module as athletes.
+  if(accountRole()==="coach"){
+    const characterLink=n("section","one-rpg-preview-launch one-character-preview-launch");
+    const text=n("div");
+    text.append(n("small","","BAYONA / CHARACTER AI"),
+      n("strong","","Un personaje. Una receta. Un vídeo."),
+      n("p","","Abre el estudio de Nutrición y prueba la creación con una foto autorizada."));
+    characterLink.append(text,btn("PROBAR CHARACTER AI ↗","one-rpg-preview-action",()=>openSection("nutrition")));
+    body.append(characterLink);
+  }
   renderCoachVisual360(body, {
     clients,
     plan: planificacion(S),

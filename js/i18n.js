@@ -8,6 +8,19 @@
 export const locale = "es-ES";
 
 const es = {
+  "character.aria": "BAYONA Character AI: personaje y vídeos de cocina",
+  "character.uploadAria": "Subir una foto para crear mi personaje",
+  "character.recipeAria": "Elegir receta para el vídeo",
+  "character.progressAria": "Creación del vídeo",
+  "character.canvasAria": "Vista previa del personaje ilustrado en una cocina",
+  "character.requirePhoto": "Primero autoriza y crea tu personaje con una foto.",
+  "character.savedPoster": "Portada PNG guardada.",
+  "character.posterError": "No se pudo crear la imagen.",
+  "character.noWebm": "Tu navegador no admite WebM. Puedes guardar la portada PNG.",
+  "character.recording": "Grabando tu historia…",
+  "character.savedVideo": "Vídeo listo. Se ha descargado en formato WebM.",
+  "character.error": "No se pudo completar el vídeo: ",
+
   "rpg.aria": "Tu aventura de hoy",
   "rpg.progressAria": "Progreso hacia el próximo nivel",
   "rpg.modesAria": "Elegir presentación de BAYONA",
