@@ -146,6 +146,6 @@ check(/bayona-shell-v\d+/.test(sw) && sw.includes('"./js/ui/auth-gate.js"') && s
 check(sw.includes("./js/backup.js") && sw.includes("./js/progreso.js") && sw.includes("./js/shoot.js"), "PWA incluye dependencias de copias y progreso para el arranque offline");
 
 const gradle = readFileSync(resolve(root, "mobile/android/app/build.gradle"), "utf8");
-check(gradle.includes("versionCode 19") && gradle.includes('versionName "1.0.18-beta"'), "Android queda versionado como 1.0.18-beta");
+check(gradle.includes("versionCode 20") && gradle.includes('versionName "1.0.19-beta"'), "Android queda versionado como 1.0.19-beta");
 
 console.log("\n📊 RESULTADO: " + ok + " comprobaciones · 0 fallos\n");

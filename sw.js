@@ -4,12 +4,13 @@
 // Con esto la app abre sin red y el registro de series funciona offline
 // (los datos viven en el dispositivo y se sincronizan después).
 // ============================================================
-const CACHE = "bayona-shell-v56";
+const CACHE = "bayona-shell-v57";
 const SHELL = [
   "./media/app-now-20261015.webp",
+  "./media/visual-world/avatar.svg", "./media/visual-world/training.svg", "./media/visual-world/nutrition.svg", "./media/visual-world/recipes.svg", "./media/visual-world/habits.svg", "./media/visual-world/progress.svg", "./media/visual-world/community.svg", "./media/visual-world/coach.svg", "./media/visual-world/explore.svg",
   "./js/data/proplayer-catalog-audit.js",
   "./js/backup.js", "./js/progreso.js", "./js/shoot.js",
-  "./css/pro.css", "./css/character-studio.css", "./css/life-rpg.css", "./css/proplayer-video-preview.css", "./css/coach-elite.css", "./css/coach-visual-360.css",
+  "./css/pro.css", "./css/visual-world.css", "./css/character-studio.css", "./css/life-rpg.css", "./css/proplayer-video-preview.css", "./css/coach-elite.css", "./css/coach-visual-360.css",
   "./css/luxe.css",
   // Marca unificada con la web: capa de tipografía y paleta + sus .woff2.
   "./css/bayona-brand.css", "./css/auth.css",
@@ -32,7 +33,7 @@ const SHELL = [
   "./js/ui/centro.js", "./js/ui/cuotas.js", "./js/ui/agenda.js",
   "./js/ui/acceso.js",  "./js/ui/portal.js", "./js/ui/informes.js",
   "./js/comandos.js", "./js/ui/command.js",
-  "./css/fitness.css", "./js/ui/fitness.js", "./js/character-video.js", "./js/character-voice.js", "./js/character-exercises.js", "./js/ui/character-studio.js", "./js/ui/life-rpg.js", "./js/ui/session-exit.js", "./js/ui/planner.js",
+  "./css/fitness.css", "./js/ui/fitness.js", "./js/character-video.js", "./js/ui/visual-world.js", "./js/character-voice.js", "./js/character-exercises.js", "./js/ui/character-studio.js", "./js/ui/life-rpg.js", "./js/ui/session-exit.js", "./js/ui/planner.js",
   "./css/dashboard.css", "./js/ui/dashboard.js", "./js/recipeImage.js",
   "./css/coach.css", "./js/coach/ai-core.js", "./js/coach/ai.js",
   "./js/personalization.js", "./js/cycle.js", "./js/ui/personal.js", "./css/personal.css",
