@@ -148,7 +148,7 @@ BUILDERS.more = (body) => {
 
   // Recordatorios voluntarios, con control de frecuencia y hora.
   if (document.body.dataset.entryRole !== "coach") {
-    body.appendChild(el("div", "sec-label", "RECORDATORIOS"));
+    body.appendChild(el("div", "sec-label", t("reminders.settings.section")));
     appendReminderSettings(body, S, toast);
   }
 
