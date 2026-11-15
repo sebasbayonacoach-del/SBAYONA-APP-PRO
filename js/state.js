@@ -159,7 +159,7 @@ function freshProfile() {
     displayIdentity: null,
     membershipPlan: "free",
     healthScreening: null,
-    notificationPreferences: { morning:false, preTraining:false, evening:false, asked:false },
+    notificationPreferences: { morning:false, preTraining:false, evening:false, preTrainingAt:"", asked:false },
     firstRunTour: { version: 0, completed:false, skipped:false, step:0 },
     heightCm: null, weightKg: null, age: null, face: null, skinHex: null,
     avatar3d: null, // descriptor { provider, avatarId, urlType, cacheKey, httpUrl, at }
@@ -240,7 +240,7 @@ export const S = {
     d.profile.membershipPlan = typeof d.profile.membershipPlan === "string" ? d.profile.membershipPlan : "free";
     d.profile.coachPersona = typeof d.profile.coachPersona === "string" ? d.profile.coachPersona : "sebastian";
     d.profile.notificationPreferences = {
-      morning:false, preTraining:false, evening:false, asked:false,
+      morning:false, preTraining:false, evening:false, preTrainingAt:"", asked:false,
       ...(d.profile.notificationPreferences && typeof d.profile.notificationPreferences === "object" ? d.profile.notificationPreferences : {}),
     };
     d.profile.firstRunTour = {
