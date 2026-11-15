@@ -125,7 +125,7 @@ export function appendReminderSettings(body, S, toast) {
   const inputs = {};
   for (const [key, label] of rows) {
     const row = document.createElement("label");
-    row.className = "checkin-moment";
+    row.className = "bayona-reminder-choice";
     const input = document.createElement("input");
     input.type = "checkbox"; input.checked = Boolean(prefs[key]);
     inputs[key] = input;
@@ -134,14 +134,14 @@ export function appendReminderSettings(body, S, toast) {
     card.append(row);
   }
   const timeLabel = document.createElement("label");
-  timeLabel.className = "sub";
+  timeLabel.className = "bayona-reminder-time";
   timeLabel.textContent = "Hora aproximada de tu entrenamiento";
   const time = document.createElement("input");
   time.type = "time"; time.value = TIME_PATTERN.test(prefs.preTrainingAt || "") ? prefs.preTrainingAt : "18:00";
   time.setAttribute("aria-label", "Hora del recordatorio de entrenamiento");
-  time.style.marginLeft = "8px"; timeLabel.append(time); card.append(timeLabel);
+  timeLabel.append(time); card.append(timeLabel);
   const status = document.createElement("p");
-  status.className = "sub";
+  status.className = "bayona-reminder-note";
   status.textContent = "Versión actual: avisos mientras BAYONA está ejecutándose. Para recibirlos con la app cerrada falta activar el servicio push del servidor.";
   card.append(status);
   const button = document.createElement("button");
