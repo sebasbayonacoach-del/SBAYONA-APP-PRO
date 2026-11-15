@@ -2,6 +2,7 @@
 // Sin backend push este módulo solo entrega avisos cuando la aplicación está ejecutándose.
 // No solicita permisos automáticamente, no envía consejos médicos ni inventa tareas.
 import { planDelDia } from "../hoy.js";
+import { t } from "../i18n.js";
 import { scopedStorage } from "../sync/identity.js";
 
 const STORAGE_KEY = "bayona.reminders.sent.v1";
@@ -28,7 +29,7 @@ export function dueDailyReminder({ plan, preferences = {}, now = new Date(), sen
   const workout = pendingItem(plan, "sesion");
 
   if (preferences.morning && minute >= windows.morning[0] && minute <= windows.morning[1] && next && !seen.has(date + ":morning")) {
-    return { id: date + ":morning", title: "BAYONA · Tu siguiente paso", body: "Tienes una acción pendiente en tu plan. Abre BAYONA para verla.", detail: next.titulo, url: "./index.html?go=daily" };
+    return { id: date + ":morning", title: t("reminders.morning.title"), body: t("reminders.morning.body"), detail: next.titulo, url: "./index.html?go=daily" };
   }
 
   const requestedTime = TIME_PATTERN.test(preferences.preTrainingAt || "") ? preferences.preTrainingAt : null;
@@ -36,13 +37,13 @@ export function dueDailyReminder({ plan, preferences = {}, now = new Date(), sen
     const [h, m] = requestedTime.split(":").map(Number);
     const at = h * 60 + m;
     if (minute >= at && minute <= at + 45) {
-      return { id: date + ":preTraining", title: "BAYONA · Entrenamiento pendiente", body: "Tu sesión programada sigue pendiente. Revisa tu rutina antes de empezar.", detail: workout.titulo, url: "./index.html?go=training" };
+      return { id: date + ":preTraining", title: t("reminders.training.title"), body: t("reminders.training.body"), detail: workout.titulo, url: "./index.html?go=training" };
     }
   }
 
   const checkin = pendingItem(plan, "checkin");
   if (preferences.evening && minute >= windows.evening[0] && minute <= windows.evening[1] && checkin && !seen.has(date + ":evening")) {
-    return { id: date + ":evening", title: "BAYONA · Cierra tu día", body: "Aún puedes registrar cómo te has encontrado hoy. Te lleva unos segundos.", detail: checkin.titulo, url: "./index.html?go=daily" };
+    return { id: date + ":evening", title: t("reminders.evening.title"), body: t("reminders.evening.body"), detail: checkin.titulo, url: "./index.html?go=daily" };
   }
   return null;
 }
@@ -112,15 +113,15 @@ export function appendReminderSettings(body, S, toast) {
   const prefs = S.data?.profile?.notificationPreferences || {};
   const card = document.createElement("section");
   card.className = "card";
-  const title = document.createElement("h4"); title.textContent = "AVISOS QUE SÍ SIRVEN";
+  const title = document.createElement("h4"); title.textContent = t("reminders.settings.title");
   const info = document.createElement("p");
   info.className = "sub";
-  info.textContent = "Recibe avisos de acciones reales: tu siguiente tarea, una sesión pendiente y el check-in. Máximo uno por momento elegido.";
+  info.textContent = t("reminders.settings.intro");
   card.append(title, info);
   const rows = [
-    ["morning", "Al empezar el día (08:00–11:30)"],
-    ["preTraining", "Antes de entrenar (elige la hora)"],
-    ["evening", "Al cerrar el día (20:00–23:30)"],
+    ["morning", t("reminders.settings.morning")],
+    ["preTraining", t("reminders.settings.training")],
+    ["evening", t("reminders.settings.evening")],
   ];
   const inputs = {};
   for (const [key, label] of rows) {
@@ -135,18 +136,18 @@ export function appendReminderSettings(body, S, toast) {
   }
   const timeLabel = document.createElement("label");
   timeLabel.className = "bayona-reminder-time";
-  timeLabel.textContent = "Hora aproximada de tu entrenamiento";
+  timeLabel.textContent = t("reminders.settings.hour");
   const time = document.createElement("input");
   time.type = "time"; time.value = TIME_PATTERN.test(prefs.preTrainingAt || "") ? prefs.preTrainingAt : "18:00";
-  time.setAttribute("aria-label", "Hora del recordatorio de entrenamiento");
+  time.setAttribute("aria-label", t("reminders.settings.hourAria"));
   timeLabel.append(time); card.append(timeLabel);
   const status = document.createElement("p");
   status.className = "bayona-reminder-note";
-  status.textContent = "Versión actual: avisos mientras BAYONA está ejecutándose. Para recibirlos con la app cerrada falta activar el servicio push del servidor.";
+  status.textContent = t("reminders.settings.note");
   card.append(status);
   const button = document.createElement("button");
   button.type = "button"; button.className = "btn btn-primary btn-block";
-  button.textContent = "GUARDAR RECORDATORIOS";
+  button.textContent = t("reminders.settings.save");
   button.style.marginTop = "10px";
   button.onclick = async () => {
     const selected = rows.some(([key]) => inputs[key].checked);
@@ -159,7 +160,7 @@ export function appendReminderSettings(body, S, toast) {
     }
     window.dispatchEvent(new Event("bayona:notification-preferences"));
     const permission = typeof Notification === "undefined" ? "no disponible" : Notification.permission;
-    toast("RECORDATORIOS GUARDADOS", selected ? "Permiso del dispositivo: " + permission + ". Avisos mientras BAYONA esté abierta." : "Todos los recordatorios desactivados.");
+    toast(t("reminders.toast.saved"), selected ? t("reminders.toast.permission", {permission}) : t("reminders.toast.off"));
   };
   card.append(button);
   body.appendChild(card);
