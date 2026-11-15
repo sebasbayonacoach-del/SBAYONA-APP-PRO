@@ -3,6 +3,7 @@
 // Exportar / eliminar datos funcionan de verdad. Todo en español.
 // ============================================================
 import { S } from "../state.js";
+import { appendReminderSettings } from "../notifications/daily.js";
 import { consentStatus, revokeConsent, isGranted } from "../consents.js";
 import { pending, dead } from "../data/offlineQueue.js";
 import { esc, fmtDate, fmtInt, t } from "../i18n.js";
@@ -144,6 +145,12 @@ BUILDERS.more = (body) => {
   };
   pwaCard.appendChild(pwaButton);
   body.appendChild(pwaCard);
+
+  // Recordatorios voluntarios, con control de frecuencia y hora.
+  if (document.body.dataset.entryRole !== "coach") {
+    body.appendChild(el("div", "sec-label", "RECORDATORIOS"));
+    appendReminderSettings(body, S, toast);
+  }
 
   // ---------- APARIENCIA ----------
   // ---------- COACH OS (profesional) ----------
