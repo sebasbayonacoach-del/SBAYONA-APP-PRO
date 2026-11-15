@@ -1,0 +1,8 @@
+/* APP 6.0 — preferencias de avisos: compactas, accesibles, sin nueva navegación. */
+.bayona-reminder-choice{display:flex;align-items:center;gap:12px;margin-top:8px;padding:12px 14px;border:1px solid rgba(150,150,150,.25);border-radius:10px;cursor:pointer;background:rgba(150,150,150,.045);font-size:12px;font-weight:650;line-height:1.4}
+.bayona-reminder-choice input[type=checkbox]{width:18px;height:18px;accent-color:#f4a261;flex:none}
+.bayona-reminder-choice:focus-within{outline:2px solid #f4a261;outline-offset:2px}
+.bayona-reminder-time{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 2px;font-size:12px}
+.bayona-reminder-time input{font:inherit;min-height:38px;padding:4px 8px;max-width:135px;border-radius:6px;border:1px solid rgba(140,140,140,.5);color:inherit;background:transparent}
+.bayona-reminder-note{font-size:11px;line-height:1.5;opacity:.83}
+@media(max-width:480px){.bayona-reminder-time{align-items:flex-start;flex-direction:column}.bayona-reminder-time input{max-width:100%}}
