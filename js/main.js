@@ -5,6 +5,7 @@
 // → mundo limpio → TODO el contenido en el PANEL LATERAL.
 // ============================================================
 import { S } from "./state.js";
+import { startDailyReminders } from "./notifications/daily.js";
 import { accountRole } from "./sync/supabase.js";
 import { World } from "./world.js";
 import { initUI } from "./ui.js";
@@ -18,6 +19,7 @@ import { loadFaceImage } from "./face.js";
 
 function boot() {
   S.init();
+  startDailyReminders(S);
 
   const canvas = document.getElementById("scene");
   const world = new World(canvas);
