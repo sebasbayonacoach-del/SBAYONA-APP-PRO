@@ -77,8 +77,8 @@ export function startDailyReminders(S) {
   let busy = false;
   let stopped = false;
   const check = async () => {
-    if (busy || stopped || document.body?.dataset.entryRole === "coach") return;
-    if (!S.data?.profile?.onboarded || document.hidden) return;
+    if (busy || stopped || !["affiliate", "athlete"].includes(document.body?.dataset.entryRole)) return;
+    if (!S.data?.profile?.onboarded) return;
     if (typeof Notification === "undefined" || Notification.permission !== "granted") return;
     busy = true;
     try {
