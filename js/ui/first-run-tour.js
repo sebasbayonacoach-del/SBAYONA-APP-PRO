@@ -161,7 +161,7 @@ export function openCheckinNotificationPrompt() {
     <h3>${esc(t("tour.notifications.title"))}</h3>
     <p>${esc(t("tour.notifications.body"))}</p>
     <div class="checkin-moments">${CHECKIN_MOMENTS.map(([id,title,copy])=>`<label class="checkin-moment"><input type="checkbox" data-checkin="${id}"><span><strong>${esc(title)}</strong><small>${esc(copy)}</small></span></label>`).join("")}</div>
-    <label class="checkin-moment"><span><strong>HORA SI ELIGES ENTRENAMIENTO</strong><small>La decides tú. No inventamos tu horario.</small></span><input type="time" data-checkin-training-time value="18:00" aria-label="Hora aproximada del entrenamiento"></label>
+    <label class="checkin-moment"><span><strong>${esc(t("reminders.settings.hour"))}</strong><small>${esc(t("reminders.prompt.trainingHint"))}</small></span><input type="time" data-checkin-training-time value="18:00" aria-label="${esc(t("reminders.settings.hourAria"))}"></label>
     <div class="checkin-actions"><button type="button" data-checkin-action="skip">AHORA NO</button><button type="button" class="primary" data-checkin-action="save">GUARDAR</button></div>`;
   document.body.appendChild(box);
 
