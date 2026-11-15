@@ -10,7 +10,7 @@ const SHELL = [
   "./js/data/proplayer-catalog-audit.js",
   "./js/backup.js", "./js/progreso.js", "./js/shoot.js",
   "./css/pro.css", "./css/proplayer-video-preview.css", "./css/coach-elite.css", "./css/coach-visual-360.css",
-  "./css/luxe.css",
+  "./css/luxe.css", "./css/reminders.css",
   // Marca unificada con la web: capa de tipografía y paleta + sus .woff2.
   "./css/bayona-brand.css", "./css/auth.css",
   "./fonts/montserrat-normal-400-latin.woff2", "./fonts/montserrat-normal-700-latin.woff2",
