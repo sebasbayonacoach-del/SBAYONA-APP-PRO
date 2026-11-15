@@ -4,7 +4,7 @@
 // Con esto la app abre sin red y el registro de series funciona offline
 // (los datos viven en el dispositivo y se sincronizan después).
 // ============================================================
-const CACHE = "bayona-shell-v51";
+const CACHE = "bayona-shell-v52";
 const SHELL = [
   "./media/app-now-20261015.webp",
   "./js/data/proplayer-catalog-audit.js",
@@ -36,7 +36,7 @@ const SHELL = [
   "./css/dashboard.css", "./js/ui/dashboard.js", "./js/recipeImage.js",
   "./css/coach.css", "./js/coach/ai-core.js", "./js/coach/ai.js",
   "./js/personalization.js", "./js/cycle.js", "./js/ui/personal.js", "./css/personal.css",
-  "./js/pwa.js", "./js/sync/config.js", "./js/sync/supabase.js", "./js/sync/identity.js", "./js/sync/profile.js", "./js/sync/outbox.js", "./js/sync/coaching.js", "./js/nutricion-db.js", "./js/data/alimentos.json",
+  "./js/pwa.js", "./js/notifications/daily.js", "./js/sync/config.js", "./js/sync/supabase.js", "./js/sync/identity.js", "./js/sync/profile.js", "./js/sync/outbox.js", "./js/sync/coaching.js", "./js/nutricion-db.js", "./js/data/alimentos.json",
   "./index.html",
   "./manifest.webmanifest",
   "./css/style.css", "./css/aurum.css", "./css/motion.css",
@@ -123,4 +123,20 @@ self.addEventListener("fetch", (e) => {
       return hit || net;
     })
   );
+});
+
+// Un aviso solo navega a rutas de la propia aplicación tras pulsarlo el usuario.
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const relative = event.notification.data?.url || "./index.html?go=daily";
+  const target = new URL(relative, self.registration.scope);
+  if (target.origin !== self.location.origin) return;
+  event.waitUntil((async () => {
+    const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    const sameApp = windows.find((client) => new URL(client.url).origin === target.origin);
+    if (sameApp) {
+      try { await sameApp.navigate(target.href); return await sameApp.focus(); } catch { /* ventana cerrada */ }
+    }
+    return self.clients.openWindow(target.href);
+  })());
 });
