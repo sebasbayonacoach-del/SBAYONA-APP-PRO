@@ -45,7 +45,7 @@ export function normalizedNotificationPreferences(input = {}) {
     morning:Boolean(input.morning),
     preTraining:Boolean(input.preTraining),
     evening:Boolean(input.evening),
-    preTrainingAt: /^([01]\\d|2[0-3]):[0-5]\\d$/.test(String(input.preTrainingAt || "")) ? String(input.preTrainingAt) : "",
+    preTrainingAt: /^([01]\d|2[0-3]):[0-5]\d$/.test(String(input.preTrainingAt || "")) ? String(input.preTrainingAt) : "",
     asked:true,
   };
 }
