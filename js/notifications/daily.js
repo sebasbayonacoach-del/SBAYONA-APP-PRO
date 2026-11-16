@@ -33,11 +33,18 @@ export function dueDailyReminder({ plan, preferences = {}, now = new Date(), sen
   }
 
   const requestedTime = TIME_PATTERN.test(preferences.preTrainingAt || "") ? preferences.preTrainingAt : null;
-  if (preferences.preTraining && requestedTime && workout && !seen.has(date + ":preTraining")) {
+  if (preferences.preTraining && requestedTime && workout) {
     const [h, m] = requestedTime.split(":").map(Number);
     const at = h * 60 + m;
-    if (minute >= at && minute <= at + 45) {
-      return { id: date + ":preTraining", title: t("reminders.training.title"), body: t("reminders.training.body"), detail: workout.titulo, url: "./index.html?go=training" };
+    // La ventana de 45 minutos puede continuar después de medianoche.
+    const elapsed = (minute - at + 1440) % 1440;
+    if (elapsed <= 45) {
+      const scheduledDay = new Date(now);
+      if (minute < at) scheduledDay.setDate(scheduledDay.getDate() - 1);
+      const id = dayKey(scheduledDay) + ":preTraining";
+      if (!seen.has(id)) {
+        return { id, title: t("reminders.training.title"), body: t("reminders.training.body"), detail: workout.titulo, url: "./index.html?go=training" };
+      }
     }
   }
 
