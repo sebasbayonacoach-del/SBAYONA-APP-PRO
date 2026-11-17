@@ -114,6 +114,24 @@ export function startDailyReminders(S) {
   };
 }
 
+/** Perfil mínimo persistible: preferencias, no historial ni datos clínicos. */
+export function notificationPreferenceRow(userId, prefs = {}, zone = "UTC", now = new Date()) {
+  if (typeof userId !== "string" || !userId.trim()) return null;
+  const tz = typeof zone === "string" && /^[A-Za-z0-9_+/-]{2,64}$/.test(zone) ? zone : "UTC";
+  const selectedTime = TIME_PATTERN.test(prefs.preTrainingAt || "") ? prefs.preTrainingAt : null;
+  return {
+    user_id: userId, asked: Boolean(prefs.asked),
+    morning: Boolean(prefs.morning),
+    pre_training: Boolean(prefs.preTraining),
+    evening: Boolean(prefs.evening),
+    pre_training_at: prefs.preTraining ? selectedTime : null,
+    timezone: tz,
+    // Siempre OFF: guardar preferencias no constituye consentimiento Web Push.
+    consent_enabled: false, consented_at: null,
+    updated_at: now.toISOString(),
+  };
+}
+
 /** Controles explícitos y reversibles; nunca habilitamos notificaciones por defecto. */
 export function appendReminderSettings(body, S, toast) {
   if (!body || typeof document === "undefined") return;
@@ -167,7 +185,21 @@ export function appendReminderSettings(body, S, toast) {
     }
     window.dispatchEvent(new Event("bayona:notification-preferences"));
     const permission = typeof Notification === "undefined" ? "no disponible" : Notification.permission;
-    toast(t("reminders.toast.saved"), selected ? t("reminders.toast.permission", {permission}) : t("reminders.toast.off"));
+    let detail = selected ? t("reminders.toast.permission", {permission}) : t("reminders.toast.off");
+    try {
+      const { currentUser, upsert } = await import("../sync/supabase.js");
+      const uid = currentUser()?.id;
+      if (uid) {
+        const zone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+        const payload = notificationPreferenceRow(uid, next, zone);
+        await upsert("notification_preferences", payload, { on_conflict: "user_id" });
+        detail = t("reminders.toast.cloudSaved");
+      }
+    } catch {
+      // Perfil local ya persistido: no aparentar que la nube también lo guardó.
+      detail = t("reminders.toast.cloudOffline");
+    }
+    toast(t("reminders.toast.saved"), detail);
   };
   card.append(button);
   body.appendChild(card);

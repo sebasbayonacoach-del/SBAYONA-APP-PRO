@@ -1,0 +1,22 @@
+import { strict as assert } from "node:assert";
+import { notificationPreferenceRow } from "../js/notifications/daily.js";
+
+let n=0;
+const ok=(value,label)=>{assert.ok(value,label);n++;};
+const uid="00000000-0000-4000-8000-000000000001";
+const now=new Date("2026-11-17T16:55:00Z");
+const base={asked:true,morning:true,preTraining:true,preTrainingAt:"18:20",evening:false};
+const row=notificationPreferenceRow(uid,base,"Europe/Madrid",now);
+ok(row.user_id===uid, "cuenta correcta");
+ok(row.asked===true && row.morning===true && row.pre_training===true, "preferencias explícitas");
+ok(row.pre_training_at==="18:20", "hora conservada");
+ok(row.timezone==="Europe/Madrid", "zona horaria IANA");
+ok(row.updated_at==="2026-11-17T16:55:00.000Z", "fecha auditable");
+ok(row.consent_enabled===false && row.consented_at===null, "guardar preferencias nunca activa Web Push");
+ok(!("exercise" in row) && !("health" in row), "sin datos clínicos");
+ok(notificationPreferenceRow(null,base)===null, "sin identidad no se sube nada");
+ok(notificationPreferenceRow(uid,{...base,preTraining:false}).pre_training_at===null, "desactivar entrenamiento retira hora");
+ok(notificationPreferenceRow(uid,{...base,preTrainingAt:"99:99"}).pre_training_at===null, "hora inválida descartada");
+ok(notificationPreferenceRow(uid,base,"%%%").timezone==="UTC", "zona inválida cae a UTC");
+ok(notificationPreferenceRow(uid,{}, "UTC").morning===false, "ningún opt-in implícito");
+console.log("APP 7.0 notification-preferences: "+n+" comprobaciones PASS");
