@@ -122,7 +122,7 @@ ok(readFileSync(join(root, "robots.txt"), "utf8").includes("Allow: /"), "robots 
 
 const manifest = JSON.parse(readFileSync(join(root, "manifest.webmanifest"), "utf8"));
 ok(manifest.display === "standalone", "manifest standalone (instalable)");
-ok(manifest.background_color === "#080a0c", "manifest con fondo luxe");
+ok(manifest.background_color === "#f7f8fa" && manifest.theme_color === manifest.background_color, "manifest consistente con modo Día");
 ok(Array.isArray(manifest.icons) && manifest.icons.length >= 3, "manifest con 3 iconos");
 
 /* ---------- resultado ---------- */
