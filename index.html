@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<meta name="theme-color" content="#050505" />
+<meta name="theme-color" content="#f7f8fa" />
 <meta name="application-name" content="BAYONA" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -69,6 +69,23 @@
     d.dataset.scale = ap.scale || '100';
     d.dataset.motion = ap.motion || 'pleno';
     d.style.colorScheme = resolvedTheme;
+    // Mantener el color del navegador alineado con el tema efectivo.
+    var browserThemeMeta = document.querySelector('meta[name="theme-color"]');
+    var syncBrowserTheme = function () {
+      var surface = d.dataset.surfaceTheme || 'light';
+      if (browserThemeMeta) browserThemeMeta.setAttribute('content', surface === 'dark' ? '#050505' : '#f7f8fa');
+    };
+    syncBrowserTheme();
+    new MutationObserver(syncBrowserTheme).observe(d, { attributes: true, attributeFilter: ['data-surface-theme'] });
+    if (window.matchMedia) {
+      var systemScheme = window.matchMedia('(prefers-color-scheme: light)');
+      systemScheme.addEventListener?.('change', function () {
+        if (d.dataset.bayonaTheme === 'system') {
+          d.dataset.surfaceTheme = systemScheme.matches ? 'light' : 'dark';
+          d.style.colorScheme = d.dataset.surfaceTheme;
+        }
+      });
+    }
   } catch (e) {}
 </script>
 <script type="importmap">
