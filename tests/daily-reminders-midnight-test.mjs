@@ -17,4 +17,11 @@ assert.equal(due(at(17, 0, 31)), null, 'Debe terminar al superar los 45 minutos'
 assert.equal(due(at(16, 23, 44)), null, 'No debe enviarse antes de la hora configurada');
 assert.equal(due(at(16, 23, 50), [], { ...preferences, asked: false }), null, 'Sin consentimiento no debe enviar');
 assert.equal(due(at(16, 23, 50), [], { ...preferences, preTraining: false }), null, 'Desactivado no debe enviar');
-console.log('PASS: 7 comprobaciones de recordatorios APP 6.0');
+
+assert.equal(due(at(17, 0, 30))?.id, '2026-11-16:preTraining', 'Debe incluir el minuto 45 exacto');
+assert.equal(due(at(17, 0, 0))?.id, '2026-11-16:preTraining', 'Debe conservar el día anterior a las 00:00');
+const yearEnd = new Date(2027, 0, 1, 0, 10);
+assert.equal(due(yearEnd)?.id, '2026-12-31:preTraining', 'Debe conservar el año anterior en Año Nuevo');
+assert.equal(due(at(16, 23, 50), [], { ...preferences, preTrainingAt: '25:99' }), null, 'Debe rechazar horarios inválidos');
+assert.equal(dueDailyReminder({ plan: { grupos: [] }, preferences, now: at(16, 23, 50) }), null, 'Sin sesión pendiente no debe avisar');
+console.log('PASS: 12 comprobaciones de recordatorios APP 6.0');
