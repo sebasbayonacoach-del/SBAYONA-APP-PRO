@@ -53,7 +53,7 @@
     var ap = JSON.parse(localStorage.getItem('bayona.appearance.v1') || '{}');
     var d = document.documentElement;
     var legacy = { marfil: 'cine', noche: 'noche' };
-    var prefTheme = localStorage.getItem('bayona.theme.v1') || 'dark';
+    var prefTheme = localStorage.getItem('bayona.theme.v1') || 'light';
     var resolvedTheme = prefTheme === 'system'
       ? (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
       : (prefTheme === 'light' ? 'light' : 'dark');
