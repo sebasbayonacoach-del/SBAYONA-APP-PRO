@@ -30,6 +30,7 @@ export default async function handler(req, res) {
     restReachable: false,
     restStatus: null,
     authReachable: false,
+    googleProviderEnabled: null,
     authStatus: null,
     coreSchema: false,
     coachingSchema: false,
@@ -50,6 +51,14 @@ export default async function handler(req, res) {
     out.authStatus = auth.status;
     out.restReachable = profile.status < 500;
     out.authReachable = auth.ok;
+    // Configuración pública del proveedor: no prueba retorno OAuth ni inicio de sesión real.
+    if (auth.ok && typeof auth.json === "function") {
+      try {
+        const settings = await auth.json();
+        out.googleProviderEnabled = typeof settings?.external?.google === "boolean"
+          ? settings.external.google : null;
+      } catch { /* respuesta incompleta: desconocido, nunca asumir true */ }
+    }
     out.coreSchema = profile.ok;
     out.coachingSchema = clients.ok && assignments.ok;
     out.ok = out.configured && out.authReachable && out.coreSchema && out.coachingSchema;
