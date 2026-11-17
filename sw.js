@@ -152,7 +152,7 @@ self.addEventListener("push", (event) => {
   try { payload = event.data?.json(); } catch { return; }
   if (payload?.source !== "bayona" || payload?.version !== 1) return;
   const type = Object.hasOwn(BAYONA_PUSH_TYPES, payload?.type) ? payload.type : null;
-  if (!type || typeof payload?.day !== "string" || !/^\\d{4}-\\d{2}-\\d{2}$/.test(payload.day)) return;
+  if (!type || typeof payload?.day !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(payload.day)) return;
   const item = BAYONA_PUSH_TYPES[type];
   // No se utiliza title/body/url enviados por terceros. Son fijos y del mismo origen.
   event.waitUntil(self.registration.showNotification(item.title, {
