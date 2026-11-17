@@ -4,7 +4,7 @@
 // Con esto la app abre sin red y el registro de series funciona offline
 // (los datos viven en el dispositivo y se sincronizan después).
 // ============================================================
-const CACHE = "bayona-shell-v52";
+const CACHE = "bayona-shell-v53";
 const SHELL = [
   "./media/app-now-20261015.webp",
   "./js/data/proplayer-catalog-audit.js",
@@ -123,6 +123,46 @@ self.addEventListener("fetch", (e) => {
       return hit || net;
     })
   );
+});
+
+// APP 7.0 — Receptor de Web Push. Se ejecuta incluso si la página está cerrada.
+// No suscribe dispositivos, envía mensajes ni solicita permiso por sí mismo.
+// Acepta únicamente eventos tipados desde el servidor con consentimiento validado.
+// El contenido que ve la pantalla bloqueada es fijo y no incluye datos privados.
+const BAYONA_PUSH_TYPES = Object.freeze({
+  morning: {
+    title: "BAYONA · Tu día",
+    body: "Tienes una acción pendiente. Abre BAYONA para consultarla.",
+    route: "./index.html?go=daily",
+  },
+  preTraining: {
+    title: "BAYONA · Entrenamiento",
+    body: "Revisa tu sesión cuando sea buen momento para ti.",
+    route: "./index.html?go=training",
+  },
+  evening: {
+    title: "BAYONA · Cierre",
+    body: "Puedes registrar cómo fue tu día en BAYONA.",
+    route: "./index.html?go=daily",
+  },
+});
+
+self.addEventListener("push", (event) => {
+  let payload;
+  try { payload = event.data?.json(); } catch { return; }
+  if (payload?.source !== "bayona" || payload?.version !== 1) return;
+  const type = Object.hasOwn(BAYONA_PUSH_TYPES, payload?.type) ? payload.type : null;
+  if (!type || typeof payload?.day !== "string" || !/^\\d{4}-\\d{2}-\\d{2}$/.test(payload.day)) return;
+  const item = BAYONA_PUSH_TYPES[type];
+  // No se utiliza title/body/url enviados por terceros. Son fijos y del mismo origen.
+  event.waitUntil(self.registration.showNotification(item.title, {
+    body: item.body,
+    icon: "./icon-192.png",
+    badge: "./icon-192.png",
+    tag: `bayona-push:${type}:${payload.day}`,
+    renotify: false,
+    data: { url: item.route },
+  }));
 });
 
 // Un aviso solo navega a rutas de la propia aplicación tras pulsarlo el usuario.
