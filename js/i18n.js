@@ -27,6 +27,8 @@ const es = {
   "reminders.toast.saved": "RECORDATORIOS GUARDADOS",
   "reminders.toast.off": "Todos los recordatorios desactivados.",
   "reminders.toast.permission": "Permiso del dispositivo: {permission}. Avisos mientras BAYONA esté abierta.",
+  "reminders.toast.cloudSaved": "Preferencias sincronizadas con tu cuenta. Avisos remotos todavía no activados.",
+  "reminders.toast.cloudOffline": "Guardadas en este dispositivo. No fue posible sincronizarlas con tu cuenta.",
   "reminders.prompt.trainingHint": "La decides tú. No inventamos tu horario.",
   "proplayer.preview.loading": "Cargando fotograma…",
   "proplayer.preview.open": "Abrir vídeo de {name}",
