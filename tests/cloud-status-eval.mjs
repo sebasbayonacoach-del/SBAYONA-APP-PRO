@@ -10,7 +10,7 @@ const statusByPath = {
 };
 let passed = 0;
 
-async function probe(overrides = {}) {
+async function probe(overrides = {}, settings = { external: { google: true } }) {
   const requested = [];
   const statuses = { ...statusByPath, ...overrides };
   globalThis.fetch = async (input, options) => {
@@ -18,7 +18,7 @@ async function probe(overrides = {}) {
     requested.push({ path: u.pathname, limit: u.searchParams.get("limit"), select: u.searchParams.get("select"), headers: options?.headers });
     if (u.pathname === "/rest/v1/") throw Error("Introspection root must never be queried");
     const status = statuses[u.pathname] ?? 404;
-    return { status, ok: status >= 200 && status < 300 };
+    return { status, ok: status >= 200 && status < 300, json: async () => settings };
   };
   let result;
   const res = {
@@ -40,6 +40,8 @@ passed++;
 assert.equal(good.result.coreSchema, true);
 assert.equal(good.result.coachingSchema, true);
 passed++;
+assert.equal(good.result.googleProviderEnabled, true);
+passed++;
 assert.deepEqual(new Set(good.requested.map((r) => r.path)), new Set(Object.keys(statusByPath)));
 passed++;
 assert.equal(good.requested.filter((r) => r.path.startsWith("/rest/")).every((r) => r.limit === "0"), true);
@@ -55,5 +57,11 @@ passed++;
 assert.equal((await probe({ "/auth/v1/settings": 521 })).result.authReachable, false);
 passed++;
 assert.equal((await probe({ "/rest/v1/profiles": 500 })).result.restReachable, false);
+passed++;
+assert.equal((await probe({}, { external: { google: false } })).result.googleProviderEnabled, false);
+passed++;
+assert.equal((await probe({}, { external: {} })).result.googleProviderEnabled, null);
+passed++;
+assert.equal((await probe({ "/auth/v1/settings": 521 })).result.googleProviderEnabled, null);
 passed++;
 console.log("APP 7.0 cloud-status: " + passed + " comprobaciones PASS");
