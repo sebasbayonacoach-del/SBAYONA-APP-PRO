@@ -17,10 +17,8 @@ WITH policies AS (
           AND permissive='RESTRICTIVE' AND predicate LIKE '%coach_id%'
           AND predicate LIKE '%coach_clients%' AND predicate LIKE '%active%')
  UNION ALL
- SELECT 'coach_routines_permissive_unconditional_coach',
-        NOT EXISTS(SELECT 1 FROM policies WHERE tablename='coach_routines'
-          AND permissive='PERMISSIVE' AND predicate ~ 'auth\\.uid\\(\\) = coach_id'
-          AND predicate NOT LIKE '%active%')
+ SELECT 'coach_routines_permissive_coach_branch_needs_review',
+        false -- Static text matching cannot prove the active-link guard applies to coach_id
 )
 SELECT check_name, CASE WHEN passed THEN 'PASS' ELSE 'BLOCK' END AS result
 FROM checks ORDER BY check_name;
