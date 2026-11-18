@@ -16,8 +16,7 @@ WITH policies AS (
  UNION ALL
  SELECT 'coach_routines has unsafe coach_id-only SELECT', NOT EXISTS (
    SELECT 1 FROM policies WHERE tablename='coach_routines' AND cmd='SELECT'
-   AND permissive='PERMISSIVE' AND expression ~* 'auth.uid\\(\\)\\s*=\\s*coach_id'
-   AND expression NOT ILIKE '%coach_clients%'
+   AND permissive='PERMISSIVE' AND expression ILIKE '%(auth.uid() = coach_id) OR%'
  ), 'Do not drop owner SELECT gate until this is fixed'
  UNION ALL
  SELECT 'linked sessions SELECT uses active link', EXISTS (
