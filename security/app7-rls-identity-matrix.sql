@@ -8,25 +8,25 @@
 BEGIN READ ONLY;
 SET LOCAL ROLE authenticated;
 SELECT set_config('request.jwt.claim.role','authenticated',true);
-SELECT set_config('request.jwt.claim.sub', :'coach', true);
+SELECT set_config('app.test_coach', :'coach', true), set_config('app.test_athlete', :'athlete', true), set_config('app.test_outsider', :'outsider', true), set_config('app.test_routine', :'routine', true);\nSELECT set_config('request.jwt.claim.sub', :'coach', true);
 DO $$
 BEGIN
- IF (SELECT count(*) FROM public.coach_clients WHERE coach_id=auth.uid() AND client_id=:'athlete') <> 1
+ IF (SELECT count(*) FROM public.coach_clients WHERE coach_id=auth.uid() AND client_id=current_setting('app.test_athlete')::uuid) <> 1
  THEN RAISE EXCEPTION 'FAIL: active coach cannot read own link (or fixture missing)'; END IF;
- IF (SELECT count(*) FROM public.coach_routines WHERE id=:'routine' AND coach_id=auth.uid() AND client_id=:'athlete') <> 1
+ IF (SELECT count(*) FROM public.coach_routines WHERE id=current_setting('app.test_routine')::uuid AND coach_id=auth.uid() AND client_id=current_setting('app.test_athlete')::uuid) <> 1
  THEN RAISE EXCEPTION 'FAIL: linked coach cannot read routine'; END IF;
 END $$;
 SELECT set_config('request.jwt.claim.sub', :'athlete', true);
 DO $$
 BEGIN
- IF (SELECT count(*) FROM public.coach_routines WHERE id=:'routine') <> 1
+ IF (SELECT count(*) FROM public.coach_routines WHERE id=current_setting('app.test_routine')::uuid) <> 1
  THEN RAISE EXCEPTION 'FAIL: athlete cannot read own routine'; END IF;
 END $$;
 SELECT set_config('request.jwt.claim.sub', :'outsider', true);
 DO $$
 BEGIN
- IF EXISTS (SELECT 1 FROM public.coach_clients WHERE coach_id=:'coach' AND client_id=:'athlete')
- OR EXISTS (SELECT 1 FROM public.coach_routines WHERE id=:'routine')
+ IF EXISTS (SELECT 1 FROM public.coach_clients WHERE coach_id=current_setting('app.test_coach')::uuid AND client_id=current_setting('app.test_athlete')::uuid)
+ OR EXISTS (SELECT 1 FROM public.coach_routines WHERE id=current_setting('app.test_routine')::uuid)
  THEN RAISE EXCEPTION 'FAIL: unrelated authenticated user sees protected rows'; END IF;
 END $$;
 ROLLBACK;
