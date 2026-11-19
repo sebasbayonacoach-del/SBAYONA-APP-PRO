@@ -8,7 +8,8 @@
 BEGIN READ ONLY;
 SET LOCAL ROLE authenticated;
 SELECT set_config('request.jwt.claim.role','authenticated',true);
-SELECT set_config('app.test_coach', :'coach', true), set_config('app.test_athlete', :'athlete', true), set_config('app.test_outsider', :'outsider', true), set_config('app.test_routine', :'routine', true);\nSELECT set_config('request.jwt.claim.sub', :'coach', true);
+SELECT set_config('app.test_coach', :'coach', true), set_config('app.test_athlete', :'athlete', true), set_config('app.test_outsider', :'outsider', true), set_config('app.test_routine', :'routine', true);
+SELECT set_config('request.jwt.claim.sub', :'coach', true);
 DO $$
 BEGIN
  IF (SELECT count(*) FROM public.coach_clients WHERE coach_id=auth.uid() AND client_id=current_setting('app.test_athlete')::uuid) <> 1
