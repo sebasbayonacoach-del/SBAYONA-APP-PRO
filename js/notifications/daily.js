@@ -84,6 +84,39 @@ export function startDailyReminders(S) {
   if (typeof window === "undefined" || typeof document === "undefined") return () => {};
   let busy = false;
   let stopped = false;
+  let hydrationBusy = false;
+  let lastHydration = { userId: null, at: 0 };
+
+  const hydrateFromCloud = async () => {
+    if (hydrationBusy || stopped) return;
+    hydrationBusy = true;
+    let uid = null;
+    try {
+      const { currentUser, select } = await import("../sync/supabase.js");
+      uid = currentUser()?.id;
+      if (!uid || !S.data?.profile) return;
+      const now = Date.now();
+      if (uid === lastHydration.userId && now - lastHydration.at < 60000) return;
+      lastHydration = { userId: uid, at: now };
+      const rows = await select("notification_preferences", {
+        user_id: "eq." + uid,
+        select: "user_id,asked,morning,pre_training,evening,pre_training_at,updated_at",
+        limit: "1",
+      });
+      // El usuario pudo cerrar sesión o cambiar de identidad durante la petición.
+      if (stopped || currentUser()?.id !== uid || !S.data?.profile) return;
+      const row = Array.isArray(rows) ? rows.find((item) => item?.user_id === uid) : null;
+      const merged = reminderPreferencesFromCloud(S.data.profile.notificationPreferences, row);
+      if (!merged) return;
+      S.data.profile.notificationPreferences = merged;
+      S.save();
+      window.dispatchEvent(new Event("bayona:notification-preferences"));
+    } catch {
+      // La red es opcional: conserva los cambios locales y reintenta al recuperar foco.
+      if (uid) lastHydration = { userId: uid, at: 0 };
+    } finally { hydrationBusy = false; }
+  };
+
   const check = async () => {
     if (busy || stopped || !["affiliate", "athlete"].includes(document.body?.dataset.entryRole)) return;
     if (!S.data?.profile?.onboarded) return;
@@ -97,18 +130,20 @@ export function startDailyReminders(S) {
     } catch { /* un aviso nunca rompe la sesión */ }
     finally { busy = false; }
   };
-  const onVisibility = () => { if (!document.hidden) void check(); };
-  const onFocus = () => { void check(); };
-  window.addEventListener("bayona:notification-preferences", onFocus);
+  const onVisibility = () => { if (!document.hidden) { void hydrateFromCloud(); void check(); } };
+  const onFocus = () => { void hydrateFromCloud(); void check(); };
+  const onSettingsChanged = () => { void check(); };
+  window.addEventListener("bayona:notification-preferences", onSettingsChanged);
   window.addEventListener("focus", onFocus);
   document.addEventListener("visibilitychange", onVisibility);
+  void hydrateFromCloud();
   const interval = window.setInterval(check, 60000);
   const boot = window.setTimeout(check, 2400);
   return () => {
     stopped = true;
     window.clearInterval(interval);
     window.clearTimeout(boot);
-    window.removeEventListener("bayona:notification-preferences", onFocus);
+    window.removeEventListener("bayona:notification-preferences", onSettingsChanged);
     window.removeEventListener("focus", onFocus);
     document.removeEventListener("visibilitychange", onVisibility);
   };
@@ -129,6 +164,28 @@ export function notificationPreferenceRow(userId, prefs = {}, zone = "UTC", now 
     // Siempre OFF: guardar preferencias no constituye consentimiento Web Push.
     consent_enabled: false, consented_at: null,
     updated_at: now.toISOString(),
+  };
+}
+
+/**
+ * La nube solo modifica las preferencias si su actualización es posterior a la
+ * última elección local. Conserva intactos los demás campos del perfil.
+ * Nunca activa permisos del navegador ni consentimientos Web Push.
+ */
+export function reminderPreferencesFromCloud(local = {}, row = null) {
+  if (!row || typeof row !== "object") return null;
+  const cloudTime = Date.parse(row.updated_at || "");
+  const localTime = Date.parse(local?.updatedAt || "");
+  if (!Number.isFinite(cloudTime) || (Number.isFinite(localTime) && localTime >= cloudTime)) return null;
+  const training = row.pre_training === true;
+  return {
+    ...local,
+    asked: row.asked === true,
+    morning: row.morning === true,
+    preTraining: training,
+    evening: row.evening === true,
+    preTrainingAt: training && TIME_PATTERN.test(row.pre_training_at || "") ? row.pre_training_at : "",
+    updatedAt: new Date(cloudTime).toISOString(),
   };
 }
 
@@ -177,7 +234,8 @@ export function appendReminderSettings(body, S, toast) {
   button.onclick = async () => {
     const selected = rows.some(([key]) => inputs[key].checked);
     const next = { ...prefs, morning: inputs.morning.checked, preTraining: inputs.preTraining.checked, evening: inputs.evening.checked,
-      preTrainingAt: inputs.preTraining.checked && TIME_PATTERN.test(time.value) ? time.value : "", asked: true };
+      preTrainingAt: inputs.preTraining.checked && TIME_PATTERN.test(time.value) ? time.value : "", asked: true,
+      updatedAt: new Date().toISOString() };
     S.data.profile.notificationPreferences = next;
     S.save();
     if (selected && typeof Notification !== "undefined" && Notification.permission === "default") {
@@ -191,7 +249,7 @@ export function appendReminderSettings(body, S, toast) {
       const uid = currentUser()?.id;
       if (uid) {
         const zone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
-        const payload = notificationPreferenceRow(uid, next, zone);
+        const payload = notificationPreferenceRow(uid, next, zone, new Date(next.updatedAt));
         await upsert("notification_preferences", payload, { on_conflict: "user_id" });
         detail = t("reminders.toast.cloudSaved");
       }
