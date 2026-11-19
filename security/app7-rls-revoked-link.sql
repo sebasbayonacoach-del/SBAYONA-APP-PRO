@@ -41,7 +41,7 @@ BEGIN
  ) THEN RAISE EXCEPTION 'FIXTURE MISSING: routine for active pair'; END IF;
  IF current_setting('app.test_coach')::uuid = current_setting('app.test_active_coach')::uuid
  THEN RAISE EXCEPTION 'FIXTURE INVALID: use distinct coaches'; END IF;
-END $;
+END $$;
 SET LOCAL ROLE authenticated;
 SELECT set_config('request.jwt.claim.role', 'authenticated', true);
 SELECT set_config('request.jwt.claim.sub', :'coach', true);
@@ -54,13 +54,13 @@ BEGIN
 END $$;
 -- Positive authorization control: active coach MUST read their own routine.
 SELECT set_config('request.jwt.claim.sub', :'active_coach', true);
-DO $
+DO $$
 BEGIN
  IF NOT EXISTS (
    SELECT 1 FROM public.coach_routines
    WHERE id=current_setting('app.test_active_routine')::uuid
  ) THEN RAISE EXCEPTION 'FAIL: active coach cannot read linked routine'; END IF;
-END $;
+END $$;
 -- Athlete post-revocation access is intentionally NOT asserted: current policy
 -- may require an active link. Define retention semantics before adding that test.
 ROLLBACK;
