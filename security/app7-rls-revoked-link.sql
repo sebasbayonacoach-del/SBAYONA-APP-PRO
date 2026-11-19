@@ -44,10 +44,23 @@ BEGIN
  IF current_setting('app.test_routine')::uuid = current_setting('app.test_active_routine')::uuid
  THEN RAISE EXCEPTION 'FIXTURE INVALID: use distinct routine IDs'; END IF;
 END $$;
+-- Fail closed if RLS is disabled or test impersonation cannot be trusted.
+DO $
+BEGIN
+ IF NOT EXISTS (
+   SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
+   WHERE n.nspname='public' AND c.relname='coach_routines' AND c.relrowsecurity
+ ) THEN RAISE EXCEPTION 'FAIL: RLS disabled on coach_routines'; END IF;
+END $;
 SET LOCAL ROLE authenticated;
 SELECT set_config('request.jwt.claim.role', 'authenticated', true);
 SELECT set_config('request.jwt.claim.sub', :'coach', true);
-DO $$
+DO $
+BEGIN
+ IF auth.uid() IS DISTINCT FROM current_setting('app.test_coach')::uuid
+ THEN RAISE EXCEPTION 'FAIL: revoked coach JWT impersonation invalid'; END IF;
+END $;
+DO $
 BEGIN
  IF EXISTS (
    SELECT 1 FROM public.coach_routines
@@ -56,7 +69,12 @@ BEGIN
 END $$;
 -- Positive authorization control: active coach MUST read their own routine.
 SELECT set_config('request.jwt.claim.sub', :'active_coach', true);
-DO $$
+DO $
+BEGIN
+ IF auth.uid() IS DISTINCT FROM current_setting('app.test_active_coach')::uuid
+ THEN RAISE EXCEPTION 'FAIL: active coach JWT impersonation invalid'; END IF;
+END $;
+DO $
 BEGIN
  IF NOT EXISTS (
    SELECT 1 FROM public.coach_routines
