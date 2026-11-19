@@ -4,7 +4,7 @@
 // Con esto la app abre sin red y el registro de series funciona offline
 // (los datos viven en el dispositivo y se sincronizan después).
 // ============================================================
-const CACHE = "bayona-shell-v53";
+const CACHE = "bayona-shell-v54";
 const SHELL = [
   "./media/app-now-20261015.webp",
   "./js/data/proplayer-catalog-audit.js",
@@ -110,17 +110,30 @@ self.addEventListener("fetch", (e) => {
     );
     return;
   }
-  // media/wasm: cache primero (son estables y pesados)
+  // Los vídeos con Range deben mantener la semántica 206 del origen.
+  // Servir una entrada 200 de CacheStorage a una petición Range rompe el seek.
+  if (req.headers?.has?.("range")) {
+    e.respondWith(fetch(req).catch(() => new Response("Vídeo no disponible sin conexión", {
+      status: 503, headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" },
+    })));
+    return;
+  }
+
+  // Solo guardar medios pequeños de apoyo; nunca descargar MP4 completos
+  // al caché general. Los vídeos se reproducen en streaming desde su origen.
+  const cacheableMedia = /\\.(?:png|jpe?g|webp|avif|svg|ico|woff2?|wasm)$/i.test(path);
   e.respondWith(
     caches.match(req, { ignoreSearch: true }).then((hit) => {
-      const net = fetch(req).then((res) => {
-        if (res && res.status === 200) {
+      if (hit) return hit;
+      return fetch(req).then((res) => {
+        if (res && res.status === 200 && cacheableMedia) {
           const copy = res.clone();
           caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => { /* cuota */ });
         }
         return res;
-      }).catch(() => hit || caches.match("./index.html"));
-      return hit || net;
+      }).catch(() => new Response("Recurso no disponible sin conexión", {
+        status: 503, headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" },
+      }));
     })
   );
 });
