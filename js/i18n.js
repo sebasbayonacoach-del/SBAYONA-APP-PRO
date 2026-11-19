@@ -8,6 +8,16 @@
 export const locale = "es-ES";
 
 const es = {
+  "auth.space.aria": "Elegir espacio BAYONA",
+  "auth.space.groupAria": "Elegir espacio de trabajo",
+  "auth.space.kicker": "MI CUENTA BAYONA",
+  "auth.space.title": "¿Dónde quieres entrar?",
+  "auth.space.intro": "Puedes usar los dos espacios con tu cuenta. Elige tu experiencia de hoy.",
+  "auth.space.coach": "PANEL COACH",
+  "auth.space.coachDesc": "Clientes, rutinas, asignaciones y seguimiento",
+  "auth.space.athlete": "MI APP ATLETA",
+  "auth.space.athleteDesc": "Mi entrenamiento, progreso y hábitos",
+  "auth.space.security": "La autorización de Coach se verifica en el servidor. Una cuenta de atleta no puede entrar al Panel Coach.",
   "reminders.morning.title": "BAYONA · Tu siguiente paso",
   "reminders.morning.body": "Tienes una acción pendiente en tu plan. Abre BAYONA para verla.",
   "reminders.training.title": "BAYONA · Entrenamiento pendiente",
