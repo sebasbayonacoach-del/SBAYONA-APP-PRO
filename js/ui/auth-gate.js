@@ -4,6 +4,7 @@
 // La landing pública sigue separada. Esta puerta es para APK/PWA instalada.
 // ============================================================
 import { loadApp } from "../app-loader.js";
+import { t } from "../i18n.js";
 import {
   accountRole,
   googleOAuthUrl,
@@ -397,18 +398,18 @@ async function afterAuthenticated() {
 
 function chooseSpaceView() {
   return `
-    <section class="auth-card" aria-label="Elegir espacio BAYONA">
-      ${authHeader("MI CUENTA BAYONA", "¿Dónde quieres entrar?", "Puedes usar los dos espacios con tu cuenta. Elige tu experiencia de hoy.")}
-      <div class="auth-choice-list" role="group" aria-label="Elegir espacio de trabajo">
+    <section class="auth-card" aria-label="${esc(t("auth.space.aria"))}">
+      ${authHeader(t("auth.space.kicker"), t("auth.space.title"), t("auth.space.intro"))}
+      <div class="auth-choice-list" role="group" aria-label="${esc(t("auth.space.groupAria"))}">
         <button type="button" class="auth-space-choice" data-auth-space="coach" ${state.busy ? "disabled" : ""}>
-          <span><strong>PANEL COACH</strong><small>Clientes, rutinas, asignaciones y seguimiento</small></span><i aria-hidden="true">→</i>
+          <span><strong>${esc(t("auth.space.coach"))}</strong><small>${esc(t("auth.space.coachDesc"))}</small></span><i aria-hidden="true">→</i>
         </button>
         <button type="button" class="auth-space-choice" data-auth-space="athlete" ${state.busy ? "disabled" : ""}>
-          <span><strong>MI APP ATLETA</strong><small>Mi entrenamiento, progreso y hábitos</small></span><i aria-hidden="true">→</i>
+          <span><strong>${esc(t("auth.space.athlete"))}</strong><small>${esc(t("auth.space.athleteDesc"))}</small></span><i aria-hidden="true">→</i>
         </button>
       </div>
       ${messageHtml()}
-      <p class="auth-entry-note">La autorización de Coach se verifica en el servidor. Una cuenta de atleta no puede entrar al Panel Coach.</p>
+      <p class="auth-entry-note">${esc(t("auth.space.security"))}</p>
     </section>`;
 }
 
