@@ -62,15 +62,15 @@ BEGIN
    SELECT 1 FROM public.coach_routines
    WHERE id=current_setting('app.test_active_routine')::uuid
  ) THEN RAISE EXCEPTION 'FAIL: active coach cannot read linked routine'; END IF;
-END $;
+END $$;
 -- Negative cross-account control: an active coach must not see another coach's routine.
-DO $
+DO $$
 BEGIN
  IF EXISTS (
    SELECT 1 FROM public.coach_routines
    WHERE id=current_setting('app.test_routine')::uuid
  ) THEN RAISE EXCEPTION 'FAIL: active coach can read another coach routine'; END IF;
-END $;
+END $$;
 -- Athlete post-revocation access is intentionally NOT asserted: current policy
 -- may require an active link. Define retention semantics before adding that test.
 ROLLBACK;
