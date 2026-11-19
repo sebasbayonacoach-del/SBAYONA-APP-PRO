@@ -69,13 +69,13 @@ BEGIN
 END $$;
 -- Negative cross-account control in the revoked-coach context: revocation must
 -- not expose a different active coach's routine (independent of link status).
-DO $
+DO $$
 BEGIN
  IF EXISTS (
    SELECT 1 FROM public.coach_routines
    WHERE id=current_setting('app.test_active_routine')::uuid
  ) THEN RAISE EXCEPTION 'FAIL: revoked coach can read active coach routine'; END IF;
-END $;
+END $$;
 -- Positive authorization control: active coach MUST read their own routine.
 SELECT set_config('request.jwt.claim.sub', :'active_coach', true);
 DO $$
