@@ -121,7 +121,7 @@ self.addEventListener("fetch", (e) => {
 
   // Solo guardar medios pequeños de apoyo; nunca descargar MP4 completos
   // al caché general. Los vídeos se reproducen en streaming desde su origen.
-  const cacheableMedia = /\\.(?:png|jpe?g|webp|avif|svg|ico|woff2?|wasm)$/i.test(path);
+  const cacheableMedia = /\.(?:png|jpe?g|webp|avif|svg|ico|woff2?|wasm)$/i.test(path);
   e.respondWith(
     caches.match(req, { ignoreSearch: true }).then((hit) => {
       if (hit) return hit;
