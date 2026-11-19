@@ -16,6 +16,7 @@ import { UI, el, elT, toast, BUILDERS, TITLES, openSection } from "../ui/shared.
 import { consentStatus, isGranted } from "../consents.js";
 import { payloadMedidas, payloadAsignaciones, payloadAvatar } from "./mirror.js";
 import * as outbox from "./outbox.js";
+import { workoutSyncPayload } from "./workouts.js";
 import {
   createInvite, acceptInvite, linkedClients, linkedCoaches, hydrateAssignmentsToLocal,
   completeCloudAssignment, flushCloudCompletions,
@@ -114,40 +115,24 @@ async function pushReadiness() {
   }]);
 }
 
-/** 4-5. workout_sessions + sets_log (espejo total del usuario: borra y reinserta) */
+/** 4-5. workout_sessions + sets_log (aditivo e idempotente).
+ * Nunca borrar sesiones de otros dispositivos al sincronizar una copia local.
+ * El borrado voluntario requerirá tombstones explícitas, no un espejo destructivo.
+ */
 async function pushWorkouts() {
   const u = currentUser();
-  const sessions = [];
-  const sets = [];
-
-  for (const h of S.data.history || []) {
-    const sid = h.sid || (h.sid = crypto.randomUUID());
-    sessions.push({
-      id: sid,
-      user_id: u.id,
-      plan_day_id: h.workoutId || h.id || null,
-      started_at: h.at || h.startedAt || null,
-      ended_at: h.at || h.endedAt || null,
-      readiness_in: h.readiness ?? null,
-      rpe_out: h.rpe ?? null,
-      status: h.status || "completada",
-    });
-    (h.sets || []).forEach((s, i) => sets.push({
-      session_id: sid,
-      exercise_id: s.ex || s.exKey || null,
-      set_no: s.setIdx ?? i + 1,
-      reps: s.reps ?? null,
-      load_kg: s.kg ?? null,
-      rir: s.rir ?? null,
-      form_score: s.formScore ?? null,
-      rep_vel_loss: s.velLoss ?? null,
-      landmarks_summary: s.landmarks || null,
-    }));
+  if (!u?.id) throw new Error("sin sesión");
+  const payload = workoutSyncPayload(u.id, S.data.history || []);
+  // Sin IDs estables un reintento duplicaría las series: guardar antes de enviar.
+  if (payload.changed && !S.save()) {
+    throw new Error("No se pudieron guardar los identificadores locales del historial.");
   }
-
-  await remove("workout_sessions", { user_id: `eq.${u.id}` }); // cascada → sets_log
-  if (sessions.length) await insert("workout_sessions", sessions);
-  if (sets.length) await insert("sets_log", sets);
+  if (payload.sessions.length) {
+    await upsert("workout_sessions", payload.sessions, { on_conflict: "id" });
+  }
+  if (payload.sets.length) {
+    await upsert("sets_log", payload.sets, { on_conflict: "session_id,client_id" });
+  }
 }
 
 /** espejo de MEDICIONES (tabla nueva: requiere migración 0002 aplicada) */

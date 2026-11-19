@@ -32,6 +32,11 @@ ok(html.includes('property="og:description"'), "og:description presente");
 ok(html.includes('property="og:image"'), "og:image presente");
 ok(html.includes('name="twitter:card"'), "twitter:card presente");
 ok(html.includes('lang="es"'), "html lang es");
+// Regresión modo Día: valor inicial claro y barra del navegador sincronizada
+// con el tema efectivo, sin eliminar el contraste nocturno.
+ok(html.includes("localStorage.getItem('bayona.theme.v1') || 'light'"), "modo Día predeterminado sin preferencia guardada");
+ok(html.includes('attributeFilter: [\'data-surface-theme\']'), "barra del navegador observa cambios de tema");
+ok(html.includes("surface === 'dark' ? '#050505' : '#f7f8fa'"), "barra del navegador conserva colores Día/Noche");
 ok(html.includes('id="luxe-landing"'), "#luxe-landing existe en el HTML");
 ok(html.includes("css/luxe.css"), "luxe.css enlazado");
 ok(
@@ -122,7 +127,7 @@ ok(readFileSync(join(root, "robots.txt"), "utf8").includes("Allow: /"), "robots 
 
 const manifest = JSON.parse(readFileSync(join(root, "manifest.webmanifest"), "utf8"));
 ok(manifest.display === "standalone", "manifest standalone (instalable)");
-ok(manifest.background_color === "#080a0c", "manifest con fondo luxe");
+ok(manifest.background_color === "#f7f8fa" && manifest.theme_color === manifest.background_color, "manifest consistente con modo Día");
 ok(Array.isArray(manifest.icons) && manifest.icons.length >= 3, "manifest con 3 iconos");
 
 /* ---------- resultado ---------- */

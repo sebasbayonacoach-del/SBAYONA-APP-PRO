@@ -30,27 +30,38 @@ export default async function handler(req, res) {
     restReachable: false,
     restStatus: null,
     authReachable: false,
+    googleProviderEnabled: null,
     authStatus: null,
     coreSchema: false,
     coachingSchema: false,
   };
 
   try {
-    const headers = { apikey: key };
-    const [rest, auth] = await Promise.all([
-      fetch(url + "/rest/v1/", { headers }),
+    // La raíz /rest/v1/ puede exigir privilegios de introspección.
+    // Consultar filas (limit=0) verifica la API pública sin leer datos privados.
+    const headers = { apikey: key, Accept: "application/json" };
+    const [profile, clients, assignments, auth] = await Promise.all([
+      fetch(url + "/rest/v1/profiles?select=id&limit=0", { headers }),
+      fetch(url + "/rest/v1/coach_clients?select=coach_id&limit=0", { headers }),
+      fetch(url + "/rest/v1/coach_assignments?select=id&limit=0", { headers }),
       fetch(url + "/auth/v1/settings", { headers }),
     ]);
 
-    out.restStatus = rest.status;
+    out.restStatus = profile.status;
     out.authStatus = auth.status;
-    out.restReachable = rest.status < 500;
-    out.authReachable = auth.status < 500;
-
-    const body = await rest.text();
-    out.coreSchema = rest.ok && body.includes("profiles");
-    out.coachingSchema = rest.ok && body.includes("coach_clients") && body.includes("coach_assignments");
-    out.ok = out.configured && rest.ok && out.authReachable && out.coreSchema && out.coachingSchema;
+    out.restReachable = profile.status < 500;
+    out.authReachable = auth.ok;
+    // Configuración pública del proveedor: no prueba retorno OAuth ni inicio de sesión real.
+    if (auth.ok && typeof auth.json === "function") {
+      try {
+        const settings = await auth.json();
+        out.googleProviderEnabled = typeof settings?.external?.google === "boolean"
+          ? settings.external.google : null;
+      } catch { /* respuesta incompleta: desconocido, nunca asumir true */ }
+    }
+    out.coreSchema = profile.ok;
+    out.coachingSchema = clients.ok && assignments.ok;
+    out.ok = out.configured && out.authReachable && out.coreSchema && out.coachingSchema;
   } catch {
     // Diagnóstico seguro: no exponer URLs completas, claves ni cuerpo remoto.
   }

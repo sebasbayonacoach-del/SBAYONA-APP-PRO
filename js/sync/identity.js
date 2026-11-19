@@ -133,6 +133,25 @@ export function clearActiveUserData(st = storage()) {
   return removed;
 }
 
+/**
+ * Un archivo local existente NO implica que el perfil del atleta esté listo.
+ * Permite recuperar borradores sin saltar el onboarding en otro dispositivo.
+ * Solo lee; no migra, borra ni modifica la partida.
+ */
+export function hasOnboardedScopedProfile(userId, key = "bayona.save.v2", st = storage()) {
+  const id = safeIdentity(userId);
+  if (!st || !id) return false;
+  try {
+    const raw = st.getItem("bayona.user." + id + "::" + key);
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    return Boolean(data && typeof data === "object" && !Array.isArray(data)
+      && data.profile?.onboarded === true);
+  } catch {
+    return false;
+  }
+}
+
 export function hasScopedState(userId, key = "bayona.save.v2", st = storage()) {
   const id = safeIdentity(userId);
   if (!st || !id) return false;

@@ -55,10 +55,11 @@ jobs:
           cache: npm
           cache-dependency-path: package.json
 
+      # Solo suites unitarias: proplayer-video-browser.mjs es E2E y necesita Playwright.
       - name: Ejecutar tests Node nativos
         run: |
           shopt -s nullglob
-          tests=(tests/*.mjs)
+          tests=(tests/*-eval.mjs tests/*-test.mjs)
           if [ ${#tests[@]} -eq 0 ]; then
             echo "No hay tests/*.mjs todavía — OK."
             exit 0

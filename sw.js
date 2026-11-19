@@ -4,13 +4,13 @@
 // Con esto la app abre sin red y el registro de series funciona offline
 // (los datos viven en el dispositivo y se sincronizan después).
 // ============================================================
-const CACHE = "bayona-shell-v51";
+const CACHE = "bayona-shell-v55";
 const SHELL = [
   "./media/app-now-20261015.webp",
   "./js/data/proplayer-catalog-audit.js",
   "./js/backup.js", "./js/progreso.js", "./js/shoot.js",
   "./css/pro.css", "./css/proplayer-video-preview.css", "./css/coach-elite.css", "./css/coach-visual-360.css",
-  "./css/luxe.css",
+  "./css/luxe.css", "./css/reminders.css",
   // Marca unificada con la web: capa de tipografía y paleta + sus .woff2.
   "./css/bayona-brand.css", "./css/auth.css",
   "./fonts/montserrat-normal-400-latin.woff2", "./fonts/montserrat-normal-700-latin.woff2",
@@ -36,7 +36,7 @@ const SHELL = [
   "./css/dashboard.css", "./js/ui/dashboard.js", "./js/recipeImage.js",
   "./css/coach.css", "./js/coach/ai-core.js", "./js/coach/ai.js",
   "./js/personalization.js", "./js/cycle.js", "./js/ui/personal.js", "./css/personal.css",
-  "./js/pwa.js", "./js/sync/config.js", "./js/sync/supabase.js", "./js/sync/identity.js", "./js/sync/profile.js", "./js/sync/outbox.js", "./js/sync/coaching.js", "./js/nutricion-db.js", "./js/data/alimentos.json",
+  "./js/pwa.js", "./js/notifications/daily.js", "./js/sync/config.js", "./js/sync/supabase.js", "./js/sync/identity.js", "./js/sync/profile.js", "./js/sync/outbox.js", "./js/sync/workouts.js", "./js/sync/coaching.js", "./js/nutricion-db.js", "./js/data/alimentos.json",
   "./index.html",
   "./manifest.webmanifest",
   "./css/style.css", "./css/aurum.css", "./css/motion.css",
@@ -110,17 +110,86 @@ self.addEventListener("fetch", (e) => {
     );
     return;
   }
-  // media/wasm: cache primero (son estables y pesados)
+  // Los vídeos con Range deben mantener la semántica 206 del origen.
+  // Servir una entrada 200 de CacheStorage a una petición Range rompe el seek.
+  if (req.headers?.has?.("range")) {
+    e.respondWith(fetch(req).catch(() => new Response("Vídeo no disponible sin conexión", {
+      status: 503, headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" },
+    })));
+    return;
+  }
+
+  // Solo guardar medios pequeños de apoyo; nunca descargar MP4 completos
+  // al caché general. Los vídeos se reproducen en streaming desde su origen.
+  const cacheableMedia = /\.(?:png|jpe?g|webp|avif|svg|ico|woff2?|wasm)$/i.test(path);
   e.respondWith(
     caches.match(req, { ignoreSearch: true }).then((hit) => {
-      const net = fetch(req).then((res) => {
-        if (res && res.status === 200) {
+      if (hit) return hit;
+      return fetch(req).then((res) => {
+        if (res && res.status === 200 && cacheableMedia) {
           const copy = res.clone();
           caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => { /* cuota */ });
         }
         return res;
-      }).catch(() => hit || caches.match("./index.html"));
-      return hit || net;
+      }).catch(() => new Response("Recurso no disponible sin conexión", {
+        status: 503, headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" },
+      }));
     })
   );
+});
+
+// APP 7.0 — Receptor de Web Push. Se ejecuta incluso si la página está cerrada.
+// No suscribe dispositivos, envía mensajes ni solicita permiso por sí mismo.
+// Acepta únicamente eventos tipados desde el servidor con consentimiento validado.
+// El contenido que ve la pantalla bloqueada es fijo y no incluye datos privados.
+const BAYONA_PUSH_TYPES = Object.freeze({
+  morning: {
+    title: "BAYONA · Tu día",
+    body: "Tienes una acción pendiente. Abre BAYONA para consultarla.",
+    route: "./index.html?go=daily",
+  },
+  preTraining: {
+    title: "BAYONA · Entrenamiento",
+    body: "Revisa tu sesión cuando sea buen momento para ti.",
+    route: "./index.html?go=training",
+  },
+  evening: {
+    title: "BAYONA · Cierre",
+    body: "Puedes registrar cómo fue tu día en BAYONA.",
+    route: "./index.html?go=daily",
+  },
+});
+
+self.addEventListener("push", (event) => {
+  let payload;
+  try { payload = event.data?.json(); } catch { return; }
+  if (payload?.source !== "bayona" || payload?.version !== 1) return;
+  const type = Object.hasOwn(BAYONA_PUSH_TYPES, payload?.type) ? payload.type : null;
+  if (!type || typeof payload?.day !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(payload.day)) return;
+  const item = BAYONA_PUSH_TYPES[type];
+  // No se utiliza title/body/url enviados por terceros. Son fijos y del mismo origen.
+  event.waitUntil(self.registration.showNotification(item.title, {
+    body: item.body,
+    icon: "./icon-192.png",
+    badge: "./icon-192.png",
+    tag: `bayona-push:${type}:${payload.day}`,
+    renotify: false,
+    data: { url: item.route },
+  }));
+});
+
+// Un aviso solo navega a rutas de la propia aplicación tras pulsarlo el usuario.
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const relative = event.notification.data?.url || "./index.html?go=daily";
+  const target = new URL(relative, self.registration.scope);
+  if (target.origin !== self.location.origin) return;
+  event.waitUntil((async () => {
+    const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    const sameApp = windows.find((client) => new URL(client.url).origin === target.origin);
+    if (sameApp) {
+      try { await sameApp.navigate(target.href); return await sameApp.focus(); } catch { /* ventana cerrada */ }
+    }
+    return self.clients.openWindow(target.href);
+  })());
 });
