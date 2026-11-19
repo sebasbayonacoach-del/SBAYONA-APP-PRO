@@ -320,7 +320,7 @@ async function enterProduct({ guest = false, roleOverride = null } = {}) {
       role = role || accountRole();
     }
 
-    const entryRole = !guest && accountRole() === "coach" ? "coach" : "affiliate";
+    const entryRole = !guest && role === "coach" && accountRole() === "coach" ? "coach" : "affiliate";
     localStorage.setItem(ROLE_KEY, entryRole);
 
     await loadApp();
@@ -357,16 +357,12 @@ async function afterAuthenticated() {
   const role = await verifyCoachRole();
 
   if (role === "coach") {
-    const name = row?.display_name || displayNameFromUser(user) || state.pendingName;
-    if (!name) {
-      prepareProfileState({ user, row });
-      state.mode = "coach-profile";
-      state.busy = false;
-      render();
-      return;
-    }
-    await saveCoreProfile(user, name, "coach");
-    await enterProduct({ roleOverride: "coach" });
+    // El propietario puede entrar como Coach o atleta con la MISMA cuenta.
+    // Seleccionar una tarjeta no otorga permisos: el rol viene de la RPC.
+    state.mode = "choose-space";
+    state.busy = false;
+    state.message = "";
+    render();
     return;
   }
 
@@ -398,6 +394,74 @@ async function afterAuthenticated() {
   render();
 }
 
+
+function chooseSpaceView() {
+  return `
+    <section class="auth-card" aria-label="Elegir espacio BAYONA">
+      ${authHeader("MI CUENTA BAYONA", "¿Dónde quieres entrar?", "Puedes usar los dos espacios con tu cuenta. Elige tu experiencia de hoy.")}
+      <div class="auth-choice-list" role="group" aria-label="Elegir espacio de trabajo">
+        <button type="button" class="auth-space-choice" data-auth-space="coach" ${state.busy ? "disabled" : ""}>
+          <span><strong>PANEL COACH</strong><small>Clientes, rutinas, asignaciones y seguimiento</small></span><i aria-hidden="true">→</i>
+        </button>
+        <button type="button" class="auth-space-choice" data-auth-space="athlete" ${state.busy ? "disabled" : ""}>
+          <span><strong>MI APP ATLETA</strong><small>Mi entrenamiento, progreso y hábitos</small></span><i aria-hidden="true">→</i>
+        </button>
+      </div>
+      ${messageHtml()}
+      <p class="auth-entry-note">La autorización de Coach se verifica en el servidor. Una cuenta de atleta no puede entrar al Panel Coach.</p>
+    </section>`;
+}
+
+async function chooseSpace(space) {
+  if (state.busy || !currentUser()?.id) return;
+  if (space !== "coach" && space !== "athlete") return;
+  state.busy = true;
+  state.message = "";
+  render();
+  try {
+    const user = await refreshUser() || currentUser();
+    if (!user?.id) throw new Error("La sesión ya no es válida. Entra de nuevo.");
+    // Una selección anterior nunca sustituye a la comprobación de permisos.
+    const permitted = await verifyCoachRole();
+    if (permitted !== "coach") {
+      await afterAuthenticated();
+      return;
+    }
+
+    const row = await cloudProfile(user);
+    if (space === "coach") {
+      const name = row?.display_name || displayNameFromUser(user) || state.pendingName;
+      if (!name) {
+        prepareProfileState({ user, row });
+        state.mode = "coach-profile";
+        state.busy = false;
+        render();
+        return;
+      }
+      await saveCoreProfile(user, name, "coach");
+      await enterProduct({ roleOverride: "coach" });
+      return;
+    }
+
+    if (hasUserLocalState(user)) {
+      await enterProduct({ roleOverride: "athlete" });
+      return;
+    }
+    const portable = portableProfileFromUser(user);
+    if (portable?.onboarded) {
+      await hydratePortableProfile(user, portable);
+      await enterProduct({ roleOverride: "athlete" });
+      return;
+    }
+    prepareProfileState({ user, row });
+    state.mode = "profile";
+    state.busy = false;
+    render();
+  } catch (error) {
+    state.busy = false;
+    setMessage(errorText(error), "error");
+  }
+}
 
 function authHeader(kicker, title, copy) {
   return `
@@ -653,6 +717,7 @@ function render() {
   else if (state.mode === "reset") content = resetView();
   else if (state.mode === "profile") content = profileView();
   else if (state.mode === "coach-profile") content = coachProfileView();
+  else if (state.mode === "choose-space") content = chooseSpaceView();
   else if (state.mode === "migrate") content = migrateView();
   else if (state.mode === "offline") content = offlineView();
   else content = authForm();
@@ -845,6 +910,9 @@ function wire() {
   root?.querySelector('[data-auth-action="retry"]')?.addEventListener("click", () => bootstrap());
   root?.querySelector('[data-auth-action="migrate"]')?.addEventListener("click", migrateLegacyProgress);
   root?.querySelector('[data-auth-action="fresh"]')?.addEventListener("click", startFreshProfile);
+  root?.querySelectorAll("[data-auth-space]").forEach((button) => {
+    button.addEventListener("click", () => void chooseSpace(button.dataset.authSpace));
+  });
 
   root?.querySelectorAll("[data-profile-goal]").forEach((button) => {
     button.onclick = () => {
