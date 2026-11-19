@@ -29,7 +29,7 @@ ok(chooser.includes("const permitted = await verifyCoachRole()"), "cada selecci�
 ok(chooser.includes('if (permitted !== "coach")'), "acceso coach rechazado si no se verificó");
 ok(chooser.includes('await enterProduct({ roleOverride: "athlete" })'), "selección atleta abre explícitamente APP Atleta");
 ok(chooser.includes('await enterProduct({ roleOverride: "coach" })'), "selección coach abre explícitamente el panel");
-ok(chooser.includes("hasUserLocalState(user)") && chooser.includes("portableProfileFromUser(user)"), "atleta recupera progreso cuando existe");
+ok(chooser.includes("hasReadyLocalAthlete(user)") && chooser.includes("portableProfileFromUser(user)"), "atleta recupera progreso cuando existe");
 ok(chooser.includes('state.mode = "profile"'), "si falta perfil atleta se abre onboarding");
 
 ok(source.includes('data-auth-space="coach"'), "tarjeta coach disponible para propietario");
