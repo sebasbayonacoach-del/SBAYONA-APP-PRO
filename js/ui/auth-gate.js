@@ -27,6 +27,7 @@ import {
 import {
   clearActiveIdentity,
   hasScopedState,
+  hasOnboardedScopedProfile,
   importLegacyUserDataToActive,
   scopedStorage,
   setActiveIdentity,
@@ -201,6 +202,10 @@ function hasUserLocalState(user) {
   return Boolean(user?.id && hasScopedState(user.id));
 }
 
+function hasReadyLocalAthlete(user) {
+  return Boolean(user?.id && hasOnboardedScopedProfile(user.id));
+}
+
 async function cloudProfile(user) {
   if (!user?.id) return null;
   try {
@@ -367,16 +372,18 @@ async function afterAuthenticated() {
     return;
   }
 
-  if (hasUserLocalState(user)) {
+  if (hasReadyLocalAthlete(user)) {
     await enterProduct({ roleOverride: "athlete" });
     return;
   }
 
   const portable = portableProfileFromUser(user);
   if (portable?.onboarded) {
-    await hydratePortableProfile(user, portable);
-    await enterProduct({ roleOverride: "athlete" });
-    return;
+    const restored = await hydratePortableProfile(user, portable);
+    if (restored || hasReadyLocalAthlete(user)) {
+      await enterProduct({ roleOverride: "athlete" });
+      return;
+    }
   }
 
   // Una instalación anterior puede tener progreso sin cuenta. Nunca se
@@ -444,16 +451,19 @@ async function chooseSpace(space) {
       return;
     }
 
-    if (hasUserLocalState(user)) {
+    if (hasReadyLocalAthlete(user)) {
       await enterProduct({ roleOverride: "athlete" });
       return;
     }
     const portable = portableProfileFromUser(user);
     if (portable?.onboarded) {
-      await hydratePortableProfile(user, portable);
-      await enterProduct({ roleOverride: "athlete" });
-      return;
+      const restored = await hydratePortableProfile(user, portable);
+      if (restored || hasReadyLocalAthlete(user)) {
+        await enterProduct({ roleOverride: "athlete" });
+        return;
+      }
     }
+    // Datos locales parciales o corruptos nunca equivalen a un perfil terminado.
     prepareProfileState({ user, row });
     state.mode = "profile";
     state.busy = false;
