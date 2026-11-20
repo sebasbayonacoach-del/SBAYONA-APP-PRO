@@ -26,9 +26,11 @@ SELECT t.target, (t.oid IS NOT NULL) AS table_exists,
        p.qual AS using_expression, p.with_check AS check_expression
 FROM tables t LEFT JOIN policies p ON p.target = t.target
 ORDER BY t.target, p.cmd, p.permissive, p.policyname;
--- Fail fast if either table is missing or RLS is disabled.
+-- Fail closed when tables, RLS, or a SELECT policy category are missing.
+-- This is structural coverage, not a proof of correct policy expressions.
 DO $$
 DECLARE bad text;
+DECLARE missing_select text;
 BEGIN
  SELECT string_agg(target::text, ', ') INTO bad
  FROM (
@@ -40,7 +42,22 @@ BEGIN
  IF bad IS NOT NULL THEN
    RAISE EXCEPTION 'APP7 RLS PREFLIGHT FAIL: missing table or RLS disabled: %', bad;
  END IF;
-END $$;
+ SELECT string_agg(target || ':' || policy_kind, ', ') INTO missing_select
+ FROM (
+   SELECT t.relname::text AS target, kinds.policy_kind
+   FROM (VALUES ('coach_clients'::name),('coach_routines'::name)) t(relname)
+   CROSS JOIN (VALUES ('PERMISSIVE'::text),('RESTRICTIVE'::text)) kinds(policy_kind)
+   WHERE NOT EXISTS (
+     SELECT 1 FROM pg_policies p
+     WHERE p.schemaname='public' AND p.tablename=t.relname::text
+       AND p.permissive=kinds.policy_kind
+       AND p.cmd IN ('SELECT','ALL')
+   )
+ ) gaps;
+ IF missing_select IS NOT NULL THEN
+   RAISE EXCEPTION 'APP7 RLS PREFLIGHT FAIL: missing SELECT policy categories: %', missing_select;
+ END IF;
+END $;
 -- Postgres combines permissive policies using OR and restrictive policies using AND.
 -- This report does not establish effective authorization or revocation.
 -- Execute security/app7-rls-revoked-link.sql with synthetic fixtures separately.
