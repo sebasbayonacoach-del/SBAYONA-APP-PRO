@@ -1,10 +1,12 @@
 // BAYONA APP 7.0 — entrenadores virtuales para PROPLAYER.
 // Ningun video se atribuye a una persona sin verificaciones explicitas.
 // Modulo puro: no solicita acceso a camara, voz, rostro ni red.
+import { t } from "./i18n.js";
+
 export const INSTRUCTOR_CHOICES = Object.freeze([
-  { id: "reference", label: "REFERENCIA DEL CATALOGO" },
-  { id: "sebas", label: "SEBASTIAN BAYONA" },
-  { id: "profesora", label: "PROFESORA BAYONA" },
+  { id: "reference", label: t("instructors.reference") },
+  { id: "sebas", label: t("instructors.sebas") },
+  { id: "profesora", label: t("instructors.profesor") },
 ]);
 
 export const EMPTY_INSTRUCTOR_MANIFEST = Object.freeze({
