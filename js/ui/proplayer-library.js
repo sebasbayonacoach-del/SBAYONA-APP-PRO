@@ -1,7 +1,7 @@
 // BAYONA / PROPLAYER — catálogo técnico integrado en la app.
 // Los vídeos se solicitan al origen bajo demanda; el catálogo no acredita titularidad.
 import { S } from "../state.js";
-import { esc } from "../i18n.js";
+import { esc, t } from "../i18n.js";
 import { bindVideoRecovery, pauseVideoWhenRemoved } from "../media.js";
 import { BUILDERS, $, el, elT, openSection, showModal, hideModal, toast } from "./shared.js";
 import { linkedClients, saveCloudRoutine, assignCloudRoutine } from "../sync/coaching.js";
@@ -541,7 +541,7 @@ function renderLibrary(body, data, manifest = EMPTY_INSTRUCTOR_MANIFEST) {
       const ready = instructorCoverage(manifest, view.rows, activeInstructor);
       stateText.textContent = instructorLabel(activeInstructor) + " · " + ready + "/" + view.rows.length + " demostraciones propias aprobadas";
     } else if (!buildButton) {
-      stateText.textContent = "Vídeos de referencia del catálogo · no acreditan propiedad BAYONA";
+      stateText.textContent = t("instructors.referenceDisclosure");
     }
     disposeProplayerPreviews(cards);
     cards.replaceChildren();
