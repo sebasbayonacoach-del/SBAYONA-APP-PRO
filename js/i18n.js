@@ -8,6 +8,10 @@
 export const locale = "es-ES";
 
 const es = {
+  "instructors.reference": "REFERENCIA DEL CATÁLOGO",
+  "instructors.sebas": "SEBASTIÁN BAYONA",
+  "instructors.profesor": "PROFESORA BAYONA",
+  "instructors.referenceDisclosure": "Vídeos de referencia del catálogo · no acreditan propiedad BAYONA",
   "auth.space.aria": "Elegir espacio BAYONA",
   "auth.space.groupAria": "Elegir espacio de trabajo",
   "auth.space.kicker": "MI CUENTA BAYONA",

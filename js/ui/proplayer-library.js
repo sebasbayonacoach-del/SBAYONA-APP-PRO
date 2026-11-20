@@ -1,19 +1,33 @@
 // BAYONA / PROPLAYER — catálogo técnico integrado en la app.
 // Los vídeos se solicitan al origen bajo demanda; el catálogo no acredita titularidad.
 import { S } from "../state.js";
-import { esc } from "../i18n.js";
+import { esc, t } from "../i18n.js";
 import { bindVideoRecovery, pauseVideoWhenRemoved } from "../media.js";
 import { BUILDERS, $, el, elT, openSection, showModal, hideModal, toast } from "./shared.js";
 import { linkedClients, saveCloudRoutine, assignCloudRoutine } from "../sync/coaching.js";
 import { accountRole } from "../sync/supabase.js";
 import { renderTrainingymAudit } from "./trainingym-audit.js";
 import { makeProplayerPreview, disposeProplayerPreviews } from "./proplayer-preview.js";
+import { INSTRUCTOR_CHOICES, EMPTY_INSTRUCTOR_MANIFEST, instructorLabel, resolveInstructorVideo, instructorCoverage } from "../instructors.js";
 
 const CATALOG_URL = "./trainingym/catalog.json";
 const MEDIA_BASE = "./private-trainingym/media/";
 const CDN_MEDIA_BASE = "https://acajakbiebfp9udy.public.blob.vercel-storage.com/proplayer/";
 const LOCAL_MEDIA = ["localhost", "127.0.0.1", "::1"].includes(globalThis.location?.hostname || "");
 const PAGE_SIZE = 30;
+const INSTRUCTOR_MANIFEST_URL = "./media/instructor-demos.json";
+
+let instructorManifestPromise = null;
+function loadInstructorManifest() {
+  if (!instructorManifestPromise) {
+    instructorManifestPromise = fetch(INSTRUCTOR_MANIFEST_URL, { cache: "no-store" })
+      .then(response => response.ok ? response.json() : EMPTY_INSTRUCTOR_MANIFEST)
+      .then(data => data?.version === 1 && data.exercises && typeof data.exercises === "object"
+        ? data : EMPTY_INSTRUCTOR_MANIFEST)
+      .catch(() => EMPTY_INSTRUCTOR_MANIFEST);
+  }
+  return instructorManifestPromise;
+}
 
 let catalogCache = null;
 let catalogPromise = null;
@@ -261,7 +275,7 @@ async function openRoutineBuilder(records, onSaved) {
   });
 }
 
-function playVideo(record) {
+function playVideo(record, source = null, instructorId = "reference") {
   showModal('<div class="proplayer-video-modal" data-proplayer-video></div>', () => {
     const host = document.querySelector("[data-proplayer-video]");
     if (!host) return;
@@ -270,7 +284,7 @@ function playVideo(record) {
     close.type = "button";
     close.addEventListener("click", hideModal);
 
-    const kicker = elT("div", "proplayer-kicker", "BAYONA / PROPLAYER · DEMOSTRACIÓN");
+    const kicker = elT("div", "proplayer-kicker", "BAYONA / PROPLAYER · " + instructorLabel(instructorId));
     const modalHead = el("div", "proplayer-video-head");
     modalHead.append(kicker, close);
     const title = elT("h3", "proplayer-video-title", record.nombre);
@@ -283,8 +297,10 @@ function playVideo(record) {
     );
 
     const video = document.createElement("video");
-    video.src = mediaUrl(record);
-    video.muted = true;
+    video.src = source || mediaUrl(record);
+    video.controls = true;
+    video.playsInline = true;
+    video.muted = instructorId === "reference";
     video.setAttribute("aria-label", "Demostración de " + record.nombre);
     const state = elT("p", "proplayer-video-state", "Cargando demostración…");
     const fallback = elT("p", "proplayer-video-state", "La ficha conserva el nombre y los datos técnicos del ejercicio.");
@@ -324,7 +340,7 @@ function exportSelection(rows) {
   setTimeout(() => URL.revokeObjectURL(url), 1500);
 }
 
-function renderLibrary(body, data) {
+function renderLibrary(body, data, manifest = EMPTY_INSTRUCTOR_MANIFEST) {
   const root = el("div", "proplayer-library");
   const isCoach = document.body.dataset.oneContext === "coach" && accountRole() === "coach";
   const selected = new Map();
@@ -350,7 +366,7 @@ function renderLibrary(body, data) {
   refresh.type = "button";
   refresh.addEventListener("click", () => {
     loadCatalog(true)
-      .then((next) => renderLibrary(body, next))
+      .then((next) => renderLibrary(body, next, manifest))
       .catch((error) => renderLoadError(body, error));
   });
   heroActions.append(back, refresh);
@@ -376,7 +392,9 @@ function renderLibrary(body, data) {
     makeMetric("EJERCICIOS", formatCount(data.length), "catálogo auditado"),
     makeMetric("FICHAS CON REFERENCIA", formatCount(referenced), "el origen puede no responder"),
     makeMetric("NOMBRES DE ARCHIVO", formatCount(uniqueMedia), "según catálogo; disponibilidad externa"),
-    makeMetric("SIN REFERENCIA", formatCount(missing), "ausente en los datos del catálogo")
+    makeMetric("SIN REFERENCIA", formatCount(missing), "ausente en los datos del catálogo"),
+    makeMetric("CON SEBASTIÁN", formatCount(instructorCoverage(manifest, data, "sebas")), "vídeos propios aprobados"),
+    makeMetric("CON PROFESORA", formatCount(instructorCoverage(manifest, data, "profesora")), "vídeos propios aprobados")
   );
   root.append(metrics);
 
@@ -415,6 +433,9 @@ function renderLibrary(body, data) {
   const resistance = document.createElement("select"); resistance.id = "proplayer-resistance";
   const tag = document.createElement("select"); tag.id = "proplayer-tag";
   const availability = document.createElement("select"); availability.id = "proplayer-availability";
+  const instructor = document.createElement("select"); instructor.id = "proplayer-instructor";
+  INSTRUCTOR_CHOICES.forEach(choice => instructor.appendChild(new Option(choice.label, choice.id)));
+  instructor.value = "reference";
 
   fillSelect(type, distinct(data, "tipo"), "Todos los tipos");
   fillSelect(muscle, distinct(data, "grupo_muscular", "SIN ASIGNAR"), "Todos los músculos");
@@ -436,7 +457,8 @@ function renderLibrary(body, data) {
     field("ESFUERZO", effort),
     field("RESISTENCIA", resistance),
     field("ETIQUETA", tag),
-    field("DISPONIBILIDAD", availability)
+    field("DISPONIBILIDAD", availability),
+    field("INSTRUCTOR DE LA DEMOSTRACIÓN", instructor)
   );
 
   const filterActions = el("div", "proplayer-filter-actions");
@@ -480,6 +502,7 @@ function renderLibrary(body, data) {
     const selectedResistance = resistance.value;
     const selectedTag = tag.value;
     const selectedAvailability = availability.value;
+    const activeInstructor = instructor.value || "reference";
 
     view.rows = data.filter((record) => {
       if (selectedType && record.tipo !== selectedType) return false;
@@ -514,6 +537,12 @@ function renderLibrary(body, data) {
       buildButton.disabled = selected.size === 0;
       stateText.textContent = selected.size ? selected.size + " ejercicio(s) seleccionados para rutina" : "Catálogo validado · selecciona hasta 12 ejercicios";
     }
+    if (activeInstructor !== "reference") {
+      const ready = instructorCoverage(manifest, view.rows, activeInstructor);
+      stateText.textContent = instructorLabel(activeInstructor) + " · " + ready + "/" + view.rows.length + " demostraciones propias aprobadas";
+    } else if (!buildButton) {
+      stateText.textContent = t("instructors.referenceDisclosure");
+    }
     disposeProplayerPreviews(cards);
     cards.replaceChildren();
     const pageRows = view.rows.slice((view.page - 1) * PAGE_SIZE, view.page * PAGE_SIZE);
@@ -525,12 +554,25 @@ function renderLibrary(body, data) {
         elT("span", "", "#" + String(record.pos).padStart(4, "0") + (record.source_id ? " · ID " + record.source_id : " · SIN ID")),
         elT("strong", "", record.tipo === "Cardio" ? "C" : record.tipo === "Movilidad" ? "M" : "F")
       );
+      // No presentar videos de terceros como si fueran el clon o la profesora.
+      const instructorDemo = activeInstructor === "reference" ? null
+        : resolveInstructorVideo(manifest, record, activeInstructor);
       if (canPlay(record)) {
+        if (activeInstructor === "reference") {
+          art.classList.add("has-video-preview");
+          art.append(makeProplayerPreview({
+            url: mediaUrl(record),
+            name: record.nombre,
+            openVideo: () => playVideo(record),
+          }));
+        }
+      }
+      if (instructorDemo) {
         art.classList.add("has-video-preview");
         art.append(makeProplayerPreview({
-          url: mediaUrl(record),
+          url: instructorDemo.url,
           name: record.nombre,
-          openVideo: () => playVideo(record),
+          openVideo: () => playVideo(record, instructorDemo.url, activeInstructor),
         }));
       }
       const titleNode = elT("h3", "", record.nombre);
@@ -549,12 +591,19 @@ function renderLibrary(body, data) {
           : record.video_archivo_local || record.video_url
             ? "Referencia de vídeo"
             : "Sin referencia";
-      foot.append(elT("span", "", mediaState));
-      const playableHere = canPlay(record);
-      const play = elT("button", "", playableHere ? "PROBAR VÍDEO" : record.video_archivo_local ? "PROBAR CDN" : "SIN VÍDEO");
+      const ownInstructor = activeInstructor !== "reference";
+      const mediaCopy = ownInstructor
+        ? (instructorDemo ? "DEMO PROPIA · TÉCNICA APROBADA" : "DEMOSTRACIÓN EN PRODUCCIÓN")
+        : mediaState;
+      foot.append(elT("span", "", mediaCopy));
+      const playableHere = ownInstructor ? Boolean(instructorDemo) : canPlay(record);
+      const playText = ownInstructor
+        ? (instructorDemo ? "VER A " + (activeInstructor === "sebas" ? "SEBASTIÁN" : "LA PROFESORA") : "PENDIENTE DE GRABACIÓN")
+        : (playableHere ? "PROBAR VÍDEO" : record.video_archivo_local ? "PROBAR CDN" : "SIN VÍDEO");
+      const play = elT("button", "", playText);
       play.type = "button";
       play.disabled = !playableHere;
-      if (!play.disabled) play.addEventListener("click", () => playVideo(record));
+      if (!play.disabled) play.addEventListener("click", () => playVideo(record, instructorDemo?.url || null, activeInstructor));
       foot.append(play);
       if (isCoach) {
         const add = elT("button", "proplayer-add-routine", selected.has(key) ? "QUITAR" : "AÑADIR");
@@ -594,8 +643,13 @@ function renderLibrary(body, data) {
       draw();
     });
   });
+  instructor.addEventListener("change", () => {
+    view.page = 1;
+    draw();
+  });
   reset.addEventListener("click", () => {
     controlsList.forEach((control) => { control.value = ""; });
+    instructor.value = "reference";
     view.page = 1;
     draw();
   });
@@ -633,8 +687,8 @@ function renderLoadError(body, error) {
   const retry = elT("button", "btn", "REINTENTAR");
   retry.type = "button";
   retry.addEventListener("click", () => {
-    loadCatalog(true)
-      .then((data) => renderLibrary(body, data))
+    Promise.all([loadCatalog(true), loadInstructorManifest()])
+      .then(([data, manifest]) => renderLibrary(body, data, manifest))
       .catch((nextError) => renderLoadError(body, nextError));
   });
   row.append(back, retry);
@@ -653,10 +707,10 @@ BUILDERS.library = (body) => {
   );
   body.append(loading);
 
-  loadCatalog()
-    .then((data) => {
+  Promise.all([loadCatalog(), loadInstructorManifest()])
+    .then(([data, manifest]) => {
       if (!body.isConnected) return;
-      renderLibrary(body, data);
+      renderLibrary(body, data, manifest);
     })
     .catch((error) => {
       if (!body.isConnected) return;
