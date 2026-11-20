@@ -57,7 +57,7 @@ BEGIN
  IF missing_select IS NOT NULL THEN
    RAISE EXCEPTION 'APP7 RLS PREFLIGHT FAIL: missing SELECT policy categories: %', missing_select;
  END IF;
-END $;
+END $$;
 -- Postgres combines permissive policies using OR and restrictive policies using AND.
 -- This report does not establish effective authorization or revocation.
 -- Execute security/app7-rls-revoked-link.sql with synthetic fixtures separately.
