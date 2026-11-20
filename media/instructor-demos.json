@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "notes": "BAYONA-owned exercise demos only. Populate an exercise after identity, rights and biomechanical review. Empty by default.",
+  "instructors": {
+    "sebas": {
+      "name": "Sebastián Bayona",
+      "status": "in_production"
+    },
+    "profesora": {
+      "name": "Profesora BAYONA",
+      "status": "in_production"
+    }
+  },
+  "exercises": {}
+}
