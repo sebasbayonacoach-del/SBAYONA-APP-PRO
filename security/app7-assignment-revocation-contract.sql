@@ -7,6 +7,8 @@ DECLARE
   body text;
   definition text;
   matching_count integer;
+  function_oid oid;
+  link_rls_enabled boolean;
 BEGIN
   SELECT count(*), max(pg_get_functiondef(p.oid))
     INTO matching_count, definition
@@ -16,6 +18,21 @@ BEGIN
   IF matching_count <> 1 THEN
     RAISE EXCEPTION 'APP7 ASSIGNMENT CONTRACT: expected exactly one public.complete_coach_assignment overload; found %', matching_count;
   END IF;
+  SELECT p.oid INTO function_oid
+  FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
+  WHERE n.nspname='public' AND p.proname='complete_coach_assignment';
+
+  IF NOT has_function_privilege('authenticated', function_oid, 'EXECUTE') THEN
+    RAISE EXCEPTION 'APP7 ASSIGNMENT CONTRACT: authenticated role cannot execute completion RPC; review expected API contract';
+  END IF;
+
+  SELECT c.relrowsecurity INTO link_rls_enabled
+  FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
+  WHERE n.nspname='public' AND c.relname='coach_clients';
+  IF link_rls_enabled IS DISTINCT FROM true THEN
+    RAISE EXCEPTION 'APP7 ASSIGNMENT CONTRACT: coach_clients RLS missing or disabled';
+  END IF;
+
   body := lower(definition);
   IF position('security definer' in body) = 0 THEN
     RAISE EXCEPTION 'APP7 ASSIGNMENT CONTRACT: SECURITY DEFINER changed; manual authorization review required';
