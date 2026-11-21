@@ -26,6 +26,7 @@ BEGIN
         WHERE cc.coach_id = a.coach_id
           AND cc.client_id = a.client_id
           AND cc.status = 'active'
+        FOR SHARE OF cc
      );
   GET DIAGNOSTICS v_rows = ROW_COUNT;
   RETURN v_rows = 1;
