@@ -17,5 +17,6 @@ assert.match(normalized, /exists\s*\(\s*select 1 from public\.coach_clients as c
 assert.match(normalized, /cc\.coach_id\s*=\s*a\.coach_id/);
 assert.match(normalized, /cc\.client_id\s*=\s*a\.client_id/);
 assert.match(normalized, /cc\.status\s*=\s*'active'/);
+assert.match(normalized, /for share of cc/);
 assert.match(normalized, /return v_rows\s*=\s*1/);
 console.log('PASS: static revocation RPC migration contract (not an authenticated RLS test)');
