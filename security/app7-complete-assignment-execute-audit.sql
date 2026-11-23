@@ -16,7 +16,7 @@ SELECT proname, signature, owner, prosecdef AS security_definer,
        has_function_privilege('anon', oid, 'EXECUTE') AS anon_can_execute,
        has_function_privilege('authenticated', oid, 'EXECUTE') AS authenticated_can_execute,
        EXISTS (SELECT 1 FROM aclexplode(coalesce((SELECT proacl FROM pg_proc WHERE oid = rpc.oid), acldefault('f', (SELECT proowner FROM pg_proc WHERE oid = rpc.oid)))) acl WHERE acl.grantee = 0 AND acl.privilege_type = 'EXECUTE') AS public_can_execute,
-       definition ~* 'auth\\.uid\\(\\)' AS checks_auth_uid,
+       definition ~* 'auth[.]uid[[:space:]]*[(][)]' AS checks_auth_uid,
        definition ~* 'coach_clients' AS references_coach_link,
        definition ~* 'status[[:space:]]*=[[:space:]]*''active''' AS checks_active_link,
        definition ~* 'FOR[[:space:]]+SHARE' AS locks_active_link
