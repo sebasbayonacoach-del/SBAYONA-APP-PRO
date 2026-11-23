@@ -24,9 +24,9 @@ WHERE schemaname = 'public'
       AND (coalesce(qual, '') ~* 'bayona_may_use_product'
         OR coalesce(with_check, '') ~* 'bayona_may_use_product'))
     -- Global coach privilege is not a substitute for coach_id row ownership.
-    OR (coalesce(qual, '') ~* 'is_bayona_coach\\s*\\('
+    OR (coalesce(qual, '') ~* 'is_bayona_coach[[:space:]]*[(]'
       AND coalesce(qual, '') !~* 'coach_id')
-    OR (coalesce(with_check, '') ~* 'is_bayona_coach\\s*\\('
+    OR (coalesce(with_check, '') ~* 'is_bayona_coach[[:space:]]*[(]'
       AND coalesce(with_check, '') !~* 'coach_id')
   )
 ORDER BY tablename, policyname;
